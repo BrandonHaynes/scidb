@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<section>
+  <title>Aggregation using Cumulate</title>
+
+  <para>The cumulate operator accumulates values along an array dimension and
+  calculates the specified aggregate function.</para>
+
+  <para>You can calculate the cumulative sum of an array attribute, along a
+  particular dimension with the cumulate operator. For example, consider the
+  array <code>m4x4</code>, with values and schema as follows: <programlisting
+  language="test">--afl store(build(&lt;val:double&gt; [i=0:3,4,0,j=0:3,4,0],i*4+j),m4x4); --show-output=no --show-query=no
+--schema m4x4;
+--afl scan(m4x4);  --output-format=dense --chunkify=yes
+</programlisting> <indexterm>
+      <primary>cumulative sum</primary>
+    </indexterm>The <code>cumulate</code> operator accumulates the values
+  along a selected dimension and aggregates those values. For example, if you
+  choose the first dimension, <code>i</code>, <code>cumulate</code> aggregates
+  the values along <code>i</code> as shown in the following figure (assuming
+  the aggregation function is <emphasis
+  role="bold">sum</emphasis>):<informalfigure>
+      <mediaobject>
+        <imageobject>
+          <imagedata align="center" contentwidth="2.0in"
+                     fileref="../graphics/cumsum.png" scale="80"/>
+        </imageobject>
+      </mediaobject>
+    </informalfigure> <programlisting>AFL% cumulate(m4x4,sum(val),i);</programlisting><programlisting>[
+[(0),(1),(2),(3)],
+[(4),(6),(8),(10)],
+[(12),(15),(18),(21)],
+[(24),(28),(32),(36)]
+]</programlisting> If you specify the dimension j, cumulate sums along j:
+  <programlisting>AFL% cumulate(m4x4,sum(val),j);</programlisting><programlisting>[
+[(0),(1),(3),(6)],
+[(4),(9),(15),(22)],
+[(8),(17),(27),(38)],
+[(12),(25),(39),(54)]
+]</programlisting></para>
+
+  <para>If the attribute is not specified, <code>cumulate</code> uses the
+  first attribute of the array. If the dimension is not specified,
+  <code>cumulate</code> uses the first declared dimension of the array. The
+  <code>cumulate</code> operator aggregates along a dimension. This differs
+  from the sum of a <command><code>GROUP BY</code></command> aggregate, which
+  groups all of the values in a dimension and then sums them:<programlisting><command>SELECT</command> sum(val) 
+     <command>FROM</command> m4x4 
+     <command>GROUP BY</command> j;</programlisting><programlisting>[(24),(28),(32),(36)]</programlisting><programlisting><command>SELECT</command> sum(val)
+     <command>FROM</command> m4x4 
+     <command>GROUP BY</command> i;</programlisting><programlisting>[(6),(22),(38),(54)]</programlisting></para>
+</section>

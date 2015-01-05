@@ -1,0 +1,21 @@
+
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:2,3,3]
+store(build(A,x+10),A)
+
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "window(A,1,1,sum(A))"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "window(A,1,1,sum(x))"
+--error --code=scidb::SCIDB_SE_TYPE::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_ASTERISK "window(A,1,1,avg(a),max(*),count(*))"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_NOT_FOUND "window(A,1,1,test_aggr(a))"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "window(A,1,1,test_aggr(x))"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "window(A,sum(a))"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "window(A,2,2,1,stdev(a))"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2 "window(aggregate(A,count(*)))"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_LOGICAL_OP_DOESNT_EXIST "window(count(a))"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR5 "window(A,1,1,sum(a),'invalid')"
+
+--cleanup
+remove(A)
+--stop-query-logging

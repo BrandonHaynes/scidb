@@ -1,0 +1,28 @@
+# TEST:    Send a signal 11 to just the child process of a worker instance
+# EXPECT:  After scidb recovers, temp arrays should be unavailable for queries,
+#          but still part of the catalog.
+
+--setup
+
+load_library('misc')
+
+create temp array ARRAY1 <v : int64> [I=0:200,25,0]
+--igdata "store(build(ARRAY1,I),ARRAY1)"
+
+--test
+--start-query-logging
+
+# check distribution
+aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=0),count(*))
+aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=1),count(*))
+aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=2),count(*))
+aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=3),count(*))
+
+# inject error into a write query
+--igdata "apply(ARRAY1,zz,injectError(2, 4))"
+--error --code=scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR "insert(attribute_rename(project(apply(filter(ARRAY1, I <> 0), v1, v*2), v1), v1, v), ARRAY1)"
+--error --code=scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY "scan(ARRAY1)"
+
+--cleanup
+remove(ARRAY1)
+

@@ -1,0 +1,149 @@
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <create array Valid<a: double> [r=0:1,2,0, c=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd('S')>
+[An error expected at this place for the query "gesvd('S')". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT.]
+
+SCIDB QUERY : <gesvd(Valid, Valid, 'S')>
+[An error expected at this place for the query "gesvd(Valid, Valid, 'S')". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT.]
+
+SCIDB QUERY : <create array TooManyAttrs <a: double, b: double >               [r=0:1,2,0, c=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(TooManyAttrs, 'S')>
+[An error expected at this place for the query "gesvd(TooManyAttrs, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2.]
+
+SCIDB QUERY : <remove(TooManyAttrs)>
+Query was executed successfully
+
+SCIDB QUERY : <create array Int<a: int32>  [r=0:1,2,0, c=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(Int, 'S')>
+[An error expected at this place for the query "gesvd(Int, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5.]
+
+SCIDB QUERY : <remove(Int)>
+Query was executed successfully
+
+SCIDB QUERY : <create array DimsTooFew<a: double>  [r=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(DimsTooFew, 'S')>
+[An error expected at this place for the query "gesvd(DimsTooFew, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3.]
+
+SCIDB QUERY : <remove(DimsTooFew)>
+Query was executed successfully
+
+SCIDB QUERY : <create array DimsTooMany<a: double>  [r=0:1,2,0, c=0:1,2,0, d=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(DimsTooMany, 'S')>
+[An error expected at this place for the query "gesvd(DimsTooMany, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3.]
+
+SCIDB QUERY : <remove(DimsTooMany)>
+Query was executed successfully
+
+SCIDB QUERY : <create array RowInf<a: double>  [r=0:*,2,0, c=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(RowInf, 'S')>
+[An error expected at this place for the query "gesvd(RowInf, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9.]
+
+SCIDB QUERY : <remove(RowInf)>
+Query was executed successfully
+
+SCIDB QUERY : <create array ColInf<a: double>  [r=0:1,2,0, c=0:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(ColInf, 'S')>
+[An error expected at this place for the query "gesvd(ColInf, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9.]
+
+SCIDB QUERY : <remove(ColInf)>
+Query was executed successfully
+
+SCIDB QUERY : <create array StartOne<a: double>  [r=1:1,2,0, c=1:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(StartOne, 'S')>
+[An error expected at this place for the query "gesvd(StartOne, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR44. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR44.]
+
+SCIDB QUERY : <remove(StartOne)>
+Query was executed successfully
+
+SCIDB QUERY : <create array NonInt<a: double>  [r(float)=1,2,0, c=0:0,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(NonInt, 'S')>
+[An error expected at this place for the query "gesvd(NonInt, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45.]
+
+SCIDB QUERY : <remove(NonInt)>
+Query was executed successfully
+
+SCIDB QUERY : <create array NonInt<a: double>  [r(double)=1,2,0, c=0:0,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(NonInt, 'S')>
+[An error expected at this place for the query "gesvd(NonInt, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45.]
+
+SCIDB QUERY : <remove(NonInt)>
+Query was executed successfully
+
+SCIDB QUERY : <create array NonInt<a: double>  [r(char)=1,2,0, c=0:0,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(NonInt, 'S')>
+[An error expected at this place for the query "gesvd(NonInt, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45.]
+
+SCIDB QUERY : <remove(NonInt)>
+Query was executed successfully
+
+SCIDB QUERY : <create array NonInt<a: double>  [r(string)=1,2,0, c=0:0,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(NonInt, 'S')>
+[An error expected at this place for the query "gesvd(NonInt, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45.]
+
+SCIDB QUERY : <remove(NonInt)>
+Query was executed successfully
+
+SCIDB QUERY : <create array chunkTooSmall  <a: double> [r=0:1,31,0, c=0:1,31,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(chunkTooSmall, 'S')>
+[An error expected at this place for the query "gesvd(chunkTooSmall, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41.]
+
+SCIDB QUERY : <remove(chunkTooSmall)>
+Query was executed successfully
+
+SCIDB QUERY : <create array chunkTooLarge  <a: double> [r=0:1,1025,0, c=0:1,33,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(chunkTooLarge, 'S')>
+[An error expected at this place for the query "gesvd(chunkTooLarge, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR42. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR42.]
+
+SCIDB QUERY : <remove(chunkTooLarge)>
+Query was executed successfully
+
+SCIDB QUERY : <create array RowOverlap<a: double>  [r=0:1,32,1, c=0:1,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(RowOverlap, 'S')>
+[An error expected at this place for the query "gesvd(RowOverlap, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40.]
+
+SCIDB QUERY : <remove(RowOverlap)>
+Query was executed successfully
+
+SCIDB QUERY : <create array ColOverlap<a: double>  [r=0:1,32,0, c=0:1,32,1]>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(ColOverlap, 'S')>
+[An error expected at this place for the query "gesvd(ColOverlap, 'S')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40.]
+
+SCIDB QUERY : <remove(ColOverlap)>
+Query was executed successfully
+
+Query was executed successfully
+

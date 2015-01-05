@@ -1,0 +1,8 @@
+--setup
+--start-query-logging
+--test
+
+redimension(build(<m:int64,k:int64>[n],'{0}[{0}(2,2387),{1}(999999,2299),{2}(999999,2299)]',true),<m:int64>[i=0:*,1000,0,k=0:*,1000,0])
+redimension(build(<m:int64,k:int64>[n],'{0}[{0}(2,2387),{1}(999999,2299),{2}(999999,2299)]',true),<m:int64>[k=0:*,1000,0,i=0:*,1000,0])
+--cleanup
+--stop-query-logging

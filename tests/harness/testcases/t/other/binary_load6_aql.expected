@@ -1,0 +1,168 @@
+SCIDB QUERY : <create array C <num:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C1 <num:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C2 <num:double> [x=1:*,100000,0,y=1:*,100000,0,z=1:*,100000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array CString <name:string> [x=1:*,100000,0,y=1:*,100000,0,z=1:*,100000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(C, '${TEST_DATA_DIR}/bsp1.txt')">
+{x,y,z} num
+{1,1,1} 15.2
+{100000,100000,1000000} inf
+{100000000,500000,10000000} nan
+
+SCIDB QUERY : <save C into current instance 'Csparse1.bin' as '(double)'>
+{x,y,z} num
+{1,1,1} 15.2
+{100000,100000,1000000} inf
+{100000000,500000,10000000} nan
+
+SCIDB QUERY : <load C1 from current instance 'Csparse1.bin' as '(double)'>
+{x,y,z} num
+{1,1,1} 15.2
+{1,1,2} inf
+{1,1,3} nan
+
+SCIDB QUERY : <load C2 from current instance 'Csparse1.bin' as '(double)'>
+{x,y,z} num
+{1,1,1} 15.2
+{1,1,2} inf
+{1,1,3} nan
+
+SCIDB QUERY : <select * from C>
+{x,y,z} num
+{1,1,1} 15.2
+{100000,100000,1000000} inf
+{100000000,500000,10000000} nan
+
+SCIDB QUERY : <select * from C1>
+{x,y,z} num
+{1,1,1} 15.2
+{1,1,2} inf
+{1,1,3} nan
+
+SCIDB QUERY : <select * from C2>
+{x,y,z} num
+{1,1,1} 15.2
+{1,1,2} inf
+{1,1,3} nan
+
+SCIDB QUERY : <store(join(C1,C2),Z)>
+{x,y,z} num,num_2
+{1,1,1} 15.2,15.2
+{1,1,2} inf,inf
+{1,1,3} nan,nan
+
+SCIDB QUERY : <select * from Z>
+{x,y,z} num,num_2
+{1,1,1} 15.2,15.2
+{1,1,2} inf,inf
+{1,1,3} nan,nan
+
+SCIDB QUERY : <select * from show(Z)>
+{i} schema
+{0} 'Z<num:double,num_2:double> [x=1:100000,100000,0,y=1:100000,100000,0,z=1:100000,100000,0]'
+
+SCIDB QUERY : <save Z into current instance 'Zsparse1.bcp' as '(double,double)'>
+{x,y,z} num,num_2
+{1,1,1} 15.2,15.2
+{1,1,2} inf,inf
+{1,1,3} nan,nan
+
+SCIDB QUERY : <store(join(Z,Z),ZxZ)>
+{x,y,z} num,num_2,num_3,num_2_2
+{1,1,1} 15.2,15.2,15.2,15.2
+{1,1,2} inf,inf,inf,inf
+{1,1,3} nan,nan,nan,nan
+
+SCIDB QUERY : <select * from ZxZ>
+{x,y,z} num,num_2,num_3,num_2_2
+{1,1,1} 15.2,15.2,15.2,15.2
+{1,1,2} inf,inf,inf,inf
+{1,1,3} nan,nan,nan,nan
+
+SCIDB QUERY : <select * from show(ZxZ)>
+{i} schema
+{0} 'ZxZ<num:double,num_2:double,num_3:double,num_2_2:double> [x=1:100000,100000,0,y=1:100000,100000,0,z=1:100000,100000,0]'
+
+SCIDB QUERY : <save ZxZ into current instance 'ZxZsparse1.bcp' as '(double,double,double,double)'>
+{x,y,z} num,num_2,num_3,num_2_2
+{1,1,1} 15.2,15.2,15.2,15.2
+{1,1,2} inf,inf,inf,inf
+{1,1,3} nan,nan,nan,nan
+
+SCIDB QUERY : <load Z from current instance 'ZxZsparse1.bcp' as '(double,double,dummy(8),dummy(8))'>
+{x,y,z} num,num_2
+{1,1,1} 15.2,15.2
+{1,1,2} inf,inf
+{1,1,3} nan,nan
+
+SCIDB QUERY : <load Z from current instance 'ZxZsparse1.bcp' as '(double,dummy(8),double,dummy(8))'>
+{x,y,z} num,num_2
+{1,1,1} 15.2,15.2
+{1,1,2} inf,inf
+{1,1,3} nan,nan
+
+SCIDB QUERY : <load C1 from current instance 'ZxZsparse1.bcp' as '(dummy(8),dummy(8),double,dummy(8))'>
+{x,y,z} num
+{1,1,1} 15.2
+{1,1,2} inf
+{1,1,3} nan
+
+SCIDB QUERY : <save ZxZ into current instance 'ZxZsparse2.bcp' as '(string,string,string,string)'>
+{x,y,z} num,num_2,num_3,num_2_2
+{1,1,1} 15.2,15.2,15.2,15.2
+{1,1,2} inf,inf,inf,inf
+{1,1,3} nan,nan,nan,nan
+
+SCIDB QUERY : <load CString from current instance 'ZxZsparse2.bcp' as '(dummy(8),dummy(8),dummy(8),string)'>
+[An error expected at this place for the query "load CString from current instance 'ZxZsparse2.bcp' as '(dummy(8),dummy(8),dummy(8),string)'". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load CString from current instance 'ZxZsparse2.bcp' as '(dummy(8),dummy(8),dummy(8),string)' errors 100>
+{x,y,z} name
+{1,1,1} ''
+
+SCIDB QUERY : <load CString from current instance 'ZxZsparse2.bcp' as '(dummy,dummy,dummy,string)'>
+{x,y,z} name
+{1,1,1} '15.2'
+{1,1,2} 'inf'
+{1,1,3} 'nan'
+
+SCIDB QUERY : <save C into current instance 'Csp.bin' as 'double'>
+[An error expected at this place for the query "save C into current instance 'Csp.bin' as 'double'". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNSUPPORTED_FORMAT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNSUPPORTED_FORMAT.]
+
+SCIDB QUERY : <save C into current instance 'Cspfloat.bin' as 'float'>
+[An error expected at this place for the query "save C into current instance 'Cspfloat.bin' as 'float'". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNSUPPORTED_FORMAT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNSUPPORTED_FORMAT.]
+
+SCIDB QUERY : <save C into current instance 'Csparse3.txt' as '(text)'>
+[An error expected at this place for the query "save C into current instance 'Csparse3.txt' as '(text)'". And it failed with error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_TYPE_NOT_REGISTERED. Expected error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_TYPE_NOT_REGISTERED.]
+
+SCIDB QUERY : < save C into current instance 'Csparse3.txt' as 'text'>
+{x,y,z} num
+{1,1,1} 15.2
+{100000,100000,1000000} inf
+{100000000,500000,10000000} nan
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ZxZ)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(CString)>
+Query was executed successfully
+

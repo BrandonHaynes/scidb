@@ -1,0 +1,9 @@
+--setup
+create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+--aql LOAD mult_1 FROM '${TEST_DATA_DIR}/mult1.txt'
+
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_AGGREGATE_ARGUMENTS_COUNT --aql="select count(x,x) from mult_1"
+
+--cleanup
+remove(mult_1)

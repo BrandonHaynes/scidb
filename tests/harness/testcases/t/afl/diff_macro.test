@@ -1,0 +1,36 @@
+--setup
+--start-igdata
+# Create arrays A and B.
+create array A <v:double>[i=0:999,1000,0]
+create array B <v:double>[i=0:999,1000,0]
+
+# Fill array A with random data.
+store(build(A,random()%10),A)
+
+# Copy array A into B.
+store(A,B)
+--stop-igdata
+
+--test
+
+# load a diff macro module
+load_module('${TEST_DATA_DIR}/diff_macro_module.txt')
+
+--set-format csv
+--start-query-logging
+
+# Run the diff macros: result should be 0.
+diff1(A,B,A.v,B.v)
+diff2(A,B,A.v,B.v)
+
+# Run the diff macros with temporary arrays: result should be 0.
+diff1(build(<v1:double>[i=0:999,1000,0,j=0:99,1000,0],2),build(<v2:double>[i=0:999,1000,0,j=0:99,1000,0],2),v1,v2)
+diff2(build(<v1:double>[i=0:999,1000,0,j=0:99,1000,0],2),build(<v2:double>[i=0:999,1000,0,j=0:99,1000,0],2),v1,v2)
+
+--stop-query-logging
+--reset-format
+
+--cleanup
+remove(A)
+remove(B)
+load_module('/dev/null')

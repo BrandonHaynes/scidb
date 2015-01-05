@@ -1,0 +1,157 @@
+#!/bin/bash
+
+#
+# Script for preparing SciDB catalog database 
+#
+
+#
+#
+# BEGIN_COPYRIGHT
+#
+# This file is part of SciDB.
+# Copyright (C) 2008-2014 SciDB, Inc.
+#
+# SciDB is free software: you can redistribute it and/or modify
+# it under the terms of the AFFERO GNU General Public License as published by
+# the Free Software Foundation.
+#
+# SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+# INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+# NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+# the AFFERO GNU General Public License for the complete license terms.
+#
+# You should have received a copy of the AFFERO GNU General Public License
+# along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+#
+# END_COPYRIGHT
+#
+
+
+PD_DIR=$(dirname $(readlink -f $0))
+
+echo "This script guide you through several steps and prepare clean database for SciDB system catalog"
+
+function die()
+{
+    echo "$1"
+    exit
+}
+
+function read_yn()
+{
+    while [ 1 ]; do
+        read -p "$1 (y/n): " res
+        case "$res" in        
+            y|Y) 
+                return 0
+                ;;
+            n|N)
+                return 1
+                ;;
+        esac
+    done
+}
+
+function user_exists()
+{
+	for u in $(echo "select u.usename from pg_catalog.pg_user u" | runpsql postgres|tail -n+3|head -n-2); do
+		if [ "$u" = "$1" ]; then
+            echo 1
+            return
+        fi
+	done
+	echo 0
+}
+
+function db_exists()
+{
+	for d in $(echo "select d.datname from pg_catalog.pg_database d" | runpsql postgres|tail -n+3|head -n-2); do
+		if [ "$d" = "$1" ]; then
+            echo 1
+            return
+        fi
+	done
+	echo 0
+}
+
+function plpgsql_exists()
+{
+    if [ "`echo "select count(*) from pg_language where lanname = 'plpgsql'" | runpsql $1|tail -n+3|head -n-2`" -eq 1 ]; then
+        echo 1
+    else
+        echo 0
+    fi
+}
+
+#
+# $1 - database name
+#
+function runpsql()
+{
+    if [ "`whoami`" = "$pg_admin" ]; then
+        psql "$1"
+    elif [ "$pg_password" = "" ]; then
+        sudo -u "$pg_admin" psql "$1"
+    else
+        PGPASSWORD="$pg_password" psql --host="$pg_host" --port="$pg_port" --username="$pg_admin" "$1"
+    fi
+}
+
+read -p "Enter PostgreSQL administrator login (postgres by default): " pg_admin
+[ "$pg_admin" = "" ] && eval pg_admin=postgres
+
+read -p "Enter PostgreSQL administrator password for remote authentification (if password not provided
+    ident authentification to local server with sudo will be used): " pg_password
+
+if [ "$pg_password" != "" ]; then
+    read -p "Enter PostgreSQL host name (localhost by default): " pg_host
+
+    read -p "Enter PostgreSQL port number (5432 by default): " pg_port
+fi
+[ "$pg_host" = "" ] && eval pg_host=localhost
+[ "$pg_port" = "" ] && eval pg_port=5432
+
+while [ "$owner_login" = "" ]; do
+    read -p "Enter system catalog owner login: " owner_login
+done
+
+while [ "$owner_password" = "" ]; do
+    read -p "Enter system catalog owner password: " owner_password
+done
+
+while [ "$catalog_name" = "" ]; do
+    read -p "Enter catalog database name: " catalog_name
+done
+
+if [ "`user_exists "$owner_login"`" = "1" ]; then
+    echo "User $owner_login already exists. Skipping creating."
+else
+    echo "Creating user $owner_login..."
+    (echo "create user $owner_login with password '$owner_password' NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT LOGIN" | runpsql postgres > /dev/null) || die
+fi
+
+if [ "`db_exists "$catalog_name"`" = "1" ]; then
+    echo "Database $catalog_name already exists. Skipping creating"
+else
+    echo "Creating database $catalog_name..."
+    (echo "create database $catalog_name with owner $owner_login" | runpsql postgres > /dev/null) || die
+fi
+
+if [ `plpgsql_exists $catalog_name` = "0" ]; then
+    echo "Creating language plpgsql for database $catalog_name..."
+    (echo "create language plpgsql" | runpsql "$catalog_name") || die
+fi
+
+echo "Granting privileges on database $catalog_name to user $owner_login..."
+(echo "grant all privileges on database $catalog_name to $owner_login" | runpsql postgres > /dev/null) || die
+
+echo "Adding language C to trusted for database $catalog_name..."
+(echo "update pg_language set lanpltrusted = true where lanname = 'c'" | runpsql "$catalog_name" > /dev/null) || die
+
+echo "Granting user $owner_login usage for language C..."
+(echo "grant usage on language c to $owner_login;" | runpsql "$catalog_name" > /dev/null) || die
+
+echo "Done! Now connect to catalog with SciDB initialize and register cluster instance."
+echo "Sample connection string for connecting to catalog:"
+echo host=$pg_host port=$pg_port dbname="$catalog_name" user="$owner_login" password="$owner_password"
+

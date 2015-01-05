@@ -1,0 +1,279 @@
+SCIDB QUERY : <create array Ts <a:string> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs <a:string> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_rle <a:string compression 'rle'> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_d <a:string compression 'dictionary'> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_ns <a:string compression 'null suppression'> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_be <a:string compression 'bitmap encoding'> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_z <a:string compression 'zlib'> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_bz <a:string compression 'bzlib'> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_nf <a:string compression 'null filter'> [x=-2:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array N <x:int64> [a(string)=6,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Nc <x:int64 compression 'rle' > [a(string)=6,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into Ts_rle from build(Ts,string(x))>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <select * into Ts_d from Ts_rle>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <select * into Ts_ns from Ts_rle>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <select * into Ts_be from Ts_rle>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <select * into Ts_z from Ts_rle>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <select * into Ts_bz from Ts_rle>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <select * into Ts_nf from Ts_rle>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <select * into N from Ts>
+{a} x
+
+SCIDB QUERY : <select * into N from Ts_rle>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into N from Ts_d>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into N from Ts_ns>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into N from Ts_be>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into N from Ts_z>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into N from Ts_bz>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into N from Ts_nf>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into Nc from Ts>
+{a} x
+
+SCIDB QUERY : <select * into Nc from Ts_rle>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into Nc from Ts_d>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into Nc from Ts_ns>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into Nc from Ts_be>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into Nc from Ts_z>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into Nc from Ts_bz>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into Nc from Ts_nf>
+{a} x
+{'-1'} -1
+{'-2'} -2
+{'0'} 0
+{'1'} 1
+{'2'} 2
+{'3'} 3
+
+SCIDB QUERY : <select * into eTs from Nc>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <select * into eTs from N>
+{x} a
+{-2} '-2'
+{-1} '-1'
+{0} '0'
+{1} '1'
+{2} '2'
+{3} '3'
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_rle)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_d)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_ns)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_be)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_bz)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_nf)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(N)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Nc)>
+Query was executed successfully
+

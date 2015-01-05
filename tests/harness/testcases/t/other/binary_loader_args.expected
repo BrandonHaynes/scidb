@@ -1,0 +1,152 @@
+SCIDB QUERY : <create array SP <a: int32, b: string, c: double, d: int64, e: bool, f: float, g: string>[i=1:1000,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SP_project <a: int32, b: string, c: double, f: float, g: string>[i=1:1000,75,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A2 <a: int32, b: int32, c: string, d: string, e: string, f: string, g: int64>[i=1:1000,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A2a <a: int32, b: int32, c: string, d: string, e: string, f: string, g: int64>[i=1:1000,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(SP, '${TEST_DATA_DIR}/sp.txt')">
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{1000} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2, '${TEST_DATA_DIR}/A2.txt')">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',3
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',55
+{1000} 2,5,'five','ten','password1','password2',4
+
+SCIDB QUERY : <(... omitted ...)>
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <(... omitted ...)>
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 3)">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',0
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',0
+{1000} 2,5,'five','ten','','',0
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 9999, A2_shadow)">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',0
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',0
+{1000} 2,5,'five','ten','','',0
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2a, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 9999)">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',0
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',0
+{1000} 2,5,'five','ten','','',0
+
+SCIDB QUERY : <(... omitted ...)>
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <(... omitted ...)>
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2a, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 4, A2a_err)">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',0
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',0
+{1000} 2,5,'five','ten','','',0
+
+SCIDB QUERY : <scan(A2a_err)>
+{i} a,b,c,d,e,f,g,row_offset
+{888} null,null,null,null,null,null,'Failed to parse string \'3.4445\' as int64',119
+{998} null,null,null,null,null,null,'Failed to parse string \'556.777\' as int64',240
+{1000} null,null,null,null,null,null,'Failed to parse string \'4.556\' as int64',279
+
+SCIDB QUERY : <aggregate(A2a_err,count(*))>
+{i} count
+{0} 3
+
+SCIDB QUERY : <save(SP, 'sp_int32.bin', -2, '(int32,string,double,int64,bool,float,string)')>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{1000} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <save(SP, 'junk.bin', -2, '(int32,string,double,int64,datetime,float,datetime)')>
+[An error expected at this place for the query "save(SP, 'junk.bin', -2, '(int32,string,double,int64,datetime,float,datetime)')". And it failed with error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER. Expected error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER.]
+
+SCIDB QUERY : <load(SP, 'sp_int32.bin', -2, '(int32,string,double,int64,bool,float,string)', 100, SP_err)>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <load(SP, 'sp_int32.bin', -2, '(int32,string,double,int64,bool,float,string)', 1, SP_err)>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <save(SP, 'sp_int32_int64.bin', -2, '(int64,string,double,int64,bool,float,string)')>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <load(SP, 'sp_int32_int64.bin', -2, '(int64,string,double,int64,bool,float,string)')>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(SP, '${TEST_DATA_DIR}/sp_err.txt', -2, 'text', 1, SP_err)">
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{1000} 1000,'last',4.5567,44,false,44.332,'LAST_10_10000000'
+
+SCIDB QUERY : <save(SP@2, 'sp_dbl_flt.bin', -2, '(int64,string,string,int64,bool,float,string)')>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <load(SP, 'sp_dbl_flt.bin', -2, '(int64,string,string,int64,bool,float,string)')>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <save(SP, 'sp_all.bin', -2, '(int64,string,double,,,float,string)')>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <load(SP_project, 'sp_all.bin', -2, '(int64,string,double,float,string)')>
+{i} a,b,c,f,g
+{1} 1,'first',4.44557,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44.332,'LAST_10'
+
+SCIDB QUERY : <load(SP_project, 'sp_dbl_flt.bin', -2, '(int64,string,string,skip(8),skip(1),float,string)')>
+{i} a,b,c,f,g
+{1} 1,'first',4.44557,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44.332,'LAST_10'
+
+SCIDB QUERY : <remove(SP)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SP_project)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2a_err)>
+Query was executed successfully
+

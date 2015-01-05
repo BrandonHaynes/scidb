@@ -1,0 +1,15 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(build(<val:double>[row=0:2,3,0,col=0:2,3,0],row*3+col+1),m3x3)  
+aggregate(m3x3,prod(val),col) 
+aggregate(m3x3,prod(val)) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m3x3)

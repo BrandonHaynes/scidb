@@ -1,0 +1,16 @@
+--setup
+
+CREATE array LongString < I : int64, J : int64, V : double NULL, W : string > [ Line=0:*,6,0 ]
+load ( LongString, '${TEST_DATA_DIR}/longstring.txt')
+
+--test
+--start-query-logging
+
+show(LongString)
+scan(LongString)
+
+--stop-query-logging
+--cleanup
+
+remove(LongString)
+

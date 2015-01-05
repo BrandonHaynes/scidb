@@ -1,0 +1,14 @@
+SCIDB QUERY : <CREATE ARRAY rank_array <val:int64>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(rank_array, '[[9,1,0,6], [1,3,7,7], [2,3,9,8], [5,9,5,9]]',true),rank_array)>
+[[(9),(1),(0),(6)],[(1),(3),(7),(7)],[(2),(3),(9),(8)],[(5),(9),(5),(9)]]
+
+SCIDB QUERY : <rank(rank_array,val,i)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <rank(rank_array,val)>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+

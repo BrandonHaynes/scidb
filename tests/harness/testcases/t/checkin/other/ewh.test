@@ -1,0 +1,15 @@
+--setup
+CREATE ARRAY decile < val : double > [ Bucket=0:9,10,0 ]
+CREATE ARRAY EWH_Data < value : double> [ I=0:99,11,0, J=0:99,11,0 ]
+store ( build ( EWH_Data, double(I) + double(J) / 100.0 ), EWH_Data)
+
+--test
+project ( join ( apply ( build ( decile, double(Bucket) * 10.0 ), Min, val), apply ( build ( decile, (double(Bucket) + 1.0) * 10.0 ), Max, val)), Min, Max)
+
+filter ( cross_join ( EWH_Data AS A, project ( join ( apply ( build ( decile, double(Bucket) * 10.0 ), Min, val), apply ( build ( decile, (double(Bucket) + 1.0) * 10.0 ), Max, val)), Min, Max) AS B), A.value >= B.Min AND A.value < B.Max)
+
+aggregate ( filter ( cross_join ( EWH_Data AS A, project ( join ( apply ( build ( decile, double(Bucket) * 10.0 ), Min, val), apply ( build ( decile, (double(Bucket) + 1.0) * 10.0 ), Max, val)), Min, Max) AS B), A.value >= B.Min AND A.value < B.Max), count(*), A.J, B.Bucket)
+
+--cleanup
+remove(decile)
+remove(EWH_Data)

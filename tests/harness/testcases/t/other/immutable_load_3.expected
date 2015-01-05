@@ -1,0 +1,11 @@
+SCIDB QUERY : <create array bounded <a:int64>[x=0:10,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <(... omitted ...)>
+[An error expected at this place for the query "(... omitted ...)". And it failed.]
+
+SCIDB QUERY : <scan(bounded)>
+{x} a
+
+Query was executed successfully
+

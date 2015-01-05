@@ -1,0 +1,14 @@
+# ticket no. 1401
+
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:1,2,0,y=1:2,1,0,z=0:2,1,0]
+store(build(A,x*100+y*10+z),A)
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR5 "thin(scan(A),0,1,0,0,1,1)"
+
+--cleanup
+remove(A)
+--stop-query-logging
+

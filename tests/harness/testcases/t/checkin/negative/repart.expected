@@ -1,0 +1,93 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:string,b:string> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <b:string> [a(string)=3,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array E <b:string> [a(string)=3,1,0,x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <store(join(build(<a:string> [x=0:2,3,0],string(x+1)),build(<a:string> [x=0:2,3,0],string(x+10))),C)>
+{x} a,b
+{0} '1','10'
+{1} '2','11'
+{2} '3','12'
+
+SCIDB QUERY : <store(redimension(C,D),D)>
+{a} b
+{'1'} '10'
+{'2'} '11'
+{'3'} '12'
+
+SCIDB QUERY : <store(redimension(C,E),E)>
+{a,x} b
+{'1',0} '10'
+{'2',1} '11'
+{'3',2} '12'
+
+SCIDB QUERY : <store(repart(A,<b:int64> [x=0:1,3,0]),B1)>
+[An error expected at this place for the query "store(repart(A,<b:int64> [x=0:1,3,0]),B1)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR4. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR4.]
+
+SCIDB QUERY : <store(repart(A,<b:int64> [x=2:8,3,0]),B2)>
+[An error expected at this place for the query "store(repart(A,<b:int64> [x=2:8,3,0]),B2)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3.]
+
+SCIDB QUERY : <store(repart(A,<b:int64> [x(string)=9,3,0]),B3)>
+[An error expected at this place for the query "store(repart(A,<b:int64> [x(string)=9,3,0]),B3)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR2.]
+
+SCIDB QUERY : <store(repart(A,<b:int32> [x=1:3,3,0]),B4)>
+[An error expected at this place for the query "store(repart(A,<b:int32> [x=1:3,3,0]),B4)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3.]
+
+SCIDB QUERY : <store(repart(A,<b:int32> [x=0:3,3,0]),B5)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <store(repart(D,<z:int32>[y(string)=4,2,0]),B6)>
+{y} b
+{'1'} '10'
+{'2'} '11'
+{'3'} '12'
+
+SCIDB QUERY : <store(repart(D,<z:int32>[y(string)=3,2,1,a(string)=3,2,1]),B7)>
+[An error expected at this place for the query "store(repart(D,<z:int32>[y(string)=3,2,1,a(string)=3,2,1]),B7)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR1. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR1.]
+
+SCIDB QUERY : <repart(E,<a:int32> [a(string)=3,1,0])>
+[An error expected at this place for the query "repart(E,<a:int32> [a(string)=3,1,0])". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME.]
+
+SCIDB QUERY : <repart(E,<a:int32> [a(string)=3,1,0,x=0:3,3,0])>
+[An error expected at this place for the query "repart(E,<a:int32> [a(string)=3,1,0,x=0:3,3,0])". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME.]
+
+SCIDB QUERY : <store(repart(E,<a:int32> [a=0:2,1,1,x(string)=3,2,1]),B9)>
+[An error expected at this place for the query "store(repart(E,<a:int32> [a=0:2,1,1,x(string)=3,2,1]),B9)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME.]
+
+SCIDB QUERY : <store(repart(E,<a:int32> [x=0:2,1,1,a(string)=3,2,1]),B0)>
+[An error expected at this place for the query "store(repart(E,<a:int32> [x=0:2,1,1,a(string)=3,2,1]),B0)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B5)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B6)>
+Query was executed successfully
+

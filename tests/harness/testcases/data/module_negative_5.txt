@@ -1,0 +1,1 @@
+f() = let {a=1} in let{x=x} in 2 // 'x' is recursive

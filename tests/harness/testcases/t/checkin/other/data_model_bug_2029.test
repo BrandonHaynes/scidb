@@ -1,0 +1,12 @@
+--setup
+create array C<val1:char, val2:char, val3:int32, val4:int32, val5:int64, val6:int64 >[i=0:1,2,0]
+create array D<val1:char, val2:char default 'a', val3:int32, val4:int32 default 1, val5:int64, val6:int64 null default missing(1)> [i=0:1,2,0]
+store( join ( filter(build(<val1:char>[i=0:1,2,0],'d'),i=1), join ( filter(build(<val2:char>[i=0:1,2,0],'d'),i=1),join ( filter(build(<val3:int32>[i=0:1,2,0],i),i=1), join ( filter(build(<val4:int32>[i=0:1,2,0],4-i),i=1), join ( filter(build(<val5:int64>[i=0:1,2,0],i),i=1), filter(build(<val6:int64>[i=0:1,2,0],4-i),i=1)))))), C)
+
+--test
+store(C,D)
+
+--cleanup
+remove(D)
+remove(C)
+

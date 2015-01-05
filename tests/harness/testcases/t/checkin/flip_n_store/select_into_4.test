@@ -1,0 +1,25 @@
+--setup
+--start-query-logging
+create array A <a:int32, b:int32> [x=0:2,3,0]
+create array T <a:int32> [x=0:2,3,0]
+create array B <a:int32> [b(int32)=3,3,0]
+
+--test
+
+--aql select * into C from B
+
+--aql select * into A from build(T,x+1),build(T,x+10)
+
+--aql select * into B from A
+
+--aql select b,a into C from A
+
+--aql select b into D from A
+
+--cleanup
+remove(A)
+remove(T)
+remove(B)
+remove(C)
+remove(D)
+--stop-query-logging

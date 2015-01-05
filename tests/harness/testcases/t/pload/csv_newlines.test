@@ -1,0 +1,50 @@
+# CSV files may contain embedded newlines if they are quoted.
+--setup
+
+create array simple1 <s:string null>[i=0:*,100,0]
+create array simple2 <s:string null>[i=0:*,100,0]
+create array simp2_reloaded <s1:string null,s2:string null>[i=0:*,100,0]
+
+--test
+
+# Make sure Bryan's simple #4122 test case works.
+--echo First simple test
+--shell --command "printf '\"one\",\n\"two\"\n' | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -x -a simple1 -s '<s1:string null,s2:string null>[i=0:*,100,0]' -t ss"
+scan(simple1)
+
+--echo Second simple test
+--shell --command "printf '\"three\n\",\n\"four\nand five\"\n' | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -x -a simple2 -s '<s1:string null,s2:string null>[i=0:*,100,0]' -t ss"
+scan(simple2)
+
+# Save and reload that!  SciDB format...
+--echo Save and reload simple2
+save(simple2, '/tmp/simple2.scidb')
+load(simp2_reloaded, '/tmp/simple2.scidb')
+scan(simp2_reloaded)
+
+# Save and reload via CSV. Note 'csv:E' means write nulls as empty strings.
+--echo Save and reload simple2 via csv:E
+remove(simp2_reloaded)
+create array simp2_reloaded <s1:string null,s2:string null>[i=0:*,100,0]
+save(simple2, '/tmp/simple2.csv', 0, 'csv:E')
+--shell --command "cat /tmp/simple2.csv | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -n 1 -x -t ss -a simp2_reloaded -s '<s1:string null,s2:string null>[i=0:*,100,0]'"
+scan(simp2_reloaded)
+
+# Save reloaded array in .scidb format, should be identical.
+save(simp2_reloaded, '/tmp/simple2.reloaded.scidb')
+--echo Diff output should be empty...
+--shell --command "diff /tmp/simple2.scidb /tmp/simple2.reloaded.scidb"
+--echo Was it?
+
+# Something slightly more ornate...
+--echo Tricky embedded newlines
+--shell --command "cat ${TEST_DATA_DIR}/newlines.csv | loadcsv.py -a 'grades_array' -s '<name:string,grade:double,remarks:string null>[i=0:*,100,0]' -t sNs -n 1 -x -d 'localhost' -p ${IQUERY_PORT}"
+aggregate(grades_array, count(*))
+scan(grades_array)
+
+--cleanup
+--shell --command "rm -f /tmp/simple2.*"
+remove(simple1)
+remove(simple2)
+remove(simp2_reloaded)
+remove(grades_array)

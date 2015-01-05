@@ -1,0 +1,70 @@
+SCIDB QUERY : <CREATE ARRAY distance <miles:double> [i=0:9,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(distance,i*100.0),distance)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <apply(distance,kilometers,1.6*miles)>
+{i} miles,kilometers
+{0} 0,0
+{1} 100,160
+{2} 200,320
+{3} 300,480
+{4} 400,640
+{5} 500,800
+{6} 600,960
+{7} 700,1120
+{8} 800,1280
+{9} 900,1440
+
+SCIDB QUERY : <CREATE ARRAY vector <val:double>[i=0:9,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(vector,i+1),vector)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <apply(xgrid(vector,2),val_2,-i)>
+{i} val,val_2
+{0} 1,0
+{1} 1,-1
+{2} 2,-2
+{3} 2,-3
+{4} 3,-4
+{5} 3,-5
+{6} 4,-6
+{7} 4,-7
+{8} 5,-8
+{9} 5,-9
+{10} 6,-10
+{11} 6,-11
+{12} 7,-12
+{13} 7,-13
+{14} 8,-14
+{15} 8,-15
+{16} 9,-16
+{17} 9,-17
+{18} 10,-18
+{19} 10,-19
+
+SCIDB QUERY : <store(build(<val:int64>[i=0:9,10,0],i+1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <apply(A,val_2,double(val))>
+{i} val,val_2
+{0} 1,1
+{1} 2,2
+{2} 3,3
+{3} 4,4
+{4} 5,5
+{5} 6,6
+{6} 7,7
+{7} 8,8
+{8} 9,9
+{9} 10,10
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

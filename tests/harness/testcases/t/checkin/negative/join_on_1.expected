@@ -1,0 +1,22 @@
+Query was executed successfully
+
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+{x} a
+{0} 2
+{1} 3
+{2} 4
+
+[An error expected at this place for the query "cross_join(A,A,A.x,A.x)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AMBIGUOUS_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AMBIGUOUS_DIMENSION.]
+
+[An error expected at this place for the query "cross_join(A,B,A.x,A.x)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSION_NOT_EXIST. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSION_NOT_EXIST.]
+
+[An error expected at this place for the query "cross_join(A,B,B.x,B.x)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSION_NOT_EXIST. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSION_NOT_EXIST.]
+
+Query was executed successfully
+
+Query was executed successfully
+

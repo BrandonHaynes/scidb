@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="loadModule">
+    <refname>load_module</refname>
+
+    <refpurpose><indexterm>
+        <primary>modules</primary>
+      </indexterm>Load a module text file</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>load_module('<replaceable>module_pathname</replaceable>');</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Load a SciDB module file. A module is text file that contains a
+    collection of macros. Only one module can be loaded into SciDB at a
+    time.</para>
+
+    <para>With respect to modules, note the following: <itemizedlist>
+        <listitem>
+          <para>The contents stay in memory until you restart SciDB, whereupon
+          you will need to reload them.</para>
+        </listitem>
+
+        <listitem>
+          <para>Once loaded, the macros become globally available to all
+          subsequent queries evaluated on the SciDB cluster.</para>
+        </listitem>
+
+        <listitem>
+          <para>Any call of <code>load_module </code>invalidates previously
+          loaded macros, even if the particular macro is not defined in the
+          newly loaded file.</para>
+        </listitem>
+
+        <listitem>
+          <para>A macro named <emphasis>m</emphasis> hides any existing
+          identically named applicable entity in the system, including
+          operators, functions, and their user defined counterparts (UDO's and
+          UDF's), and other macros.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example loads the example module, <emphasis
+      role="bold">module_1.txt</emphasis>, where
+      <replaceable>scidb_trunk</replaceable> is the base path to the top-level
+      SciDB source folder.</para>
+
+      <programlisting>load_module('/<emphasis>scidb_trunk</emphasis>/tests/harness/testcases/data/module_1.txt');</programlisting>
+    </informalexample>
+  </refsect1>
+</refentry>

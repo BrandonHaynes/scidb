@@ -1,0 +1,21 @@
+Query was executed successfully
+
+{x} a
+{0} 10
+{2} 12
+
+{x,x} a,a
+{0,0} 10,10
+{2,2} 12,12
+
+{x} a
+{0} 10
+{1} 11
+
+{x,x} a,a
+{0,0} 10,10
+
+Query was executed successfully
+
+Query was executed successfully
+

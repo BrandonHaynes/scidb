@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="saveOperator">
+  <refnamediv>
+    <refname>save</refname>
+
+    <refpurpose>Save array data to a file</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>save(<replaceable>src_array</replaceable>,<replaceable>file_path</replaceable><optional>,<replaceable>instance_id</replaceable><optional>,<replaceable>format</replaceable></optional></optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>save</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>save to file</secondary>
+      </indexterm>The AFL save operator saves the data from the cells of a
+    SciDB array into a file. By default, it saves the data in SciDB array
+    format: to specify a different output format, use the
+    <replaceable>format</replaceable> parameter.</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>src_array</emphasis>: the source array containing the
+        data that you want to save.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>file_path</emphasis>: the complete path to the file to
+        hold the returned data.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>instance_id</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> Specifies the instance for the source
+        array data. The default is to save all data onto the coordinator
+        instance. The value must be one of the following:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">-2</emphasis>: Save all data on the
+            coordinator instance of the query.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">-1</emphasis>: Save data as it is
+            distributed; that is, each instance concurrently saves its own
+            portion of data to file.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">0</emphasis>, <emphasis
+            role="bold">1</emphasis>, ...: Save all data to the specified
+            instance ID.</para>
+          </listitem>
+        </itemizedlist>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>format</emphasis>: <emphasis role="bold">Optional.
+        </emphasis>The format string depends on the how you want to save the
+        data. The default format is SciDB-formatted text. Note that you must
+        include the <emphasis>instance_id</emphasis> parameter if you want to
+        specify an output format.<itemizedlist>
+            <listitem>
+              <para><emphasis role="bold">Binary save</emphasis>: The format
+              string must match the datatypes for the list of attributes. For
+              example, if your array has three attributes, a string, a double,
+              and an int64 that allows nulls, your format string would be,
+              <emphasis role="bold">'(string, double, int64
+              null)'</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">OPAQUE save:</emphasis> the string
+              must be <command>opaque</command> or
+              <command>OPAQUE</command>.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">Text save:</emphasis> you can save
+              the data into a variety of different text formats. For details,
+              see <link linkend="outputOptions">Output Options</link>. If you
+              want to load the data back into SciDB at some point, the best
+              text option is <emphasis role="bold">'dense'</emphasis>, as this
+              format can be loaded back without needing to edit the data
+              before loading. Note that saving floating point values into a
+              text format can be lossy, since the storage format on disk is
+              binary.</para>
+            </listitem>
+          </itemizedlist></para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example creates an array with two attributes and saves the
+      cell values to a file.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 2-dimensional array containing values 100–108:
+          <programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0],i*3+j+100),array1); --show-query=yes --show-output=no
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Create a 2-dimensional array containing values 200–208:
+          <programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0],i*3+j+200),array2); --show-query=yes --show-output=no
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Join array1 and array2 and store the output in an array
+          storage_array: <programlisting language="test">--afl store(join(array1,array2),storage_array); --show-query=yes --output-format=dense
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Save the contents of storage_array to a file. <programlisting
+          language="test">--afl save(storage_array,'/tmp/storage_array.txt',-2,'dense'); --show-query=yes --show-output=yes
+</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example saves a 2-dimensional array into the SciDB text
+      format.</para>
+
+      <procedure>
+        <step>
+          <para>Assume you have the following array,
+          saveExample:<programlisting language="test">--afl CREATE ARRAY intensityFlat &lt; exposure:string, elapsedTime:int64,
+      measuredIntensity:int64 null &gt; [i=0:24,5,0]; --show-query=no --show-output=no
+--afl load(intensityFlat,'../tests/harness/testcases/data/doc/intensity_data.bin',-2,
+      '(string, int64, int64 null)'); --show-query=no --show-output=no
+--afl store(build(&lt;elevation:int64&gt;[i=0:24,5,0],random()%1000),plus);
+      --show-query=no --show-output=no --show-output-in-test-file=no
+--afl store(join(intensityFlat,plus),saveExample);
+      --show-query=no --show-output=no --show-output-in-test-file=no
+--schema saveExample
+--afl scan(saveExample) --show-query=no --output-format=dense --show-output-in-test-file=no
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>You could save this array as a binary file, distributed across
+          all instances, using the following query:<programlisting
+          language="test">--afl save(saveExample,'example.bin',-1,'(string, int64, int64 null, int64)'); --show-query=yes --show-output=no</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

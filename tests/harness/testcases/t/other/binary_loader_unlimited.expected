@@ -1,0 +1,424 @@
+SCIDB QUERY : <create array foo<i:int64,r:double,s:string>[x=1:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array foo2<i:int64,r:double,s:string>[x=1:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array foo3<i:int64,r:double,s:string>[x=1:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array foo4<i:int64,r:double,s:string>[x=1:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array foo5<i:double,s:string>[x=1:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array foo6<i:int64,r:double,s:string>[x=1:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array foo_null<i:int64 null,r:double null,s:string null>[x=1:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array foo2_null<i:int64 null,r:double null,s:string null>[x=1:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array spa<a:double>[x=1:*,100,10, y=1:*,100,10]>
+Query was executed successfully
+
+SCIDB QUERY : <create array spa2<b:double>[i=1:*,100,10, j=1:*,100,10]>
+Query was executed successfully
+
+SCIDB QUERY : <create array stars<ra:float, decl:float>[i=1:*,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array sky<i:int64>[ra(float)=*,100,0, decl(float)=*,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array sky2<i:int64>[ra(float)=*,100,0, decl(float)=*,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array table<x:int64>[i=1:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(foo, '../tests/harness/testcases/data/foo.txt')>
+x,i,r,s
+1,0,0,'0'
+2,1,1,'1'
+3,2,2,'2'
+4,3,3,'3'
+5,4,4,'4'
+6,5,5,'5'
+7,6,6,'6'
+8,7,7,'7'
+9,8,8,'8'
+10,9,9,'9'
+11,10,10,'10'
+12,11,11,'11'
+13,12,12,'12'
+14,13,13,'13'
+15,14,14,'14'
+16,15,15,'15'
+17,16,16,'16'
+18,17,17,'17'
+19,18,18,'18'
+20,19,19,'19'
+
+SCIDB QUERY : <save(foo, 'foo.out', -2, '(int32,float,string)')>
+x,i,r,s
+1,0,0,'0'
+2,1,1,'1'
+3,2,2,'2'
+4,3,3,'3'
+5,4,4,'4'
+6,5,5,'5'
+7,6,6,'6'
+8,7,7,'7'
+9,8,8,'8'
+10,9,9,'9'
+11,10,10,'10'
+12,11,11,'11'
+13,12,12,'12'
+14,13,13,'13'
+15,14,14,'14'
+16,15,15,'15'
+17,16,16,'16'
+18,17,17,'17'
+19,18,18,'18'
+20,19,19,'19'
+
+SCIDB QUERY : <load(foo2, 'foo.out', -2, '(int32,float,string)')>
+x,i,r,s
+1,0,0,'0'
+2,1,1,'1'
+3,2,2,'2'
+4,3,3,'3'
+5,4,4,'4'
+6,5,5,'5'
+7,6,6,'6'
+8,7,7,'7'
+9,8,8,'8'
+10,9,9,'9'
+11,10,10,'10'
+12,11,11,'11'
+13,12,12,'12'
+14,13,13,'13'
+15,14,14,'14'
+16,15,15,'15'
+17,16,16,'16'
+18,17,17,'17'
+19,18,18,'18'
+20,19,19,'19'
+
+SCIDB QUERY : <load(foo_null, '../tests/harness/testcases/data/foo_null.txt')>
+x,i,r,s
+1,0,0,'0'
+2,null,1,'1'
+3,2,null,'2'
+4,3,3,null
+5,?1,4,'4'
+6,5,?1,'5'
+7,6,6,?1
+8,?2,7,'7'
+9,8,?2,'8'
+10,9,9,?2
+11,10,10,'10'
+12,11,11,'11'
+13,12,12,'12'
+14,13,13,'13'
+15,14,14,'14'
+16,15,15,'15'
+17,16,16,'16'
+18,17,17,'17'
+19,18,18,'18'
+20,19,19,'19'
+
+SCIDB QUERY : <save(foo_null, 'foo_null.out', -2, '(int64 null,float null,string null)')>
+x,i,r,s
+1,0,0,'0'
+2,null,1,'1'
+3,2,null,'2'
+4,3,3,null
+5,?1,4,'4'
+6,5,?1,'5'
+7,6,6,?1
+8,?2,7,'7'
+9,8,?2,'8'
+10,9,9,?2
+11,10,10,'10'
+12,11,11,'11'
+13,12,12,'12'
+14,13,13,'13'
+15,14,14,'14'
+16,15,15,'15'
+17,16,16,'16'
+18,17,17,'17'
+19,18,18,'18'
+20,19,19,'19'
+
+SCIDB QUERY : <save(foo_null, 'foo_null.txt', -1)>
+x,i,r,s
+1,0,0,'0'
+2,null,1,'1'
+3,2,null,'2'
+4,3,3,null
+5,?1,4,'4'
+6,5,?1,'5'
+7,6,6,?1
+8,?2,7,'7'
+9,8,?2,'8'
+10,9,9,?2
+11,10,10,'10'
+12,11,11,'11'
+13,12,12,'12'
+14,13,13,'13'
+15,14,14,'14'
+16,15,15,'15'
+17,16,16,'16'
+18,17,17,'17'
+19,18,18,'18'
+20,19,19,'19'
+
+SCIDB QUERY : <load(foo3, 'foo_null.out', -2, '(int64 null,float null,string null)', 20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <load(foo4, 'foo_null.out', -2, '(int64 null,float null,string null)', 10, foo_shadow)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(foo_shadow)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <count(versions(foo_shadow))>
+i,count
+0,1
+
+SCIDB QUERY : <load(foo6, 'foo_null.txt', -1, 'text', 1)>
+[An error expected at this place for the query "load(foo6, 'foo_null.txt', -1, 'text', 1)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load(foo6, 'foo_null.txt', -1, 'text', 10, foo6_shadow)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(foo6_shadow)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <count(versions(foo6_shadow))>
+i,count
+0,1
+
+SCIDB QUERY : <load(foo5, 'foo.out', -2, '(int32,dummy(4),string)')>
+x,i,s
+1,0,'0'
+2,1,'1'
+3,2,'2'
+4,3,'3'
+5,4,'4'
+6,5,'5'
+7,6,'6'
+8,7,'7'
+9,8,'8'
+10,9,'9'
+11,10,'10'
+12,11,'11'
+13,12,'12'
+14,13,'13'
+15,14,'14'
+16,15,'15'
+17,16,'16'
+18,17,'17'
+19,18,'18'
+20,19,'19'
+
+SCIDB QUERY : <save(foo5, 'foo.out', -2, '(float,string(10))')>
+x,i,s
+1,0,'0'
+2,1,'1'
+3,2,'2'
+4,3,'3'
+5,4,'4'
+6,5,'5'
+7,6,'6'
+8,7,'7'
+9,8,'8'
+10,9,'9'
+11,10,'10'
+12,11,'11'
+13,12,'12'
+14,13,'13'
+15,14,'14'
+16,15,'15'
+17,16,'16'
+18,17,'17'
+19,18,'18'
+20,19,'19'
+
+SCIDB QUERY : <load(foo5, 'foo.out', -2, '(float,string(10))')>
+x,i,s
+1,0,'0'
+2,1,'1'
+3,2,'2'
+4,3,'3'
+5,4,'4'
+6,5,'5'
+7,6,'6'
+8,7,'7'
+9,8,'8'
+10,9,'9'
+11,10,'10'
+12,11,'11'
+13,12,'12'
+14,13,'13'
+15,14,'14'
+16,15,'15'
+17,16,'16'
+18,17,'17'
+19,18,'18'
+20,19,'19'
+
+SCIDB QUERY : <save(foo,  'foo.out', -2, '(double,int64,dummy)')>
+x,i,r,s
+1,0,0,'0'
+2,1,1,'1'
+3,2,2,'2'
+4,3,3,'3'
+5,4,4,'4'
+6,5,5,'5'
+7,6,6,'6'
+8,7,7,'7'
+9,8,8,'8'
+10,9,9,'9'
+11,10,10,'10'
+12,11,11,'11'
+13,12,12,'12'
+14,13,13,'13'
+15,14,14,'14'
+16,15,15,'15'
+17,16,16,'16'
+18,17,17,'17'
+19,18,18,'18'
+20,19,19,'19'
+
+SCIDB QUERY : <load(foo5, 'foo.out', -2, '(double,int64)')>
+x,i,s
+1,0,'0'
+2,1,'1'
+3,2,'2'
+4,3,'3'
+5,4,'4'
+6,5,'5'
+7,6,'6'
+8,7,'7'
+9,8,'8'
+10,9,'9'
+11,10,'10'
+12,11,'11'
+13,12,'12'
+14,13,'13'
+15,14,'14'
+16,15,'15'
+17,16,'16'
+18,17,'17'
+19,18,'18'
+20,19,'19'
+
+SCIDB QUERY : <store(filter(build(<a:double>[x=1:1000,100,10, y=1:1000,100,10], x), x = y and x % 200 = 0), spa)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <save(spa, 'spa.out', -1, 'opaque')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <load(spa2, 'spa.out', -1, 'opaque')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(build(<ra:float>[i=1:1000,100,0], i), build(<decl:float>[i=1:1000,100,0], i)), stars)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(stars, sky), sky)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <save(sky, 'sky.out', -2, 'opaque')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <load(sky2, 'sky.out', -2, 'opaque')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <count(filter(sky, ra=decl))>
+i,count
+0,1000
+
+SCIDB QUERY : <count(filter(sky2, ra=decl))>
+i,count
+0,1000
+
+SCIDB QUERY : <save(build(<x:int64>[i=1:10,2,0], 1), 'table.dmp', -1, '(int32)')>
+{i} x
+{1} 1
+{2} 1
+{3} 1
+{4} 1
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+{9} 1
+{10} 1
+
+SCIDB QUERY : <load(table, 'table.dmp', -1, '(int32)')>
+{i} x
+{1} 1
+{2} 1
+{3} 1
+{4} 1
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+{9} 1
+{10} 1
+
+SCIDB QUERY : <remove(foo)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo5)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo6)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo_null)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo2_null)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spa)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spa2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(stars)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(sky)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(sky2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(table)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo_shadow)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(foo6_shadow)>
+Query was executed successfully
+

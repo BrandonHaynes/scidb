@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="unloadLibrary">
+    <refname>unload_library</refname>
+
+    <refpurpose><indexterm>
+        <primary>unload_library</primary>
+      </indexterm><indexterm>
+        <primary>libraries</primary>
+
+        <secondary>unload_library</secondary>
+      </indexterm>Unload a plugin</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>unload_library('<replaceable>library_name</replaceable>')</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Unload a plug-in from the current SciDB instance. The unload_library
+    operator provides the same functionality as the AQL UNLOAD LIBRARY
+    '<replaceable>library_name</replaceable>' statement.</para>
+
+    <note>
+      <para>The unload_library operation does not take effect until the next
+      time you restart SciDB.</para>
+    </note>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example loads and unloads the example plugin,
+      librational.so.<programlisting>load_library('rational')
+unload_library ('rational')</programlisting>The 'lib' prefix and the file
+      extension are not included in the library name when you use the
+      unload_library operator.</para>
+    </informalexample>
+  </refsect1>
+</refentry>

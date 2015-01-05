@@ -1,0 +1,24 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY m1 <val:double>[i=0:9,10,0]  
+--set-format dense
+--stop-igdata
+store(build(m1,1),m1)  
+store(build(m1,100),m1)  
+--set-format dcsv
+--start-igdata
+versions(m1)  
+--set-format dense
+--stop-igdata
+scan(m1@1)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m1)

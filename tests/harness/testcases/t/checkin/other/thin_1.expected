@@ -1,0 +1,90 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <thin(A,0,1)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <thin(A,0,2)>
+{x} a
+{0} 10
+{1} 12
+{2} 14
+{3} 16
+{4} 18
+
+SCIDB QUERY : <window(thin(A,0,2),0,1,max(a))>
+{x} a_max
+{0} 12
+{1} 14
+{2} 16
+{3} 18
+{4} 18
+
+SCIDB QUERY : <thin(A,0,3)>
+{x} a
+{0} 10
+{1} 13
+{2} 16
+
+SCIDB QUERY : <window(thin(A,0,3),1,1,min(a))>
+{x} a_min
+{0} 10
+{1} 10
+{2} 13
+
+SCIDB QUERY : <thin(A,1,2)>
+{x} a
+{0} 11
+{1} 13
+{2} 15
+{3} 17
+
+SCIDB QUERY : <window(thin(A,1,2),0,1,sum(a))>
+{x} a_sum
+{0} 24
+{1} 28
+{2} 32
+{3} 17
+
+SCIDB QUERY : <thin(A,1,3)>
+{x} a
+{0} 11
+{1} 14
+{2} 17
+
+SCIDB QUERY : <window(thin(A,1,3),1,1,avg(a))>
+{x} a_avg
+{0} 12.5
+{1} 14
+{2} 15.5
+
+SCIDB QUERY : <thin(A,2,3)>
+{x} a
+{0} 12
+{1} 15
+{2} 18
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

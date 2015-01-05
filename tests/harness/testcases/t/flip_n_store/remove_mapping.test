@@ -1,0 +1,20 @@
+--setup
+--start-query-logging
+create array Foo<x:double>[i=1:10,10,0]
+store(build(Foo, i + 10), Foo)
+create array Foo_Flipped<i:int64>[x(double)=*,10,0]
+
+--test
+store(redimension(Foo, Foo_Flipped), Foo_Flipped)
+subarray(Foo_Flipped, 11, 12)
+store(Foo_Flipped, Foo_Copy)
+subarray(Foo_Copy, 11, 12)
+remove(Foo_Flipped)
+subarray(Foo_Copy, 11, 12)
+remove(Foo_Copy)
+--aql select name,schema from list('arrays')
+
+--cleanup
+remove(Foo)
+
+--stop-query-logging

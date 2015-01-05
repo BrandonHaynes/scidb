@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="sortOperator">
+  <refnamediv>
+    <refname>sort</refname>
+
+    <refpurpose><indexterm>
+        <primary>sort</primary>
+      </indexterm>Produces a 1-dimensional result array by sorting non-empty
+    cells of a source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis> sort(<replaceable>array</replaceable>,
+   <optional><replaceable>, attribute </replaceable><optional><replaceable> asc </replaceable> |  <replaceable>desc </replaceable></optional></optional>...
+   <optional><replaceable>, chunk_size </replaceable></optional> );</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The sort operator produces a one-dimensional result array, even if
+    the source array has multiple dimensions. The result array contains each
+    non-empty cell of the source array. Note that the result array does not
+    show values of the original dimensions in the source array.</para>
+
+    <para><indexterm>
+        <primary>generated variable names</primary>
+      </indexterm>The result array's sole dimension is named <emphasis
+    role="bold">n</emphasis>, and is unbounded.</para>
+
+    <para>The sort operator can sort by one or more attributes. The operator
+    first sorts by the first attribute, then by the second, et cetera. Use the
+    optional keyword <literal>asc</literal> or <literal>desc</literal> to
+    control the sort order for each attribute, ascending or descending. The
+    default is ascending.</para>
+
+    <para>You can control the chunk size of the resulting array with the
+    optional <literal>chunk_size</literal> parameter.</para>
+
+    <para><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>sorting</secondary>
+      </indexterm>To sort by dimensions, you can use the <code>apply</code>
+    operator to return a dimension as an attribute, and then sort.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The <literal>sort</literal> operator takes the following
+    arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">array</emphasis>: a source array with
+          one or more attributes and one or more dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">attribute</emphasis>: Zero or more
+          attributes. If no attribute is provided, the first attribute in the
+          source array is used.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">chunk_size</emphasis>: An optional chunk
+          size for the result array.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example first scans a 2-D array, then sorts it by ascending
+      country, then sorts it by ascending country and descending time.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array: <programlisting language="test">--afl CREATE ARRAY winners &lt;person:string, time:double, event:string&gt; [year=1996:2008,1000,0];
+      --show-query=no --show-output=no
+
+--afl create array event &lt;event:string&gt; [i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array year &lt;year:int64&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array person &lt;person:string&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array country &lt;country:string&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array time &lt;time:double&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl store(build(event,iif(i&lt;4,'dash',iif(i&lt;8,'steeplechase','marathon'))),event); --show-query=no --show-output=no
+--afl store(build(year,1996+(i%4 * 4)),year); --show-query=no --show-output=no
+--afl store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,Kemboi,Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person);
+      --show-query=no --show-output=no
+--afl store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,Kenya,Kenya,USA,Ethiopia,Italy,Kenya]',true),country);
+      --show-query=no --show-output=no
+--afl store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),(503.17),(485.81),(490.34),(7956),(7811),(7855),(7596)]',true),time);
+      --show-query=no --show-output=no
+--afl store(join(event,join(person,join(year,join(country,time)))),winnersFlat); --show-query=no --show-output=no
+
+
+--afl create array event_index&lt;event:string&gt;[event_id=0:*,5,0]; --show-query=no --show-output=no
+--afl store(uniq(sort(project(winnersFlat,event)),'chunk_size=5'),event_index); --show-query=no --show-output=no
+--afl create_array(champions,&lt;person:string,country:string,time:double&gt; 
+   [year=1996:2008,13,0,event_id=0:3,3,0]); --show-query=no --show-output=no
+--afl store(redimension
+       (project(index_lookup(winnersFlat,event_index, winnersFlat.event, event_id),person,year,country,time,event_id)
+       ,champions),champions); --show-query=no --show-output=no</programlisting><programlisting
+          language="test">--afl scan(champions); --show-query=yes --show-output=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Sort by country (ascending): <programlisting language="test">--afl sort(champions,country); --show-query=yes --show-output=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Sort by country (ascending), then year (descending), and use a
+          chunk size of 100 for the result array: <programlisting
+          language="test">--afl sort(project(winnersFlat,country, year, event), country, year desc, 100);
+</programlisting></para>
+        </step>
+      </procedure>
+
+      <para>To illustrate how to sort by a dimension, consider the following
+      example.</para>
+
+      <procedure>
+        <step>
+          <para>Create a small, two dimensional array. <programlisting
+          language="test">--afl store(build(&lt;val:double&gt;[i=0:2,3,0, j=0:2,3,0],i%3+j),A); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use the apply operator to return the first dimension, and then
+          sort by it.<programlisting language="test">--afl sort(apply(A,dim,i),dim); --output-format=dcsv</programlisting></para>
+        </step>
+      </procedure>
+
+      <para>To illustrate how the sort operator handles null values, this
+      example first scans an array that includes a null value, then sorts the
+      cells in ascending order, then sorts them in descending order.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array: <programlisting language="test">--afl create array numbers &lt;number:int64 null&gt;[i=0:4,5,0] --show-query=no --show-output=no
+--shell --show-query=no --show-output=no --command=csv2scidb -s 1 -p N &lt; $DOC_DATA/mostNumbers.csv &gt; $DOC_DATA/mostNumbers.scidb
+--afl load(numbers,'../tests/harness/testcases/data/doc/mostNumbers.scidb'); --show-query=no --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Sort by number (ascending): <programlisting language="test">--afl sort(numbers, number asc); --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Sort by number (descending): <programlisting language="test">--afl sort(numbers, number desc); --output-format=dense</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

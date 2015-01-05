@@ -1,0 +1,11 @@
+--setup
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+CREATE ARRAY dense_shift <a: double> [x=1:6,3,0, y=1:6,3,0]
+load(dense, '${TEST_DATA_DIR}/dense.txt')
+
+--test
+subarray(reshape(dense, dense_shift), 2, 2, 5, 5)
+
+--cleanup
+remove(dense)
+remove(dense_shift)

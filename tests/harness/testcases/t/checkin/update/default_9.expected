@@ -1,0 +1,32 @@
+SCIDB QUERY : <create array A <a:string default 'test1'> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:string default 'test2'> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into C from A,B>
+{x} a,a_2
+
+SCIDB QUERY : <select * from show(C)>
+{i} schema
+{0} 'C<a:string DEFAULT \'test1\',a_2:string DEFAULT \'test2\'> [x=0:2,3,0]'
+
+SCIDB QUERY : <select * into D from A,B,C>
+{x} a,a_2,a_3,a_2_2
+
+SCIDB QUERY : <select * from show(D)>
+{i} schema
+{0} 'D<a:string DEFAULT \'test1\',a_2:string DEFAULT \'test2\',a_3:string DEFAULT \'test1\',a_2_2:string DEFAULT \'test2\'> [x=0:2,3,0]'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+

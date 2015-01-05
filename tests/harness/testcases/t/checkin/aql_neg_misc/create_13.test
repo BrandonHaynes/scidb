@@ -1,0 +1,7 @@
+# ticket no. 822
+
+--test
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR "create array A <a:int32> [x=*:0,5,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR "create array A <a:int32> [x=*:6,5,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR "create array A <a:int32> [x=*:-3,5,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR "create array A <a:int32> [x=*:*,2,0]"

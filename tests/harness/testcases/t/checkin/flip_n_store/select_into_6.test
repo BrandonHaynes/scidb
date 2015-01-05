@@ -1,0 +1,25 @@
+--setup
+--start-query-logging
+create array A <a:int32, b:int32, c:string> [x=0:2,3,0]
+create array T <a:int32> [x=0:2,3,0]
+create array TS <a:string> [x=0:2,3,0]
+create array B <a:int32, c:string> [b(int32)=3,3,0]
+
+--test
+
+--aql select * into A from build(T,x+1),build(T,x+10),build(TS,'c_'+string(x))
+
+--aql select * into B from A
+
+--aql select * into A from build(T,x+50),build(T,x+70),build(TS,'c_'+string(x+9))
+
+--aql select * into B from A where a=50
+
+--aql select * into B from A where a<>50
+
+--cleanup
+remove(A)
+remove(T)
+remove(TS)
+remove(B)
+--stop-query-logging

@@ -1,0 +1,12 @@
+--test
+--start-query-logging
+create temp array unbounded <a:int64>[x=0:*,5,0]
+--stop-query-logging
+--igdata "load(unbounded,'${TEST_DATA_DIR}/unbounded.txt')"
+--start-query-logging
+create temp array mutable <a:int64>[x=0:29,5,0]
+store (subarray(unbounded,null,null), mutable)
+
+--cleanup
+remove(unbounded)
+remove(mutable)

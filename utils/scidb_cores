@@ -1,0 +1,18 @@
+#!/bin/sh
+
+dt="$1"
+cores=`ls core*`
+
+# There is no reliable way to guarantee a particular core naming convention,
+# so we will just try all cores against scidb & mpi_slave_scidb
+
+for i in $cores; do
+    echo "Processing SciDB corefile: $i"
+    gdb @CMAKE_INSTALL_PREFIX@/bin/scidb --core=$i --eval-command="thread apply all bt full" --eval-command="info sharedlib" --eval-command="info target" --eval-command="info threads" --batch > "$dt/stack-$dt.SciDB.$i" 2>&1
+done
+
+for i in $cores; do
+    echo "Processing mpi core: $i"
+    gdb  @CMAKE_INSTALL_PREFIX@/lib/scidb/plugins/mpi_slave_scidb --core=$i --eval-command="thread apply all bt full" --eval-command="info sharedlib" --eval-command="info target" --eval-command="info threads" --batch > "$dt/stack-$dt.scidb_mpi_slave.$i" 2>&1
+done
+

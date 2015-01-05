@@ -1,0 +1,94 @@
+--setup
+--start-query-logging
+--set-format csv+
+CREATE  ARRAY A_load <STR : string, DBL : double, I32 : int32, I64 : int64, FLT : float, STR2 : string>[ Line=0:*,8,0 ]
+load ( A_load, '${TEST_DATA_DIR}/redim_comp1.txt')
+scan ( A_load )
+
+--test
+# B START
+CREATE  ARRAY B < STR : string, I32 : int32, FLT : float, Line : int64> [ DBL(double)=*,4,0, STR2(string)=*,6,2 ]
+CREATE  ARRAY B_repart1 < STR : string, I32 : int32, FLT : float, Line : int64> [ DBL(double)=*,4,0, STR2(string)=*,6,0 ]
+CREATE  ARRAY B_repart2 < STR : string, I32 : int32, FLT : float, Line : int64> [ DBL(double)=*,4,0, STR2(string)=*,6,2 ]
+
+store(redimension(A_load, B), B)
+store(redimension(A_load, B_repart1), B_repart1)
+
+store ( repart (B_repart1, B_repart2), B_repart2)
+
+CREATE  ARRAY B_flipped < STR : string, DBL : double, I32 : int32, FLT : float, STR2 : string>[ recno=0:*,8,0 ]
+
+store(redimension(apply(B, recno, int32(Line)), B_flipped), B_flipped)
+
+aggregate ( filter ( join ( cast(B_flipped, <STR : string, DBL : double, I32 : int32, FLT : float, STR2 : string>[recno=0:*,8,0]) as A1, A_load as A2), A1.STR <> A2.STR), count(*))
+
+# B END
+
+# C START
+CREATE  ARRAY C < STR : string, DBL : double, Line : int64, STR2 : string> [ FLT(float)=*,4,2, I32(int32)=*,3,1 ]
+
+store(redimension(A_load, C), C)
+
+CREATE  ARRAY C_flipped < STR : string, DBL : double, I32 : int32, FLT : float, STR2 : string>[ recno=0:*,8,0 ]
+
+store(redimension(apply(C, recno, int32(Line)), C_flipped), C_flipped)
+
+aggregate ( filter ( join ( cast(C_flipped, <STR : string, DBL : double, I32 : int32, FLT : float, STR2 : string>[recno=0:*,8,0]) as A1, A_load as A2), A1.STR <> A2.STR), count(*))
+# C END
+
+# D START
+CREATE  ARRAY D < STR : string, I32 : int32, Line : int64 > [ DBL(double)=*,10,0, STR2(string)=*,5,1, FLT(float)=100,10,2 ]
+
+store(redimension(A_load, D), D)
+
+CREATE  ARRAY D_flipped < STR : string, DBL : double, I32 : int32, FLT : float, STR2 : string >[ recno=0:*,8,0 ]
+
+store(redimension(apply(D, recno, int32(Line)), D_flipped), D_flipped)
+
+aggregate ( filter ( join ( cast(D_flipped, <STR : string, DBL : double, I32 : int32, FLT : float, STR2 : string>[recno=0:*,8,0]) as A1, A_load as A2), A1.STR <> A2.STR), count(*))
+# D END
+
+# E START
+
+CREATE  ARRAY E < STR2 : string, FLT : float, Line : int64, total : double NULL default 999.998 > [ I32(int32)=*,4,0, STR(string)=*,6,2 ]
+
+store(redimension(A_load, E, sum(DBL) as total), E)
+
+CREATE  ARRAY E_flipped < STR : string, total : double NULL default 999.998, I32 : int32, FLT : float, STR2 : string >[ recno=0:*,8,0 ]
+store(redimension(apply(E, recno, int32(Line)), E_flipped), E_flipped)
+
+aggregate ( filter ( join ( cast(E_flipped, <STR : string, total : double NULL default 999.998, I32 : int32, FLT : float, STR2 : string>[recno=0:*,8,0]) as A1, A_load as A2), A1.STR <> A2.STR), count(*))
+
+# E END
+
+# F START
+CREATE  ARRAY F < STR : string, I32 : int32, FLT : float, Line : int64> [ DBL(double)=100,4,0, STR2(string)=100,6,2 ]
+
+store(redimension(A_load, F), F)
+
+CREATE  ARRAY F_flipped < STR : string, DBL : double, I32 : int32, FLT : float, STR2 : string>[ recno=0:100,8,0 ]
+
+store(redimension(apply(F, recno, int32(Line)), F_flipped), F_flipped)
+
+aggregate ( filter ( join ( cast(F_flipped, <STR : string, DBL : double, I32 : int32, FLT : float, STR2 : string>[recno=0:*,8,0]) as A1, A_load as A2), A1.STR <> A2.STR), count(*))
+# F END
+
+--reset-format
+
+--cleanup
+
+remove(A_load)
+remove(B)
+remove(B_flipped)
+remove(B_repart1)
+remove(B_repart2)
+remove(C)
+remove(C_flipped)
+remove(D)
+remove(D_flipped)
+remove(E)
+remove(E_flipped)
+remove(F)
+remove(F_flipped)
+
+--stop-query-logging

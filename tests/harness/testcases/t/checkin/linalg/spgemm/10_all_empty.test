@@ -1,0 +1,37 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+#
+# t1 empty left, non-square chunk size
+#
+create array SAleft <a:double>[x=4:5,2,0, y=4:4,1,0]
+create array SAright <b:double>[x=4:4,1,0, y=4:5,2,0]
+store( filter(build(SAleft, 0), x=4), SAleft )
+store( filter(build(SAright, 5-y), true), SAright )
+# [jhm] an expression that is unique in every cell of right would be far more diagnostic
+
+#
+# t2, empty left, unique-cell right, non-square chunksize, distributed beyond 4 instances
+#
+create array spLeft  <v:double>[row=1:4,1,0, col=1:10,2,0]
+create array spRight <v:double>[row=1:10,2,0, col=1:4,1,0]
+store( filter(build(spLeft,  0),         row=3), spLeft)
+store( filter(build(spRight, 10*row+col), true), spRight)
+
+--test
+# t1
+spgemm(SAleft, SAright)
+spgemm(SAleft, SAright, 'min.+')
+spgemm(SAleft, SAright, 'max.+')
+
+# t2
+spgemm(spLeft, spRight)
+
+--cleanup
+remove(SAleft)
+remove(SAright)
+remove(spLeft)
+remove(spRight)
+
+--stop-query-logging

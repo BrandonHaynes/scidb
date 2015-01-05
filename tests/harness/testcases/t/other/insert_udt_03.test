@@ -1,0 +1,45 @@
+--setup
+--start-query-logging
+# Ticket number: 1950
+# Test covers INSERT with user defined data types such as rational and point.
+
+load_library('rational')
+load_library('point')
+
+create array A <a:rational>[x=0:2,3,0]
+create array P <p:point>[x=0:2,3,0]
+create array S <s:string>[x=0:2,3,0]
+store(filter(build(S, rational('(1/3)')), x=2),S)
+
+create array SPSP <a:string,b:point,c:string,d:point> [x=0:2,3,0]
+
+
+--test
+insert(filter(build(A, rational('(1/3)')), x=2),A)
+insert(filter(build(A, rational('(7/5)')), x=0),A)
+insert(filter(build(P, point('(1,3)')), x=1),P)
+insert(filter(build(P, point('(23,25)')), x=0),P)
+
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE "insert(filter(build(P, point('(23,25)')), x=0),S)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE "insert(S,A)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE "insert(A,S)"
+
+store(join(join(join(S,P),S),P),ZZZ)
+insert(ZZZ,SPSP)
+aggregate(versions(SPSP),count(*))
+aggregate(versions(ZZZ),count(*))
+
+insert(ZZZ,SPSP)
+insert(SPSP,ZZZ)
+aggregate(versions(SPSP),count(*))
+aggregate(versions(ZZZ),count(*))
+
+
+
+--cleanup
+remove(A)
+remove(P)
+remove(S)
+remove(SPSP)
+remove(ZZZ)
+--stop-query-logging

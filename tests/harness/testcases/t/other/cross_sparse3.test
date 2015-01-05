@@ -1,0 +1,67 @@
+--setup
+--start-query-logging
+#Ticket number : 1635 for cross operator
+#Tests for cross operator between dense and sparse array type.
+#Tests for Null attribute , cross between bounded and unbounded with different array schema
+#Test for cross operator with other operator nested like subarray,filter,xgrid,unpack.
+
+create array teeth <val:int64 null> [x=0:*,2,0,y=0:*,2,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_na.txt')""
+create  array A <a:float>[x=-2:2,3,0]
+store(build(A,x+1/2.3),A)
+create array d1 <a1: double NULL> [x=0:4,3,0, y=-2:1,2,1]
+store(filter(build(d1, 1.0*x+100.0*y), x<>y),d1)
+
+
+
+--test
+cross_join(teeth,A)
+cross_join(A,teeth)
+aggregate(cross_join(A,teeth),count(*))
+aggregate(cross_join(teeth,A),count(*))
+store(cross_join(teeth,A),BBB)
+show(BBB)
+cross_join(A,d1)
+aggregate(cross_join(A,d1),avg(a))
+aggregate(cross_join(d1,A),avg(a))
+aggregate(cross_join(A,d1),count(*))
+cross_join(d1,concat(A,A))
+subarray(d1,0,-2,1,0)
+cross_join(subarray(A,-2,-1),subarray(d1,0,-2,1,0))
+cross_join(filter(A, a>0),d1)
+cross_join(cross_join(filter(A, a>0),d1),cross_join(A,A))
+aggregate(cross_join(cross_join(filter(A, a>0),d1),cross_join(A,A)),count(*))
+cross_join(A,xgrid(teeth,2,2))
+aggregate(cross_join(A,xgrid(teeth,2,2)),count(*))
+aggregate(cross_join(A,teeth),count(*))
+cross_join(d1,teeth)
+cross_join(teeth,d1)
+aggregate(cross_join(teeth,d1),count(*))
+aggregate(cross_join(d1,teeth),count(*))
+store(cross_join(teeth,d1),CCC)
+show(CCC)
+unpack(teeth,j)
+store(unpack(teeth,j),ZZZ)
+show(ZZZ)
+cross_join(unpack(teeth,j),A)
+cross_join(ZZZ,A)
+aggregate(cross_join(ZZZ,A),sum(x))
+aggregate(cross_join(ZZZ,A),stdev(x))
+aggregate(cross_join(ZZZ,A),var(x))
+aggregate(cross_join(ZZZ,A),max(x))
+aggregate(cross_join(ZZZ,A),min(x))
+
+
+
+--cleanup
+remove(teeth)
+remove(A)
+remove(d1)
+remove(BBB)
+remove(CCC)
+remove(ZZZ)
+
+
+
+
+--stop-query-logging

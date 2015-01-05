@@ -1,0 +1,22 @@
+--setup
+--start-query-logging
+create array us_presidents <first_name:string, middle_name: string null, last_name:string, years_in_office: uint8 null, died_in_office:bool null, assassinated: bool> [president_number=1:44,10,0]
+create array president_stats <count:uint64 null, total_years_in_office: uint64 null, any_assassinated:bool null> [first_name(string)=*,10,0]
+load(us_presidents, '${TEST_DATA_DIR}/us_presidents.txt')
+
+--test
+substitute(substitute(us_presidents, build(<val:string>[x=0:0,1,0], 'no_middle_name'), middle_name), build(<val:uint8>[x=0:0,1,0], 255), years_in_office)
+store(redimension(us_presidents, president_stats, count(last_name) as count, sum(years_in_office) as total_years_in_office, max(assassinated) as any_assassinated), president_stats)
+
+create array presidents_unbounded <first_name:string, middle_name: string null, last_name:string, years_in_office: uint8 null, died_in_office:bool null, assassinated: bool> [president_number=1:*,10,0]
+store(us_presidents, presidents_unbounded)
+load(presidents_unbounded, '${TEST_DATA_DIR}/us_presidents.txt')
+join(filter(presidents_unbounded, first_name='george'), filter(presidents_unbounded, years_in_office=4))
+store(redimension(filter(us_presidents, first_name='george'), president_stats, count(last_name) as count, sum(years_in_office) as total_years_in_office, max(assassinated) as any_assassinated), president_stats)
+
+--cleanup
+remove(us_presidents)
+remove(president_stats)
+remove(presidents_unbounded)
+--stop-query-logging
+

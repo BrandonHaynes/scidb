@@ -1,0 +1,28 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY distance <miles:double> [i=0:9,10,0]  
+store(build(distance,i*100.0),distance)  
+--stop-igdata
+apply(distance,kilometers,1.6*miles) 
+--start-igdata
+CREATE ARRAY vector <val:double>[i=0:9,10,0]  
+store(build(vector,i+1),vector)  
+--stop-igdata
+apply(xgrid(vector,2),val_2,-i) 
+--start-igdata
+store(build(<val:int64>[i=0:9,10,0],i+1),A)  
+--stop-igdata
+apply(A,val_2,double(val)) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(distance)
+remove(vector)
+remove(A)

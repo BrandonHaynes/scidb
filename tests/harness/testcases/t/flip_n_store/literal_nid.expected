@@ -1,0 +1,74 @@
+SCIDB QUERY : <create array B <b:char>[a(char)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:char>[b(char)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array AAA <count:uint64 null>[even_or_odd=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(apply(build(<a:double>[x=0:5,3,0,y=0:5,3,0],'[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]]',true), even_or_odd, iif(int64(a)%2=0,0,1)),ZZZ)>
+{x,y} a,even_or_odd
+{0,0} 0,0
+{0,1} 1,1
+{0,2} 2,0
+{1,0} 3,1
+{1,1} 4,0
+{1,2} 5,1
+{2,0} 6,0
+{2,1} 7,1
+{2,2} 8,0
+
+SCIDB QUERY : <build( <a:char,b:char>[x=0:2,3,0],'[(1,5),(2,6),(3,7)]',1)>
+{x} a,b
+{0} '1','5'
+{1} '2','6'
+{2} '3','7'
+
+SCIDB QUERY : <store(redimension(build( <a:char,b:char>[x=0:2,3,0],'[(1,5),(2,6),(3,7)]',1),B),B)>
+{a} b
+{'1'} '5'
+{'2'} '6'
+{'3'} '7'
+
+SCIDB QUERY : <store(redimension(build( <a:char,b:char>[x=0:2,3,0],'[(1,5),(2,6),(3,7)]',1),C),C)>
+{b} a
+{'5'} '1'
+{'6'} '2'
+{'7'} '3'
+
+SCIDB QUERY : <redimension(apply(build(<a:double>[x=0:5,3,0,y=0:5,3,0],'[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]]',true), even_or_odd, iif(int64(a)%2=0,0,1)),<count:uint64 null>[even_or_odd=0:1,2,0],count(a) as count)>
+{even_or_odd} count
+{0} 5
+{1} 4
+
+SCIDB QUERY : <redimension(apply(build(<a:double>[x=0:5,3,0,y=0:5,3,0],'[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]];[[(3),(4),(5)],[(6),(7),(8)],[(9),(10),(11)]];[[(9),(10),(11)],[(12),(13),(14)],[(15),(16),(17)]];[[(12),(13),(14)],[(15),(16),(17)],[(18),(19),(19)]]',true), even_or_odd, iif(int64(a)%2=0,0,1)),<count:uint64 null>[even_or_odd=0:1,2,0],count(a) as count)>
+{even_or_odd} count
+{0} 17
+{1} 19
+
+SCIDB QUERY : <show(AAA)>
+{i} schema
+{0} 'AAA<count:uint64 NULL DEFAULT null> [even_or_odd=0:1,2,0]'
+
+SCIDB QUERY : <show(ZZZ)>
+{i} schema
+{0} 'ZZZ<a:double,even_or_odd:int64> [x=0:5,3,0,y=0:5,3,0]'
+
+SCIDB QUERY : <redimension(ZZZ,AAA, count(a) as count)>
+{even_or_odd} count
+{0} 5
+{1} 4
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AAA)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ZZZ)>
+Query was executed successfully
+

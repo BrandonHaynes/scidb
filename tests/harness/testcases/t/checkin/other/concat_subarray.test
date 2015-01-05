@@ -1,0 +1,11 @@
+--setup
+
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense, '${TEST_DATA_DIR}/dense.txt')
+
+--test
+aggregate(concat(subarray(dense,0,0,2,5), subarray(dense,3,0,5,5)),sum(a))
+aggregate(concat(subarray(dense,0,0,3,5), subarray(dense,4,0,5,5)),sum(a))
+
+--cleanup
+remove(dense)

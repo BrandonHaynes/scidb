@@ -1,0 +1,34 @@
+# ticket no. 780
+
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:2,3,0]
+create array C <a:string,b:string> [x=0:2,3,0]
+create array D <b:string> [a(string)=3,1,0]
+create array E <b:string> [a(string)=3,1,0,x=0:2,3,0]
+store(build(A,x+10),A)
+store(join(build(<a:string> [x=0:2,3,0],string(x+1)),build(<a:string> [x=0:2,3,0],string(x+10))),C)
+store(redimension(C,D),D)
+store(redimension(C,E),E)
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR4 "store(repart(A,<b:int64> [x=0:1,3,0]),B1)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3 "store(repart(A,<b:int64> [x=2:8,3,0]),B2)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR2 "store(repart(A,<b:int64> [x(string)=9,3,0]),B3)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3 "store(repart(A,<b:int32> [x=1:3,3,0]),B4)"
+store(repart(A,<b:int32> [x=0:3,3,0]),B5)
+store(repart(D,<z:int32>[y(string)=4,2,0]),B6)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR1 "store(repart(D,<z:int32>[y(string)=3,2,1,a(string)=3,2,1]),B7)"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME "repart(E,<a:int32> [a(string)=3,1,0])"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME "repart(E,<a:int32> [a(string)=3,1,0,x=0:3,3,0])"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME "store(repart(E,<a:int32> [a=0:2,1,1,x(string)=3,2,1]),B9)"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME "store(repart(E,<a:int32> [x=0:2,1,1,a(string)=3,2,1]),B0)"
+
+--cleanup
+remove(A)
+remove(C)
+remove(D)
+remove(E)
+remove(B5)
+remove(B6)
+--stop-query-logging

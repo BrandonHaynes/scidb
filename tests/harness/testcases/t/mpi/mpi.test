@@ -1,0 +1,46 @@
+--setup
+--shell --command "rm -f /dev/shm/SciDB* 2>/dev/null"
+load_library('dense_linear_algebra')
+
+--test
+
+# this test assumes the MpiManager lock timeout of 10 sec
+# AND that mpirank(64x64) takes less than that
+# AND that mpi_test() takes longer than that
+
+# start 2 independent, concurrent mpi_test() queries, to show that they will be properly serialized if necessary.
+# if interrupted, this shell command will kill the current process group (typically scidbtestharness+children).
+# this way the background iquery started here does not stay behind - best effort cleanup attempt.
+
+--shell --store --command "trap 'kill 0' SIGINT SIGTERM SIGHUP SIGQUIT ; ( iquery -p ${IQUERY_PORT:=1239} -c ${IQUERY_HOST:=localhost} -odcsv -naq 'mpirank(build(<v:double>[i=0:64-1,32,0, j=0:64-1,32,0],0))' 1> /tmp/${HPID}_1.stdout 2> /tmp/${HPID}_1.stderr ) & export pid=$! ; export rc=0 ; iquery -p ${IQUERY_PORT:=1239} -c ${IQUERY_HOST:=localhost} -odcsv -naq 'mpirank(build(<v:double>[i=0:64-1,32,0, j=0:64-1,32,0],0))' 1> /tmp/${HPID}_2.stdout 2> /tmp/${HPID}_2.stderr || export rc=${rc}2 ; wait $pid || export rc=${rc}1 ; echo $rc && [ $rc == 0 ]; "
+
+--shell --store --command "cat /tmp/${HPID}_1.stderr"
+--shell --store --command "cat /tmp/${HPID}_1.stdout"
+
+--shell --store --command "cat /tmp/${HPID}_2.stderr"
+--shell --store --command "cat /tmp/${HPID}_2.stdout"
+
+# start 2 concurrent mpi_test-based queries, but make the first one so long that the second one will time out waiting, in order to test that the timeout function works..
+# if interrupted, this shell command will kill the current process group (typically scidbtestharness+children).
+# this way the background iquery started here does not stay behind - best effort cleanup attempt.
+
+--shell --store --command "trap 'kill 0' SIGINT SIGTERM SIGHUP SIGQUIT ; ( iquery -p ${IQUERY_PORT:=1239} -c ${IQUERY_HOST:=localhost} -odcsv -aq 'mpi_test()' 1> /tmp/${HPID}_1.stdout 2> /tmp/${HPID}_1.stderr ) & export pid=$! ; export rc=0 ; iquery -p ${IQUERY_PORT:=1239} -c ${IQUERY_HOST:=localhost} -odcsv -aq 'mpi_test()' 1> /tmp/${HPID}_1.stdout 2> /tmp/${HPID}_2.stderr || export rc=${rc}2 ; wait $pid || export rc=${rc}1 ; [ $rc == 01 ] || [ $rc == 02 ] && echo 0 ;"
+
+# compare only the error code
+--shell --store --command "grep scidb::SCIDB_SE_EXECUTION::SCIDB_LE_RESOURCE_BUSY /tmp/${HPID}_1.stderr 2>/dev/null || grep scidb::SCIDB_SE_EXECUTION::SCIDB_LE_RESOURCE_BUSY /tmp/${HPID}_2.stderr 2>/dev/null"
+
+--shell --store --command "ls /dev/shm/SciDB* 2>/dev/null || true"
+
+--cleanup
+
+# log the output regardless of status
+--shell --command "cat /tmp/${HPID}_1.stderr"
+--shell --command "cat /tmp/${HPID}_1.stdout"
+--shell --command "cat /tmp/${HPID}_2.stderr"
+--shell --command "cat /tmp/${HPID}_2.stdout"
+
+--shell --command "rm -f /dev/shm/SciDB* 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_1.stderr 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stderr 2>/dev/null"

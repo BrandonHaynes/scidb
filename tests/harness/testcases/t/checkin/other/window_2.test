@@ -1,0 +1,72 @@
+--setup
+#
+# even division of array length, chunk length and overlap 
+create array win1<x:double>[i=1:30,10,5, j=1:30,10,5]
+store ( filter(build( win1, 1.0), ((i*30+j) * 15485863) % 7 = 0), win1)
+#
+# array length and chunk length co-prime, overlaps divides chunk length
+create array win2<x:double>[i=1:31,10,5, j=1:31,10,5]
+store ( filter(build( win2, 1.0), ((i*31+j) * 15485863) % 7 = 0), win2)
+#
+# array length, chunk length and overlaps all co-prime 
+create array win3<x:double>[i=1:61,17,7, j=1:61,17,7]
+store ( filter(build( win3, 1.0), ((i*36+j) * 15485863) % 7 = 0), win3)
+
+--test
+
+window ( win1, 2, 2, 2, 2, count (*) )
+window ( win1, 2, 2, 2, 2, avg (x), count (*) )
+store ( window ( win1, 2, 2, 2, 2, sum (x), avg (x), count (*) ), win1_na)
+window ( win1, 2, 2, 2, 2, count (*), 'probe' )
+window ( win1, 2, 2, 2, 2, avg (x), count (*), 'probe' )
+store ( window ( win1, 2, 2, 2, 2, sum (x), avg (x), count (*), 'probe' ), win1_pr)
+window ( win1, 2, 2, 2, 2, count (*), 'materialize' )
+window ( win1, 2, 2, 2, 2, avg (x), count (*), 'materialize' )
+store ( window ( win1, 2, 2, 2, 2, sum (x), avg (x), count (*), 'materialize' ), win1_mat)
+
+aggregate ( filter ( join (win1_na AS O1, win1_pr AS O2), O1.x_avg <> O2.x_avg OR O1.x_sum <> O2.x_sum OR O1.count <> O2.count ), count(*))
+aggregate ( filter ( join (win1_pr AS O1, win1_mat AS O2), O1.x_avg <> O2.x_avg OR O1.x_sum <> O2.x_sum OR O1.count <> O2.count ), count(*))
+
+window ( win2, 2, 2, 2, 2, count (*) )
+window ( win2, 2, 2, 2, 2, avg (x), count (*) )
+store ( window ( win2, 2, 2, 2, 2, sum (x), avg (x), count (*) ), win2_na )
+window ( win2, 2, 2, 2, 2, count (*), 'probe' )
+window ( win2, 2, 2, 2, 2, avg (x), count (*), 'probe' )
+store ( window ( win2, 2, 2, 2, 2, sum (x), avg (x), count (*), 'probe' ), win2_pr )
+window ( win2, 2, 2, 2, 2, count (*), 'materialize' )
+window ( win2, 2, 2, 2, 2, avg (x), count (*), 'materialize' )
+store ( window ( win2, 2, 2, 2, 2, sum (x), avg (x), count (*), 'materialize' ), win2_mat )
+
+aggregate ( filter ( join (win2_na AS O1, win2_pr AS O2), O1.x_avg <> O2.x_avg OR O1.x_sum <> O2.x_sum OR O1.count <> O2.count ), count(*))
+aggregate ( filter ( join (win2_pr AS O1, win2_mat AS O2), O1.x_avg <> O2.x_avg OR O1.x_sum <> O2.x_sum OR O1.count <> O2.count ), count(*))
+
+window ( win3, 5, 5, 5, 5, count (*) )
+window ( win3, 5, 5, 5, 5, avg (x), count (*) )
+store ( window ( win3, 5, 5, 5, 5, sum (x), avg (x), count (*) ), win3_na )
+window ( win3, 5, 5, 5, 5, count (*), 'probe' )
+window ( win3, 5, 5, 5, 5, avg (x), count (*), 'probe' )
+store ( window ( win3, 5, 5, 5, 5, sum (x), avg (x), count (*), 'probe' ), win3_pr )
+window ( win3, 5, 5, 5, 5, count (*), 'materialize' )
+window ( win3, 5, 5, 5, 5, avg (x), count (*), 'materialize' )
+store ( window ( win3, 5, 5, 5, 5, sum (x), avg (x), count (*), 'materialize' ), win3_mat )
+
+aggregate ( filter ( join (win3_na AS O1, win3_pr AS O2), O1.x_avg <> O2.x_avg OR O1.x_sum <> O2.x_sum OR O1.count <> O2.count ), count(*))
+aggregate ( filter ( join (win3_pr AS O1, win3_mat AS O2), O1.x_avg <> O2.x_avg OR O1.x_sum <> O2.x_sum OR O1.count <> O2.count ), count(*))
+
+--cleanup
+remove ( win1 )
+remove ( win2 )
+remove ( win3 )
+
+remove ( win1_na )
+remove ( win1_pr )
+remove ( win1_mat )
+
+remove ( win2_na )
+remove ( win2_pr )
+remove ( win2_mat )
+
+remove ( win3_na )
+remove ( win3_pr )
+remove ( win3_mat )
+

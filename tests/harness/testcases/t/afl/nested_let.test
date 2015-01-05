@@ -1,0 +1,30 @@
+--setup
+
+create array A <v:double>[i=1:2,2,0]
+store(build(A,i),A)
+
+--test
+
+--set-format csv
+--start-query-logging
+
+# let bindings - currently undocumented
+
+# Should be 0.
+aggregate(filter(apply(A,w,let {f = fn(x){78 + g(x)} where {g = fn(x){0 + h(x)} where {h = fn(x){0+0}}}}in f(v)),w <> 78),count(*))
+
+# Should be 0.
+aggregate(filter(apply(A,w,let {f = fn(x){78 + g(x) + h(x) + k(x)} where {h = fn(x) {0};g = fn(x) {0};k = fn(x) {0};}} in f(v)), w <> 78),count(*))
+
+# Should be 0.
+aggregate(filter(apply(A,w,let {f = fn(x) {1 + g(x) * 2} where {g = fn(x) {h(x) * 1} where {h = fn(x) {0}}}} in f(v)), w > 1),count(*))
+
+# Should be 0.
+aggregate(filter(apply(A,w,let {f = fn(x) {1 + g(x) * 2} where {g = fn(x) {2 * h(x)} where {h = fn(x) {1}}}} in f(v)), w < 3),count(*))
+
+--stop-query-logging
+--reset-format
+
+--cleanup
+remove(A)
+load_module('/dev/null')

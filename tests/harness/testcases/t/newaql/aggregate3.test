@@ -1,0 +1,44 @@
+--setup
+--start-query-logging
+# ticket no: 1609
+#Tests for Aggregates on sparse array (NID),overlap array with string type attribute.
+
+create array Str <a:string>[x=0:5,3,2]
+store(filter(build(Str,100*x+2.5),x>2),Str)
+store(apply(Str,b,'a_Z'),Astar)
+create  array A <a:char,b:char>[x=0:2,3,0]
+create array B <b:char>[a(char)=3,3,0]
+create array C <a:char>[b(char)=3,3,0]
+create array T <a:char>[x=0:2,3,0]
+
+
+
+--test
+store(join(filter(build(T,string(x+1)),1),filter(build(T,string(x+5)),1)),A)
+store(redimension(A,B),B)
+store(redimension(A,C),C)
+--aql select count(*) from Str
+--aql select count(Str)
+--aql select min(Str)
+--aql select max(Str)
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE --aql="select avg(Str)"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE --aql="select var(Str)"
+--aql update Str set a='zebra' where x=3
+--aql select count(Str)
+--aql select sum(Str)
+--aql select min(Str)
+--aql select x, sum(a) from Astar group by x
+
+
+
+
+--cleanup
+remove(Str)
+remove(Astar)
+remove(A)
+remove(B)
+remove(C)
+remove(T)
+
+--stop-query-logging
+

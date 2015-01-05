@@ -1,0 +1,75 @@
+# not a correctness test
+--shell --command "echo 'This test is not a test of correctness, there are other tests for that.'"  
+--shell --command "echo 'This and its sibling tests are meant to be used as a templates for a developer'"
+--shell --command "echo 'to run spgemm at various scales to measure the performance changes in spgemm.'"
+
+--setup
+load_library('linear_algebra')
+
+--justrun "remove(pairs_scale20)"
+create array pairs_scale20 <i:int64, j:int64>[dummy=0:*,1000*1000,0]
+--justrun "remove(mat_scale20)"
+# 2^20 = 1048576
+# TODO: when $INSTANCES is made available to .test files change the 4 below to $INSTANCES
+create array mat_scale20 <v:double>[i=1:1048576,1048576/4,0, j=1:1048576,1048576/4,0]
+
+--start-query-logging
+--start-igdata
+#
+# works with run.py, keeping here as an example of how to reference
+# a general file (vs one given to the load command)
+#--shell --command "csv2scidb -i data/graph500scale20.csv -o /tmp/graph500scale20.scidb"
+#
+
+# load the list of v0,v1 edges (vertex pairs) (checked into the test/data directory)
+#load(pairs_scale20, '${TEST_DATA_DIR}/graph500scale20.scidb.txt')
+load(pairs_scale20,'/public/data/Kronecker/KroneckerGraph_scale20_edgefactor16.scidb')
+
+# turn into adjacency matrix
+store(redimension(apply(pairs_scale20, v, 1.0), mat_scale20),mat_scale20)
+
+--test
+
+# calculate spgemm
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+store(spgemm(mat_scale20, mat_scale20), product_scale20)
+
+## calculate it again with the legacy operator "testSpgemm"
+#store(testSpgemm(mat_scale20, mat_scale20), check_scale20)
+#
+## join, take difference, and count the non-identical elements
+#store(join(product_scale20,check_scale20), joined_scale20)
+#
+#store(project(apply(joined_scale20,diff,multiply-multiply_2),diff), diffs_scale20)
+#
+## the output of this is the test result ... it should be 0
+#--stop-igdata
+#aggregate(filter(diffs_scale20,diff !=0),count(*))
+#--start-igdata
+#
+## count the number of multiplies required for the spgemm above:
+#store(spgemm(mat_scale20, mat_scale20, 'count-mults'), num_mult_scale20)
+#
+## the output of these two are the test result (since the above is too large to print out)
+#aggregate(num_mult_scale20,count(*))
+#aggregate(num_mult_scale20,sum(multiply))
+
+
+--cleanup
+remove(pairs_scale20)
+remove(mat_scale20)
+remove(product_scale20)
+#remove(check_scale20)
+#remove(joined_scale20)
+#remove(diffs_scale20)
+#remove(num_mult_scale20)
+
+--stop-query-logging

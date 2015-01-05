@@ -1,0 +1,22 @@
+--setup
+--start-query-logging
+create array Orig <x:double> [i=1:100,10,0]
+create array Flipped <i:int64> [x(double)=100,10,0]
+store(build(Orig,i*10.1), Orig)
+
+--test
+store(redimension(Orig, Flipped), Flipped)
+subarray(thin(Flipped, 1, 2), 30.3, 50.1)                         
+between(thin(Flipped, 1, 2), 20.2, 40.4)                         
+store(subarray(thin(Flipped, 1, 2), 30.3, 50.1), A)                         
+store(between(thin(Flipped, 1, 2), 20.2, 40.4), B)
+subarray(A, 30.0, 50.0)
+subarray(B, 20.0, 30.0)
+
+
+--cleanup
+remove(Orig)
+remove(Flipped)
+remove(A)
+remove(B)
+--stop-query-logging

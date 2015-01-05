@@ -1,0 +1,12 @@
+# http://trac.scidb.org/ticket/325#comment:18
+
+--setup
+--aql create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST --aql="select sum(A) from A group by x"
+
+
+--cleanup
+--aql drop array A

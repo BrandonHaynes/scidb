@@ -1,0 +1,35 @@
+SCIDB QUERY : <store(build(<val:double>[i=0:9,10,0],1),source)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <list('arrays')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <rename(source,target)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <list('arrays')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(target)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<val:int64> [i=0:3,4,0,j=0:1,2,0],i*4+j),A)>
+[[(0),(1)],[(4),(5)],[(8),(9)],[(12),(13)]]
+
+SCIDB QUERY : <store(build(A,i*3+j),A)>
+[[(0),(1)],[(3),(4)],[(6),(7)],[(9),(10)]]
+
+SCIDB QUERY : <store(build(A,i*2+j+1),A)>
+[[(1),(2)],[(3),(4)],[(5),(6)],[(7),(8)]]
+
+SCIDB QUERY : <list('arrays',true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <rename(A,Octagon)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <list('arrays',true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+

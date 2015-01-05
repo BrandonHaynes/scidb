@@ -1,0 +1,55 @@
+SCIDB QUERY : <create array A1 <firstnames:string> [i=0:2,3,0, j=0:1,2,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A2 <lastnames:string> [i=0:2,3,0, j=0:1,2,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(A1,'[[("Bill"),("Anne")],[("Joe"),("Steve")],[("Burt"),("Ronald")]]',true),A1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(A2,'[[("Clinton"),("Rice")],[("Pantoliano"),("Jobs")],[("Reynolds"),("Reagan")]]',true),A2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(A1,A2),Names)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(Names)>
+{i} schema
+{0} 'Names<firstnames:string,lastnames:string> [i=0:2,3,0,j=0:1,2,0]'
+
+SCIDB QUERY : <scan(Names)>
+[[('Bill','Clinton'),('Anne','Rice')],[('Joe','Pantoliano'),('Steve','Jobs')],[('Burt','Reynolds'),('Ronald','Reagan')]]
+
+SCIDB QUERY : <filter(apply(Names,first,strlen(firstnames), last,strlen(lastnames)),first=last)>
+{i,j} firstnames,lastnames,first,last
+{0,1} 'Anne','Rice',4,4
+{2,1} 'Ronald','Reagan',6,6
+
+SCIDB QUERY : <store(list('functions'),SciDB_functions)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <filter(project(SciDB_functions,name,profile), regex(profile,'(.*)datetimetz(.*)'))>
+name,profile
+'<','bool <(datetimetz,datetimetz)'
+'<=','bool <=(datetimetz,datetimetz)'
+'<>','bool <>(datetimetz,datetimetz)'
+'=','bool =(datetimetz,datetimetz)'
+'>','bool >(datetimetz,datetimetz)'
+'>=','bool >=(datetimetz,datetimetz)'
+'append_offset','datetimetz append_offset(datetime,int64)'
+'apply_offset','datetimetz apply_offset(datetime,int64)'
+'day_of_week','uint8 day_of_week(datetimetz)'
+'get_offset','int64 get_offset(datetimetz)'
+'hour_of_day','uint8 hour_of_day(datetimetz)'
+'strip_offset','datetime strip_offset(datetimetz)'
+'togmt','datetime togmt(datetimetz)'
+'tznow','datetimetz tznow()'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

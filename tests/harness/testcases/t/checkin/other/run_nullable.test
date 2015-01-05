@@ -1,0 +1,9 @@
+--setup
+create array A_10 <x:double null>[i=1:10,5,0]
+load(A_10, '${TEST_DATA_DIR}/A_10.txt')
+
+--test
+scan(A_10)
+
+--cleanup
+remove(A_10)

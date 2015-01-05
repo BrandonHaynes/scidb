@@ -1,0 +1,14 @@
+Source: scidb4j
+Section: java
+Priority: extra
+Maintainer: SciDB support list <support@lists.scidb.org>
+Build-Depends: debhelper (>= 8.0.0), openjdk-6-jdk, protobuf-compiler
+Build-Depends-Indep: ant, libprotobuf-java, junit
+Standards-Version: 3.9.2
+Homepage: http://scidb.org
+
+Package: scidb4j
+Architecture: all
+Depends: ${misc:Depends}, ${java:Depends}, default-jre (>= 1.6) | default-jre-headless (>= 1.6) | java6-runtime | java6-runtime-headless, libprotobuf-java
+Recommends: ${java:Recommends}
+Description: SciDB Java and JDBC driver

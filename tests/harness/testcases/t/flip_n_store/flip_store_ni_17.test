@@ -1,0 +1,72 @@
+--setup
+--start-query-logging
+create array A <a:char,b:char>[x=0:2,3,0]
+create array T <a:char>[x=0:2,3,0]
+create array B <b:char>[a(char)=3,3,0]
+create array C <a:char>[b(char)=3,3,0]
+store(join(filter(build(T,string(x+1)),1),filter(build(T,string(x+5)),1)),A)
+
+--test
+
+#workaround for p4 bug 564
+--set-format csv+
+
+store(redimension(A,B),B)
+store(redimension(B,C),C)
+unpack(B,row)
+unpack(C,row)
+
+rename(B,B1)
+aggregate(B1,max(b))
+aggregate(B1,min(b))
+subarray(B1,'1','2')
+between(B1,'1','3')
+filter(B1,a>'1')
+filter(B1,a<'2')
+filter(B1,a='2')
+filter(B1,a<>'2')
+filter(B1,b>'5')
+filter(B1,b<'6')
+filter(B1,b='6')
+filter(B1,b<>'6')
+project(B1,b)
+join(B1,B1)
+cross_join(B1,B1)
+apply(B1,z,a+'_z')
+apply(B1,z,b+'_z')
+aggregate(B1,count(*))
+sort(B1,b)
+sort(B1,b desc)
+rename(B1,B)
+
+rename(C,C1)
+aggregate(C1,max(a))
+aggregate(C1,min(a))
+subarray(C1,'5','6')
+between(C1,'5','7')
+filter(C1,a>'1')
+filter(C1,a<'2')
+filter(C1,a='2')
+filter(C1,a<>'2')
+filter(C1,b>'5')
+filter(C1,b<'6')
+filter(C1,b='6')
+filter(C1,b<>'6')
+project(C1,a)
+join(C1,C1)
+cross_join(C1,C1)
+apply(C1,z,a+'_z')
+apply(C1,z,b+'_z')
+aggregate(C1,count(*))
+sort(C1,a)
+sort(C1,a desc)
+rename(C1,C)
+
+--reset-format
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(T)
+--stop-query-logging

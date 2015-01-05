@@ -1,0 +1,13 @@
+# Ticket 1592
+# A bounded array is created and then is cast to an unbounded array.
+# Both the contents and the metadata are shown.
+# In this case, the dimension size is not a multiple of the chuck interval.
+
+--setup
+
+--test
+--set-format dense
+cast(build(<a:int32>[i=0:7,3,0], i), <a:int32>[i=0:*,3,0])
+show('cast(build(<a:int32>[i=0:7,3,0], i), <a:int32>[i=0:*,3,0])', 'afl')
+
+--cleanup

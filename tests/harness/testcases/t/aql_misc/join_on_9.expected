@@ -1,0 +1,47 @@
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+{y} b
+{0} 'b1'
+{1} 'b2'
+{2} 'b3'
+
+{x} a,b
+{0} 1,'b1'
+{1} 2,'b2'
+{2} 3,'b3'
+
+{x} a
+{0} 21
+{1} 22
+{2} 23
+
+{y} b
+{0} 'b1_'
+{1} 'b2_'
+{2} 'b3_'
+
+{x} a,b
+{0} 21,'b1_'
+{1} 22,'b2_'
+{2} 23,'b3_'
+
+{x} a,b,a,b
+{0} 1,'b1',21,'b1_'
+{1} 2,'b2',22,'b2_'
+{2} 3,'b3',23,'b3_'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

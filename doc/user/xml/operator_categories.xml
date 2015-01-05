@@ -1,0 +1,861 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<chapter id="scidbAFLCategories">
+  <title>SciDB AFL Operator Categories</title>
+
+  <para><indexterm>
+      <primary>operators</primary>
+
+      <secondary>categories</secondary>
+    </indexterm>The AFL operators divide up into several areas:<itemizedlist>
+      <listitem>
+        <para><link linkend="aggregateCategory">Aggregate</link>: operators
+        that involve an aggregate function call.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="combineCategory">Combine</link>: operators that
+        take two arrays as arguments, and return one result array.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="computeCategory">Compute</link>: operators that
+        compute or generate new data.</para>
+      </listitem>
+
+      <listitem>
+        <para>I<link linkend="ioCategory">nput/Output (I/O)</link>: operators
+        that interact with the outside world.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="mathCategory">Math</link>: operators that perform
+        mathematical manipulations on the input array.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="metaCategory">Metadata</link>: operators that
+        read and write metadata.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="transformCategory">Meta-transformations</link>:
+        operators that change the properties of intermediate arrays.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="saveCategory">Read/Save</link>: operators that
+        save data to persistent arrays and read it back.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="rearrangeCategory">Rearrange</link>: operators
+        that perform complex transformations.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="winnowCategory">Winnow</link>: operators that
+        return a subset of the input array.</para>
+      </listitem>
+    </itemizedlist></para>
+
+  <para>You can get a list of all of the available operators by running the
+  following query:<screen>$ iquery -aq "list('operators')"</screen></para>
+
+  <section id="aggregateCategory">
+    <title>Aggregate</title>
+
+    <para>The following SciDB operators perform aggregation.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="15*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="aggregateOperator">aggregate</link></literal></entry>
+
+            <entry>Takes as input a set of 1 or more values and returns a
+            SciDB array. The following aggregates are provided:<itemizedlist>
+                <listitem>
+                  <para><link
+                  linkend="approxdcAgg">approxdc</link>—approximate
+                  count</para>
+                </listitem>
+
+                <listitem>
+                  <para><link linkend="agg_average">avg</link>—average
+                  (mean)</para>
+                </listitem>
+
+                <listitem>
+                  <para><link linkend="countAggregate">count</link></para>
+                </listitem>
+
+                <listitem>
+                  <para><link linkend="maxAggregate">max</link>—maximum
+                  value</para>
+                </listitem>
+
+                <listitem>
+                  <para><link linkend="minAggregate">min</link>—minimum
+                  value</para>
+                </listitem>
+
+                <listitem>
+                  <para><link linkend="prodAggregate">prod</link>—cumulative
+                  product</para>
+                </listitem>
+
+                <listitem>
+                  <para><link linkend="stdevAggregate">stdev</link>—standard
+                  deviation</para>
+                </listitem>
+
+                <listitem>
+                  <para><link linkend="sumAggregate">sum</link>—cumulative
+                  sum</para>
+                </listitem>
+
+                <listitem>
+                  <para><link
+                  linkend="varAggregate">var</link>—variance</para>
+                </listitem>
+              </itemizedlist></entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="analyze">analyze</link></literal></entry>
+
+            <entry>Produces a 1-dimensional result array where each cell
+            describes some simple statistics about the values in one attribute
+            of a stored array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="cumulateOperator">cumulate</link></literal></entry>
+
+            <entry>Calculates a running aggregate along a single dimension of
+            the input array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="regridOperator">regrid</link></literal></entry>
+
+            <entry>Produces a result array that aggregates over
+            non-overlapping subarrays of the input array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="varwinOperator">variable_window</link></literal></entry>
+
+            <entry>Selects nonempty cells from a variable size, 1-dimensional
+            window.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="winOperator">window</link></literal></entry>
+
+            <entry>Computes aggregates over moving window of an array.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="combineCategory">
+    <title>Combine</title>
+
+    <para>The following SciDB operators take two input arrays and combine them
+    to produce a result array.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="15*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="concatOperator">concat</link></literal></entry>
+
+            <entry>Returns a result array that consists of all of the cells of
+            the first array, followed by all of the cells of the second
+            array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="crossJoinOperator">cross_join</link></literal></entry>
+
+            <entry>Returns a result array that is a cross-product join with
+            equality predicates.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="joinOperator">join</link></literal></entry>
+
+            <entry>Returns a result array that combines the attributes of two
+            input arrays at matching dimension values.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="mergeOperator">merge</link></literal></entry>
+
+            <entry>Produces a result array by merging the data from two input
+            arrays.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="substituteOperator">substitute</link></literal></entry>
+
+            <entry>Returns a result array with a specified value substituted
+            for null values in an array.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="computeCategory">
+    <title>Compute</title>
+
+    <para>The following SciDB operators compute or generate new data.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="15*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="apply">apply</link></literal></entry>
+
+            <entry>Returns new attributes, calculated from supplied
+            parameters.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="build">build</link></literal></entry>
+
+            <entry>Create (but not persist) an array from a schema, using an
+            expression to fill the cells of the array. Use with the
+            <literal>store</literal> operator to persist the array.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="ioCategory">
+    <title>Input / Output</title>
+
+    <para>The following SciDB operators interact with the outside
+    world.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="18*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="inputOperator">input</link></literal></entry>
+
+            <entry>Reads in a system file, without saving it to an
+            array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="loadOperator">load</link></literal></entry>
+
+            <entry>Load data to an array from a file.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="loadLibrary">load_library</link></literal></entry>
+
+            <entry>Loads a plugin.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="saveOperator">save</link></literal></entry>
+
+            <entry>Saves array data to a file.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="unloadLibrary">unload_library</link></literal></entry>
+
+            <entry>Unloads a plugin (does not take effect until the next time
+            you restart SciDB).</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="mathCategory">
+    <title>Math</title>
+
+    <para>The following SciDB operators perform math on an input array, or
+    linear algebra on a matrix.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="15*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="avgRank">avg_rank</link></literal></entry>
+
+            <entry>Ranks the elements of an array. Averages the rank for the
+            tied values.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="gemmOperator">gemm</link></literal></entry>
+
+            <entry>Produces <emphasis><emphasis
+            role="bold">AB</emphasis></emphasis> + <emphasis><emphasis
+            role="bold">C</emphasis></emphasis>, given three matrix arrays
+            <emphasis><emphasis role="bold">A</emphasis></emphasis>,
+            <emphasis><emphasis role="bold">B</emphasis></emphasis>, and
+            <emphasis><emphasis role="bold">C</emphasis></emphasis>.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="gesvdOperator">gesvd</link></literal></entry>
+
+            <entry>Produces a result matrix containing any one of the three
+            components of the singular value decomposition of a general
+            matrix.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="normalizeOperator">normalize</link></literal></entry>
+
+            <entry>Produces a result array that scales the values of a
+            vector.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="quantileOperator">quantile</link></literal></entry>
+
+            <entry>Produces a set of quantiles of the specified array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="rankOperator">rank</link></literal></entry>
+
+            <entry>Ranks the elements of an array. Tied values are all
+            assigned the identical, integer rank.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="metaCategory">
+    <title>Metadata</title>
+
+    <para>The following SciDB operators read and write metadata.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="21*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="attributesOperator">attributes</link></literal></entry>
+
+            <entry>Produces a 1-dimensional result array where each cell
+            describes one attribute of a stored array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link linkend="createArrayStatement">CREATE
+            ARRAY</link></literal></entry>
+
+            <entry>Creates—and persists—an empty array, based on the supplied
+            list of attributes and dimensions. There are many examples
+            throughout the documentation.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="dimensionsOperator">dimensions</link></literal></entry>
+
+            <entry>Lists details about the dimensions for the specified
+            array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="helpOperator">help</link></literal></entry>
+
+            <entry>Displays the operator signature for the specified
+            operator.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link linkend="listOperator">list('arrays')
+            list('functions') list('aggregates')
+            list('operators')</link></literal></entry>
+
+            <entry>Lists arrays / functions / aggregates / operators of SciDB
+            namespace.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="removeOperator">remove</link></literal></entry>
+
+            <entry>Removes an array and its attendant schema definition from
+            the SciDB database.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="removeVersionsOperator">remove_versions</link></literal></entry>
+
+            <entry>Removes all versions of an array older than the version
+            number you specify.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="renameOperator">rename</link></literal></entry>
+
+            <entry>Changes the array name.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="showOperator">show</link></literal></entry>
+
+            <entry>Produces a result array whose contents describe the schema
+            of an array you supply. Use <command>list('arrays')</command> to
+            return the schema for all arrays.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="transformCategory">
+    <title>Meta Transformations</title>
+
+    <para>The following SciDB operators change the properties of mid-query,
+    intermediate arrays, without changing the underlying data.</para>
+
+    <informaltable frame="all">
+      <?dbfo akeep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="18*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="adddim">adddim</link></literal></entry>
+
+            <entry>Adds a stub dimension.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="attRenameOperator">attribute_rename</link></literal></entry>
+
+            <entry>Produces a result array with the same dimensions,
+            attributes, and cell values as a source array, but with one or
+            more of the attributes renamed.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="castOperator">cast</link></literal></entry>
+
+            <entry>Produces a result array with the same dimensions,
+            attributes, and cells as a source array—but with other
+            differences, which can include different names for its dimensions
+            or attributes, different nulls-allowed status for an attribute,
+            and different datatypes for its dimensions.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="apply">deldim</link></literal></entry>
+
+            <entry>Removes a dimension of size 1.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="repartOperator">repart</link></literal></entry>
+
+            <entry>Produces a result array similar to a source array, but with
+            different chunk sizes, different chunk overlaps, or both.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="saveCategory">
+    <title>Read / Save</title>
+
+    <para>The following SciDB operators save data to persistent arrays and
+    read it back.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="22*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="allversionsOperator">allversions</link></literal></entry>
+
+            <entry>Returns a result array containing all versions of the
+            stored array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="insertOperator">insert</link></literal></entry>
+
+            <entry>Insert values from a source array into a target
+            array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="scanOperator">scan</link></literal></entry>
+
+            <entry>Produces a result array that is equivalent to a stored
+            array. That is, the scan operator reads a stored array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="store">store</link></literal></entry>
+
+            <entry>Stores query output into a SciDB array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="versionsOperator">versions</link></literal></entry>
+
+            <entry>Shows versions for the specified array.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="rearrangeCategory">
+    <title>Rearrange</title>
+
+    <para>The following SciDB operators allow users to rearrange arrays. None
+    of these operators change the input array. In most cases, the result array
+    is not stored in the database.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="20*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="redimension">redimension</link></literal></entry>
+
+            <entry>Can change some or all of the array variables from
+            dimensions to attributes or vice versa, and optionally calculate
+            aggregates. To store the result of a redimension operation, use
+            <code>store(redimension(...))</code>.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="reshapeOperator">reshape</link></literal></entry>
+
+            <entry>Produces a result array with the same cells as a given
+            array, but a different shape.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="reverseOperator">reverse</link></literal></entry>
+
+            <entry>Produces a result array that has the original values
+            reversed in each array dimension.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="sortOperator">sort</link></literal></entry>
+
+            <entry>Produces a 1-dimensional result array by sorting non-empty
+            cells of a source array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="transposeOperator">transpose</link></literal></entry>
+
+            <entry>Produces a result array that is the transpose of the input
+            array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="unfoldOperator">unfold</link></literal></entry>
+
+            <entry>From an array with n dimensions and m attributes, produces
+            an array with n+1 dimensions and one attribute. The first n
+            dimensions match those of the original array. The additional
+            dimension has m values (0 to m-1) corresponding to the attributes
+            of the original array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="unpackOperator">unpack</link></literal></entry>
+
+            <entry>Produces a one-dimensional result array from the data in a
+            multi-dimensional source array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="xgridOperator">xgrid</link></literal></entry>
+
+            <entry>Multiplies the size of each dimension by an integer scale
+            that you supply.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+
+  <section id="winnowCategory">
+    <title>Winnow</title>
+
+    <para>The following SciDB operators return a subset of the input
+    array.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="15*"/>
+
+        <colspec align="left" colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Operator Name</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry><literal><link
+            linkend="bernoulliOperator">bernoulli</link></literal></entry>
+
+            <entry>Produces a result array whose set consists of random array
+            cells from the input array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="betweenOperator">between</link></literal></entry>
+
+            <entry>Produces a result array from a specified, contiguous region
+            of a source array, and with empty cells everywhere else.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="filterOperator">filter</link></literal></entry>
+
+            <entry>Produces a result array, filtering out elements based on a
+            supplied boolean expression.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="lookupOperator">lookup</link></literal></entry>
+
+            <entry>Produces a result array, selecting array cells by supplied
+            dimension index.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="projectOperator">project</link></literal></entry>
+
+            <entry>Produces a result array with the same dimensions as—but a
+            subset of the attributes of—a source array.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="sliceOperator">slice</link></literal></entry>
+
+            <entry>Produces a result array that is a subset of the source
+            array derived by holding one or more dimension values
+            constant.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="subarrayOperator">subarray</link></literal></entry>
+
+            <entry>Produces a result array by selecting a contiguous area of
+            cells.</entry>
+          </row>
+
+          <row>
+            <entry><literal><link
+            linkend="thinOperator">thin</link></literal></entry>
+
+            <entry>Produces a result array by selecting regularly spaced
+            elements of the input array in each dimension.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+</chapter>

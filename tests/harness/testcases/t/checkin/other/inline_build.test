@@ -1,0 +1,15 @@
+--setup
+--start-query-logging
+
+--test
+build(<a:int32> [x=0:2,3,0], x+1)
+build(<a:string> [y=-2:5,3,0], string(y+10))
+build(<c:char> [x=0:2,3,0,y=-2:9,1,0], 'a')
+
+filter(build(<a:int32> [x=0:2,3,0], x+1), true)
+filter(build(<a:string> [y=-2:5,3,0], string(y+10)), 1)
+filter(build(<c:char> [x=0:2,3,0,y=-2:9,1,0], 'a'), true)
+
+--cleanup
+
+--stop-query-logging

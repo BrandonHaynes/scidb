@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<chapter>
+  <title>SciDB Basic Analytic Capabilities</title>
+
+  <para><indexterm>
+      <primary>aggregates</primary>
+    </indexterm>This chapter provides an overview of the basic analytic
+  capabilities of SciDB. SciDB provides commands to group data from an array
+  and calculate summaries over those groups. These commands are called
+  <emphasis>aggregates</emphasis>.</para>
+
+  <para>In addition, SciDB also provides scalable operators to calculate
+  <emphasis>order statistics</emphasis> of array data -- these include
+  <emphasis>rank</emphasis>, <emphasis>avg_rank</emphasis>, and
+  <emphasis>quantile</emphasis>, as well as the operator
+  <emphasis>sort</emphasis> which rearranges array data and returns a vector
+  of sorted items.</para>
+
+   <xi:include href="analytics_aggregates_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+   <xi:include href="aggregate_cumulate_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+   <xi:include href="order_stats_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+
+</chapter>

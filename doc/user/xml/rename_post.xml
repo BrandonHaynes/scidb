@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="renameOperator">
+  <refnamediv>
+    <refname>rename</refname>
+
+    <refpurpose><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>renaming</secondary>
+      </indexterm><indexterm>
+        <primary>rename</primary>
+      </indexterm>Change array name.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>rename(<replaceable>named_array</replaceable>,<replaceable>new_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The AFL rename operator works like the AQL statement SELECT * INTO
+    except that the old array name can be reused immediately with the rename
+    operator.</para>
+
+    <para>The rename operator is akin to using the Unix <literal>mv</literal>
+    (move) command, whereas SELECT * INTO is akin to the Unix
+    <literal>cp</literal> (copy) command. The argument
+    <replaceable>named_array</replaceable> must be an array that was
+    previously created and stored in the SciDB namespace.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>Create an array named source, show its name and schema, rename it,
+      and show its new name and schema. Note that the array ID remains the
+      same.<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:9,10,0],1),source);  </programlisting><programlisting>AFL% list('arrays');  </programlisting><screen>name,id,schema,availability
+'source',731,'source&lt;val:double&gt; [i=0:9,10,0]',true
+</screen><programlisting>AFL% rename(source,target);  </programlisting><programlisting>AFL% list('arrays');  </programlisting><screen>name,id,schema,availability
+'target',731,'target&lt;val:double&gt; [i=0:9,10,0]',true
+</screen></para></para>
+    </informalexample>
+
+    <informalexample>
+      <para>Unlike many operators, rename does not create a new array version;
+      rather it renames all existing versions of the specified array.</para>
+
+      <procedure>
+        <step>
+          <para>Create several versions of an array.<para><programlisting>AFL% store(build(&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0],i*4+j),A);  </programlisting><screen>[
+[(0),(1)],
+[(4),(5)],
+[(8),(9)],
+[(12),(13)]
+]</screen><programlisting>AFL% store(build(A,i*3+j),A);  </programlisting><screen>[
+[(0),(1)],
+[(3),(4)],
+[(6),(7)],
+[(9),(10)]
+]</screen><programlisting>AFL% store(build(A,i*2+j+1),A);  </programlisting><screen>[
+[(1),(2)],
+[(3),(4)],
+[(5),(6)],
+[(7),(8)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Show the details of all the versions for array <emphasis role="bold">A</emphasis>.<para><programlisting>AFL% list('arrays',true);  </programlisting><screen>name,id,schema,availability
+'A',733,'A&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0]',true
+'A@1',734,'A@1&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0]',true
+'A@2',735,'A@2&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0]',true
+'A@3',736,'A@3&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0]',true
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Rename array <emphasis role="bold">A</emphasis>.<para><programlisting>AFL% rename(A,Octagon);  </programlisting><programlisting>AFL% list('arrays',true);  </programlisting><screen>name,id,schema,availability
+'Octagon',733,'Octagon&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0]',true
+'Octagon@1',734,'Octagon@1&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0]',true
+'Octagon@2',735,'Octagon@2&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0]',true
+'Octagon@3',736,'Octagon@3&lt;val:int64&gt; [i=0:3,4,0,j=0:1,2,0]',true
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

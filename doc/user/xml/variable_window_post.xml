@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="varwinOperator">
+  <refnamediv>
+    <refname>variable_window</refname>
+
+    <refpurpose><indexterm>
+        <primary>variable_window</primary>
+      </indexterm><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>window</secondary>
+
+        <tertiary>variable</tertiary>
+      </indexterm><indexterm>
+        <primary>data windows</primary>
+      </indexterm>Calculates aggregate values over nonempty cells from a
+    variable size, 1-dimensional window.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>variable_window(<replaceable>array</replaceable>, <replaceable>dimension</replaceable>,<replaceable>left_edge</replaceable>, <replaceable>right_edge</replaceable>,
+<replaceable>   aggregate_1</replaceable>(<replaceable>attr_name_1</replaceable>)<optional>,<replaceable>aggrgegate_2</replaceable>(<replaceable>attr_name_2</replaceable>), ...</optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <code>variable_window</code> command aggregates along a
+    1-dimensional window of variable length. The window is defined by the left
+    and right edges and excludes empty cells.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The <literal>variable_window</literal> operator takes the following
+    arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">array</emphasis>: a source array with
+          one or more attributes and one or more dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">dimension</emphasis>: the dimension
+          along which the window is defined.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">left_edge</emphasis>: the number of
+          cells to the left of the current cell to include in the
+          window.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">right_edge</emphasis>: the number of
+          cells to the right of the current cell to include in the
+          window.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">aggregate_</emphasis><emphasis>n</emphasis>(<replaceable>attr_name</replaceable>):
+          one or more aggregate calls, over the specified attribute,
+          <replaceable>attr_name</replaceable>,</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example aggregates the sum along a 1-dimensional variable
+      window that collects one nonempty value preceding and one nonempty value
+      following a cell.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called m4x4 and fill it with increasing
+          integers: <para><programlisting>AFL% CREATE ARRAY m4x4 &lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0];  </programlisting><programlisting>AFL% store(build(m4x4,i*4+j),m4x4);  </programlisting><screen>[
+[(0),(1),(2),(3)],
+[(4),(5),(6),(7)],
+[(8),(9),(10),(11)],
+[(12),(13),(14),(15)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use variable_window to select one value preceding and the one
+          value following a cell. The window proceeds along the i dimension
+          and calculates the sum of the windowed values. <para><programlisting>AFL% variable_window(m4x4,i,1,1,sum(val));  </programlisting><screen>[
+[(4),(6),(8),(10)],
+[(12),(15),(18),(21)],
+[(24),(27),(30),(33)],
+[(20),(22),(24),(26)]
+]</screen><para><programlisting>AFL% variable_window(m4x4,j,1,1,sum(val));  </programlisting><screen>[
+[(1),(3),(6),(5)],
+[(9),(15),(18),(13)],
+[(17),(27),(30),(21)],
+[(25),(39),(42),(29)]
+]</screen></para></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

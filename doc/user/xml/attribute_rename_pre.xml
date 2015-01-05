@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="attRenameOperator">
+  <refnamediv>
+    <refname>attribute_rename</refname>
+
+    <refpurpose><indexterm>
+        <primary>attribute_rename</primary>
+      </indexterm><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>renaming</secondary>
+      </indexterm>Produces a result array with the same dimensions,
+    attributes, and cell values as a source array, but with one or more of the
+    attributes renamed.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>attribute_rename(<replaceable>array</replaceable>,<replaceable>old_attribute1</replaceable>,<replaceable>new_attribute1</replaceable>
+<optional>, <replaceable>old_attribute2</replaceable>,<replaceable>new_attribute2</replaceable></optional>...);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <literal>attribute_rename</literal> operator produces a result
+    array that is nearly identical to a source array, except that one or more
+    attributes are renamed.</para>
+
+    <para>To persist the new attribute names when you use
+    <literal>attribute_rename</literal>, you must store the results to a new
+    array—if you store to the original array, the original attribute names are
+    left in place.</para>
+
+    <para>You can achieve the same functionality (and more) by using the
+    <literal>cast</literal> operator. For details, see <xref
+    linkend="castOperator"/>.</para>
+
+    <para>You can use the attribute_rename operator in the FROM clause of an
+    AQL SELECT statement, as a stand-alone operator in a AFL statement, or as
+    an operand within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example takes an array, and renames one attribute and
+      excludes one attribute from the results.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array:<programlisting language="test">--afl create array event &lt;event:string&gt;[i=0:12,12,0]; --show-query=no --show-output=no
+--afl store(build(event,
+      '[("dash"),("dash"),("steeplechase"),("marathon"),("marathon"),("marathon")]',
+      true),event); --show-query=no --show-output=no
+--afl create array year &lt;year:int64&gt;[i=0:12,12,0]; --show-query=no --show-output=no
+--afl store(build(year,
+      '[1996,2000,2000,1996,2000,2008]',true),year); --show-query=no --show-output=no
+--afl create array person &lt;person:string&gt;[i=0:12,12,0]; --show-query=no --show-output=no
+--afl store(build(person,
+      '[("Bailey"),("Greene"),("Kosgei"),("Thugwane"),("Abera"),("Wanjiru")]',
+      true),person); --show-query=no --show-output=no
+--afl create array country &lt;country:string&gt;[i=0:12,12,0]; --show-query=no --show-output=no
+--afl store(build(country,
+      '[("Canada"),("USA"),("Kenya"),("Kenya"),("Ethiopia"),("Kenya")]',
+      true),country); --show-query=no --show-output=no
+--afl create array time &lt;time:double&gt;[i=0:12,12,0]; --show-query=no --show-output=no
+--afl store(build(time,
+      '[9.84,9.87,503.17,7956,7811,7596]',
+      true),time); --show-query=no --show-output=no
+--afl store(join(year, join(event, join(person, join(country,time)))),winnersFlat); --show-query=no --output-format=dcsv</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use the project operator to exclude the
+          <literal>person</literal> attribute, and the attribute_rename
+          operator to rename the <literal>time</literal>
+          attribute:<programlisting language="test">--afl store(attribute_rename(project(winnersFlat,year, event, country, time),
+      time,time_in_seconds),result); --output-format=dcsv</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

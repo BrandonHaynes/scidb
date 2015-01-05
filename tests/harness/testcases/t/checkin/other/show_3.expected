@@ -1,0 +1,100 @@
+SCIDB QUERY : <create array Ts <a:string> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Tsn <a:string compression 'no compression'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_rle <a:string  default 'test' compression 'rle'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_d <a:int32 compression 'dictionary'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_ns <a:int64 compression 'null suppression'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_be <a:bool compression 'bitmap encoding'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_z <a:float compression 'zlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_bz <a:double compression 'bzlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_nf <a:string compression 'null filter'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T2 <b:int32 default 4 compression 'bitmap encoding', a:string default 'test'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <show(Ts)>
+{i} schema
+{0} 'Ts<a:string> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(Tsn)>
+{i} schema
+{0} 'Tsn<a:string> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(Ts_rle)>
+{i} schema
+{0} 'Ts_rle<a:string DEFAULT \'test\' COMPRESSION \'rle\'> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(Ts_d)>
+{i} schema
+{0} 'Ts_d<a:int32 COMPRESSION \'dictionary\'> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(Ts_ns)>
+{i} schema
+{0} 'Ts_ns<a:int64 COMPRESSION \'null suppression\'> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(Ts_be)>
+{i} schema
+{0} 'Ts_be<a:bool COMPRESSION \'bitmap encoding\'> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(Ts_z)>
+{i} schema
+{0} 'Ts_z<a:float COMPRESSION \'zlib\'> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(Ts_bz)>
+{i} schema
+{0} 'Ts_bz<a:double COMPRESSION \'bzlib\'> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(Ts_nf)>
+{i} schema
+{0} 'Ts_nf<a:string COMPRESSION \'null filter\'> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show(T2)>
+{i} schema
+{0} 'T2<b:int32 DEFAULT 4 COMPRESSION \'bitmap encoding\',a:string DEFAULT \'test\'> [x=-2:3,2,1]'
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tsn)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_rle)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_d)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_ns)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_be)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_bz)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_nf)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T2)>
+Query was executed successfully
+

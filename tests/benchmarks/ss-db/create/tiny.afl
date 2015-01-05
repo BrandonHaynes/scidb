@@ -1,0 +1,1 @@
+CREATE IMMUTABLE ARRAY tiny <a:int32, b:int32, c:int32, d:int32, e:int32,f:int32,g:int32,h:int32, i:int32, j:int32, k:int32>[Z=0:19,20,0 ,J=0:19,20,0, I=0:19,20,0]

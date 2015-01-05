@@ -1,0 +1,46 @@
+--setup
+create array foo<a:string> [i=0:2,3,0]
+create array bar<i:int64> [a(string)=10,10,0]
+
+--aql select * into foo from build(foo, 'a')
+--aql update foo set a='b' where i=1
+--aql update foo set a='c' where i=2
+ 
+--aql select * into bar from foo
+ 
+--test
+#AQL
+--aql select * from foo
+--aql select * from foo@1
+--aql select * from foo@2
+--aql select * from foo@3
+
+--aql select * from bar
+--aql select * from bar@1
+--aql select * from bar:a
+--aql select * from bar@1:a
+
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_VERSION_DOESNT_EXIST --aql "select * from foo@4"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DIMENSION_NOT_EXIST --aql "select * from foo:z"
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_VERSION_DOESNT_EXIST --aql "select * from foo@4:z"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NO_MAPPING_ARRAY --aql "select * from foo:i"
+
+#AFL
+scan(foo)
+scan(foo@1)
+scan(foo@2)
+scan(foo@3)
+
+scan(bar)
+scan(bar@1)
+scan(bar:a)
+scan(bar@1:a)
+
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_VERSION_DOESNT_EXIST  "scan(foo@4)"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DIMENSION_NOT_EXIST "scan(foo:z)"
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_VERSION_DOESNT_EXIST "scan(foo@4:z)"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NO_MAPPING_ARRAY "scan(foo:i)"
+
+--cleanup
+--aql drop array foo
+--aql drop array bar

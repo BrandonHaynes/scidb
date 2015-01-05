@@ -1,0 +1,26 @@
+Query was executed successfully
+
+{i} v
+{1} 1
+{2} 2
+
+SCIDB QUERY : <aggregate(filter(apply(A,w,let {f = fn(x){78 + g(x)} where {g = fn(x){0 + h(x)} where {h = fn(x){0+0}}}}in f(v)),w <> 78),count(*))>
+count
+0
+
+SCIDB QUERY : <aggregate(filter(apply(A,w,let {f = fn(x){78 + g(x) + h(x) + k(x)} where {h = fn(x) {0};g = fn(x) {0};k = fn(x) {0};}} in f(v)), w <> 78),count(*))>
+count
+0
+
+SCIDB QUERY : <aggregate(filter(apply(A,w,let {f = fn(x) {1 + g(x) * 2} where {g = fn(x) {h(x) * 1} where {h = fn(x) {0}}}} in f(v)), w > 1),count(*))>
+count
+0
+
+SCIDB QUERY : <aggregate(filter(apply(A,w,let {f = fn(x) {1 + g(x) * 2} where {g = fn(x) {2 * h(x)} where {h = fn(x) {1}}}} in f(v)), w < 3),count(*))>
+count
+0
+
+Query was executed successfully
+
+Query was executed successfully
+

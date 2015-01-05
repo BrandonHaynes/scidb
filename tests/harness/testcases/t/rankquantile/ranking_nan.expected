@@ -1,0 +1,42 @@
+SCIDB QUERY : <create array load_dbl <a:double null, b:double> [x=1:5,5,0,y=1:5,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(load_dbl, '../tests/harness/testcases/data/agg_load_special.txt')>
+[[(2,4),(6,8),(10,12),(14,16),(18,20)],[(22,24),(null,28),(30,32),(null,36),(38,40)],[(42,44),(46,48),(50,52),(54,56),(58,60)],[(62,64),(66,68),(70,72),(null,76),(78,inf)],[(82,nan),(86,88),(90,92),(nan,96),(98,100)]]
+
+SCIDB QUERY : <create array expr4_dbl <a:double null, b:double> [x=1:5,2,0,y=1:5,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(repart(load_dbl,expr4_dbl),expr4_dbl)>
+[[(2,4),(6,8)],[(22,24),(null,28)]];[[(10,12),(14,16)],[(30,32),(null,36)]];[[(18,20)],[(38,40)]];[[(42,44),(46,48)],[(62,64),(66,68)]];[[(50,52),(54,56)],[(70,72),(null,76)]];[[(58,60)],[(78,inf)]];[[(82,nan),(86,88)]];[[(90,92),(nan,96)]];[[(98,100)]]
+
+SCIDB QUERY : <create array load_flt <a:float null, b:float> [x=1:5,5,0,y=1:5,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(load_flt, '../tests/harness/testcases/data/agg_load_special.txt')>
+[[(2,4),(6,8),(10,12),(14,16),(18,20)],[(22,24),(null,28),(30,32),(null,36),(38,40)],[(42,44),(46,48),(50,52),(54,56),(58,60)],[(62,64),(66,68),(70,72),(null,76),(78,inf)],[(82,nan),(86,88),(90,92),(nan,96),(98,100)]]
+
+SCIDB QUERY : <create array expr4_flt <a:float null, b:float> [x=1:5,2,0,y=1:5,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(repart(load_flt,expr4_flt),expr4_flt)>
+[[(2,4),(6,8)],[(22,24),(null,28)]];[[(10,12),(14,16)],[(30,32),(null,36)]];[[(18,20)],[(38,40)]];[[(42,44),(46,48)],[(62,64),(66,68)]];[[(50,52),(54,56)],[(70,72),(null,76)]];[[(58,60)],[(78,inf)]];[[(82,nan),(86,88)]];[[(90,92),(nan,96)]];[[(98,100)]]
+
+SCIDB QUERY : <rank(expr4_dbl,a,x)>
+[[(2,1),(6,2)],[(22,1),(null,null)]];[[(10,3),(14,4)],[(30,2),(null,null)]];[[(18,5)],[(38,3)]];[[(42,1),(46,2)],[(62,1),(66,2)]];[[(50,3),(54,4)],[(70,3),(null,null)]];[[(58,5)],[(78,4)]];[[(82,1),(86,2)]];[[(90,3),(nan,nan)]];[[(98,4)]]
+
+SCIDB QUERY : <rank(expr4_flt,a,x)>
+[[(2,1),(6,2)],[(22,1),(null,null)]];[[(10,3),(14,4)],[(30,2),(null,null)]];[[(18,5)],[(38,3)]];[[(42,1),(46,2)],[(62,1),(66,2)]];[[(50,3),(54,4)],[(70,3),(null,null)]];[[(58,5)],[(78,4)]];[[(82,1),(86,2)]];[[(90,3),(nan,nan)]];[[(98,4)]]
+
+SCIDB QUERY : <remove(load_dbl)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(load_flt)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(expr4_dbl)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(expr4_flt)>
+Query was executed successfully
+

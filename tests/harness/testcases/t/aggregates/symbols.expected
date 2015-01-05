@@ -1,0 +1,146 @@
+SCIDB QUERY : <CREATE ARRAY Raw_Data_One < Symbol:string, ID:int32, Qty:int32 > [ Line=0:*,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load ( Raw_Data_One, '../tests/harness/testcases/data/symbols_1.txt' )>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE ARRAY Raw_Data_Two < Symbol:string, Time:string, Price:double > [Line=0:*,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load ( Raw_Data_Two, '../tests/harness/testcases/data/symbols_2.txt' )>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE array Symbols < ID:int32, Qty:int32 > [ Symbol(string)=*,30,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(Raw_Data_One,Symbols),Symbols)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE array Timeseries < Price : double > [ Symbol(string)=*,100,0, Time(string)=*,100,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(Raw_Data_Two,Timeseries),Timeseries)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <count ( Symbols )>
+{i} count
+{0} 24
+
+SCIDB QUERY : <scan ( Symbols )>
+Symbol,ID,Qty
+'Alpha',0,10
+'Beta',1,100
+'Chi',21,100000
+'Delta',3,10000
+'Epsilon',4,100000
+'Eta',6,10000000
+'Gamma',2,1000
+'Iota',8,100000
+'Kappa',9,10000
+'Lambda',10,1000
+'Mu',11,100
+'Nu',12,10
+'Omega',23,1000
+'Omicron',14,1000
+'Phi',20,1000000
+'Pi',15,1000
+'Psi',22,10000
+'Rho',16,10000
+'Sigma',17,100000
+'Tau',18,1000000
+'Theta',7,1000000
+'Upsilon',19,10000000
+'Xi',13,100
+'Zeta',5,1000000
+
+SCIDB QUERY : <aggregate (Timeseries,avg ( Price ),Symbol)>
+Symbol,Price_avg
+'Alpha',14.2917
+'Beta',14.2917
+'Chi',14.2917
+'Delta',14.2917
+'Epsilon',14.2917
+'Eta',14.2917
+'Gamma',14.2917
+'Iota',14.2917
+'Kappa',14.2917
+'Lambda',14.2917
+'Mu',14.2917
+'Nu',14.2917
+'Omega',14.2917
+'Omicron',14.2917
+'Phi',14.2917
+'Pi',14.2917
+'Psi',14.2917
+'Rho',14.2917
+'Sigma',14.2917
+'Tau',14.2917
+'Upsilon',14.2917
+'Xi',14.2917
+'Zeta',14.2917
+
+SCIDB QUERY : <scan ( Symbols )>
+Symbol,ID,Qty
+0,0,10
+1,1,100
+2,21,100000
+3,3,10000
+4,4,100000
+5,6,10000000
+6,2,1000
+7,8,100000
+8,9,10000
+9,10,1000
+10,11,100
+11,12,10
+12,23,1000
+13,14,1000
+14,20,1000000
+15,15,1000
+16,22,10000
+17,16,10000
+18,17,100000
+19,18,1000000
+20,7,1000000
+21,19,10000000
+22,13,100
+23,5,1000000
+
+SCIDB QUERY : <aggregate (Timeseries,avg ( Price ),Symbol)>
+Symbol,Price_avg
+0,14.2917
+1,14.2917
+2,14.2917
+3,14.2917
+4,14.2917
+5,14.2917
+6,14.2917
+7,14.2917
+8,14.2917
+9,14.2917
+10,14.2917
+11,14.2917
+12,14.2917
+13,14.2917
+14,14.2917
+15,14.2917
+16,14.2917
+17,14.2917
+18,14.2917
+19,14.2917
+20,14.2917
+21,14.2917
+22,14.2917
+
+SCIDB QUERY : <remove(Raw_Data_One)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Raw_Data_Two)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Symbols)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Timeseries)>
+Query was executed successfully
+

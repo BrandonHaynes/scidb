@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with javahelper
+
+override_dh_auto_build:
+	rm -rf dist build depcache
+	ant configure
+	JAVA_HOME=/usr/lib/jvm/default-java ant
+

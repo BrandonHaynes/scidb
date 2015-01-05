@@ -1,0 +1,86 @@
+/*! \page Statistics Description of statistics
+
+    \section intro_sec About documentation
+    Statistics shows resources used for query execution.
+    There is statistics for every operator and for query. Operator statistics shows how much resources were used by operator.
+    Query statistics shows other resources that cannot be assigned with any operators of query.
+
+    \section stat_fields Understanding statistics
+    This information has several parts: query statistics, statistics of a plan and current system statistics.
+
+    \subsection query_statistics Query statistics
+    This kind of statictics contains an information about used resources but such information cannot be assigned with any operator of query.
+    For example sending results is not related to any operator but it's performed in query context.
+
+    \subsection statistics_of_plan Statistics of a plan
+    This kind of statistics contains an information about resources used by every physical operator due query execution.
+    One can be several parts of this kind of statistics - one per every physical plan produced by optimizer.
+
+    \subsection system_statistics Current system statistics
+    This kind of query statistics contains an information about used resources that cannot be assign neither to query nor any operator of queries.
+    In other words everything what cannot be counted in query or operator context will be added to this kind of statistics.
+    These numbers are not reset and will be constantly increasing.
+
+    \subsection fields_of_part Fields of every part
+    Every part of statistics described above has several fields. Here is a description of them:
+    \code
+    Sent 0B (0 messages) - shows how many data and chunks were sent by in context (query, operator, system)
+    Recieved 0B (0 messages) - shows how many data and chunks were received
+    Written 0B (0 chunks) - shows how many data and chunks were written to disk including temporary files
+    Read 0B (0 chunks) - shows how many data and chunks were read from disk including temporary files
+    Pinned 0B (0 chunks) - shows how many chunks were pinned for the use including chunks from disk or cache
+    Allocated 0B (0 chunks) - shows how many data and chunks were allocated including temporary buffers for reading data from disk, compressing data or sending data via network
+    \endcode
+
+    \subsection example Example of statistics
+
+    This is small example that described statistics of 'scan(dense)' query.
+    \code
+    782652 [0x7ffff001e700] INFO scidb.qproc.processor null - Statistics of query 1298408491:
+    === Query statistics: ===
+    Sent 504B (5 messages)
+    Recieved 0B (0 messages)
+    Written 0B (0 chunks)
+    Read 288B (4 chunks)
+    Pinned 0B (0 chunks)
+    Allocated 288B (4 chunks)
+    === Statistics of plan #0: ===
+    *physicalScan*:
+        Sent 0B (0 messages)
+        Recieved 0B (0 messages)
+        Written 0B (0 chunks)
+        Read 0B (0 chunks)
+        Pinned 0B (0 chunks)
+        Allocated 0B (0 chunks)
+
+    === Current state of system statistics: ===
+    Sent 351B (1 messages)
+    Recieved 0B (0 messages)
+    Written 0B (0 chunks)
+    Read 30KB (970 chunks)
+    Pinned 0B (0 chunks)
+    Allocated 0B (0 chunks)
+    \endcode
+
+    First of all you can ask why there are zeros Read field of physicalScan. This is because scan operator
+    does not read chunks from disk. It just return DBArray pointer as result. Actually read is
+    performing by handler of fetch message of user when user fetch next chunk. These number are in query statistics part.
+    Also in this handler buffers are actually allocated and sent. This shows that in SciDB all operations are deferred as far as possible.
+
+    In current state of system statistics you can see Read 30K (970 chunks). These are chunk headers loaded at start system.
+
+    \subsection monitors Statistics Monitors
+    Current implementation supports two types of monitors for statistics - logger and postgresql databases.
+    In order to set monitor type and its parameters there are two command line options:
+        - --stat_monitor
+        - --stat_monitor_params
+
+    For example, \n
+    --stat_monitor=2 --stat_monitor_params="dbname=stat user=test password=test". \n
+    --stat_monitor=1 will use logger and --stat_monitor_params="logger name" can set logger name.
+    Default value is "scidb.statistics". \n
+    --stat_monitor=2 will use postgresql database and --stat_monitor_params="connection string" can set connection string for connecting.
+    Default value is "". \n
+    --stat_monitor=0 will not use any monitor.
+
+ */

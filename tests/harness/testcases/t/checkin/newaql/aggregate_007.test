@@ -1,0 +1,26 @@
+--setup
+--start-query-logging
+create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+
+--shell --store --command "iquery -c$IQUERY_HOST -p $IQUERY_PORT -aq "load(mult_1,'${TEST_DATA_DIR}/mult1.txt')""
+
+--test
+
+--aql select count(mult_1)
+
+--aql select sum(a), count(a) from mult_1
+
+--aql select sum(a) * count(a) from mult_1
+
+--aql select sum(a) * count(*) from mult_1
+
+--aql select sum(a * 10) from mult_1
+
+--aql select sum(a * 10) + avg(a * 10) from mult_1
+
+--aql select (sum(a * 10) + avg(a * 10)) * 2 from mult_1
+
+--aql select (sum(a * 10) + avg(a * 10)) * 2, count(*) * 10 from mult_1
+
+--cleanup
+remove(mult_1)

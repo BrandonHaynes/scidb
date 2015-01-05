@@ -1,0 +1,109 @@
+SCIDB QUERY : <create array dates <dt:datetime>[i=0:*,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(dates)>
+[('dates<dt:datetime> [i=0:*,10,0]')]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -aq "load(dates,'${TEST_DATA_DIR}/doc/dates.scidb')">
+{i} dt
+{0} '2012-04-12 12:14:01'
+{1} '2013-03-11 19:24:58'
+{2} '2009-11-22 16:05:19'
+{3} '1975-01-08 00:00:01'
+{4} '1969-12-31 19:00:01'
+
+SCIDB QUERY : <apply(dates, weekday, day_of_week(dt))>
+i,dt,weekday
+0,'2012-04-12 12:14:01',4
+1,'2013-03-11 19:24:58',1
+2,'2009-11-22 16:05:19',0
+3,'1975-01-08 00:00:01',3
+4,'1969-12-31 19:00:01',3
+
+SCIDB QUERY : <apply(dates, time_hour, hour_of_day(dt))>
+i,dt,time_hour
+0,'2012-04-12 12:14:01',12
+1,'2013-03-11 19:24:58',19
+2,'2009-11-22 16:05:19',16
+3,'1975-01-08 00:00:01',0
+4,'1969-12-31 19:00:01',19
+
+SCIDB QUERY : <apply(dates,date,strftime(dt,'%B %d, %Y'))>
+{i} dt,date
+{0} '2012-04-12 12:14:01','April 12, 2012'
+{1} '2013-03-11 19:24:58','March 11, 2013'
+{2} '2009-11-22 16:05:19','November 22, 2009'
+{3} '1975-01-08 00:00:01','January 08, 1975'
+{4} '1969-12-31 19:00:01','December 31, 1969'
+
+SCIDB QUERY : <apply(dates,date,strftime(dt,'%l:%M:%S %p'))>
+{i} dt,date
+{0} '2012-04-12 12:14:01','12:14:01 PM'
+{1} '2013-03-11 19:24:58',' 7:24:58 PM'
+{2} '2009-11-22 16:05:19',' 4:05:19 PM'
+{3} '1975-01-08 00:00:01','12:00:01 AM'
+{4} '1969-12-31 19:00:01',' 7:00:01 PM'
+
+SCIDB QUERY : <apply(dates,date,strftime(dt,'%r'))>
+{i} dt,date
+{0} '2012-04-12 12:14:01','12:14:01 PM'
+{1} '2013-03-11 19:24:58','07:24:58 PM'
+{2} '2009-11-22 16:05:19','04:05:19 PM'
+{3} '1975-01-08 00:00:01','12:00:01 AM'
+{4} '1969-12-31 19:00:01','07:00:01 PM'
+
+SCIDB QUERY : <apply(dates,date,strftime(dt,'%F'))>
+{i} dt,date
+{0} '2012-04-12 12:14:01','2012-04-12'
+{1} '2013-03-11 19:24:58','2013-03-11'
+{2} '2009-11-22 16:05:19','2009-11-22'
+{3} '1975-01-08 00:00:01','1975-01-08'
+{4} '1969-12-31 19:00:01','1969-12-31'
+
+SCIDB QUERY : <store(project(apply(dates,dt_plusI,append_offset(dt,3600*(i+1))),dt_plusI),datesTZ)>
+{i} dt_plusI
+{0} '2012-04-12 12:14:01 +01:00'
+{1} '2013-03-11 19:24:58 +02:00'
+{2} '2009-11-22 16:05:19 +03:00'
+{3} '1975-01-08 00:00:01 +04:00'
+{4} '1969-12-31 19:00:01 +05:00'
+
+SCIDB QUERY : <apply(datesTZ,offset_integer,get_offset(dt_plusI))>
+{i} dt_plusI,offset_integer
+{0} '2012-04-12 12:14:01 +01:00',3600
+{1} '2013-03-11 19:24:58 +02:00',7200
+{2} '2009-11-22 16:05:19 +03:00',10800
+{3} '1975-01-08 00:00:01 +04:00',14400
+{4} '1969-12-31 19:00:01 +05:00',18000
+
+SCIDB QUERY : <apply(datesTZ,date_stripped,strip_offset(dt_plusI))>
+{i} dt_plusI,date_stripped
+{0} '2012-04-12 12:14:01 +01:00','2012-04-12 12:14:01'
+{1} '2013-03-11 19:24:58 +02:00','2013-03-11 19:24:58'
+{2} '2009-11-22 16:05:19 +03:00','2009-11-22 16:05:19'
+{3} '1975-01-08 00:00:01 +04:00','1975-01-08 00:00:01'
+{4} '1969-12-31 19:00:01 +05:00','1969-12-31 19:00:01'
+
+SCIDB QUERY : <store(build(<current:datetimetz>[i=0:0,1,0],tznow()),nowDate)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <project(apply(nowDate,GMTdate,togmt(current)),GMTdate)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<current:datetime>[i=0:0,1,0],now()),currentDate)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <apply(currentDate, currentGMT, append_offset(current, (-5*3600)))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <apply(currentDate, currentGMT, apply_offset(current, (-5*3600)))>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

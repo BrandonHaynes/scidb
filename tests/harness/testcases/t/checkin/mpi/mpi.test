@@ -1,0 +1,11 @@
+--setup
+--shell --command "rm -f /dev/shm/SciDB* 2>/dev/null"
+load_library('dense_linear_algebra')
+
+--test
+mpi_init()
+join(mpi_test(), mpi_test())
+--shell --store --command "ls /dev/shm/SciDB* 2>/dev/null || true"
+
+--cleanup
+--shell --command "rm -f /dev/shm/SciDB* 2>/dev/null"

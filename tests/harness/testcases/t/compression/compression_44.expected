@@ -1,0 +1,794 @@
+SCIDB QUERY : <create array Ts <a:string> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ti <a:float> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array Ts_rle <a:string  compression 'rle',b:float  compression 'rle'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array Ts_d <a:string  compression 'dictionary',b:float  compression 'dictionary'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array Ts_ns <a:string  compression 'null suppression',b:float  compression 'null suppression'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array Ts_be <a:string  compression 'bitmap encoding',b:float  compression 'bitmap encoding'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array Ts_z <a:string  compression 'zlib',b:float  compression 'zlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array Ts_bz <a:string  compression 'bzlib',b:float  compression 'bzlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array Ts_nf <a:string  compression 'null filter',b:float  compression 'null filter'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array dTs <a:string default 'default'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array dTi <a:float default float(2.5)> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array dTs_rle <a:string default 'default' compression 'rle',b:float default float(2.5) compression 'rle'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array dTs_d <a:string default 'default' compression 'dictionary',b:float default float(2.5) compression 'dictionary'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array dTs_ns <a:string default 'default' compression 'null suppression',b:float default float(2.5) compression 'null suppression'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array dTs_be <a:string default 'default' compression 'bitmap encoding',b:float default float(2.5) compression 'bitmap encoding'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array dTs_z <a:string default 'default' compression 'zlib',b:float default float(2.5) compression 'zlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array dTs_bz <a:string default 'default' compression 'bzlib',b:float default float(2.5) compression 'bzlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array dTs_nf <a:string default 'default' compression 'null filter',b:float default float(2.5) compression 'null filter'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs <a:string> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTi <a:float> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs_rle <a:string  compression 'rle',b:float  compression 'rle'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs_d <a:string  compression 'dictionary',b:float  compression 'dictionary'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs_ns <a:string  compression 'null suppression',b:float  compression 'null suppression'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs_be <a:string  compression 'bitmap encoding',b:float  compression 'bitmap encoding'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs_z <a:string  compression 'zlib',b:float  compression 'zlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs_bz <a:string  compression 'bzlib',b:float  compression 'bzlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array eTs_nf <a:string  compression 'null filter',b:float  compression 'null filter'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTs <a:string default 'default'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTi <a:float default 3> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTs_rle <a:string default 'default' compression 'rle',b:float default float(2.5) compression 'rle'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTs_d <a:string default 'default' compression 'dictionary',b:float default float(2.5) compression 'dictionary'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTs_ns <a:string default 'default' compression 'null suppression',b:float default float(2.5) compression 'null suppression'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTs_be <a:string default 'default' compression 'bitmap encoding',b:float default float(2.5) compression 'bitmap encoding'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTs_z <a:string default 'default' compression 'zlib',b:float default float(2.5) compression 'zlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTs_bz <a:string default 'default' compression 'bzlib',b:float default float(2.5) compression 'bzlib'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array edTs_nf <a:string default 'default' compression 'null filter',b:float default float(2.5) compression 'null filter'> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into Ts_rle from build(Ts,string(x)),build(Ti,x)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_d from build(Ts,string(x)),build(Ti,x)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_ns from Ts_d>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_z from Ts_ns>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_bz from Ts_be>
+{x} a,b
+
+SCIDB QUERY : <select * into Ts_nf from Ts_z>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_rle from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_d from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_ns from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_be from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_z from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_bz from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_nf from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_rle from filter(build(Ts,string(x)),x<>0),filter(build(Ti,x),x<>0)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_d from filter(build(Ts,string(x)),x<>x),filter(build(Ti,x),x<>x)>
+{x} a,b
+
+SCIDB QUERY : <select * into Ts_ns from filter(build(Ts,string(x)),x<>1 or x<>-1),filter(build(Ti,x),x<>1 or x<>-1)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_be from filter(build(Ts,string(x)),x=0 or x=3),filter(build(Ti,x),x=0 or x=3)>
+{x} a,b
+{0} '0',0
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_z from filter(build(Ts,string(x)),x=-1),filter(build(Ti,x),x=-1)>
+{x} a,b
+{-1} '-1',-1
+
+SCIDB QUERY : <select * into Ts_bz from filter(build(Ts,string(x)),x=9),filter(build(Ti,x),x=9)>
+{x} a,b
+
+SCIDB QUERY : <select * into Ts_nf from filter(build(Ts,string(x)),x=x),filter(build(Ti,x),x=x)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_rle from Ts_nf>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_d from Ts_bz>
+{x} a,b
+
+SCIDB QUERY : <select * into Ts_ns from Ts_rle>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_be from Ts_ns>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_bz from Ts_z>
+{x} a,b
+{-1} '-1',-1
+
+SCIDB QUERY : <select * into Ts_nf from Ts_be>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_rle from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_d from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_ns from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_be from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_z from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_bz from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into Ts_nf from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into eTs_rle from filter(build(eTs,string(x)),x<>0),filter(build(eTi,x),x<>0)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into eTs_d from filter(build(eTs,string(x)),x<>x),filter(build(eTi,x),x<>x)>
+{x} a,b
+
+SCIDB QUERY : <select * into eTs_ns from filter(build(eTs,string(x)),x<>1 or x<>-1),filter(build(eTi,x),x<>1 or x<>-1)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into eTs_be from filter(build(eTs,string(x)),x=0 or x=3),filter(build(eTi,x),x=0 or x=3)>
+{x} a,b
+{0} '0',0
+{3} '3',3
+
+SCIDB QUERY : <select * into eTs_z from filter(build(eTs,string(x)),x=-1),filter(build(eTi,x),x=-1)>
+{x} a,b
+{-1} '-1',-1
+
+SCIDB QUERY : <select * into eTs_bz from filter(build(eTs,string(x)),x=9),filter(build(eTi,x),x=9)>
+{x} a,b
+
+SCIDB QUERY : <select * into eTs_nf from filter(build(eTs,string(x)),x=x),filter(build(eTi,x),x=x)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into eTs_rle from eTs_nf>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into eTs_d from eTs_bz>
+{x} a,b
+
+SCIDB QUERY : <select * into eTs_ns from eTs_rle>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into eTs_be from eTs_ns>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into eTs_bz from eTs_z>
+{x} a,b
+{-1} '-1',-1
+
+SCIDB QUERY : <select * into eTs_nf from eTs_be>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_rle from build(dTs,string(x)),build(dTi,x)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_d from build(dTs,string(x)),build(dTi,x)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_ns from dTs_d>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_z from dTs_ns>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_bz from dTs_be>
+{x} a,b
+
+SCIDB QUERY : <select * into dTs_nf from dTs_z>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_rle from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_d from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_ns from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_be from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_z from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_bz from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_nf from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_rle from filter(build(dTs,string(x)),x<>0),filter(build(dTi,x),x<>0)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_d from filter(build(dTs,string(x)),x<>x),filter(build(dTi,x),x<>x)>
+{x} a,b
+
+SCIDB QUERY : <select * into dTs_ns from filter(build(dTs,string(x)),x<>1 or x<>-1),filter(build(dTi,x),x<>1 or x<>-1)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_be from filter(build(dTs,string(x)),x=0 or x=3),filter(build(dTi,x),x=0 or x=3)>
+{x} a,b
+{0} '0',0
+{3} '3',3
+
+SCIDB QUERY : <select * into dTs_z from filter(build(dTs,string(x)),x=-1),filter(build(dTi,x),x=-1)>
+{x} a,b
+{-1} '-1',-1
+
+SCIDB QUERY : <select * into dTs_bz from filter(build(dTs,string(x)),x=9),filter(build(dTi,x),x=9)>
+{x} a,b
+
+SCIDB QUERY : <select * into dTs_nf from filter(build(dTs,string(x)),x=x),filter(build(dTi,x),x=x)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into edTs_rle from filter(build(edTs,string(x)),x<>0),filter(build(edTi,x),x<>0)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into edTs_d from filter(build(edTs,string(x)),x<>x),filter(build(edTi,x),x<>x)>
+{x} a,b
+
+SCIDB QUERY : <select * into edTs_ns from filter(build(edTs,string(x)),x<>1 or x<>-1),filter(build(edTi,x),x<>1 or x<>-1)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into edTs_be from filter(build(edTs,string(x)),x=0 or x=3),filter(build(edTi,x),x=0 or x=3)>
+{x} a,b
+{0} '0',0
+{3} '3',3
+
+SCIDB QUERY : <select * into edTs_z from filter(build(edTs,string(x)),x=-1),filter(build(edTi,x),x=-1)>
+{x} a,b
+{-1} '-1',-1
+
+SCIDB QUERY : <select * into edTs_bz from filter(build(edTs,string(x)),x=9),filter(build(edTi,x),x=9)>
+{x} a,b
+
+SCIDB QUERY : <select * into edTs_nf from filter(build(edTs,string(x)),x=x),filter(build(edTi,x),x=x)>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into edTs_rle from edTs_nf>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into edTs_d from edTs_bz>
+{x} a,b
+
+SCIDB QUERY : <select * into edTs_ns from edTs_rle>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into edTs_be from edTs_ns>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <select * into edTs_bz from edTs_z>
+{x} a,b
+{-1} '-1',-1
+
+SCIDB QUERY : <select * into edTs_nf from edTs_be>
+{x} a,b
+{-2} '-2',-2
+{-1} '-1',-1
+{0} '0',0
+{1} '1',1
+{2} '2',2
+{3} '3',3
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ti)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_rle)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_d)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_ns)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_be)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_bz)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_nf)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTi)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs_rle)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs_d)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs_ns)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs_be)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs_z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs_bz)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(eTs_nf)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTs)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTi)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTs_rle)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTs_d)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTs_ns)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTs_be)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTs_z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTs_bz)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dTs_nf)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTs)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTi)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTs_rle)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTs_d)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTs_ns)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTs_be)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTs_z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTs_bz)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(edTs_nf)>
+Query was executed successfully
+

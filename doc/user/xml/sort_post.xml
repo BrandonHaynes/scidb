@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="sortOperator">
+  <refnamediv>
+    <refname>sort</refname>
+
+    <refpurpose><indexterm>
+        <primary>sort</primary>
+      </indexterm>Produces a 1-dimensional result array by sorting non-empty
+    cells of a source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis> sort(<replaceable>array</replaceable>,
+   <optional><replaceable>, attribute </replaceable><optional><replaceable> asc </replaceable> |  <replaceable>desc </replaceable></optional></optional>...
+   <optional><replaceable>, chunk_size </replaceable></optional> );</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The sort operator produces a one-dimensional result array, even if
+    the source array has multiple dimensions. The result array contains each
+    non-empty cell of the source array. Note that the result array does not
+    show values of the original dimensions in the source array.</para>
+
+    <para><indexterm>
+        <primary>generated variable names</primary>
+      </indexterm>The result array's sole dimension is named <emphasis role="bold">n</emphasis>, and is unbounded.</para>
+
+    <para>The sort operator can sort by one or more attributes. The operator
+    first sorts by the first attribute, then by the second, et cetera. Use the
+    optional keyword <literal>asc</literal> or <literal>desc</literal> to
+    control the sort order for each attribute, ascending or descending. The
+    default is ascending.</para>
+
+    <para>You can control the chunk size of the resulting array with the
+    optional <literal>chunk_size</literal> parameter.</para>
+
+    <para><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>sorting</secondary>
+      </indexterm>To sort by dimensions, you can use the <code>apply</code>
+    operator to return a dimension as an attribute, and then sort.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The <literal>sort</literal> operator takes the following
+    arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">array</emphasis>: a source array with
+          one or more attributes and one or more dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">attribute</emphasis>: Zero or more
+          attributes. If no attribute is provided, the first attribute in the
+          source array is used.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">chunk_size</emphasis>: An optional chunk
+          size for the result array.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example first scans a 2-D array, then sorts it by ascending
+      country, then sorts it by ascending country and descending time.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array: <para><para><programlisting>AFL% scan(champions);  </programlisting><screen>{year,event_id} person,country,time
+{1996,0} 'Bailey','Canada',9.84
+{1996,1} 'Thugwane','USA',7956
+{1996,2} 'Keter','Kenya',487.12
+{2000,0} 'Greene','USA',9.87
+{2000,1} 'Abera','Ethiopia',7811
+{2000,2} 'Kosgei','Kenya',503.17
+{2004,0} 'Gatlin','USA',9.85
+{2004,1} 'Baldini','Italy',7855
+{2004,2} 'Kemboi','Kenya',485.81
+{2008,0} 'Bolt','Jamaica',9.69
+{2008,1} 'Wanjiru','Kenya',7596
+{2008,2} 'Kipruto','Kenya',490.34
+</screen></para></para></para>
+        </step>
+
+        <step>
+          <para>Sort by country (ascending): <para><programlisting>AFL% sort(champions,country);  </programlisting><screen>{n} person,country,time
+{0} 'Bailey','Canada',9.84
+{1} 'Abera','Ethiopia',7811
+{2} 'Baldini','Italy',7855
+{3} 'Bolt','Jamaica',9.69
+{4} 'Keter','Kenya',487.12
+{5} 'Kosgei','Kenya',503.17
+{6} 'Kemboi','Kenya',485.81
+{7} 'Wanjiru','Kenya',7596
+{8} 'Kipruto','Kenya',490.34
+{9} 'Thugwane','USA',7956
+{10} 'Greene','USA',9.87
+{11} 'Gatlin','USA',9.85
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Sort by country (ascending), then year (descending), and use a
+          chunk size of 100 for the result array: <para><programlisting>AFL% sort(project(winnersFlat,country, year, event), country, year desc, 100);
+</programlisting><screen>{n} country,year,event
+{0} 'Canada',1996,'dash'
+{1} 'Ethiopia',2000,'marathon'
+{2} 'Italy',2004,'marathon'
+{3} 'Jamaica',2008,'dash'
+{4} 'Kenya',2008,'steeplechase'
+{5} 'Kenya',2008,'marathon'
+{6} 'Kenya',2004,'steeplechase'
+{7} 'Kenya',2000,'steeplechase'
+{8} 'Kenya',1996,'steeplechase'
+{9} 'USA',2004,'dash'
+{10} 'USA',2000,'dash'
+{11} 'USA',1996,'marathon'
+</screen></para></para>
+        </step>
+      </procedure>
+
+      <para>To illustrate how to sort by a dimension, consider the following
+      example.</para>
+
+      <procedure>
+        <step>
+          <para>Create a small, two dimensional array. <para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:2,3,0, j=0:2,3,0],i%3+j),A);  </programlisting><screen>[
+[(0),(1),(2)],
+[(1),(2),(3)],
+[(2),(3),(4)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the apply operator to return the first dimension, and then
+          sort by it.<para><programlisting>AFL% sort(apply(A,dim,i),dim);  </programlisting><screen>{n} val,dim
+{0} 0,0
+{1} 1,0
+{2} 2,0
+{3} 1,1
+{4} 2,1
+{5} 3,1
+{6} 2,2
+{7} 3,2
+{8} 4,2
+</screen></para></para>
+        </step>
+      </procedure>
+
+      <para>To illustrate how the sort operator handles null values, this
+      example first scans an array that includes a null value, then sorts the
+      cells in ascending order, then sorts them in descending order.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array: <para><screen>[(0),(1),(2),(null),(4)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Sort by number (ascending): <para><programlisting>AFL% sort(numbers, number asc);  </programlisting><screen>[(null),(0),(1),(2),(4)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Sort by number (descending): <para><programlisting>AFL% sort(numbers, number desc);  </programlisting><screen>[(4),(2),(1),(0),(null)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

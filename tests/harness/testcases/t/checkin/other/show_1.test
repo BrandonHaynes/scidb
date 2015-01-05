@@ -1,0 +1,39 @@
+# ticket no. 1013
+
+--setup
+--start-query-logging
+create array Ts <a:string> [x=-2:3,2,1]
+create array Tsn <a:string compression 'no compression'> [x=-2:3,2,1]
+create array Ts_rle <a:string compression 'rle'> [x=-2:3,2,1]
+create array Ts_d <a:int32  default 5 compression 'dictionary'> [x=-2:3,2,1]
+create array Ts_ns <a:int64 compression 'null suppression'> [x=-2:3,2,1]
+create array Ts_be <a:bool compression 'bitmap encoding'> [x=-2:3,2,1]
+create array Ts_z <a:float compression 'zlib'> [x=-2:3,2,1]
+create array Ts_bz <a:double compression 'bzlib'> [x=-2:3,2,1]
+create array Ts_nf <a:string compression 'null filter'> [x=-2:3,2,1]
+create array T2 <a:double default 2.1, b:int32 compression 'rle'> [x=-2:3,2,1]
+
+--test
+show(Ts)
+show(Tsn)
+show(Ts_rle)
+show(Ts_d)
+show(Ts_ns)
+show(Ts_be)
+show(Ts_z)
+show(Ts_bz)
+show(Ts_nf)
+show(T2)
+
+--cleanup
+remove(Ts)
+remove(Tsn)
+remove(Ts_rle)
+remove(Ts_d)
+remove(Ts_ns)
+remove(Ts_be)
+remove(Ts_z)
+remove(Ts_bz)
+remove(Ts_nf)
+remove(T2)
+--stop-query-logging

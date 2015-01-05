@@ -1,0 +1,12 @@
+--setup
+create array M4x4 <a:int32, b:int32> [x=0:3,4,0, y=0:3,4,0]
+create array M2x8 <a:int32, b:int32> [x=1:2,2,0, y=1:8,8,0]
+load(M4x4,'${TEST_DATA_DIR}/M4x4_1.txt')
+
+--test
+reshape(M4x4, M2x8)
+
+--cleanup
+remove (M4x4)
+remove (M2x8)
+

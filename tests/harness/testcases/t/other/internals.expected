@@ -1,0 +1,9 @@
+SCIDB QUERY : <mstat()>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <diskinfo()>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <select count(*) from (select 1.*fordblks/(uordblks+fordblks) as hl from mstat()) where hl > .15 >
+[Query was executed successfully, ignoring data output by this query.]
+

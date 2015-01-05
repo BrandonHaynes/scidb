@@ -1,0 +1,25 @@
+SCIDB QUERY : <create array left_array <val:double>[i=0:2,3,0,j=0:2,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(left_array,1),left_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array right_array <val:double>[i=0:2,3,0,j=0:5,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(right_array,0),right_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(left_array,right_array),result_array)>
+[[(1,0),(1,0),(1,0)],[(1,0),(1,0),(1,0)],[(1,0),(1,0),(1,0)]]
+
+SCIDB QUERY : <show(result_array)>
+{i} schema
+{0} 'result_array<val:double,val_2:double> [i=0:2,3,0,j=0:2,3,0]'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

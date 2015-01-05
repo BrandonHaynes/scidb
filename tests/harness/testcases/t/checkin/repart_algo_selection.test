@@ -1,0 +1,15 @@
+--setup
+--set-format csv+
+create array names <name:string null> [x=1:10000000,1000000,0]
+store(redimension(join(build(<x:int64>[i=1:1,1,0], 42), build(<name:string>[i=1:1,1,0], 'alex')),names),names)
+insert(redimension(join(build(<x:int64>[i=1:1,1,0], 64), build(<name:string>[i=1:1,1,0], 'bob')),names),names)
+insert(redimension(join(build(<x:int64>[i=1:1,1,0], 1123456), build(<name:string>[i=1:1,1,0], 'jake')),names),names)
+insert(redimension(join(build(<x:int64>[i=1:1,1,0], 142), build(<name:string>[i=1:1,1,0], 'john')),names),names)
+insert(redimension(join(build(<x:int64>[i=1:1,1,0], 1123457), build(<name:string null>[i=1:1,1,0], null)),names),names)
+create array names_redim<val:int64>[x=1:10000000,1000000,0,name(string)=*,1000,0]
+store(redimension(apply(names, val, x*10+1), names_redim), names_redim)
+--test
+window(names_redim, 1,1,1,1,sum(val))
+--cleanup
+remove(names)
+remove(names_redim)

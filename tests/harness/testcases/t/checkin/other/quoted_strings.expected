@@ -1,0 +1,36 @@
+Query was executed successfully
+
+{i} a
+{1} 'da"ta'
+{2} 'data'
+
+{i} a
+{1} 'da"ta'
+{2} 'data'
+
+{i} a
+{1} 'fo"o'
+{2} 'bar'
+
+{i} a
+{1} 'fo\'o'
+{2} 'ba\'r'
+
+{i} a
+{1} 'fo"o'
+{2} 'bar'
+
+{i} a
+{1} 'fo"o'
+{2} 'bar'
+
+{i} a
+{1} 'fo\'o'
+{2} 'bar'
+
+{i} a
+{1} 'fo\'o'
+{2} 'bar'
+
+Query was executed successfully
+

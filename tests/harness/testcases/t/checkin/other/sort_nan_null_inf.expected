@@ -1,0 +1,43 @@
+Query was executed successfully
+
+{Line} I,V
+{0} 0,9
+{1} 1,-inf
+{2} 2,nan
+{3} 3,null
+{4} 4,10
+{5} 5,nan
+{6} 6,null
+{7} 7,nan
+{8} 8,inf
+{9} 9,inf
+{10} 10,nan
+{11} 11,nan
+{12} 12,null
+{13} 13,null
+{14} 14,9
+
+SCIDB QUERY : <show(SortNanNullInf)>
+{i} schema
+{0} 'SortNanNullInf<I:int64,V:double NULL DEFAULT null> [Line=0:*,6,0]'
+
+SCIDB QUERY : <sort(SortNanNullInf, V, I)>
+{n} I,V
+{0} 3,null
+{1} 6,null
+{2} 12,null
+{3} 13,null
+{4} 2,nan
+{5} 5,nan
+{6} 7,nan
+{7} 10,nan
+{8} 11,nan
+{9} 1,-inf
+{10} 0,9
+{11} 14,9
+{12} 4,10
+{13} 8,inf
+{14} 9,inf
+
+Query was executed successfully
+

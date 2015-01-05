@@ -1,0 +1,9 @@
+--setup
+create array null_1 <a:int32 null,b:int32 null> [x=0:2,3,0, y=0:2,3,0]
+load(null_1,'${TEST_DATA_DIR}/null_1.txt')
+
+--test
+--aql select * from null_1
+
+--cleanup
+remove(null_1)

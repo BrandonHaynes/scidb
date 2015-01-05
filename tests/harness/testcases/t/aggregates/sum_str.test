@@ -1,0 +1,13 @@
+--setup
+
+CREATE ARRAY vector_str<x:string, y:double>[i=1:8,4,0]
+
+load(vector_str, '${TEST_DATA_DIR}/vector_str.txt')
+
+--test
+
+project(apply(aggregate(vector_str, sum(x) as stringsum), stringlength, strlen(stringsum)), stringlength)
+
+--cleanup
+
+remove(vector_str)

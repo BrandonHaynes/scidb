@@ -1,0 +1,30 @@
+--setup
+--start-query-logging
+--aql select * into A from array(<a:int32, b:int32>[x=1:3,3,0, y=1:3,3,0], '[[(1,9),(2,8),(3,7)],[(4,6),(5,5),(6,4)],[(7,3),(8,2),(9,1)]]')
+
+--test
+--aql select * from A order by a
+--aql select * from A order by b
+
+--aql select * from A order by a asc
+--aql select * from A order by b asc
+
+--aql select * from A order by a desc
+--aql select * from A order by b desc
+
+--aql select * from A order by a asc, b asc
+--aql select * from A order by a asc, b desc
+--aql select * from A order by a desc, b desc
+--aql select * from A order by a desc, b asc
+
+--aql select * from (select a-b as c from A) order by c desc
+
+--aql select a from A order by b
+--aql select b from A order by a
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST --aql "select a,b,y from A order by y,b"
+
+--cleanup
+--aql drop array A
+--stop-query-logging
+

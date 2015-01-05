@@ -1,0 +1,21 @@
+#on a cluster with 4 instances. Once the data is loaded, analysis can be performed to make sure the right number of rows are present in the 1-D load array and that, perhaps, a sum of the values matches an expected value.
+
+--setup
+--start-query-logging
+
+--test
+--start-igdata
+ 
+--shell --command " cat ${TEST_DATA_DIR}/sm10.csv | loadcsv.py -a 'array_sm11' -s '<a:int64,b:int64,c:int64>[i=0:*,3,0]' -b -x -v -c 3 -l -L -d 'localhost' -p $IQUERY_PORT  "
+
+--stop-igdata
+
+#scan( array_sm11 )
+sort(array_sm11,a)
+
+--cleanup
+
+remove(array_sm11)
+
+--stop-query-logging
+

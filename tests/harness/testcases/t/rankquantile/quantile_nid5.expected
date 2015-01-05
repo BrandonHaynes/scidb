@@ -1,0 +1,63 @@
+SCIDB QUERY : <create  array A <a:char,b:char>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:char>[a(char)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <a:char>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(join(filter(build(T,string(x+1)),1),filter(build(T,string(x+5)),1)),A)>
+{x} a,b
+{0} '1','5'
+{1} '2','6'
+{2} '3','7'
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+{a} b
+{'1'} '5'
+{'2'} '6'
+{'3'} '7'
+
+SCIDB QUERY : <sort(B)>
+[('5'),('6'),('7')]
+
+SCIDB QUERY : <sort(B,b desc)>
+[('7'),('6'),('5')]
+
+SCIDB QUERY : <sort(filter(B,b<>'6'),5)>
+[('5'),('7'),(),(),()]
+
+SCIDB QUERY : <rank(B)>
+[('5',1),('6',2),('7',3)]
+
+SCIDB QUERY : <rank(filter(B,b<>'6'))>
+[('5',1),(),('7',2)]
+
+SCIDB QUERY : <quantile(B,2)>
+[(0,'5'),(0.5,'6'),(1,'7')]
+
+SCIDB QUERY : <quantile(B,4)>
+[(0,'5'),(0.25,'5'),(0.5,'6'),(0.75,'7'),(1,'7')]
+
+SCIDB QUERY : <quantile(B,10)>
+[(0,'5'),(0.1,'5'),(0.2,'5'),(0.3,'5'),(0.4,'6'),(0.5,'6'),(0.6,'6'),(0.7,'7'),(0.8,'7'),(0.9,'7'),(1,'7')]
+
+SCIDB QUERY : <quantile(B,20)>
+[(0,'5'),(0.05,'5'),(0.1,'5'),(0.15,'5'),(0.2,'5'),(0.25,'5'),(0.3,'5'),(0.35,'6'),(0.4,'6'),(0.45,'6'),(0.5,'6'),(0.55,'6'),(0.6,'6'),(0.65,'6'),(0.7,'7'),(0.75,'7'),(0.8,'7'),(0.85,'7'),(0.9,'7'),(0.95,'7'),(1,'7')]
+
+SCIDB QUERY : <quantile(filter(B,b<>'6'),2)>
+[(0,'5'),(0.5,'5'),(1,'7')]
+
+SCIDB QUERY : <quantile(filter(B,b<>'6'),4)>
+[(0,'5'),(0.25,'5'),(0.5,'5'),(0.75,'7'),(1,'7')]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+

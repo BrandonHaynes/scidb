@@ -1,0 +1,13 @@
+# Ticket #4273.  We want to disallow octal input for int64 fields (as
+# is the case for uint64).  We do still allow 0x95 to be parsed as 149
+# decimal though, the thought being that it's less of a surprise.
+
+--setup
+create array zipcodes <city:string,state_code:string,zip:int64>[i=0:*,10,0]
+
+--test
+--shell --command "cat ${TEST_DATA_DIR}/zipcodes.csv | loadcsv.py -a zipcodes -d ${IQUERY_HOST} -p ${IQUERY_PORT}"
+scan(zipcodes)
+
+--cleanup
+remove(zipcodes)

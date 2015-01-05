@@ -1,0 +1,92 @@
+SCIDB QUERY : <load_library('rational')>
+Query was executed successfully
+
+SCIDB QUERY : <load_library('point')>
+Query was executed successfully
+
+SCIDB QUERY : <create array A <a:rational>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array P <p:point>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array S <s:string>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(S, rational('(1/3)')), x=2),S)>
+{x} s
+{2} '(1/3)'
+
+SCIDB QUERY : <create array SPSP <a:string,b:point,c:string,d:point> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <insert(filter(build(A, rational('(1/3)')), x=2),A)>
+{x} a
+{2} '(1/3)'
+
+SCIDB QUERY : <insert(filter(build(A, rational('(7/5)')), x=0),A)>
+{x} a
+{0} '(7/5)'
+{2} '(1/3)'
+
+SCIDB QUERY : <insert(filter(build(P, point('(1,3)')), x=1),P)>
+{x} p
+{1} '(1,3)'
+
+SCIDB QUERY : <insert(filter(build(P, point('(23,25)')), x=0),P)>
+{x} p
+{0} '(23,25)'
+{1} '(1,3)'
+
+SCIDB QUERY : <insert(filter(build(P, point('(23,25)')), x=0),S)>
+[An error expected at this place for the query "insert(filter(build(P, point('(23,25)')), x=0),S)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE.]
+
+SCIDB QUERY : <insert(S,A)>
+[An error expected at this place for the query "insert(S,A)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE.]
+
+SCIDB QUERY : <insert(A,S)>
+[An error expected at this place for the query "insert(A,S)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE.]
+
+SCIDB QUERY : <store(join(join(join(S,P),S),P),ZZZ)>
+{x} s,p,s_2,p_2
+
+SCIDB QUERY : <insert(ZZZ,SPSP)>
+{x} a,b,c,d
+
+SCIDB QUERY : <aggregate(versions(SPSP),count(*))>
+{i} count
+{0} 1
+
+SCIDB QUERY : <aggregate(versions(ZZZ),count(*))>
+{i} count
+{0} 1
+
+SCIDB QUERY : <insert(ZZZ,SPSP)>
+{x} a,b,c,d
+
+SCIDB QUERY : <insert(SPSP,ZZZ)>
+{x} s,p,s_2,p_2
+
+SCIDB QUERY : <aggregate(versions(SPSP),count(*))>
+{i} count
+{0} 2
+
+SCIDB QUERY : <aggregate(versions(ZZZ),count(*))>
+{i} count
+{0} 2
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(P)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(S)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SPSP)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ZZZ)>
+Query was executed successfully
+

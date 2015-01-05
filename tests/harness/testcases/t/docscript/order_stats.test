@@ -1,0 +1,48 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array A <val:double> [i=0:3,4,0, j=0:3,4,0]  
+store(build(A,'[[(13),(),(),()],[(8),(),(6),(7)],[(4),(),(7),()],[(),(0),(14),()]]',true),A)  
+create array C <label:string NULL default NULL>[i=0:3,4,0, j=0:3,4,0]  
+store(build(C,'[[(sand),(),(first),()],[(peanut),(),(pastry),(doc)],[(four),(),(carl),()],[(),(livia),(Apostrophe),()]]',true),C)  
+create array m4x4_empty<val:double, label:string NULL>[i=0:3,4,0, j=0:3,4,0]  
+store(join(A,C),m4x4_empty)  
+--set-format dense
+--stop-igdata
+scan(m4x4_empty) 
+--set-format dcsv
+--aql SELECT * FROM sort(m4x4_empty, val)  
+--aql  SELECT * FROM sort(m4x4_empty, val, label)  
+--aql  SELECT * FROM sort(m4x4_empty, val desc)  
+--start-igdata
+CREATE ARRAY m4x4_double < val:double >[i=0:3,4,0,j=0:3,4,0]  
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -naq "load(m4x4_double, '${TEST_DATA_DIR}/doc/m4x4_double.scidb')""
+--stop-igdata
+show(m4x4_double)
+--set-format auto
+scan(m4x4_double)  
+--aql SELECT * FROM rank(m4x4_double,val,j)  
+--aql  SELECT floor(val) INTO m4x4_floor FROM m4x4_double  
+--aql  SELECT * FROM rank(m4x4_floor,expr,j)  
+--aql  SELECT * FROM avg_rank(m4x4_floor,expr,j)  
+--set-format dcsv
+show(m4x4_floor)
+--set-format auto
+scan(m4x4_floor)  
+--set-format dcsv
+--aql  SELECT * FROM quantile(m4x4_floor,2)  
+--aql  SELECT * FROM quantile(m4x4_floor,8)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(A)
+remove(C)
+remove(m4x4_empty)
+remove(m4x4_double)
+remove(m4x4_floor)

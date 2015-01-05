@@ -1,0 +1,20 @@
+
+--setup
+--start-query-logging
+--start-igdata
+--aql create  array T < x: double > [ i=1:13,11,0, j=1:21,17,0 ]
+--aql create  array E < x: double null > [ j=1:21,11,0 ]
+--aql create  array R < x: double null > [ j=1:21,11,0 ]
+store(build(T,i+j),T)
+store(build(E,j*13 + 13*(13+1)/2),E)
+store(repart(aggregate(T,sum(x),j),R),R)
+--stop-igdata
+
+--test
+--aql SELECT count(*) FROM R , E WHERE abs((R.x-E.x)/iif(E.x=0,1,E.x)) > 1e-07
+
+--cleanup
+remove(T)
+remove(E)
+remove(R)
+--stop-query-logging

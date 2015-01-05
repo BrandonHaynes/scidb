@@ -1,0 +1,71 @@
+--setup
+--start-query-logging
+# Ticket number : 1645
+# Tests for window, regrid on 3D sparse NID arrays (diagonal array).
+# Tests on Empty 1D array and arrays with special data such as inf,null.
+
+create array A <a1: double > [x=10:14,5,0]
+create array NID <x:int64> [a1(double)=5,5,0, a2(double)=5,5,0 ,a3(double)=5,5,0]
+store(apply(apply(build(A,13.5*6/x),a2,a1*5.72),a3,a2*0.5),AA)
+create array A1 <a1: double null > [x=10:14,5,0]
+store(build(A1,x/1.7),A1)
+
+--test
+
+--aql select * from A
+--aql select * from AA
+store(redimension(AA,NID),NID)
+--aql select * from NID
+
+--aql select count(a1),avg(a1) from A
+--aql select avg(a1),sum(a1) into B from A regrid as (partition by x 5)
+--aql select avg(a1),sum(a1) from A fixed window as (partition by x 5 preceding and 5 following)
+
+--aql select * from store(build(A,x),A)
+--aql update A set a1=5.0/(2.0-2.0) where x=12
+--aql select avg(a1),sum(a1) from A regrid as (partition by x 5)
+--aql select avg(a1),sum(a1) from A fixed window as (partition by x 1 preceding and 1 following)
+
+--aql select sum(x),ApproxDC(x) from NID 
+--aql select sum(x),ApproxDC(x) from NID regrid as (partition by a1 1, a2 1, a3 1)
+--aql select sum(x),ApproxDC(x) from NID regrid as (partition by a1 3, a2 3, a3 3)
+--aql select sum(x),ApproxDC(x) from NID regrid as (partition by a1 5, a2 5, a3 5)
+
+--aql select sum(x),ApproxDC(x) from NID regrid as (partition by a1 1, a2 5, a3 5)
+--aql select sum(x),ApproxDC(x) from NID regrid as (partition by a1 5, a2 5, a3 1)
+--aql select sum(x),avg(x),count(x) from NID regrid as (partition by a1 5, a2 3, a3 1)
+--aql select sum(x),avg(x),count(x) from NID regrid as (partition by a1 3, a2 3, a3 5)
+
+--aql update A1 set a1=null where x=12
+--aql update A1 set a1=5.0/(0.0) where x=14
+--aql select avg(a1),sum(a1) from A1 regrid as (partition by x 5)
+--aql select sum(a1) from A1 fixed window as (partition by x 5 preceding and 0 following)
+--aql select sum(a1) from A1 fixed window as (partition by x 0 preceding and 5 following)
+
+
+--aql select count(x) from NID fixed window as (partition by a1 1 preceding and 1 following, a2 1 preceding and 1 following, a3 1 preceding and 1 following)
+
+--aql select count(x) from NID fixed window as (partition by a1 1 preceding and 1 following, a2 1 preceding and 1 following, a3 1 preceding and 1 following)
+
+--aql select count(x),avg(x) from NID fixed window as (partition by a1 1 preceding and 2 following, a2 1  preceding and 2 following, a3 1 preceding and 1 following)
+
+--aql select count(x),avg(x) from NID fixed window as (partition by a1 2 preceding and 2 following, a2 1  preceding and 1 following, a3 5 preceding and 5 following)
+
+--aql select count(x),avg(x) from NID fixed window as (partition by a1 5  preceding and 5 following, a2 5  preceding and 5 following, a3 5 preceding and 5 following)
+
+# Negative Tests 
+--aql select count(x),avg(x) from NID fixed window as (partition by a1 100  preceding and 100 following, a2 100  preceding and 100 following, a3 100 preceding and 100 following)
+
+--error --code scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select count(x),avg(x) from NID fixed window as (partition by a1 -1  preceding and 5 following, a2 5  preceding and 5 following, a3 5 preceding and 5 following)"
+
+--error --code scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select sum(x),avg(x),count(x) from NID regrid as (partition by a1 3, a2 3, a3 4.5)"
+
+
+--cleanup
+remove(A)
+remove(NID)
+remove(AA)
+remove(A1)
+remove(B)
+
+--stop-query-logging

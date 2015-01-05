@@ -1,0 +1,11 @@
+--setup
+
+CREATE ARRAY expr1 <a:int64, b:int64>[x=1:5,2,0, y=1:5,2,0]
+
+load(expr1, '${TEST_DATA_DIR}/expr1.txt')
+
+--test
+aggregate(expr1, sum(a), sum(b), y)
+
+--cleanup
+remove(expr1)

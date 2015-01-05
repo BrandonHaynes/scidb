@@ -1,0 +1,22 @@
+--setup
+--start-query-logging
+create array A <a:int64, b:int64> [x=0:2,3,0,y=-2:2,4,0]
+create array B <c:int64, d:int64> [p=0:2,3,0,q=-2:2,4,0]
+create array C <c:int64, d:int64> [p=0:2,3,0,q=-2:2,4,0]
+
+--test
+#--aql load A from '${TEST_DATA_DIR}/a_join.txt'
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load A from '${TEST_DATA_DIR}/a_join.txt'""
+--aql select * into B from A
+--aql update B set c=c+30 where p%2=0 and q%2=0
+--aql update B set d=d+30 where p%2<>0 and q%2<>0
+--aql select * into C from B
+--aql select * from A join C on A.a=C.c and A.b=C.d
+--aql select * from A join C on A.a=C.c
+--aql select * from A join C on A.b=C.d
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+--stop-query-logging

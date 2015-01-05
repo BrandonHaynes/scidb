@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd" []>
+<refentry>
+  <refnamediv>
+    <refname>reduce_distro</refname>
+    <refpurpose>Reduce the distribution of a replicated array</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <synopsis>AFL% reduce_distro(<replaceable>array</replaceable>, <replaceable>partitioning_schema: integer</replaceable>)</synopsis>
+    <para>This operator is designed for internal use.</para>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>Summary</title>
+    <para>
+Internal only.</para>
+  </refsect1>
+</refentry>

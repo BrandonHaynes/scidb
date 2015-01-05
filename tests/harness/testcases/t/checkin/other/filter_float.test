@@ -1,0 +1,18 @@
+# ticket no. 705
+
+--setup
+--start-query-logging
+create array FT <a:float> [x=0:2,3,0]
+store(build(FT,x+0.05),FT)
+
+--test
+filter(FT,a>1.04)
+filter(FT,a=float(1.05))
+filter(FT,a=1.05)
+filter(FT,a<1.05)
+filter(FT,a>1.05)
+
+
+--cleanup
+remove(FT)
+--stop-query-logging

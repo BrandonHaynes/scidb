@@ -1,0 +1,36 @@
+--setup
+--start-query-logging
+##Ticket number: 1602
+## Unbounded multi-dimensional array
+
+create array Q1 < val : double NULL > [ I=1:*,2,0, J=1:*,2,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(Q1, '${TEST_DATA_DIR}/un2d.txt')""
+create array Q2 < val : double NULL> [ x=1:*,2,0 ,y=1:*,2,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(Q2, '${TEST_DATA_DIR}/und.txt')""
+
+
+
+
+
+
+--test
+scan(Q1)
+scan(Q2)
+join(Q1,Q2)
+join(Q2,Q1)
+cross_join(Q1,Q2)
+cross_join(Q2,Q1)
+cross_join(Q2,Q1,y,J)
+cross_join(Q2,Q1,x,J)
+cross_join(Q2,Q1,x,I)
+merge(Q1,Q2)
+merge(Q2,Q1)
+
+
+
+--cleanup
+remove(Q1)
+remove(Q2)
+
+
+--stop-query-logging

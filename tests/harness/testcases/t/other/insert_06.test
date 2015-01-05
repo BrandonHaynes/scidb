@@ -1,0 +1,29 @@
+# Single sparse chunk -- various data patterns. 
+--setup
+--start-query-logging
+create array L <a: int64> [i=0:1000000,1000,0]
+create array R <a: int64> [i=0:1000000,1000,0]
+
+store(build(<a: int64> [i=0:1000000,1000,0], '[{0}(100), {1}(200)]', true), L)
+store(build(<a: int64> [i=0:1000000,1000,0], '[{5555}(5000)];[{999999}(1000)]', true), R)
+insert(L, R)
+subarray(R, 0, 10)
+aggregate(R,avg(a))
+quantile(R, 2)
+rank(R, a)
+
+
+store(build(<a: int64> [i=0:1000000,1000,0], '[{0}(100), {1}(200)]', true), L)
+store(build(<a: int64> [i=0:1000000,1000,0], '[{5555}(5000)];[{999999}(1000)]', true), R)
+insert(R, L)
+subarray(L, 0, 10)
+aggregate(filter(L, a > 300),avg(a))
+quantile(subarray(L, 3, 1000000), 3)
+rank(L, a)
+--stop-query-logging
+
+--cleanup
+remove(L)
+remove(R)
+
+

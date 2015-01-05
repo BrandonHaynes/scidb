@@ -1,0 +1,21 @@
+--setup
+--start-query-logging
+create array Ts <a:string> [x=0:2,3,0]
+create array Ti32 <b:int32> [x=0:2,3,0]
+create array Ti64 <c:int64> [x=0:2,3,0]
+create array A <a:string compression 'rle', b:int32 compression 'rle', c:int64 compression 'dictionary'> [x=0:2,3,0]
+
+--test
+--aql select * from build(Ts,string(x+1)),build(Ti32,x+10),build(Ti64,x+100)
+--aql select * into A from build(Ts,string(x+1)),build(Ti32,x+10),build(Ti64,x+100)
+--aql select * into A from filter(build(Ts,string(x+1)),true),filter(build(Ti32,x+20),true),filter(build(Ti64,x+200),true)
+--aql select * into A from filter(build(Ts,string(x+1)),true),filter(build(Ti32,x+30),true),filter(build(Ti64,x+300),false)
+--aql select * into A from filter(build(Ts,string(x+1)),x<>0),filter(build(Ti32,x+10),x<>1),filter(build(Ti64,x+100),x<>2)
+--aql select * into A from filter(build(Ts,string(x+1)),x<>0),filter(build(Ti32,x+20),x<>0),filter(build(Ti64,x+200),x<>1)
+
+--cleanup
+remove(Ts)
+remove(Ti32)
+remove(Ti64)
+remove(A)
+--stop-query-logging

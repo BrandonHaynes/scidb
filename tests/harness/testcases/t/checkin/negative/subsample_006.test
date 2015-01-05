@@ -1,0 +1,8 @@
+
+--setup
+
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2 "subarray()"
+
+--cleanup
+

@@ -1,0 +1,32 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+create array quantile_array <val:int64>[i=0:10,11,0] 
+--set-format dense
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odense -aq "load(quantile_array,'${TEST_DATA_DIR}/doc/11numbers.scidb')""
+quantile(quantile_array,2)  
+--set-format dcsv
+--start-igdata
+create array m25 <val:int32>[i=0:24,25,0]  
+create array m5x5 <val:int32>[i=0:4,5,0, j=0:4,5,0]  
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -naq "load(m25,'${TEST_DATA_DIR}/doc/25ints.scidb')""
+--stop-igdata
+show(m5x5) 
+--set-format dense
+store(reshape(m25,m5x5),m5x5) 
+--set-format dcsv
+quantile(m5x5,2)  
+--set-format dense
+quantile(m5x5,2,val,i) 
+quantile(m5x5,2,val,j) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(quantile_array)
+remove(m25)
+remove(m5x5)

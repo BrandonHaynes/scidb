@@ -1,0 +1,53 @@
+# Cancel query midway through writing to a temp array, and check that we
+# recover properly and that the write is not committed.
+
+--setup
+--start-query-logging
+--test
+
+create temp array ABRTEST1 <v:int64> [I=1:2000,1,0]
+create temp array ABRTEST2 <v:int64> [I=1:2000,1,0]
+create      array ABRTEST3 <v:int64> [I=1:2000,1,0]
+--igdata "store(build(ABRTEST1, I),ABRTEST1)"
+--igdata "store(build(ABRTEST2,-I),ABRTEST2)"
+--igdata "store(build(ABRTEST3,-I),ABRTEST3)"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'store (build (ABRTEST1, 0), ABRTEST1)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 15 2 'store (build (ABRTEST1, 0), ABRTEST1)' 1> /tmp/${HPID}_2.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_2.stdout"
+aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  2 'store (build (ABRTEST1, 0), ABRTEST1)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  2 'store (ABRTEST3, ABRTEST1)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 15  2 'store (ABRTEST3, ABRTEST1)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_2.stdout"
+aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'store (ABRTEST3, ABRTEST1)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))
+
+--cleanup
+remove(ABRTEST1)
+remove(ABRTEST2)
+remove(ABRTEST3)
+--stop-query-logging
+# this should fail due to the above abort
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_3.stdout 2>/dev/null"

@@ -1,0 +1,72 @@
+--setup 
+--start-query-logging
+create array SP <a: int32, b: string, c: double, d: int64, e: bool, f: float, g: string>[i=1:1000,100,0]
+create array SP_project <a: int32, b: string, c: double, f: float, g: string>[i=1:1000,75,0]
+
+create array A2 <a: int32, b: int32, c: string, d: string, e: string, f: string, g: int64>[i=1:1000,100,0]
+create array A2a <a: int32, b: int32, c: string, d: string, e: string, f: string, g: int64>[i=1:1000,100,0]
+
+--test
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(SP, '${TEST_DATA_DIR}/sp.txt')""
+
+# Load, success case.
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2, '${TEST_DATA_DIR}/A2.txt')""
+
+# Load, failure case.
+--error --hideQueryString --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(A2, '${TEST_DATA_DIR}/A2_err.txt')"
+
+--error --hideQueryString --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(A2, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 2)"
+
+# Load, ignore max 3 errors
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 3)""
+
+# Load, ignore all errors, save errors. 
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 9999, A2_shadow)""
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2a, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 9999)""
+
+# Load, ignore no errors
+--error --hideQueryString --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(A2a, '${TEST_DATA_DIR}/A2_err.txt')"
+
+# Load, ignore upto 2 errors. No error array created. 
+--error --hideQueryString --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(A2a, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 2)"
+
+# Load, ignore up to 4 errors. 
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2a, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 4, A2a_err)""
+
+scan(A2a_err)
+aggregate(A2a_err,count(*))
+
+save(SP, 'sp_int32.bin', -2, '(int32,string,double,int64,bool,float,string)')
+
+# Save this into junk formatted fields -- call incorrect converters.
+--error --code=scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER "save(SP, 'junk.bin', -2, '(int32,string,double,int64,datetime,float,datetime)')"
+
+load(SP, 'sp_int32.bin', -2, '(int32,string,double,int64,bool,float,string)', 100, SP_err)
+load(SP, 'sp_int32.bin', -2, '(int32,string,double,int64,bool,float,string)', 1, SP_err)
+
+## Save an int32 as int64 in the binary file.
+save(SP, 'sp_int32_int64.bin', -2, '(int64,string,double,int64,bool,float,string)')
+load(SP, 'sp_int32_int64.bin', -2, '(int64,string,double,int64,bool,float,string)')
+
+
+# Oversized string for string.
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(SP, '${TEST_DATA_DIR}/sp_err.txt', -2, 'text', 1, SP_err)""
+
+# Save some numerics as strings
+save(SP@2, 'sp_dbl_flt.bin', -2, '(int64,string,string,int64,bool,float,string)')
+load(SP, 'sp_dbl_flt.bin', -2, '(int64,string,string,int64,bool,float,string)')
+
+## Skip some fields. 
+save(SP, 'sp_all.bin', -2, '(int64,string,double,,,float,string)')
+load(SP_project, 'sp_all.bin', -2, '(int64,string,double,float,string)')
+load(SP_project, 'sp_dbl_flt.bin', -2, '(int64,string,string,skip(8),skip(1),float,string)')
+
+--cleanup
+remove(SP)
+remove(SP_project)
+remove(A2)
+remove(A2a)
+remove(A2a_err)
+
+--stop-query-logging

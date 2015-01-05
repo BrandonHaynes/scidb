@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="normalizeOperator">
+  <refnamediv>
+    <refname>normalize</refname>
+
+    <refpurpose><indexterm>
+        <primary>normalize</primary>
+      </indexterm><indexterm>
+        <primary>vectors, normalization</primary>
+      </indexterm>Produces a result array that scales the values of a
+    vector.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>normalize(<replaceable>array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The normalize operator divides each element of a 1-attribute vector
+    by the square root of the sum of squares.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <para>The normalize operator can only take 1-dimensional, 1-attribute
+    arrays.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>Scale a vector whose values are between 1 and 10.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1x10 array.<programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:9,10,0],(i+1)),unscaled); --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Normalize the vector.<programlisting language="test">--afl normalize(unscaled) --output-format=dense</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,150 @@
+SCIDB QUERY : <build(<a:int32> [x=-200:-198,1,0], '[(1),(2),(3)]', true)>
+{x} a
+{-200} 1
+{-199} 2
+{-198} 3
+
+SCIDB QUERY : <build(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]', true)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <build(<a:int64> [x=0:2,3,0], '[(1),(2),(3)]', true)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <build(<a:int64, b:int64> [x=0:2,3,0], '[(1,2),(2,3),(3,5)]', true)>
+{x} a,b
+{0} 1,2
+{1} 2,3
+{2} 3,5
+
+SCIDB QUERY : <build(<a:int64> [x=0:2,3,0], '[(1),(2),(3)]')>
+[An error expected at this place for the query "build(<a:int64> [x=0:2,3,0], '[(1),(2),(3)]')". And it failed with error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING.]
+
+SCIDB QUERY : <build(<a:float> [x=0:2,3,0], '[(1.2),(0.2),(3)]', true)>
+{x} a
+{0} 1.2
+{1} 0.2
+{2} 3
+
+SCIDB QUERY : <build(<a:float> [x=100:103,4,0], '[(1.2),(0.2),(3),()]', true)>
+{x} a
+{100} 1.2
+{101} 0.2
+{102} 3
+
+SCIDB QUERY : <build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]', true)>
+{x} a
+{0} 2.124
+{1} 1.045
+{2} 4.98
+
+SCIDB QUERY : <build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]', 1)>
+{x} a
+{0} 2.124
+{1} 1.045
+{2} 4.98
+
+SCIDB QUERY : <build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]', -100)>
+{x} a
+{0} 2.124
+{1} 1.045
+{2} 4.98
+
+SCIDB QUERY : <build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]',0)>
+[An error expected at this place for the query "build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]',0)". And it failed with error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING.]
+
+SCIDB QUERY : <build(<a:float, b:int32 default 3> [x=100:103,4,0], '[(1.2,),(0.2,),(3,),(,9)]', true)>
+{x} a,b
+{100} 1.2,3
+{101} 0.2,3
+{102} 3,3
+{103} 0,9
+
+SCIDB QUERY : <build(<a:float, b:int32> [x=100:103,4,0], '[(1.2,),(0.2,),(3,),(,9)]', true)>
+{x} a,b
+{100} 1.2,0
+{101} 0.2,0
+{102} 3,0
+{103} 0,9
+
+SCIDB QUERY : <build(<a:float, b:double default 3.1427, c:string> [x=100:103,4,0], '[(1.2,),(0.2,),(3,),(,9)]', true)>
+{x} a,b,c
+{100} 1.2,3.1427,''
+{101} 0.2,3.1427,''
+{102} 3,3.1427,''
+{103} 0,9,''
+
+SCIDB QUERY : <build(<a:float, b:double default 3.1427, c:string> [x=100:103,4,0], '[(1.2,,x),(0.2,,y),(3,,z),(,9,j)]', true)>
+{x} a,b,c
+{100} 1.2,3.1427,'x'
+{101} 0.2,3.1427,'y'
+{102} 3,3.1427,'z'
+{103} 0,9,'j'
+
+SCIDB QUERY : <build(<a:float, b:double default 3.1427, c:string null> [x=100:103,4,0], '[(1.2,,x),(0.2,,y),(3,,z),(,9,)]', true)>
+{x} a,b,c
+{100} 1.2,3.1427,'x'
+{101} 0.2,3.1427,'y'
+{102} 3,3.1427,'z'
+{103} 0,9,null
+
+SCIDB QUERY : <build(<a:string> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]', true)>
+{x} a
+{0} '2.124'
+{1} '1.045'
+{2} '4.98'
+
+SCIDB QUERY : <build(<a:string> [x=0:2,3,0], '[(allegory),(repetition),(Onomatopoeia)]', true)>
+{x} a
+{0} 'allegory'
+{1} 'repetition'
+{2} 'Onomatopoeia'
+
+SCIDB QUERY : <build(<a:string> [x=0:2,3,0], '[(allegory),(repetition),(Onomatopoe)]', true)>
+{x} a
+{0} 'allegory'
+{1} 'repetition'
+{2} 'Onomatopoe'
+
+SCIDB QUERY : <build(<a:datetime> [x=0:2,3,0], '[("2012-07-13 18:41:14"),("2011-12-13 18:41:14"),("2012-12-13 18:41:14")]', true)>
+{x} a
+{0} '2012-07-13 18:41:14'
+{1} '2011-12-13 18:41:14'
+{2} '2012-12-13 18:41:14'
+
+SCIDB QUERY : <build(<a:datetime> [x=0:2,3,0], '[("2012-07-13 00:00:00"),("2011-12-13 18:41:14"),("2012-12-13 18:00:00")]', 1)>
+{x} a
+{0} '2012-07-13 00:00:00'
+{1} '2011-12-13 18:41:14'
+{2} '2012-12-13 18:00:00'
+
+SCIDB QUERY : <build(<a:datetime, days: string> [x=0:2,3,0], '[("2012-07-13 18:41:14",Sunday),("2011-12-13 18:41:14",Monday),("2012-12-13 18:41:14",Friday)]', true)>
+{x} a,days
+{0} '2012-07-13 18:41:14','Sunday'
+{1} '2011-12-13 18:41:14','Monday'
+{2} '2012-12-13 18:41:14','Friday'
+
+SCIDB QUERY : <build(<a:datetimetz> [x=0:2,3,0], '[("2012-07-25 10:00:00 +01:00"),("2011-07-28 19:10:10 +04:00"),("2012-12-13 18:41:14 +02:30")]', true)>
+{x} a
+{0} '2012-07-25 10:00:00 +01:00'
+{1} '2011-07-28 19:10:10 +04:00'
+{2} '2012-12-13 18:41:14 +02:30'
+
+SCIDB QUERY : <store( build(<a:datetimetz> [x=0:2,3,0], '[("2012-07-25 10:00:00 +01:00"),("2011-07-28 19:10:10 +04:00"),("2012-12-13 18:41:14 +02:30")]',1),A)>
+{x} a
+{0} '2012-07-25 10:00:00 +01:00'
+{1} '2011-07-28 19:10:10 +04:00'
+{2} '2012-12-13 18:41:14 +02:30'
+
+SCIDB QUERY : <show(A)>
+{i} schema
+{0} 'A<a:datetimetz> [x=0:2,3,0]'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

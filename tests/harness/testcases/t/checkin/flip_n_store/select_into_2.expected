@@ -1,0 +1,135 @@
+SCIDB QUERY : <create array A <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <x:int64> [a=0:15,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(B,C)>
+{a} x
+
+SCIDB QUERY : <store(C,D)>
+{a} x
+
+SCIDB QUERY : <store(D,E)>
+{a} x
+
+SCIDB QUERY : <store(E,F)>
+{a} x
+
+SCIDB QUERY : <store(F,G)>
+{a} x
+
+SCIDB QUERY : <store(G,H)>
+{a} x
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select * into B from A as Az>
+{a} x
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select a,x from B>
+{a} expr,x
+{0} 0,10
+{1} 1,11
+{2} 2,12
+
+SCIDB QUERY : <select count(B)>
+{i} count
+{0} 3
+
+SCIDB QUERY : <select * into C from A where a=11>
+{a} x
+{1} 11
+
+SCIDB QUERY : <select a,x from C>
+{a} expr,x
+{1} 1,11
+
+SCIDB QUERY : <select count(C)>
+{i} count
+{0} 1
+
+SCIDB QUERY : <select a into D from A where a<>11>
+{a} x
+{0} 10
+{2} 12
+
+SCIDB QUERY : <select a,x from D>
+{a} expr,x
+{0} 0,10
+{2} 2,12
+
+SCIDB QUERY : <select x into E from A where a<=11>
+{a} x
+{0} 0
+{1} 1
+
+SCIDB QUERY : <select a,x from D>
+{a} expr,x
+{0} 0,10
+{2} 2,12
+
+SCIDB QUERY : <select count(E)>
+{i} count
+{0} 2
+
+SCIDB QUERY : <select a,x into F from B>
+{a} x
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select count(F)>
+{i} count
+{0} 3
+
+SCIDB QUERY : <select x,a into G from B>
+{a} x
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select count(G)>
+{i} count
+{0} 3
+
+SCIDB QUERY : <select x,a,x,a into H from D>
+{a} x
+{0} 10
+{2} 12
+
+SCIDB QUERY : <select count(H)>
+{i} count
+{0} 2
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(H)>
+Query was executed successfully
+

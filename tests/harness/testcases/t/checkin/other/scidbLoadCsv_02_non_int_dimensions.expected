@@ -1,0 +1,44 @@
+SCIDB QUERY : <scan(tmpA)>
+{ID,AffyId} Response
+{'GSM1','Affy_1'} 9416.59
+{'GSM1','Affy_2'} 7525.58
+{'GSM1','Affy_3'} 5634.56
+{'GSM1','Affy_4'} 3743.64
+{'GSM2','Affy_1'} 1593.62
+{'GSM2','Affy_2'} 9701.6
+{'GSM2','Affy_3'} 7810.58
+{'GSM2','Affy_4'} 5919.56
+{'GSM3','Affy_1'} 3769.64
+{'GSM3','Affy_2'} 1878.62
+{'GSM3','Affy_3'} 9986.6
+{'GSM3','Affy_4'} 8095.58
+{'GSM4','Affy_1'} 5945.56
+{'GSM4','Affy_2'} 4054.54
+{'GSM4','Affy_3'} 2163.62
+{'GSM4','Affy_4'} 272.603
+
+SCIDB QUERY : <scan(tmpB)>
+{ID,AffyId} Response
+{'GSM1','Affy_1'} 9416.59
+{'GSM1','Affy_2'} 7525.58
+{'GSM1','Affy_3'} 5634.56
+{'GSM1','Affy_4'} 3743.64
+{'GSM2','Affy_1'} 1593.62
+{'GSM2','Affy_2'} 9701.6
+{'GSM2','Affy_3'} 7810.58
+{'GSM2','Affy_4'} 5919.56
+{'GSM3','Affy_1'} 3769.64
+{'GSM3','Affy_2'} 1878.62
+{'GSM3','Affy_3'} 9986.6
+{'GSM3','Affy_4'} 8095.58
+{'GSM4','Affy_1'} 5945.56
+{'GSM4','Affy_2'} 4054.54
+{'GSM4','Affy_3'} 2163.62
+{'GSM4','Affy_4'} 272.603
+
+SCIDB QUERY : <remove(tmpA)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(tmpB)>
+Query was executed successfully
+

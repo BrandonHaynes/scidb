@@ -1,0 +1,1 @@
+--shell  --store --command "unit_tests -c host=${DB_HOST:=localhost}\ port=${DB_PORT:=5432}\ dbname=${DB_NAME:=mydb}\ user=${DB_USER:=mydb}\ password=${DB_PASSWD:=mydb}"

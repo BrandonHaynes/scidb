@@ -1,0 +1,666 @@
+SCIDB QUERY : <create array data_array < A: int64 > [ X=0:9,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(data_array, 1+X), data_array)>
+{X} A
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+
+SCIDB QUERY : <create array UB <a:int64>[x=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(UB, '${TEST_DATA_DIR}/ub_join.txt')">
+{x} a
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <create array Media < val : double > [ I=1:3,3,0, J=1:3,3,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Media, I*I+J/(1.0)), Media)>
+{I,J} val
+{1,1} 2
+{1,2} 3
+{1,3} 4
+{2,1} 5
+{2,2} 6
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <create array two_dimension < age:int32>[ I=1:2,2,0 , J=1:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(two_dimension, I*I+J/(1.0)),two_dimension)>
+{I,J} age
+{1,1} 2
+{1,2} 3
+{2,1} 5
+{2,2} 6
+
+SCIDB QUERY : <create array Media_A < val : double > [ I=1:3,3,1, J=1:3,3,1]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Media_A, I*I+J/(1.0)), Media_A)>
+{I,J} val
+{1,1} 2
+{1,2} 3
+{1,3} 4
+{2,1} 5
+{2,2} 6
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <create array Media_B < val : double > [ I=1:3,2,1, J=1:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Media_B, I*I+J/(1.0)), Media_B)>
+{I,J} val
+{1,1} 2
+{1,2} 3
+{2,1} 5
+{2,2} 6
+{1,3} 4
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <create array Media_C < val : double > [ I=1:3,2,1, J=1:3,2,2]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Media_C, I*I+J/(1.0)), Media_C)>
+{I,J} val
+{1,1} 2
+{1,2} 3
+{2,1} 5
+{2,2} 6
+{1,3} 4
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <create array Media_D <salary : double > [ I=1:3,3,0, J=1:3,3,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Media_D, I*I+J/(1.0)), Media_D)>
+{I,J} salary
+{1,1} 2
+{1,2} 3
+{1,3} 4
+{2,1} 5
+{2,2} 6
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <create array Media_E <sal : float > [ I=1:3,3,0, J=1:3,3,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Media_E, I*I+J/(1.0)), Media_E)>
+{I,J} sal
+{1,1} 2
+{1,2} 3
+{1,3} 4
+{2,1} 5
+{2,2} 6
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <create array multiMedia_array_new < name: string, val : double , sal:int32  > [ I=1:3,3,0, J=1:3,3,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(multiMedia_array_new,'${TEST_DATA_DIR}/multi.txt')">
+{I,J} name,val,sal
+{1,1} '2',0,0
+{1,2} '3',0,0
+{1,3} '4',0,0
+{2,1} '5',0,0
+{2,2} '6',0,0
+{2,3} '7',0,0
+{3,1} '10',0,0
+{3,2} '11',0,0
+{3,3} '12',0,0
+
+SCIDB QUERY : <create array threeD_array < val : double > [ I=1:3,3,0, J=1:3,3,0 , K=1:3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(threeD_array, 4.67*cos(I+J+K)), threeD_array)>
+{I,J,K} val
+{1,1,1} -4.62326
+{1,1,2} -3.05252
+{1,1,3} 1.3247
+{1,2,1} -3.05252
+{1,2,2} 1.3247
+{1,2,3} 4.484
+{1,3,1} 1.3247
+{1,3,2} 4.484
+{1,3,3} 3.52072
+{2,1,1} -3.05252
+{2,1,2} 1.3247
+{2,1,3} 4.484
+{2,2,1} 1.3247
+{2,2,2} 4.484
+{2,2,3} 3.52072
+{2,3,1} 4.484
+{2,3,2} 3.52072
+{2,3,3} -0.679485
+{3,1,1} 1.3247
+{3,1,2} 4.484
+{3,1,3} 3.52072
+{3,2,1} 4.484
+{3,2,2} 3.52072
+{3,2,3} -0.679485
+{3,3,1} 3.52072
+{3,3,2} -0.679485
+{3,3,3} -4.25498
+
+SCIDB QUERY : <create array threeD_array_A <initial:char, val : double > [ I=1:3,3,0, J=1:3,3,0 , K=1:3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(threeD_array_A,'${TEST_DATA_DIR}/threed.txt')">
+{I,J,K} initial,val
+{1,1,1} 'A',-4.62326
+{1,1,2} 'B',-3.05252
+{1,1,3} 'C',1.3247
+{1,2,1} 'D',-3.05252
+{1,2,2} 'E',1.3247
+{1,2,3} 'F',4.484
+{1,3,1} 'G',1.3247
+{1,3,2} 'H',4.484
+{1,3,3} 'I',3.52072
+{2,1,1} 'J',-3.05252
+{2,1,2} 'K',1.3247
+{2,1,3} 'L',4.484
+{2,2,1} 'M',1.3247
+{2,2,2} 'N',4.484
+{2,2,3} 'O',3.52072
+{2,3,1} 'P',4.484
+{2,3,2} 'Q',3.52072
+{2,3,3} 'R',-0.679485
+{3,1,1} 'S',1.3247
+{3,1,2} 'T',4.484
+{3,1,3} 'U',3.52072
+{3,2,1} 'V',4.484
+{3,2,2} 'W',3.52072
+{3,2,3} 'X',-0.679485
+{3,3,1} 'Y',3.52072
+{3,3,2} 'Z',-0.679485
+{3,3,3} 'Z',-4.25498
+
+SCIDB QUERY : <join(data_array,UB)>
+{X} A,a
+{0} 1,0
+{2} 3,1
+{4} 5,2
+{6} 7,3
+{8} 9,4
+
+SCIDB QUERY : <join(UB,data_array)>
+{x} a,A
+{0} 0,1
+{2} 1,3
+{4} 2,5
+{6} 3,7
+{8} 4,9
+
+SCIDB QUERY : <select * from UB,data_array>
+{x} a,A
+{0} 0,1
+{2} 1,3
+{4} 2,5
+{6} 3,7
+{8} 4,9
+
+SCIDB QUERY : <select * from data_array,UB>
+{X} A,a
+{0} 1,0
+{2} 3,1
+{4} 5,2
+{6} 7,3
+{8} 9,4
+
+SCIDB QUERY : <select * from data_array,UB where X >2 and X<6>
+{X} A,a
+{4} 5,2
+
+SCIDB QUERY : <join(Media,Media)>
+{I,J} val,val
+{1,1} 2,2
+{1,2} 3,3
+{1,3} 4,4
+{2,1} 5,5
+{2,2} 6,6
+{2,3} 7,7
+{3,1} 10,10
+{3,2} 11,11
+{3,3} 12,12
+
+SCIDB QUERY : <join(Media_A,Media)>
+{I,J} val,val
+{1,1} 2,2
+{1,2} 3,3
+{1,3} 4,4
+{2,1} 5,5
+{2,2} 6,6
+{2,3} 7,7
+{3,1} 10,10
+{3,2} 11,11
+{3,3} 12,12
+
+SCIDB QUERY : <join(Media_B,Media_C)>
+{I,J} val,val
+{1,1} 2,2
+{1,2} 3,3
+{2,1} 5,5
+{2,2} 6,6
+{1,3} 4,4
+{2,3} 7,7
+{3,1} 10,10
+{3,2} 11,11
+{3,3} 12,12
+
+SCIDB QUERY : <join(subarray(Media,1,1,2,2),two_dimension)>
+[An error expected at this place for the query "join(subarray(Media,1,1,2,2),two_dimension)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2.]
+
+SCIDB QUERY : <join(Media,Media_D)>
+{I,J} val,salary
+{1,1} 2,2
+{1,2} 3,3
+{1,3} 4,4
+{2,1} 5,5
+{2,2} 6,6
+{2,3} 7,7
+{3,1} 10,10
+{3,2} 11,11
+{3,3} 12,12
+
+SCIDB QUERY : <join(Media_D,Media)>
+{I,J} salary,val
+{1,1} 2,2
+{1,2} 3,3
+{1,3} 4,4
+{2,1} 5,5
+{2,2} 6,6
+{2,3} 7,7
+{3,1} 10,10
+{3,2} 11,11
+{3,3} 12,12
+
+SCIDB QUERY : <join(Media,Media_E)>
+{I,J} val,sal
+{1,1} 2,2
+{1,2} 3,3
+{1,3} 4,4
+{2,1} 5,5
+{2,2} 6,6
+{2,3} 7,7
+{3,1} 10,10
+{3,2} 11,11
+{3,3} 12,12
+
+SCIDB QUERY : <select * from Media, Media_E>
+{I,J} val,sal
+{1,1} 2,2
+{1,2} 3,3
+{1,3} 4,4
+{2,1} 5,5
+{2,2} 6,6
+{2,3} 7,7
+{3,1} 10,10
+{3,2} 11,11
+{3,3} 12,12
+
+SCIDB QUERY : <select * from store((select* from Media,Media_E),AA)>
+{I,J} val,sal
+{1,1} 2,2
+{1,2} 3,3
+{1,3} 4,4
+{2,1} 5,5
+{2,2} 6,6
+{2,3} 7,7
+{3,1} 10,10
+{3,2} 11,11
+{3,3} 12,12
+
+SCIDB QUERY : <select * from store((select* from multiMedia_array_new,Media),AB)>
+{I,J} name,val,sal,val_2
+{1,1} '2',0,0,2
+{1,2} '3',0,0,3
+{1,3} '4',0,0,4
+{2,1} '5',0,0,5
+{2,2} '6',0,0,6
+{2,3} '7',0,0,7
+{3,1} '10',0,0,10
+{3,2} '11',0,0,11
+{3,3} '12',0,0,12
+
+SCIDB QUERY : <join (multiMedia_array_new, Media)>
+{I,J} name,val,sal,val
+{1,1} '2',0,0,2
+{1,2} '3',0,0,3
+{1,3} '4',0,0,4
+{2,1} '5',0,0,5
+{2,2} '6',0,0,6
+{2,3} '7',0,0,7
+{3,1} '10',0,0,10
+{3,2} '11',0,0,11
+{3,3} '12',0,0,12
+
+SCIDB QUERY : <Join(threeD_array_A,threeD_array)>
+{I,J,K} initial,val,val
+{1,1,1} 'A',-4.62326,-4.62326
+{1,1,2} 'B',-3.05252,-3.05252
+{1,1,3} 'C',1.3247,1.3247
+{1,2,1} 'D',-3.05252,-3.05252
+{1,2,2} 'E',1.3247,1.3247
+{1,2,3} 'F',4.484,4.484
+{1,3,1} 'G',1.3247,1.3247
+{1,3,2} 'H',4.484,4.484
+{1,3,3} 'I',3.52072,3.52072
+{2,1,1} 'J',-3.05252,-3.05252
+{2,1,2} 'K',1.3247,1.3247
+{2,1,3} 'L',4.484,4.484
+{2,2,1} 'M',1.3247,1.3247
+{2,2,2} 'N',4.484,4.484
+{2,2,3} 'O',3.52072,3.52072
+{2,3,1} 'P',4.484,4.484
+{2,3,2} 'Q',3.52072,3.52072
+{2,3,3} 'R',-0.679485,-0.679485
+{3,1,1} 'S',1.3247,1.3247
+{3,1,2} 'T',4.484,4.484
+{3,1,3} 'U',3.52072,3.52072
+{3,2,1} 'V',4.484,4.484
+{3,2,2} 'W',3.52072,3.52072
+{3,2,3} 'X',-0.679485,-0.679485
+{3,3,1} 'Y',3.52072,3.52072
+{3,3,2} 'Z',-0.679485,-0.679485
+{3,3,3} 'Z',-4.25498,-4.25498
+
+SCIDB QUERY : <Join(threeD_array,threeD_array_A)>
+{I,J,K} val,initial,val
+{1,1,1} -4.62326,'A',-4.62326
+{1,1,2} -3.05252,'B',-3.05252
+{1,1,3} 1.3247,'C',1.3247
+{1,2,1} -3.05252,'D',-3.05252
+{1,2,2} 1.3247,'E',1.3247
+{1,2,3} 4.484,'F',4.484
+{1,3,1} 1.3247,'G',1.3247
+{1,3,2} 4.484,'H',4.484
+{1,3,3} 3.52072,'I',3.52072
+{2,1,1} -3.05252,'J',-3.05252
+{2,1,2} 1.3247,'K',1.3247
+{2,1,3} 4.484,'L',4.484
+{2,2,1} 1.3247,'M',1.3247
+{2,2,2} 4.484,'N',4.484
+{2,2,3} 3.52072,'O',3.52072
+{2,3,1} 4.484,'P',4.484
+{2,3,2} 3.52072,'Q',3.52072
+{2,3,3} -0.679485,'R',-0.679485
+{3,1,1} 1.3247,'S',1.3247
+{3,1,2} 4.484,'T',4.484
+{3,1,3} 3.52072,'U',3.52072
+{3,2,1} 4.484,'V',4.484
+{3,2,2} 3.52072,'W',3.52072
+{3,2,3} -0.679485,'X',-0.679485
+{3,3,1} 3.52072,'Y',3.52072
+{3,3,2} -0.679485,'Z',-0.679485
+{3,3,3} -4.25498,'Z',-4.25498
+
+SCIDB QUERY : <select * from threeD_array,threeD_array_A>
+{I,J,K} val,initial,val
+{1,1,1} -4.62326,'A',-4.62326
+{1,1,2} -3.05252,'B',-3.05252
+{1,1,3} 1.3247,'C',1.3247
+{1,2,1} -3.05252,'D',-3.05252
+{1,2,2} 1.3247,'E',1.3247
+{1,2,3} 4.484,'F',4.484
+{1,3,1} 1.3247,'G',1.3247
+{1,3,2} 4.484,'H',4.484
+{1,3,3} 3.52072,'I',3.52072
+{2,1,1} -3.05252,'J',-3.05252
+{2,1,2} 1.3247,'K',1.3247
+{2,1,3} 4.484,'L',4.484
+{2,2,1} 1.3247,'M',1.3247
+{2,2,2} 4.484,'N',4.484
+{2,2,3} 3.52072,'O',3.52072
+{2,3,1} 4.484,'P',4.484
+{2,3,2} 3.52072,'Q',3.52072
+{2,3,3} -0.679485,'R',-0.679485
+{3,1,1} 1.3247,'S',1.3247
+{3,1,2} 4.484,'T',4.484
+{3,1,3} 3.52072,'U',3.52072
+{3,2,1} 4.484,'V',4.484
+{3,2,2} 3.52072,'W',3.52072
+{3,2,3} -0.679485,'X',-0.679485
+{3,3,1} 3.52072,'Y',3.52072
+{3,3,2} -0.679485,'Z',-0.679485
+{3,3,3} -4.25498,'Z',-4.25498
+
+SCIDB QUERY : <select * from store(apply(threeD_array_A,bonus,(I+J+K)*1000),threeD_array_B)>
+{I,J,K} initial,val,bonus
+{1,1,1} 'A',-4.62326,3000
+{1,1,2} 'B',-3.05252,4000
+{1,1,3} 'C',1.3247,5000
+{1,2,1} 'D',-3.05252,4000
+{1,2,2} 'E',1.3247,5000
+{1,2,3} 'F',4.484,6000
+{1,3,1} 'G',1.3247,5000
+{1,3,2} 'H',4.484,6000
+{1,3,3} 'I',3.52072,7000
+{2,1,1} 'J',-3.05252,4000
+{2,1,2} 'K',1.3247,5000
+{2,1,3} 'L',4.484,6000
+{2,2,1} 'M',1.3247,5000
+{2,2,2} 'N',4.484,6000
+{2,2,3} 'O',3.52072,7000
+{2,3,1} 'P',4.484,6000
+{2,3,2} 'Q',3.52072,7000
+{2,3,3} 'R',-0.679485,8000
+{3,1,1} 'S',1.3247,5000
+{3,1,2} 'T',4.484,6000
+{3,1,3} 'U',3.52072,7000
+{3,2,1} 'V',4.484,6000
+{3,2,2} 'W',3.52072,7000
+{3,2,3} 'X',-0.679485,8000
+{3,3,1} 'Y',3.52072,7000
+{3,3,2} 'Z',-0.679485,8000
+{3,3,3} 'Z',-4.25498,9000
+
+SCIDB QUERY : <select * from threeD_array,(select bonus from threeD_array_B)>
+{I,J,K} val,bonus
+{1,1,1} -4.62326,3000
+{1,1,2} -3.05252,4000
+{1,1,3} 1.3247,5000
+{1,2,1} -3.05252,4000
+{1,2,2} 1.3247,5000
+{1,2,3} 4.484,6000
+{1,3,1} 1.3247,5000
+{1,3,2} 4.484,6000
+{1,3,3} 3.52072,7000
+{2,1,1} -3.05252,4000
+{2,1,2} 1.3247,5000
+{2,1,3} 4.484,6000
+{2,2,1} 1.3247,5000
+{2,2,2} 4.484,6000
+{2,2,3} 3.52072,7000
+{2,3,1} 4.484,6000
+{2,3,2} 3.52072,7000
+{2,3,3} -0.679485,8000
+{3,1,1} 1.3247,5000
+{3,1,2} 4.484,6000
+{3,1,3} 3.52072,7000
+{3,2,1} 4.484,6000
+{3,2,2} 3.52072,7000
+{3,2,3} -0.679485,8000
+{3,3,1} 3.52072,7000
+{3,3,2} -0.679485,8000
+{3,3,3} -4.25498,9000
+
+SCIDB QUERY : <select * from store ((select * from threeD_array,(select bonus from threeD_array_B)),threeD_array_C)>
+{I,J,K} val,bonus
+{1,1,1} -4.62326,3000
+{1,1,2} -3.05252,4000
+{1,1,3} 1.3247,5000
+{1,2,1} -3.05252,4000
+{1,2,2} 1.3247,5000
+{1,2,3} 4.484,6000
+{1,3,1} 1.3247,5000
+{1,3,2} 4.484,6000
+{1,3,3} 3.52072,7000
+{2,1,1} -3.05252,4000
+{2,1,2} 1.3247,5000
+{2,1,3} 4.484,6000
+{2,2,1} 1.3247,5000
+{2,2,2} 4.484,6000
+{2,2,3} 3.52072,7000
+{2,3,1} 4.484,6000
+{2,3,2} 3.52072,7000
+{2,3,3} -0.679485,8000
+{3,1,1} 1.3247,5000
+{3,1,2} 4.484,6000
+{3,1,3} 3.52072,7000
+{3,2,1} 4.484,6000
+{3,2,2} 3.52072,7000
+{3,2,3} -0.679485,8000
+{3,3,1} 3.52072,7000
+{3,3,2} -0.679485,8000
+{3,3,3} -4.25498,9000
+
+SCIDB QUERY : <select * from (select bonus from threeD_array_B),(select val from threeD_array)>
+{I,J,K} bonus,val
+{1,1,1} 3000,-4.62326
+{1,1,2} 4000,-3.05252
+{1,1,3} 5000,1.3247
+{1,2,1} 4000,-3.05252
+{1,2,2} 5000,1.3247
+{1,2,3} 6000,4.484
+{1,3,1} 5000,1.3247
+{1,3,2} 6000,4.484
+{1,3,3} 7000,3.52072
+{2,1,1} 4000,-3.05252
+{2,1,2} 5000,1.3247
+{2,1,3} 6000,4.484
+{2,2,1} 5000,1.3247
+{2,2,2} 6000,4.484
+{2,2,3} 7000,3.52072
+{2,3,1} 6000,4.484
+{2,3,2} 7000,3.52072
+{2,3,3} 8000,-0.679485
+{3,1,1} 5000,1.3247
+{3,1,2} 6000,4.484
+{3,1,3} 7000,3.52072
+{3,2,1} 6000,4.484
+{3,2,2} 7000,3.52072
+{3,2,3} 8000,-0.679485
+{3,3,1} 7000,3.52072
+{3,3,2} 8000,-0.679485
+{3,3,3} 9000,-4.25498
+
+SCIDB QUERY : <select threeD_array.val + threeD_array_A.val from threeD_array,threeD_array_A>
+{I,J,K} expr
+{1,1,1} -9.24653
+{1,1,2} -6.10503
+{1,1,3} 2.6494
+{1,2,1} -6.10503
+{1,2,2} 2.6494
+{1,2,3} 8.96799
+{1,3,1} 2.6494
+{1,3,2} 8.96799
+{1,3,3} 7.04145
+{2,1,1} -6.10503
+{2,1,2} 2.6494
+{2,1,3} 8.96799
+{2,2,1} 2.6494
+{2,2,2} 8.96799
+{2,2,3} 7.04145
+{2,3,1} 8.96799
+{2,3,2} 7.04145
+{2,3,3} -1.35897
+{3,1,1} 2.6494
+{3,1,2} 8.96799
+{3,1,3} 7.04145
+{3,2,1} 8.96799
+{3,2,2} 7.04145
+{3,2,3} -1.35897
+{3,3,1} 7.04145
+{3,3,2} -1.35897
+{3,3,3} -8.50996
+
+SCIDB QUERY : <remove(data_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UB)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Media)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Media_A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(two_dimension)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Media_B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Media_C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Media_D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Media_E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(multiMedia_array_new)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(threeD_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(threeD_array_A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AA)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AB)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(threeD_array_B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(threeD_array_C)>
+Query was executed successfully
+

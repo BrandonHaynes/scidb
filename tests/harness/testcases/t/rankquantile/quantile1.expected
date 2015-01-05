@@ -1,0 +1,547 @@
+SCIDB QUERY : <create array A <r:string NULL>[x=10:17,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,20*x+1),A)>
+{x} r
+{10} '201'
+{11} '221'
+{12} '241'
+{13} '261'
+{14} '281'
+{15} '301'
+{16} '321'
+{17} '341'
+
+SCIDB QUERY : <store(apply(A,s, iif(x=13,null,iif(x=16,null,x))),B)>
+{x} r,s
+{10} '201',10
+{11} '221',11
+{12} '241',12
+{13} '261',null
+{14} '281',14
+{15} '301',15
+{16} '321',null
+{17} '341',17
+
+SCIDB QUERY : <sort(A)>
+{n} r
+{0} '201'
+{1} '221'
+{2} '241'
+{3} '261'
+{4} '281'
+{5} '301'
+{6} '321'
+{7} '341'
+
+SCIDB QUERY : <sort(filter(A, r> '250'))>
+{n} r
+{0} '261'
+{1} '281'
+{2} '301'
+{3} '321'
+{4} '341'
+
+SCIDB QUERY : <sort(filter(A, x<> 15))>
+{n} r
+{0} '201'
+{1} '221'
+{2} '241'
+{3} '261'
+{4} '281'
+{5} '321'
+{6} '341'
+
+SCIDB QUERY : <sort(filter(A, x< 15 and x>12))>
+{n} r
+{0} '261'
+{1} '281'
+
+SCIDB QUERY : <sort(filter(A, x< 15 and x>15))>
+{n} r
+
+SCIDB QUERY : <sort(filter(A, x<> 14 and x<>16),20)>
+{n} r
+{0} '201'
+{1} '221'
+{2} '241'
+{3} '261'
+{4} '301'
+{5} '341'
+
+SCIDB QUERY : <sort(filter(A, x<> 14 and x<>16))>
+{n} r
+{0} '201'
+{1} '221'
+{2} '241'
+{3} '261'
+{4} '301'
+{5} '341'
+
+SCIDB QUERY : <sort(reverse(filter(A, x<> 14 and x<>16)),2)>
+{n} r
+{0} '201'
+{1} '221'
+{2} '241'
+{3} '261'
+{4} '301'
+{5} '341'
+
+SCIDB QUERY : <sort(B,s)>
+{n} r,s
+{0} '321',null
+{1} '261',null
+{2} '201',10
+{3} '221',11
+{4} '241',12
+{5} '281',14
+{6} '301',15
+{7} '341',17
+
+SCIDB QUERY : <sort(B,r)>
+{n} r,s
+{0} '201',10
+{1} '221',11
+{2} '241',12
+{3} '261',null
+{4} '281',14
+{5} '301',15
+{6} '321',null
+{7} '341',17
+
+SCIDB QUERY : <sort(subarray(B,12,14),r)>
+{n} r,s
+{0} '241',12
+{1} '261',null
+{2} '281',14
+
+SCIDB QUERY : <sort(subarray(B,12,14),s)>
+{n} r,s
+{0} '261',null
+{1} '241',12
+{2} '281',14
+
+SCIDB QUERY : <sort(filter(B, x< 15 and x>12),r)>
+{n} r,s
+{0} '261',null
+{1} '281',14
+
+SCIDB QUERY : <sort(filter(B, x< 15 and x>12),s)>
+{n} r,s
+{0} '261',null
+{1} '281',14
+
+SCIDB QUERY : <rank(A)>
+{x} r,r_rank
+{10} '201',1
+{11} '221',2
+{12} '241',3
+{13} '261',4
+{14} '281',5
+{15} '301',6
+{16} '321',7
+{17} '341',8
+
+SCIDB QUERY : <rank(reverse(A))>
+{x} r,r_rank
+{10} '341',8
+{11} '321',7
+{12} '301',6
+{13} '281',5
+{14} '261',4
+{15} '241',3
+{16} '221',2
+{17} '201',1
+
+SCIDB QUERY : <rank(filter(A, r> '250'))>
+{x} r,r_rank
+{13} '261',1
+{14} '281',2
+{15} '301',3
+{16} '321',4
+{17} '341',5
+
+SCIDB QUERY : <rank(filter(A, x<> 15))>
+{x} r,r_rank
+{10} '201',1
+{11} '221',2
+{12} '241',3
+{13} '261',4
+{14} '281',5
+{16} '321',6
+{17} '341',7
+
+SCIDB QUERY : <rank(subarray(A,0,11))>
+{x} r,r_rank
+{0} '201',1
+{1} '221',2
+
+SCIDB QUERY : <rank(filter(A, x< 15 and x>12))>
+{x} r,r_rank
+{13} '261',1
+{14} '281',2
+
+SCIDB QUERY : <rank(filter(A, x< 15 and x>15))>
+{x} r,r_rank
+
+SCIDB QUERY : <project(rank(filter(A, x< 15 and x>12)),r_rank,r)>
+{x} r_rank,r
+{13} 1,'261'
+{14} 2,'281'
+
+SCIDB QUERY : <rank(B)>
+{x} r,r_rank
+{10} '201',1
+{11} '221',2
+{12} '241',3
+{13} '261',4
+{14} '281',5
+{15} '301',6
+{16} '321',7
+{17} '341',8
+
+SCIDB QUERY : <rank(B,r)>
+{x} r,r_rank
+{10} '201',1
+{11} '221',2
+{12} '241',3
+{13} '261',4
+{14} '281',5
+{15} '301',6
+{16} '321',7
+{17} '341',8
+
+SCIDB QUERY : <rank(B,s)>
+{x} s,s_rank
+{10} 10,1
+{11} 11,2
+{12} 12,3
+{13} null,null
+{14} 14,4
+{15} 15,5
+{16} null,null
+{17} 17,6
+
+SCIDB QUERY : <rank(filter(B, x< 15 and x>12),s)>
+{x} s,s_rank
+{13} null,null
+{14} 14,1
+
+SCIDB QUERY : <rank(filter(B, x< 15 and x>12),r)>
+{x} r,r_rank
+{13} '261',1
+{14} '281',2
+
+SCIDB QUERY : <rank(filter(B, x< 15 and x>15))>
+{x} r,r_rank
+
+SCIDB QUERY : <rank(filter(B, x< 15 and x>15),r)>
+{x} r,r_rank
+
+SCIDB QUERY : <rank(filter(B, x< 15 and x>15),s)>
+{x} s,s_rank
+
+SCIDB QUERY : <rank(sort(filter(A, x<> 14 and x<>16),25))>
+{n} r,r_rank
+{0} '201',1
+{1} '221',2
+{2} '241',3
+{3} '261',4
+{4} '301',5
+{5} '341',6
+
+SCIDB QUERY : <quantile(A,2)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.5,'261'
+{2} 1,'341'
+
+SCIDB QUERY : <quantile(A,4)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.25,'221'
+{2} 0.5,'261'
+{3} 0.75,'301'
+{4} 1,'341'
+
+SCIDB QUERY : <quantile(A,8)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.125,'201'
+{2} 0.25,'221'
+{3} 0.375,'241'
+{4} 0.5,'261'
+{5} 0.625,'281'
+{6} 0.75,'301'
+{7} 0.875,'321'
+{8} 1,'341'
+
+SCIDB QUERY : <quantile(A,10)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.1,'201'
+{2} 0.2,'221'
+{3} 0.3,'241'
+{4} 0.4,'261'
+{5} 0.5,'261'
+{6} 0.6,'281'
+{7} 0.7,'301'
+{8} 0.8,'321'
+{9} 0.9,'341'
+{10} 1,'341'
+
+SCIDB QUERY : <quantile(A,12)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.0833333,'201'
+{2} 0.166667,'221'
+{3} 0.25,'221'
+{4} 0.333333,'241'
+{5} 0.416667,'261'
+{6} 0.5,'261'
+{7} 0.583333,'281'
+{8} 0.666667,'301'
+{9} 0.75,'301'
+{10} 0.833333,'321'
+{11} 0.916667,'341'
+{12} 1,'341'
+
+SCIDB QUERY : <quantile(A,16)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.0625,'201'
+{2} 0.125,'201'
+{3} 0.1875,'221'
+{4} 0.25,'221'
+{5} 0.3125,'241'
+{6} 0.375,'241'
+{7} 0.4375,'261'
+{8} 0.5,'261'
+{9} 0.5625,'281'
+{10} 0.625,'281'
+{11} 0.6875,'301'
+{12} 0.75,'301'
+{13} 0.8125,'321'
+{14} 0.875,'321'
+{15} 0.9375,'341'
+{16} 1,'341'
+
+SCIDB QUERY : <quantile(A,20)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.05,'201'
+{2} 0.1,'201'
+{3} 0.15,'221'
+{4} 0.2,'221'
+{5} 0.25,'221'
+{6} 0.3,'241'
+{7} 0.35,'241'
+{8} 0.4,'261'
+{9} 0.45,'261'
+{10} 0.5,'261'
+{11} 0.55,'281'
+{12} 0.6,'281'
+{13} 0.65,'301'
+{14} 0.7,'301'
+{15} 0.75,'301'
+{16} 0.8,'321'
+{17} 0.85,'321'
+{18} 0.9,'341'
+{19} 0.95,'341'
+{20} 1,'341'
+
+SCIDB QUERY : <quantile(subarray(A,10,14),2)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.5,'241'
+{2} 1,'281'
+
+SCIDB QUERY : <quantile(subarray(A,10,14),2,r)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.5,'241'
+{2} 1,'281'
+
+SCIDB QUERY : <quantile(subarray(A,10,14),100)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.01,'201'
+{2} 0.02,'201'
+{3} 0.03,'201'
+{4} 0.04,'201'
+{5} 0.05,'201'
+{6} 0.06,'201'
+{7} 0.07,'201'
+{8} 0.08,'201'
+{9} 0.09,'201'
+{10} 0.1,'201'
+{11} 0.11,'201'
+{12} 0.12,'201'
+{13} 0.13,'201'
+{14} 0.14,'201'
+{15} 0.15,'201'
+{16} 0.16,'201'
+{17} 0.17,'201'
+{18} 0.18,'201'
+{19} 0.19,'201'
+{20} 0.2,'201'
+{21} 0.21,'221'
+{22} 0.22,'221'
+{23} 0.23,'221'
+{24} 0.24,'221'
+{25} 0.25,'221'
+{26} 0.26,'221'
+{27} 0.27,'221'
+{28} 0.28,'221'
+{29} 0.29,'221'
+{30} 0.3,'221'
+{31} 0.31,'221'
+{32} 0.32,'221'
+{33} 0.33,'221'
+{34} 0.34,'221'
+{35} 0.35,'221'
+{36} 0.36,'221'
+{37} 0.37,'221'
+{38} 0.38,'221'
+{39} 0.39,'221'
+{40} 0.4,'221'
+{41} 0.41,'241'
+{42} 0.42,'241'
+{43} 0.43,'241'
+{44} 0.44,'241'
+{45} 0.45,'241'
+{46} 0.46,'241'
+{47} 0.47,'241'
+{48} 0.48,'241'
+{49} 0.49,'241'
+{50} 0.5,'241'
+{51} 0.51,'241'
+{52} 0.52,'241'
+{53} 0.53,'241'
+{54} 0.54,'241'
+{55} 0.55,'241'
+{56} 0.56,'241'
+{57} 0.57,'241'
+{58} 0.58,'241'
+{59} 0.59,'241'
+{60} 0.6,'241'
+{61} 0.61,'261'
+{62} 0.62,'261'
+{63} 0.63,'261'
+{64} 0.64,'261'
+{65} 0.65,'261'
+{66} 0.66,'261'
+{67} 0.67,'261'
+{68} 0.68,'261'
+{69} 0.69,'261'
+{70} 0.7,'261'
+{71} 0.71,'261'
+{72} 0.72,'261'
+{73} 0.73,'261'
+{74} 0.74,'261'
+{75} 0.75,'261'
+{76} 0.76,'261'
+{77} 0.77,'261'
+{78} 0.78,'261'
+{79} 0.79,'261'
+{80} 0.8,'261'
+{81} 0.81,'281'
+{82} 0.82,'281'
+{83} 0.83,'281'
+{84} 0.84,'281'
+{85} 0.85,'281'
+{86} 0.86,'281'
+{87} 0.87,'281'
+{88} 0.88,'281'
+{89} 0.89,'281'
+{90} 0.9,'281'
+{91} 0.91,'281'
+{92} 0.92,'281'
+{93} 0.93,'281'
+{94} 0.94,'281'
+{95} 0.95,'281'
+{96} 0.96,'281'
+{97} 0.97,'281'
+{98} 0.98,'281'
+{99} 0.99,'281'
+{100} 1,'281'
+
+SCIDB QUERY : <quantile(filter(A, x< 15 and x>15),2)>
+{quantile} percentage,r_quantile
+
+SCIDB QUERY : <quantile(filter(A, x< 15 and x>15),2,r)>
+{quantile} percentage,r_quantile
+
+SCIDB QUERY : <quantile(rank(sort(filter(A, x<> 14 and x<>16),25)),2)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.5,'241'
+{2} 1,'341'
+
+SCIDB QUERY : <quantile(B,2)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.5,'261'
+{2} 1,'341'
+
+SCIDB QUERY : <quantile(B,2,r)>
+{quantile} percentage,r_quantile
+{0} 0,'201'
+{1} 0.5,'261'
+{2} 1,'341'
+
+SCIDB QUERY : <quantile(B,2,s)>
+{quantile} percentage,s_quantile
+{0} 0,10
+{1} 0.5,12
+{2} 1,17
+
+SCIDB QUERY : <quantile(filter(B, x< 15 and x>12),2)>
+{quantile} percentage,r_quantile
+{0} 0,'261'
+{1} 0.5,'261'
+{2} 1,'281'
+
+SCIDB QUERY : <quantile(filter(B, x< 15 and x>12),4)>
+{quantile} percentage,r_quantile
+{0} 0,'261'
+{1} 0.25,'261'
+{2} 0.5,'261'
+{3} 0.75,'281'
+{4} 1,'281'
+
+SCIDB QUERY : <quantile(filter(B, x< 15 and x>12),2,s)>
+{quantile} percentage,s_quantile
+{0} 0,14
+{1} 0.5,14
+{2} 1,14
+
+SCIDB QUERY : <quantile(filter(B, x< 15 and x>12),4,s)>
+{quantile} percentage,s_quantile
+{0} 0,14
+{1} 0.25,14
+{2} 0.5,14
+{3} 0.75,14
+{4} 1,14
+
+SCIDB QUERY : <quantile(filter(B, x< 15 and x>15),2,s)>
+{quantile} percentage,s_quantile
+
+SCIDB QUERY : <quantile(filter(B, x< 15 and x>15),100,s)>
+{quantile} percentage,s_quantile
+
+SCIDB QUERY : <quantile(filter(B, x< 15 and x>15),100,r)>
+{quantile} percentage,r_quantile
+
+SCIDB QUERY : <quantile(filter(B, x< 15 and x>15),100,s,r)>
+[An error expected at this place for the query "quantile(filter(B, x< 15 and x>15),100,s,r)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <sort(A,x)>
+[An error expected at this place for the query "sort(A,x)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

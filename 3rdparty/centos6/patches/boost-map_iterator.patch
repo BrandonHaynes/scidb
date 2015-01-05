@@ -1,0 +1,12 @@
+diff -ur a/boost/ptr_container/detail/map_iterator.hpp b/boost/ptr_container/detail/map_iterator.hpp
+--- a/boost/ptr_container/detail/map_iterator.hpp
++++ b/boost/ptr_container/detail/map_iterator.hpp
+@@ -49,7 +49,7 @@
+             : first(rp->first), second(rp->second)
+             { }
+             
+-            const ref_pair* const operator->() const
++            const ref_pair* operator->() const
+             {
+                 return this;
+             }

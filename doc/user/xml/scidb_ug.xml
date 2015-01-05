@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd"
+[ <!ENTITY % myents SYSTEM "scidb_ug.ent" > %myents; ]
+>
+<book>
+        <title>SciDB User Guide</title>
+        <subtitle>Community Edition</subtitle>
+
+  <bookinfo>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="../graphics/scidb_logo.png" role="top"/>
+      </imageobject>
+    </mediaobject>
+
+    <copyright>
+      <year>2008–2014</year>
+
+      <holder>SciDB, Inc.</holder>
+    </copyright>
+
+    <releaseinfo>Version &scidb_version;.&scidb_revision;</releaseinfo>
+
+    <legalnotice>
+      <para>SciDB is free software: you can redistribute it and/or modify it
+      under the terms of the Affero General Public License, version 3, as
+      published by the Free Software Foundation.</para>
+
+      <para>SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+      INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, NON-INFRINGEMENT, OR
+      FITNESS FOR A PARTICULAR PURPOSE. See the Affero General Public License
+      at <ulink
+      url="http://www.gnu.org/licenses/agpl-3.0.html">http://www.gnu.org/licenses/agpl-3.0.html</ulink>
+      for the complete license terms.</para>
+    </legalnotice>
+  </bookinfo>
+
+  <xi:include href="rn.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="intro_to_scidb.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="scidb_installation_and_administration.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="getting_started_with_scidb_devel.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="scidb_datatypes_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="creating_and_removing_arrays_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="loading_data_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="basic_array_tasks_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="analytics_chapter.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="updating_and_array_versions_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="changing_array_schemas_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="jdbc.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="macros.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="plugin_UDFs.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="basic_linear_algebra_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="scidb_aggregates_ref.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="scidb_function_reference.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="operator_categories.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="scidb_operator_ref.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="scidb_bestpractices.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="appendix_trouble.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="appendix_A.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="appendix_B.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="appendix_macros.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+
+  <index/>
+</book>

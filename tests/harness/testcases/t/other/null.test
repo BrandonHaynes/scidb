@@ -1,0 +1,23 @@
+--setup
+create array na22       <a:double null>  [x=0:1,2,0, y=0:1,2,0]
+create array na22loaded <a:double null>  [x=0:1,2,0, y=0:1,2,0]
+
+--start-query-logging
+# show that null can be used in  AFL expressions, particularly build statements
+build(na22, null)
+build(na22, iif(x=y, null, 0.0))
+store(build(na22, iif(x=0 and y=0, null, iif(x=y,1,0))), na22)
+
+# show that the null can be saved to an ascii file
+save(na22,'naSaved.txt', -1, 'store')
+
+# and show that null can be loaded back from an ascii file
+load(na22loaded, 'naSaved.txt', -1)
+
+# and get back what we expected
+scan(na22loaded)
+
+--stop-query-logging
+--cleanup
+remove(na22)
+remove(na22loaded)

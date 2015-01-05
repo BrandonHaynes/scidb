@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<appendix id="appendixB">
+  <title id="b_title">Acknowledgments</title>
+
+  <para>We gratefully acknowledge the contribution of the people and packages
+  that have paved the way for us in Numerical Linear Algebra:</para>
+
+    <para><emphasis role="bold">BLAS</emphasis></para>
+
+    <para>L. S. Blackford, J. Demmel, J. Dongarra, I. Duff, S. Hammarling, G.
+    Henry, M. Heroux, L. Kaufman, A. Lumsdaine, A. Petitet, R. Pozo, K.
+    Remington, R. C. Whaley, <emphasis>An Updated Set of Basic Linear Algebra
+    Subprograms (BLAS)</emphasis>, <emphasis role="bold">ACM Trans. Math.
+    Soft.</emphasis>, 28-2 (2002), pp. 135--151.</para>
+
+    <para><emphasis role="bold">LAPACK</emphasis></para>
+
+    <para>E. Anderson, Z. Bai, C. Bischof, S. Blackford, J. Demmel, J.
+    Dongarra, J. Du Croz, A. Greenbaum, S. Hammarling, A. McKenney, D.
+    Sorensen, <emphasis><emphasis role="bold">LAPACK Users'
+    Guide</emphasis></emphasis> (Third Edition), (Philadelphia: Society for
+    Industrial and Applied Mathematics, 1999) (ISBN 0-89871-447-8)</para>
+
+    <para><emphasis role="bold">ScaLAPACK</emphasis></para>
+
+    <para>L. S. Blackford, J. Choi, A. Cleary, E. D'Azevedo, J. Demmel, I.
+    Dhillon, J. Dongarra, S. Hammarling, G. Henry, A. Petitet, K. Stanley, D.
+    Walker, R. C. Whaley, <emphasis><emphasis role="bold">ScaLAPACK Users'
+    Guide (Software, Environments and Tools)</emphasis></emphasis>,
+    (Philadephia: Society for Industrial and Applied Mathematics, 1987)</para>
+
+    <para><emphasis role="bold">MPI</emphasis></para>
+
+    <para>M. Snir, J. Dongarra, J. S. Kowalik, S. Huss-Lederman, S.W. Otto, D.
+    W. Walker, <emphasis><emphasis role="bold">MPI: The Complete
+    Reference</emphasis></emphasis>, (Vol. I and II), 2nd ed., (Cambridge, MA:
+    The MIT Press; 1998)</para>
+</appendix>

@@ -1,0 +1,85 @@
+--setup
+
+--start-query-logging
+
+create array unbounded <a:int32>[x=1:*,5,0]
+load(unbounded,'${TEST_DATA_DIR}/unbounded_empty.txt')
+create array unbounded2 <x:int64>[a(int32)=*,128,0] 
+create array unbounded3 <a:int64>[x(int32)=*,128,0]
+
+--test
+
+store(redimension(unbounded,unbounded2),unbounded2)
+
+show(unbounded2)
+aggregate(unbounded2,avg(x))
+aggregate(unbounded2,count(*))
+aggregate(unbounded2,sum(x))
+aggregate(unbounded2,min(x))
+project(unbounded2,x)
+aggregate(unbounded2,stdev(x))
+subarray(unbounded2,1,4)
+filter(unbounded2,x<15)
+aggregate(unbounded2,max(x))
+subarray(window(unbounded2,1,0,sum(x),count(x)),1,100)
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED "merge(unbounded2,unbounded3)"
+
+apply(subarray(unbounded2,1,40), z,a+5)
+
+--set-format sparse
+join(unbounded2,unbounded2)
+cross_join(unbounded2,unbounded2)
+cross_join(unbounded2,unbounded2)
+--reset-format
+
+transpose(unbounded2)
+repart(unbounded2, unbounded3)
+bernoulli(unbounded2,1,1)
+aggregate(unbounded2, sum(x))
+between(unbounded2,1,10)
+regrid(unbounded2,4,sum(x))
+attributes(unbounded2)
+rename(unbounded2, temp)
+scan(temp)
+rename(temp,unbounded2)
+scan(unbounded2)
+bernoulli(unbounded2,1,1)
+dimensions(unbounded2)
+adddim(unbounded2,z)
+deldim(adddim(unbounded2,z))
+cast(unbounded2,unbounded3)
+dimensions(unbounded2)
+--error "normalize(unbounded)"
+store(unbounded2,unbounded2_new)
+substitute(unbounded2,build(<a:bool>[x=0:30,2,0],true))
+aggregate(unbounded2,var(x))
+project(versions(unbounded2), version_id)
+
+#not supported for 1-D
+#multiply(unbounded2,unbounded2)   
+#slice(unbounded2,a,1)  
+
+#not supported for unbounded - #1497
+#multiply
+#reshape  -as of 4392
+#reverse
+#concat
+#build
+#xgrid
+
+#not supported
+#unpack
+           
+# ticket #1510
+# sort(unbounded2,x desc)	   
+
+
+show(unbounded2)
+allversions(unbounded2)
+--cleanup
+remove(unbounded)
+remove(unbounded2)
+remove(unbounded3)
+remove(unbounded2_new)
+--stop-query-logging
+

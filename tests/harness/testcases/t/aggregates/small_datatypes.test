@@ -1,0 +1,10 @@
+--setup
+CREATE ARRAY vec <a:int32, b:int32> [i=1:10,10,0]
+
+load(vec,'${TEST_DATA_DIR}/vec.txt')
+
+--test
+aggregate(apply(apply(apply(apply(vec, i16, int16(a)-10), i8, int8(a)-20), i32, a-30), f, float(b)/5), sum(i32),sum(i16),sum(i8),sum(f), avg(i32),avg(i16),avg(i8),avg(f), stdev(i32),stdev(i16),stdev(i8),stdev(f))
+
+--cleanup
+remove(vec)

@@ -1,0 +1,10 @@
+--setup
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense,'${TEST_DATA_DIR}/dense.txt')
+
+--test
+filter(join(subarray(dense, 1, 1, 3, 3) as d1, subarray(dense, 2, 2, 4, 4) as d2), d1.a < d2.a)
+
+--cleanup
+remove (dense)
+

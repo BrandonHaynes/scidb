@@ -1,0 +1,9 @@
+#!/bin/bash
+################################################################
+# Install the shim into build tree
+#
+# ARGUMENTS
+CMAKE_BINARY_DIR=$1
+################
+cd ../shim
+cp -p shim ${CMAKE_BINARY_DIR}/bin

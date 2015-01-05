@@ -1,0 +1,6 @@
+--setup
+--shell --command "shimsvc start"
+--test
+--shell --store-all --command "R --vanilla --slave < ${TESTDIR}/sciDB-R_interpreter.R"
+--cleanup
+--shell --command "shimsvc stop"

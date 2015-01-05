@@ -1,0 +1,11 @@
+# http://trac.scidb.org/ticket/325#comment:18
+
+--setup
+--aql create array A <A:int64>[x=1:5,5,0]
+store(build(A,x+1),A)
+
+--test
+--aql select sum(A) from A group by x
+
+--cleanup
+--aql drop array A

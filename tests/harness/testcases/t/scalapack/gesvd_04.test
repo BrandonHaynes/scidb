@@ -1,0 +1,101 @@
+--setup
+--start-query-logging
+# Tests for gesvd on unbounded rectangular and square arrays
+# Tests for gesvd with repart and aggregates
+# Negative tests for gesvd
+
+
+load_library('dense_linear_algebra')
+create           array M8x8_ubi     <val:int64>              [x=0:*,32,0,y=0:*,32,0]
+create array M8x8_default <val:double default 0.0> [x=0:*,32,0,y=0:*,32,0]
+--start-igdata
+store(build(M8x8_ubi,    '[[{0,0}(1),{1,1}(2),{2,2}(3),{3,3}(4),{4,4}(5),{5,5}(6),{6,6}(7),{7,7}(8)]]',true),M8x8_ubi)
+store(build(M8x8_default,'[[{0,0}(1),{1,1}(2),{2,2}(3),{3,3}(4),{4,4}(5),{5,5}(6),{6,6}(7),{7,7}(8)]]',true),M8x8_default)
+--stop-igdata
+
+# this is the restoration of the non-square M4x24 case, but using M4x4 for simplicity
+create array s4x5c32x16 <s:double> [x=0:3,32,0, y=0:4,16,0]
+create array M4x5c32x16 <a:double> [x=0:3,32,0, y=0:4,16,0]
+create array M4x5c32x16_UB <a:double> [x=0:*,32,0, y=0:*,16,0]
+# use a matrix that avoids near-zeros in its results, since
+# the test, as written, uses exact matching, which will not be
+# stable across different math libraries
+
+#--start-igdata, don't igdata, have to get the matrices out to R
+store(build(M4x5c32x16, sin(x+5*y)*sqrt(2)), s4x5c32x16)
+store(project(apply(s4x5c32x16,x,s-floor(s)),x), M4x5c32x16)
+store(M4x5c32x16, M4x5c32x16_UB)
+#--stop-igdata
+
+--test
+--echo gesvd only works for the double data types:
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5 "gesvd(M8x8_ubi, 'values')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5 "gesvd(M8x8_ubi, 'left')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5 "gesvd(M8x8_ubi, 'right')"
+
+--echo changing the attribute type from int64 to double with default and testing gesvd
+gesvd(M8x8_default, 'values')
+gesvd(M8x8_default, 'left')
+gesvd(M8x8_default, 'right')
+
+aggregate(gesvd(M8x8_default, 'values'),count(sigma))
+aggregate(gesvd(M8x8_default, 'left'),count(u))
+aggregate(gesvd(M8x8_default, 'right'),count(v))
+
+--echo gesvd negative tests : array should have same chunking on both the dimensions
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16, 'values')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16, 'left')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16, 'right')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16_UB, 'values')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16_UB, 'left')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16_UB, 'right')"
+
+--echo and when chunking is not the same, use repart to make it work
+gesvd(repart(M4x5c32x16, <a:double> [x=0:3,32,0, y=0:4,32,0]), 'values')
+gesvd(repart(M4x5c32x16, <a:double> [x=0:3,32,0, y=0:4,32,0]), 'left')
+gesvd(repart(M4x5c32x16, <a:double> [x=0:3,32,0, y=0:4,32,0]), 'right')
+
+## Strange ! It does not support unbounded arrays in nest but it supports it without nesting.
+# all non-zero starting index cases are errors ... ScaLAPACK DLA_ERROR44
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gesvd(repart(M4x5c32x16_UB, <a:double> [x=0:*,32,0, y=0:*,32,0]), 'values')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gesvd(repart(M4x5c32x16_UB, <a:double> [x=0:*,32,0, y=0:*,32,0]), 'left')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gesvd(repart(M4x5c32x16_UB, <a:double> [x=0:*,32,0, y=0:*,32,0]), 'right')"
+
+--echo changing the chunk size of the unbounded array to be 32 on both the dimensions
+store(repart(M4x5c32x16, <a:double>     [x=0:3,32,0, y=0:4,32,0]), M4x5)
+store(repart(M4x5c32x16_UB, <a:double>  [x=0:*,32,0, y=0:*, 32,0]), M4x5_UB)
+
+gesvd(M4x5, 'values')
+gesvd(M4x5, 'left')
+gesvd(M4x5, 'right')
+
+aggregate(gesvd(M4x5, 'values'),count(sigma))
+aggregate(gesvd(M4x5, 'left'),count(u))
+aggregate(gesvd(M4x5, 'right'),count(v))
+
+aggregate(gesvd(M4x5, 'left'), max(u), min(u))
+aggregate(gesvd(M4x5, 'right'), max(v), min(v), avg(v))
+aggregate(gesvd(M4x5, 'values'), max(sigma), min(sigma), avg(sigma))
+
+
+--echo output comparison between M4x5 and M4x5_UB
+gesvd(M4x5, 'values')
+gesvd(M4x5_UB, 'values')
+
+gesvd(M4x5, 'left')
+gesvd(M4x5_UB, 'left')
+
+gesvd(M4x5, 'right')
+gesvd(M4x5_UB, 'right')
+
+
+--cleanup
+remove(M8x8_ubi)
+remove(M8x8_default)
+remove(s4x5c32x16)
+remove(M4x5c32x16)
+remove(M4x5c32x16_UB)
+remove(M4x5)
+remove(M4x5_UB)
+
+--stop-query-logging

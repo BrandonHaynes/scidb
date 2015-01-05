@@ -1,0 +1,12 @@
+SCIDB QUERY : <create temp array tempC <d:int64> [ X=0:5000,1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array tempB <d:int64> [ X=0:5000,1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <remove(tempB)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(tempC)>
+Query was executed successfully
+

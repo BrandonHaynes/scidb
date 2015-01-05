@@ -1,0 +1,41 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY intensityFlat < exposure:string, elapsedTime:int64, measuredIntensity:int64 null > [i=0:24,5,0]  
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -naq "load(intensityFlat,'${TEST_DATA_DIR}/doc/intensity_data.bin',-2, '(string, int64, int64 null)')""
+store(build(<elevation:int64>[i=0:24,5,0],random()%1000),plus)  
+store(join(intensityFlat,plus),saveExample)  
+create array notFlat<exposure:string,measuredIntensity:int64 NULL DEFAULT null> [elevation=0:999,100,0,elapsedTime=0:15,16,0]  
+--stop-igdata
+show(notFlat)
+--start-igdata
+store(redimension(saveExample, notFlat),notFlat)  
+save(unpack(notFlat,myDim), 'notFlat_saved.bin', -2, '(int64,int64,string, int64 null)')  
+show('unpack(notFlat,myDim)','afl')  
+store(unpack(notFlat,myDim),notFlat_unpacked)  
+--stop-igdata
+show(notFlat_unpacked)
+--start-igdata
+CREATE ARRAY restored_1D_Array <elevation:int64, elapsedTime:int64,exposure:string,measuredIntensity:int64 NULL DEFAULT null> [myDim=0:*,16000,0] 
+load(restored_1D_Array, 'notFlat_saved.bin', -2, '(int64, int64, string, int64 null)')  
+create array restoredFinal<exposure:string,measuredIntensity:int64 NULL DEFAULT null> [elevation=0:999,100,0,elapsedTime=0:15,16,0]  
+--stop-igdata
+--start-igdata
+store(redimension(restored_1D_Array, restoredFinal),restoredFinal)  
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(intensityFlat)
+remove(plus)
+remove(saveExample)
+remove(notFlat)
+remove(notFlat_unpacked)
+remove(restored_1D_Array)
+remove(restoredFinal)

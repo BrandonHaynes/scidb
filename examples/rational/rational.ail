@@ -1,0 +1,201 @@
+#
+# This file is an 'iquery -a' script designed to show how the rational
+# data type can be used.
+# 
+# [1] Load the library with the rational number implementation: 
+load_library ( 'rational' );
+#
+# Check that the new library's type (at least) has been loaded. 
+sort ( filter ( list ('types'), name='rational'), 1 );
+#
+# What about the functions? The following AFL query lists all of the functions
+# loaded in the server that work with something named 'rational'. This might 
+# be a function name, or an argument type, or a return type. Different 
+# regex() arguments can disentangle these alternatives. 
+sort ( 
+	project ( 
+		filter ( list ('functions'), regex(profile,'(.*)rational(.*)')), 
+		profile), 
+1 );
+#
+# NOTE: The best way view the results of this kind of query is: 
+# 
+#   iquery -o csv+ -a
+#
+# [2] Using the rational type in an array. 
+#
+# Hygiene.
+remove ( number_template );
+remove ( rational_example_template );
+remove ( rationals );
+# 
+#  This first set of arrays are intended for minimal size use.
+#
+# create array number_template < num : int64 > [ I=0:9,10,0 ];
+# create array rational_example_template 
+# < R : rational > 
+# [ I=0:9,10,0, J=0:9,10,0 ];
+
+create array number_template < num : int64 > [ I=0:999,111,0 ];
+create array rational_example_template 
+< R : rational > 
+[ I=0:999,111,0, J=0:999,111,0 ];
+#
+#  [3] Create a lot of instances of the rational type. 
+#
+#  What we do here is to use several operators (build(), 
+#  cross_join(), and apply()) in a single query to create 
+#  a large (1,000,000) rational numbers. 
+#
+project ( 
+	apply (  
+		cross_join ( build ( number_template, I ) AS N, 
+		         	 build ( number_template, 1000 - I ) AS D), 
+		R, str(rational ( N.num, D.num ))
+	), 
+	R
+);
+#
+#  NOTE: It is a property of rational numbers that a 
+#        denominator of '0' yields an undefined value. This 
+#        is only detected inside the boost library. The 
+#        following query demonstrates how to throw the 
+#        trap. 
+project ( 
+	apply (  
+		cross_join ( build ( number_template, I ) AS N, 
+		         	 build ( number_template, 10 - I ) AS D), 
+		R, str(rational ( N.num, D.num ))
+	), 
+	R
+);
+#
+#  [4] Store the result of the query above in an array. 
+#
+#      NOTE 1: All operators in SciDB return a result, 
+#              even store(). To turn this off, you need 
+#              to use the 'set no fetch;'. 
+set no fetch;
+store ( 
+	cast ( 
+		project ( 
+			apply (  
+				cross_join ( build ( number_template, I ) AS N, 
+		         	 	 	build ( number_template, 1000 - I ) AS D), 
+				R, rational ( N.num, D.num )
+			), 
+		R), 
+	rational_example_template),
+rationals);
+set fetch;
+#
+# [6] What does 'rationals' look like? 
+show ( rationals );
+# project ( rationals, R );
+#
+# Now exercise all of the rational UDF/UDT machinery. 
+#
+# [7] Comparisons. 
+count ( filter ( join ( rationals AS R1, transpose ( rationals ) AS R2 ), R1.R < R2.R ));
+count ( filter ( join ( rationals AS R1, transpose ( rationals ) AS R2 ), R1.R <= R2.R ));
+count ( filter ( join ( rationals AS R1, transpose ( rationals ) AS R2 ), R1.R = R2.R ));
+count ( filter ( join ( rationals AS R1, transpose ( rationals ) AS R2 ), R1.R >= R2.R ));
+count ( filter ( join ( rationals AS R1, transpose ( rationals ) AS R2 ), R1.R > R2.R ));
+#
+# [8] Mathematical operations. 
+apply ( join ( rationals AS R1, transpose ( rationals ) AS R2 ),plus, R1.R + R2.R);
+apply ( join ( rationals AS R1, transpose ( rationals ) AS R2 ),minus, R1.R - R2.R);
+apply ( join ( rationals AS R1, transpose ( rationals ) AS R2 ),times, R1.R * R2.R);
+apply ( join ( rationals AS R1, transpose ( rationals ) AS R2 ),divid, R1.R / R2.R);
+#
+# [9] Aggregates. 
+#
+#     Here, we begin to encounter some of the limitations 
+#     of the implementation of the underlying type. In our 
+#     case, even though we've used int64, the requirements 
+#     for precision were such that we very quickly run out  
+#     numbers; even with 2^63 of 'em. 
+#     
+#     Anyway - we get overflows here. 
+sum ( rationals );
+#
+sum (
+	project ( 
+		apply ( 
+			join ( rationals AS R1, 
+					transpose ( rationals ) AS R2 ),
+		times, R1.R * R2.R), 
+	times )
+);
+#
+# However, Max() and Min() work fine. 
+max (
+	project ( 
+		apply ( 
+			join ( rationals AS R1, 
+					transpose ( rationals ) AS R2 ),
+		times, R1.R * R2.R), 
+	times )
+);
+#
+min (
+	project ( 
+		apply ( 
+			join ( rationals AS R1, 
+					transpose ( rationals ) AS R2 ),
+		times, R1.R * R2.R), 
+	times )
+);
+#
+#   Although avg() breaks, because of the way the sum() is 
+#  too large.      
+#
+#  NOTE: We might be able to do a better job with avg() by using
+#        a numerically stable, incremental algorithm, rather than 
+#        the more naive one-pass sum(X) / count(X) approach.
+#
+#  NOTE: This is the query that requires the ( rational / INT64) 
+#        UDF.
+#
+avg (
+    project (
+        apply (
+            join ( rationals AS R1,
+                    transpose ( rationals ) AS R2 ),
+        times, R1.R * R2.R),
+    times )
+);
+#
+#  [10] Building larger, and more complex expressions. 
+#
+#  NOTE: There should be zero here. It will always be the 
+#        case that (R1 + R2) >= (R1 - R2). 
+count ( 
+	filter ( 
+		join ( 
+			apply (
+				join ( rationals AS R1, transpose ( rationals ) AS R2 ),
+				plus, R1.R + R2.R) AS R3,
+			apply (
+				join ( rationals AS R1, transpose ( rationals ) AS R2 ),
+				minus, R1.R - R2.R) AS R4
+		),
+		R3.plus < R4.minus
+	)
+);
+# 
+# 
+count ( 
+	filter ( 
+		join ( 
+			apply (
+				join ( rationals AS R1, transpose ( rationals ) AS R2 ),
+				plus, R1.R + R2.R) AS R3,
+			apply (
+				join ( rationals AS R1, transpose ( rationals ) AS R2 ),
+				times, R1.R * R2.R) AS R4
+		),
+		R3.plus < R4.times
+	)
+);
+# 

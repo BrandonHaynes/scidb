@@ -1,0 +1,81 @@
+#
+# keep this file sorted to avoid accidental merges of duplicate lines, each part has its
+# own sort rules
+#
+
+# PART I
+#
+# THIS PART SHOULD BE FOR TESTS THAT ARE NORMALLY DISABLED, not disabled due to bug/ticket
+# e.g. they take too long to run under any supported Cdash config, they are for design or TDD
+#   and the code that runs them will fail, etc
+#
+# - it is best practice if long tests are pushed to a "long" or "slow" subdirectory of the other
+#   related tests that are not, for example, scalapack/64instance is of this type
+# - it is best practice to give a line explaining why disabled, so others can validate
+#   that it is appropriate that they are disabled (and not just leftover from before we started
+#   adding ticket numbers for disabled-due-to-failure)
+#
+#  KEEP THIS IN ALPHABETICAL ORDER
+#
+
+# Disable suite containing very large data
+bigdata
+# next needs conversion to chunksize 32x32
+checkin.scalapack.20_svd_oldVals
+# next has output that is currently too verbose
+checkin.scalapack.31_svd_doSvdWithMetrics_verySmall
+# very long execution time and queries need to be updated for syntax
+data_model
+# re-enable after solving #3406
+doc.redimension_2
+# re-enable after solving #3407
+doc.ug_loadingData_CSV
+doc.ug_loadingData_binary
+# NEED COMMENT
+perf.repart
+# 40_svd_tickets @ 18min is too slow to leave enabled during functional freeze
+scalapack.40_svd_tickets
+# DIR scalapack.64instance are needed for scale-up testing on salty, but take too long to run anywhere else
+scalapack.64instance
+# DIR used for development and other non-production purposes
+scalapack.disabled
+# DIR used for performance testing, too slow for normal use
+scalapack.perf
+# DIR may come back into service sometime
+scalapack.smallest_sizes
+# DIR: backup script tests (take a long time):
+backup
+
+#
+# PART II
+# THIS PART IS FOR FAILING TESTS.  These represent known defects in the code or in the tests
+# - each disabled test must have a corresponding ticket number
+# - TODO: DAVE, please decide whether you would like this sorted
+#         A) alpabetical, so that each test is surely added only once OR
+#         B) in ticket order
+#         as right now it seems random and is inconsistent between disable{,1i}.tests.in
+#   TODO: DAVE, speak to j.mcq, he thinks we should change the testharness so that
+#         disable1i.tests.in to be only the *additional* tests that should be disabled
+#         in a 1-instance case.
+#
+
+@CONFIGURE_DISABLE_TESTS_SCALAPACK@
+@CONFIGURE_DISABLE_TESTS_NOT_DEBUG@
+
+# re-enable after solving ticket 2234
+docscript.load
+
+# re-enable after solving ticket 2235
+injecterror.inject_2_redim
+injecterror.inject_2_store
+injecterror.inject_2_update
+
+#re-enable after solving ticket 2200, test is on rectangular inputs
+scalapack.gemm_01
+
+#re-enable after solving ticket 2200, test is on rectangular inputs
+scalapack.gesvd_01
+
+#re-enable after solving ticket 2232
+docscript.allversions
+

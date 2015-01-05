@@ -1,0 +1,134 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+store(build(<attr1:int32> [x=0:3,4,0, y=0:3,4,0], x*4+y),m4x4)  
+--stop-igdata
+show(m4x4)
+--set-format auto
+scan(m4x4) 
+--set-format dcsv
+--start-igdata
+store(build(<attr2:int32> [x=0:3,4,0, y=0:3,4,0], x*8+y*2),B)  
+store(join(m4x4,B),m4x4_2attr)  
+--stop-igdata
+show(m4x4_2attr)
+--set-format auto
+scan(m4x4_2attr) 
+--aql SELECT max(attr1),min(attr1) FROM m4x4  
+--set-format dcsv
+--start-igdata
+create array m4x4_max_min <max:int32 NULL DEFAULT null, min:int32 NULL DEFAULT null> [i=0:0,1,0]  
+--set-format auto
+--stop-igdata
+--aql SELECT max(attr1),min(attr1) INTO m4x4_max_min FROM m4x4  
+--set-format dcsv
+show(m4x4_max_min)
+--set-format auto
+--aql SELECT max(attr2), min(attr2) FROM m4x4_2attr  
+--set-format dcsv
+--aql SELECT max(m4x4)  
+--set-format auto
+aggregate(m4x4_2attr, max(attr2),min(attr1))  
+--set-format dcsv
+--start-igdata
+CREATE ARRAY m4x4_null< attr1: int32 NULL>[i=1:4,4,0, j=1:4,4,0]  
+--set-format dense
+--stop-igdata
+store(build(m4x4_null,iif(i=2,0,null)),m4x4_null)  
+--set-format dcsv
+--aql SELECT count(attr1) AS a, count(*) AS b FROM m4x4_null  
+--aql SELECT max(attr1) FROM m4x4 GROUP BY x  
+--start-igdata
+--aql SELECT max(attr1) INTO tmp1 FROM m4x4 GROUP BY x  
+--stop-igdata
+show(tmp1)
+--aql SELECT max(attr1) FROM m4x4 GROUP BY y  
+aggregate(m4x4, max(attr1), y)  
+--set-format auto
+--aql  SELECT max(attr1), min(attr1) FROM m4x4 REGRID AS (PARTITION BY x 2, y 2)  
+--set-format dcsv
+--start-igdata
+--aql  SELECT max(attr1), min(attr1) INTO tmp2 FROM m4x4 REGRID AS (PARTITION BY x 2, y 2)  
+--stop-igdata
+show(tmp2)
+--set-format auto
+regrid(m4x4, 2, 2, max(attr1), min(attr1))  
+--aql  SELECT sum(attr1) FROM m4x4 FIXED WINDOW AS (PARTITION BY x 1 PRECEDING AND 1 FOLLOWING, y 1 PRECEDING AND 1 FOLLOWING)  
+--set-format dcsv
+--start-igdata
+--aql  SELECT sum(attr1) INTO tmp3 FROM m4x4 FIXED WINDOW AS (PARTITION BY x 1 PRECEDING AND 1 FOLLOWING, y 1 PRECEDING AND 1 FOLLOWING)  
+--stop-igdata
+show(tmp3)
+--set-format auto
+window (m4x4,1,1,1,1,sum(attr1))  
+--set-format dcsv
+--start-igdata
+create array A <val:double> [i=0:3,4,0, j=0:3,4,0]  
+store(build(A,'[[(0),(),(),()],[(4),(),(6),(7)],[(8),(),(),()],[(),(13),(14),()]]',true),A)  
+create array C <label:string NULL default NULL>[i=0:3,4,0, j=0:3,4,0]  
+store(build(C,NULL),C)  
+create array m4x4_empty<val:double, label:string NULL>[i=0:3,4,0, j=0:3,4,0]  
+store(join(A,C),m4x4_empty)  
+--set-format auto
+--stop-igdata
+scan(m4x4_empty)  
+--set-format dcsv
+--aql  SELECT sum(val) FROM m4x4_empty VARIABLE WINDOW AS (PARTITION BY i 1 PRECEDING AND 1 FOLLOWING)  
+--set-format auto
+variable_window(m4x4_empty, i, 1, 1, sum(val))  
+--set-format dcsv
+--start-igdata
+create array event <event:string> [i=0:11,12,0]  
+create array year <year:int64>[i=0:11,12,0]  
+create array person <person:string>[i=0:11,12,0]  
+create array country <country:string>[i=0:11,12,0]  
+create array time <time:double>[i=0:11,12,0]  
+store(build(event,iif(i<4,'dash',iif(i<8,'steeplechase','marathon'))),event)  
+store(build(year,1996+(i%4 * 4)),year)  
+store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,Kemboi,Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person)  
+store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,Kenya,Kenya,USA,Ethiopia,Italy,Kenya]',true),country)  
+store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),(503.17),(485.81),(490.34),(7956),(7811),(7855),(7596)]',true),time)  
+store(join(event,join(person,join(year,join(country,time)))),winners_temp)  
+store(uniq(sort(project(winners_temp,country)),'chunk_size=12'),country_index)  
+store(apply(country_index,country_id, i),countries)  
+store(project(filter(cross_join(winners_temp,countries),winners_temp.country=countries.country), event,person,year,time,winners_temp.country,country_id),winners)  
+store(project(unpack(winners,i),event,person,year,time,country,country_id),Farquar)  
+remove(winners)  
+rename(Farquar,winners)  
+--stop-igdata
+show(winners)
+scan(winners) 
+--start-igdata
+CREATE ARRAY perCountryMedalCount <country:string, medalCount: uint64 null> [country_id=0:*,20,0]  
+--stop-igdata
+store(redimension(winners, perCountryMedalCount, count(*) as medalCount),perCountryMedalCount)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m4x4)
+remove(B)
+remove(m4x4_2attr)
+remove(m4x4_max_min)
+remove(m4x4_null)
+remove(tmp1)
+remove(tmp2)
+remove(tmp3)
+remove(A)
+remove(C)
+remove(m4x4_empty)
+remove(event)
+remove(year)
+remove(person)
+remove(country)
+remove(time)
+remove(winners_temp)
+remove(country_index)
+remove(countries)
+remove(winners)
+remove(perCountryMedalCount)

@@ -1,0 +1,116 @@
+Query was executed successfully
+
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+{x} a
+{1} 11
+
+{x} a
+{0} 10
+
+{x} expr
+{0} 0
+
+{x} expr
+{2} 2
+
+{x} a,a
+{0} 10,10
+{1} 11,11
+{2} 12,12
+
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+{x} a
+{0} 20
+{1} 21
+{2} 22
+
+{x} a,a
+{0} 20,10
+{1} 21,11
+{2} 22,12
+
+{x} a,a
+{1} 21,11
+
+{x} a,a,a,a
+{0} 20,10,20,10
+
+{x} expr
+{0} 70
+{1} 71
+{2} 72
+
+{x} a,a,expr
+{2} 22,12,72
+
+{x} a,a,expr
+{2} 22,12,72
+
+{x} a,a,expr
+{1} 21,11,71
+
+{x} a,a,expr
+{0} 20,10,70
+
+{x} a,a,expr
+{0} 20,10,70
+
+{x} a,a,expr
+{1} 21,11,71
+
+{x} a,a,expr
+{0} 20,10,70
+
+{x} a,a,expr
+{0} 20,10,70
+
+{x} expr_1
+{0} 0
+{1} 1
+{2} 2
+
+{x} expr_1
+{0} 0
+{1} 1
+{2} 2
+
+{x} expr_1
+{2} 2
+
+{x} expr_1
+{0} 0
+{1} 1
+{2} 2
+
+{x} a
+{0} 20
+{1} 21
+{2} 22
+
+{x} expr_1
+{2} 2
+
+{x} expr
+{1} 71
+{2} 72
+
+{x} expr
+
+{x} expr
+{1} 71
+{2} 72
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

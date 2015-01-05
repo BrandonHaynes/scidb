@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<chapter id="scidbAggregateReference">
+  <title>SciDB Aggregate Reference</title>
+
+  <para><indexterm>
+      <primary>aggregates</primary>
+    </indexterm><indexterm>
+      <primary>aggregates</primary>
+
+      <secondary>reference</secondary>
+    </indexterm>This chapter lists SciDB aggregates. Aggregates take as input
+  a set of 1 or more values and return a SciDB array.</para>
+
+  <para>You can get a list of all of the available aggregates by running the
+  following query:<screen>$ iquery -aq "list('aggregates')"</screen></para>
+
+  <section>
+    <title>Aggregate Syntax</title>
+
+    <para>SciDB aggregates have the syntax aggregate_call_N where an aggregate
+    call is one of the following:<itemizedlist>
+        <listitem>
+          <para>
+            <code>aggregate_name(attribute_name)</code>
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            <code>aggregate_name(expression)</code>
+          </para>
+
+          <para>Note: the <code>aggregate_name(expression)</code> syntax
+          exists only in AQL.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>Aggregate calls can occur in AQL and AFL statements as
+    follows:</para>
+
+    <para>
+      <emphasis role="bold">AQL syntaxes</emphasis>
+
+      <synopsis><command>SELECT</command> <replaceable>aggregate_call_1</replaceable><optional>,<replaceable>aggregate_call_2</replaceable>,...,<replaceable>aggregate_call_N</replaceable></optional> 
+<command>FROM</command> <replaceable>array</replaceable>;
+
+<command>SELECT</command> <replaceable>aggregate_call_1</replaceable><optional>,<replaceable>aggregate_call_2</replaceable>,...,<replaceable>aggregate_call_N</replaceable></optional> 
+<command>FROM</command> <replaceable>array</replaceable> <command>GROUP BY</command> <replaceable>dimension1</replaceable><optional>,<replaceable>dimension2</replaceable></optional>;
+
+<command>SELECT</command> <replaceable>aggregate_call_1</replaceable><optional>,<replaceable>aggregate_call_2</replaceable>,...,<replaceable>aggregate_call_N</replaceable></optional> 
+<command>FROM</command> <replaceable>array</replaceable> <command>WHERE</command> <replaceable>expression</replaceable>;
+
+<command>SELECT</command> <replaceable>aggregate(attribute</replaceable>) [,<replaceable>aggregate(attribute</replaceable>)] ...
+<command> INTO</command> <replaceable>dst-array</replaceable>
+<command> FROM</command> <replaceable>src-array</replaceable> | <replaceable>array-expression</replaceable>
+<command> WHERE</command> <replaceable>where-expression</replaceable>
+<command> REGRID AS </command>
+        (<command> PARTITION BY </command> <replaceable>dimension1</replaceable> <replaceable>dimension1-size
+         </replaceable> [, <replaceable>dimension2</replaceable> <replaceable>dimension2-size</replaceable>]... ) ;
+
+<command>SELECT</command> <replaceable>aggregate</replaceable> <replaceable>(attribute</replaceable>)[, <replaceable>aggregate</replaceable> <replaceable>(attribute</replaceable>)]...
+    <command>INTO</command> <replaceable>dst-array</replaceable>
+    <command>FROM</command> <replaceable>src-array</replaceable> | <replaceable>array-expression</replaceable> 
+    <command>WHERE</command> <replaceable>where-expression</replaceable> 
+    <command>FIXED</command> | <command>VARIABLE</command> <command>WINDOW AS </command>
+    (<command>PARTITION BY</command> <replaceable>dimension1</replaceable> <replaceable>dim1-low</replaceable> <command>PRECEDING</command> <command>AND</command> <replaceable>dim1-high</replaceable> <command>FOLLOWING</command> 
+               [, <replaceable>dimension2</replaceable> <replaceable>dim2-low</replaceable> <command>PRECEDING</command> <command> AND</command> <replaceable>dim2-high</replaceable> <command>FOLLOWING</command> ]... );
+</synopsis>
+    </para>
+
+    <para>
+      <emphasis role="bold">AFL syntaxes</emphasis>
+
+      <synopsis>AFL% aggregate(<replaceable>array</replaceable>, <replaceable>aggregate_call_1</replaceable>
+<optional>, <replaceable>aggregate_call_2</replaceable>,... <replaceable>aggregate_call_N</replaceable></optional>
+<optional>,<replaceable>dimension_1</replaceable>, <replaceable>dimension_2</replaceable>,...</optional>)
+
+
+AFL% window(<replaceable>array</replaceable>,
+<replaceable>dim_1_low</replaceable>,<replaceable>dim_1_high</replaceable>,
+<replaceable>[dim_2_low</replaceable>,<replaceable>dim_2_high</replaceable>,]...
+<replaceable>aggregate_1</replaceable><optional>,<replaceable>aggrgegate_2</replaceable>, ...</optional>
+
+AFL% variable_window(<replaceable>array</replaceable>,
+<replaceable>dim_low</replaceable>,<replaceable>dim_high</replaceable>,
+<replaceable>aggregate_1</replaceable><optional>,<replaceable>aggrgegate_2</replaceable>, ...</optional>
+
+AFL% regrid(<replaceable>array</replaceable>,<replaceable>grid_1</replaceable>,<replaceable>grid_2</replaceable>,...,<replaceable>grid_N</replaceable>,
+<replaceable>aggregate_call_1</replaceable><optional>,<replaceable>aggregate_call_2</replaceable>,...,<replaceable>aggregate_call_N</replaceable></optional>);</synopsis>
+    </para>
+  </section>
+
+  <section>
+    <title>Result Naming Convention</title>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>result names</secondary>
+      </indexterm>Aggregate calls return a value or values as attributes. Each
+    aggregate call has an <replaceable>aggregateFunction</replaceable>, an
+    <replaceable>inputAttribute</replaceable>, and a
+    <replaceable>resultAttribute</replaceable>. The name for the result
+    is<replaceable> inputAttribute_aggregateFunction</replaceable>. For
+    example, assume an array <emphasis role="bold">A</emphasis> with an
+    attribute <emphasis role="bold">sales</emphasis>. The name for the result
+    attribute of <command>aggregate(A,sum(sales));</command> is
+    'sales_sum'.<programlisting>AFL% aggregate(A,sum(sales));</programlisting><screen>i,sales_sum
+0,14
+</screen></para>
+
+    <para>The count aggregate may take * as the input attribute, meaning to
+    count all the items in the group including null items. The result name for
+    count(*) is 'count'.<programlisting>AFL% aggregate(A,count(*));</programlisting><screen>i,count
+0,10
+</screen></para>
+  </section>
+
+  <xi:include href="approxdc_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="avg_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="count_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="max_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="min_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="prod_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="stdev_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="sum_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="var_agg_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+</chapter>

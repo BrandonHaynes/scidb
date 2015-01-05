@@ -1,0 +1,47 @@
+--setup
+--start-query-logging
+# Ticket number : 1613
+# Tests for ApproxDC on 2D/3D unbounded and sparse array types
+# Tests also covers special data-types inf and nan
+
+create array A <num:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A, '${TEST_DATA_DIR}/adc_sparse.txt')""
+
+create array B <val:int64> [x=0:*,5000,0,y=0:*,5000,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(B, '${TEST_DATA_DIR}/adc_sparse1.txt')""
+
+--test
+--set-format lcsv+
+aggregate(A,approxdc(num))
+aggregate(concat(A,A),approxdc(num))
+aggregate(join(A as A1,A),approxdc(A1.num))
+aggregate(A,ApproxDC(num))
+aggregate(A,ApproxDC(num),sum(num))
+aggregate(A,ApproxDC(num),sum(num),min(num),max(num),count(num))
+
+aggregate(B,approxdc(val))
+aggregate(join(B as B1,B),approxdc(B1.val))
+aggregate(B,ApproxDC(val))
+aggregate(B,ApproxDC(val),sum(val),min(val),max(val),count(val))
+
+--aql select ApproxDC(A)
+--aql select ApproxDC(num) from A
+--aql select x,ApproxDC(num) from A group by x
+--aql select y,ApproxDC(num) from A group by y
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ITEM_MUST_BE_INSIDE_AGGREGATE2 --aql="select y,ApproxDC(num) from A"
+
+--aql select y,ApproxDC(num) from A group by y
+--aql select ApproxDC(B)
+--aql select ApproxDC(val) from B
+--aql select x,ApproxDC(val) from B group by x
+--aql select y,ApproxDC(val) from B group by y
+--aql select sin(2*y),cos(2*y),y,ApproxDC(val),count(val) from B group by y
+--aql select ApproxDC(val) from B regrid as (partition by x 100,y 100)
+--aql select ApproxDC(val) from B fixed window as (partition by x 0 preceding and 1 following, y 0 preceding and 0 following)
+--aql select ApproxDC(val) from B fixed window as (partition by x 0 preceding and 100 following, y 10 preceding and 100 following)
+
+--cleanup
+remove(A)
+remove(B)
+
+--stop-query-logging

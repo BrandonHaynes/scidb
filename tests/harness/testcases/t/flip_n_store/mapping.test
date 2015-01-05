@@ -1,0 +1,84 @@
+# ticket #935
+#
+#    To check if like there's a bug in remove(). 
+#
+#  1. Create a file for basic data to be used in these experiments. 
+#
+
+--setup
+--start-query-logging
+
+#
+# 2. Create the 1D Raw Load array. 
+#
+
+CREATE ARRAY RawDataForDorfs < name : string, item : string, detail : string, qty : double > [ Offset=0:27,28,0 ]
+
+#
+# 3. Load Raw Data into the Array. . . 
+#
+
+load ( RawDataForDorfs, '../tests/harness/testcases/data/RemoveBugDataExamples.dat')
+
+#
+# 4. Create the array that is the target of the redimension_store().
+#
+#
+
+CREATE array Dorfs < detail : string, qty : double > [ name(string)=7,7,0, item(string)=4,4,0 ]
+
+#
+# 5. redimension_store() the 1D array into the target. 
+#
+
+store(redimension( RawDataForDorfs, Dorfs ), Dorfs )
+
+#
+# 6. Create a copy of the array with the non-integer dimensions. This new 
+#    array should use the same data, and the same indices, as its source data. 
+#
+
+store ( Dorfs, Dorf_Copy )
+
+#
+#    There are two arrays; Dorfs, and Dorf_Copy. Each of these has a single 
+#    version number associated with it. And there are two non-integer 
+#    dimension indices -- Dorf@1:name, and Dorf@1:item -- which are used to 
+#    access the arrays dimensions non-integer identifiers. 
+#
+
+slice ( Dorfs, item, 'Beard')
+slice ( Dorf_Copy, item, 'Beard')
+
+#
+#    Let's start with the simple 1D array. In this case, there are no 
+#    associated non-integer dimension indices, so the remove() should just 
+#    remove the original array, and it's associated version number detail. 
+#
+
+remove ( RawDataForDorfs )
+
+#
+#    Next, remove the Dorfs array. In this case, the non-integer dimensions 
+#    associated with the Dofs array should *not* be removed, as they are 
+#    still used to refer to the Dorf_Copy array. But it appears that they are
+#    removed. 
+#
+
+remove ( Dorfs )
+
+#
+#    The remove() should not remove the non-integer dimension arrays
+#    associated with the Dorf_Copy array.
+#
+
+--test
+
+slice ( Dorf_Copy, item, 'Beard' )
+
+--stop-query-logging
+
+--cleanup
+
+remove(Dorf_Copy)
+

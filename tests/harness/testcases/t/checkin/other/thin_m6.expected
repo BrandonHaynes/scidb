@@ -1,0 +1,172 @@
+SCIDB QUERY : <create array A <a:int32 null default 99> [x=0:8,6,0,y=-2:6,8,1]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(A,x+10),x<>2 and x<>6),A)>
+{x,y} a
+{0,-2} 10
+{0,-1} 10
+{0,0} 10
+{0,1} 10
+{0,2} 10
+{0,3} 10
+{0,4} 10
+{0,5} 10
+{1,-2} 11
+{1,-1} 11
+{1,0} 11
+{1,1} 11
+{1,2} 11
+{1,3} 11
+{1,4} 11
+{1,5} 11
+{3,-2} 13
+{3,-1} 13
+{3,0} 13
+{3,1} 13
+{3,2} 13
+{3,3} 13
+{3,4} 13
+{3,5} 13
+{4,-2} 14
+{4,-1} 14
+{4,0} 14
+{4,1} 14
+{4,2} 14
+{4,3} 14
+{4,4} 14
+{4,5} 14
+{5,-2} 15
+{5,-1} 15
+{5,0} 15
+{5,1} 15
+{5,2} 15
+{5,3} 15
+{5,4} 15
+{5,5} 15
+{0,6} 10
+{1,6} 11
+{3,6} 13
+{4,6} 14
+{5,6} 15
+{7,-2} 17
+{7,-1} 17
+{7,0} 17
+{7,1} 17
+{7,2} 17
+{7,3} 17
+{7,4} 17
+{7,5} 17
+{8,-2} 18
+{8,-1} 18
+{8,0} 18
+{8,1} 18
+{8,2} 18
+{8,3} 18
+{8,4} 18
+{8,5} 18
+{7,6} 17
+{8,6} 18
+
+SCIDB QUERY : <thin(A,0,1,-2,1)>
+{x,y} a
+{0,0} 10
+{0,1} 10
+{0,2} 10
+{0,3} 10
+{0,4} 10
+{0,5} 10
+{0,6} 10
+{0,7} 10
+{1,0} 11
+{1,1} 11
+{1,2} 11
+{1,3} 11
+{1,4} 11
+{1,5} 11
+{1,6} 11
+{1,7} 11
+{3,0} 13
+{3,1} 13
+{3,2} 13
+{3,3} 13
+{3,4} 13
+{3,5} 13
+{3,6} 13
+{3,7} 13
+{4,0} 14
+{4,1} 14
+{4,2} 14
+{4,3} 14
+{4,4} 14
+{4,5} 14
+{4,6} 14
+{4,7} 14
+{5,0} 15
+{5,1} 15
+{5,2} 15
+{5,3} 15
+{5,4} 15
+{5,5} 15
+{5,6} 15
+{5,7} 15
+{0,8} 10
+{1,8} 11
+{3,8} 13
+{4,8} 14
+{5,8} 15
+{7,0} 17
+{7,1} 17
+{7,2} 17
+{7,3} 17
+{7,4} 17
+{7,5} 17
+{7,6} 17
+{7,7} 17
+{8,0} 18
+{8,1} 18
+{8,2} 18
+{8,3} 18
+{8,4} 18
+{8,5} 18
+{8,6} 18
+{8,7} 18
+{7,8} 17
+{8,8} 18
+
+SCIDB QUERY : <thin(A,0,2,-2,4)>
+{x,y} a
+{0,0} 10
+{0,1} 10
+{2,0} 14
+{2,1} 14
+{0,2} 10
+{2,2} 14
+{4,0} 18
+{4,1} 18
+{4,2} 18
+
+SCIDB QUERY : <thin(A,0,3,-2,2)>
+{x,y} a
+{0,0} 10
+{0,1} 10
+{0,2} 10
+{0,3} 10
+{1,0} 13
+{1,1} 13
+{1,2} 13
+{1,3} 13
+{0,4} 10
+{1,4} 13
+
+SCIDB QUERY : <thin(A,1,2,-1,1)>
+[An error expected at this place for the query "thin(A,1,2,-1,1)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <thin(A,1,3,0,2)>
+[An error expected at this place for the query "thin(A,1,3,0,2)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <thin(A,2,3,2,4)>
+[An error expected at this place for the query "thin(A,2,3,2,4)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

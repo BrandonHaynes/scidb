@@ -1,0 +1,22 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY m3x3 <val:double>[i=0:2,3,0,j=0:2,3,0]  
+--set-format dense
+--stop-igdata
+--start-igdata
+store(build(m3x3,random()%10),m3x3)  
+--stop-igdata
+--start-igdata
+aggregate(m3x3,var(val),i)  
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m3x3)

@@ -1,0 +1,156 @@
+--setup 
+--start-query-logging
+--start-ignore-warnings
+
+create array Ds<av:double NULL>[s(string)=5,5,0]
+create array Dp<av:double NULL>[p(string)=5,5,0]
+create array Dsp<val:double>[s(string)=5,5,0, p(string)=5,5,0]
+create array Dsp2<val:double>[s(string)=5,5,0, p(string)=5,5,0]
+create array Dsp_d<val:double>[s(string)=5,5,0, p(string)=5,5,0]
+create array Dsp3<val:double>[s(string)=*,5,0, p(string)=*,5,0]
+create array Dsp_mult_d<val: double>[s(string)=*,5,0, p(string)=*,5,0]
+create array Dsp_mult<val: double>[s(string)=*,5,0, p(string)=*,5,0]
+
+create array expo_1d<i: int64, s: string, p: string, val: double>[offset=1:*,100,0]
+
+aggregate(join(join(build(<s: string>[i=1:25,5,0], 'sample-'+string((i-1)%5)), build(<p: string>[i=1:25,5,0], 'probe-'+string(i/5))), build(<val: double>[i=1:25,5,0], 1.01*i*i-i)),count(*))
+store(join(join(build(<s: string>[i=1:25,5,0], 'sample-'+string((i-1)%5)), build(<p: string>[i=1:25,5,0], 'probe-'+string((i-1)/5))), build(<val: double>[i=1:25,5,0], 1.01*i*i-i)), expo)
+show(expo)
+
+store(join(join(build(<s: string>[i=1:36,6,0], 'sample-'+string((i-1)%6)), build(<p: string>[i=1:36,6,0], 'probe-'+string((i-1)/6))), build(<val: double>[i=1:36,6,0], 1.01*i*i-i)), expo2)
+show(expo2)
+
+
+--test
+# Regular array with int dims, re-load from binary file a few times. Generate some versions.
+save(expo, 'expo.bin', -2, 'opaque')
+load(expo, 'expo.bin', -2, 'opaque')
+load(expo, 'expo.bin', -2, 'opaque')
+load(expo, 'expo.bin', -2, 'opaque')
+
+aggregate(versions(expo),count(*))
+scan(expo)
+
+--aql select count(val), min(val), max(val), avg(val), stdev(val) from expo
+
+# Convert to 2-dim array and load it a few times to create a few versions.
+# First version is created using redimension_store. 
+
+store(redimension(expo, Ds, avg(val) as av), Ds)
+store(redimension(expo, Dp, avg(val) as av), Dp)
+store(redimension(expo, Dsp), Dsp)
+
+# This will fail because the sizes are not matched exactly and the destination is defined as bounded.
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_TOO_MANY_COORDINATES "store(redimension(expo2, Dsp), Dsp)"
+
+# Use unbounded arrays for destination.
+store(redimension(expo, Dsp3), Dsp3)
+
+--set-format csv+
+store(redimension(expo2, Dsp3), Dsp3)
+
+aggregate(versions(Dsp3),count(*))
+dimensions(Dsp3)
+
+scan(Dsp3)
+
+save(filter(Dsp3, s = 'sample-0' or p = 'probe-0'), 'Dsp.bin', -2, 'opaque')
+load(Dsp3, 'Dsp.bin', -2, 'opaque')
+
+scan(Dsp3@1:s)
+scan(Dsp3@2:s)
+
+scan(Dsp3@1:p)
+scan(Dsp3@2:p)
+
+scan(Dsp3)
+
+aggregate(versions(Dsp),count(*))
+scan(Dsp:s)
+scan(Dsp:p)
+
+# Save a multiply result to an array
+store(filter(multiply(Dsp, Dsp), 1), Dsp_mult)
+store(multiply(Dsp, Dsp), Dsp_mult_d)
+
+# Save this with the empty flag.
+save(filter(multiply(Dsp3, Dsp3), 1), 'Dsp_mult.bin', -2, 'opaque')
+save(multiply(Dsp3, Dsp3), 'Dsp_mult_d.bin', -2, 'opaque')
+
+show(Dsp_mult)
+# show(Dsp_mult_d)
+
+#--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_OP_STORE_ERROR1 "store(multiply(Dsp3, Dsp3), Dsp_mult)"
+
+store(filter(multiply(Dsp3, Dsp3), 1), Dsp_mult)
+store(multiply(Dsp3, Dsp3), Dsp_mult_d)
+
+# Load it back into an array of correct schema
+load(Dsp_mult, 'Dsp_mult.bin', -2, 'opaque')
+load(Dsp_mult_d, 'Dsp_mult_d.bin', -2, 'opaque')
+
+join(Dsp_mult, Dsp_mult)
+join(Dsp_mult_d, Dsp_mult_d)
+
+subarray(Dsp_mult, 'sample-0', 'probe-1', 'sample-4', 'probe-4')
+slice(Dsp_mult, s, 'sample-4')
+store(cast(Dsp, <val: double>[s=0:*,5,0, p=0:*,5,0]), Dsp_id)
+cross_join(Dsp_id as D1, Dsp_id as D2, D1.s, D2.s)
+repart(Dsp_mult, <val: double>[s(string)=*,2,0, p(string)=*,2,0])
+
+show(Dsp_mult)
+
+scan(Dsp)
+aggregate(versions(Dsp),count(*))
+scan(Dsp:s)
+scan(Dsp:p)
+
+--aql update Dsp set val = -100.990 where s = 'sample-0' or p = 'probe-0'
+--aql update Dsp set val = -100.990 where s = p
+
+store(unpack(expo, offset), expo_1d_a)
+show(expo_1d_a)
+scan(expo_1d_a)
+
+save(unpack(expo, offset), 'expo.bin', -2, '(int64,string,string,double null)')
+
+load(expo_1d, 'expo.bin', -2, '(int64,string,string,double null)')
+store(redimension(expo_1d, Dsp2), Dsp2)
+apply(join(Dsp, Dsp2), diff, Dsp.val - Dsp2.val)
+
+scan(Dsp)
+scan(Dsp2)
+scan(Dsp3)
+--reset-format
+
+aggregate(versions(expo),count(*))
+
+# Load, failure case.
+#--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(A2, '${TEST_DATA_DIR}/A2_err.txt', -2, 'text', 2)"
+
+
+# Wrong args (should work, print a warning and continue)
+--igdata "load(Dsp_mult, 'Dsp_mult.bin', -1, 'opaque')"
+# Wrong file. Throw an error
+--error "load(Dsp, 'expo.bin', -2, 'opaque')"
+
+--cleanup
+remove(Ds)
+remove(Dp)
+remove(Dsp)
+remove(Dsp2)
+remove(Dsp_d)
+remove(Dsp3)
+
+remove(Dsp_mult_d)
+remove(Dsp_mult)
+
+remove(expo_1d)
+remove(expo)
+remove(expo2)
+
+remove(Dsp_id)
+remove(expo_1d_a)
+
+--stop-ignore-warnings
+--stop-query-logging

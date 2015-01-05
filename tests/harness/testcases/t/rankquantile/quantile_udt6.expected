@@ -1,0 +1,67 @@
+SCIDB QUERY : <load_library('rational')>
+Query was executed successfully
+
+SCIDB QUERY : <create array A <a:int32>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+1),A)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <store(apply(A,b,rational('(1/3)')),B)>
+{x} a,b
+{0} 1,'(1/3)'
+{1} 2,'(1/3)'
+{2} 3,'(1/3)'
+
+SCIDB QUERY : <show(B)>
+{i} schema
+{0} 'B<a:int32,b:rational> [x=0:2,3,0]'
+
+SCIDB QUERY : <update B set b='(1/2)' where x=1>
+[(1,'(1/3)'),(2,'(1/2)'),(3,'(1/3)')]
+
+SCIDB QUERY : <select * from B>
+[(1,'(1/3)'),(2,'(1/2)'),(3,'(1/3)')]
+
+SCIDB QUERY : <sort(B,b)>
+[(1,'(1/3)'),(3,'(1/3)'),(2,'(1/2)')]
+
+SCIDB QUERY : <sort(B,b desc)>
+[(2,'(1/2)'),(1,'(1/3)'),(3,'(1/3)')]
+
+SCIDB QUERY : <sort(filter(B,x<>1))>
+[(1,'(1/3)'),(3,'(1/3)'),()]
+
+SCIDB QUERY : <rank(B,b)>
+[('(1/3)',1),('(1/2)',3),('(1/3)',1)]
+
+SCIDB QUERY : <rank(filter(B,x<>1))>
+[(1,1),(),(3,2)]
+
+SCIDB QUERY : <rank(filter(B,x<>1),b)>
+[('(1/3)',1),(),('(1/3)',1)]
+
+SCIDB QUERY : <quantile(B,2,b)>
+[(0,'(1/3)'),(0.5,'(1/3)'),(1,'(1/2)')]
+
+SCIDB QUERY : <quantile(B,4,b)>
+[(0,'(1/3)'),(0.25,'(1/3)'),(0.5,'(1/3)'),(0.75,'(1/2)'),(1,'(1/2)')]
+
+SCIDB QUERY : <quantile(B,10,b)>
+[(0,'(1/3)'),(0.1,'(1/3)'),(0.2,'(1/3)'),(0.3,'(1/3)'),(0.4,'(1/3)'),(0.5,'(1/3)'),(0.6,'(1/3)'),(0.7,'(1/2)'),(0.8,'(1/2)'),(0.9,'(1/2)'),(1,'(1/2)')]
+
+SCIDB QUERY : <quantile(filter(B,x<>1),5,b)>
+[(0,'(1/3)'),(0.2,'(1/3)'),(0.4,'(1/3)'),(0.6,'(1/3)'),(0.8,'(1/3)'),(1,'(1/3)')]
+
+SCIDB QUERY : <quantile(filter(B,x<>1),10,a,b)>
+[An error expected at this place for the query "quantile(filter(B,x<>1),10,a,b)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

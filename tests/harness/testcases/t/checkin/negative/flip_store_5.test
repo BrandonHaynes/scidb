@@ -1,0 +1,17 @@
+--setup
+create array A <a:string,b:string null> [x=0:*,2,0,y=0:*,2,0]
+create array B <b:string> [a(string)=*,2,0]
+create array C <b:string> [a(string)=2,2,0]
+load(A,'${TEST_DATA_DIR}/redimension_2.txt')
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_FLAGS "redimension(A,B)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_FLAGS "store(redimension(A,B),B)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_FLAGS "redimension(A,C)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_FLAGS "store(redimension(A,C),C)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAY_DOESNT_EXIST "store(redimension(A,D),D)"
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

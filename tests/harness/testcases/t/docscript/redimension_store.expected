@@ -1,0 +1,128 @@
+SCIDB QUERY : <create array ddFlat <patientID:int64,elapsedTime:int64,pulse:int64,ppm:int64> [csvRow=0:1000,1000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -q "load ddFlat from '${TEST_DATA_DIR}/doc/doseData.scidb'">
+{csvRow} patientID,elapsedTime,pulse,ppm
+{0} 1,0,72,10
+{1} 1,10,75,434
+{2} 1,20,77,676
+{3} 1,25,76,721
+{4} 1,30,77,744
+{5} 1,60,82,654
+{6} 1,120,68,377
+{7} 1,300,70,89
+{8} 2,0,86,20
+{9} 2,10,86,544
+{10} 2,20,87,689
+{11} 2,25,90,804
+{12} 2,30,85,922
+{13} 2,60,81,1067
+{14} 2,120,79,866
+{15} 2,300,79,645
+{16} 3,0,68,17
+{17} 3,10,68,333
+{18} 3,20,65,444
+{19} 3,25,70,606
+{20} 3,30,70,673
+{21} 3,60,77,624
+{22} 3,120,78,508
+{23} 3,300,78,212
+
+SCIDB QUERY : <create array doseData <pulse:int64,ppm:int64> [patientID=1:100,100,0,elapsedTime=0:999,1000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(ddFlat,doseData),doseData)>
+{patientID,elapsedTime} pulse,ppm
+{1,0} 72,10
+{1,10} 75,434
+{1,20} 77,676
+{1,25} 76,721
+{1,30} 77,744
+{1,60} 82,654
+{1,120} 68,377
+{1,300} 70,89
+{2,0} 86,20
+{2,10} 86,544
+{2,20} 87,689
+{2,25} 90,804
+{2,30} 85,922
+{2,60} 81,1067
+{2,120} 79,866
+{2,300} 79,645
+{3,0} 68,17
+{3,10} 68,333
+{3,20} 65,444
+{3,25} 70,606
+{3,30} 70,673
+{3,60} 77,624
+{3,120} 78,508
+{3,300} 78,212
+
+SCIDB QUERY : <create array ppmFunction <ppm:int64> [patientID=1:100,100,0, elapsedTime=0:999,1000,0,pulse=0:300,301,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(doseData,ppmFunction),ppmFunction)>
+{patientID,elapsedTime,pulse} ppm
+{1,0,72} 10
+{1,10,75} 434
+{1,20,77} 676
+{1,25,76} 721
+{1,30,77} 744
+{1,60,82} 654
+{1,120,68} 377
+{1,300,70} 89
+{2,0,86} 20
+{2,10,86} 544
+{2,20,87} 689
+{2,25,90} 804
+{2,30,85} 922
+{2,60,81} 1067
+{2,120,79} 866
+{2,300,79} 645
+{3,0,68} 17
+{3,10,68} 333
+{3,20,65} 444
+{3,25,70} 606
+{3,30,70} 673
+{3,60,77} 624
+{3,120,78} 508
+{3,300,78} 212
+
+SCIDB QUERY : <create array pulseFunction <pulse:int64> [patientID=1:100,100,0, elapsedTime=0:999,1000,0, ppm=0:10000,10001,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(doseData,pulseFunction),pulseFunction)>
+{patientID,elapsedTime,ppm} pulse
+{1,0,10} 72
+{1,10,434} 75
+{1,20,676} 77
+{1,25,721} 76
+{1,30,744} 77
+{1,60,654} 82
+{1,120,377} 68
+{1,300,89} 70
+{2,0,20} 86
+{2,10,544} 86
+{2,20,689} 87
+{2,25,804} 90
+{2,30,922} 85
+{2,60,1067} 81
+{2,120,866} 79
+{2,300,645} 79
+{3,0,17} 68
+{3,10,333} 68
+{3,20,444} 65
+{3,25,606} 70
+{3,30,673} 70
+{3,60,624} 77
+{3,120,508} 78
+{3,300,212} 78
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,8 @@
+sum
+(
+    concat(
+        subarray(opt_dense_quad_small_2, 10,10, 11,100),
+        subarray(opt_dense_quad_small_1, 11,11, 399,101)
+    ),
+    val
+)

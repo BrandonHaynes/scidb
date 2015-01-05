@@ -1,0 +1,25 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY intensityFlat < exposure:string, elapsedTime:int64, measuredIntensity:int64 null > [i=0:*,5,0]  
+--stop-igdata
+load(intensityFlat,'${TEST_DATA_DIR}/doc/intensity_data.bin',-2, '(string, int64, int64 null)',99,shadowArray)  
+--start-igdata
+remove(intensityFlat)  
+CREATE ARRAY intensityFlat < exposure:string, elapsedTime:int64, measuredIntensity:int64 > [i=0:*,5,0]  
+--stop-igdata
+load(intensityFlat,'${TEST_DATA_DIR}/doc/intensity_data.bin',-2, '(string, int64, int64)',99,shadowArray)  
+--start-igdata
+scan(shadowArray) 
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(shadowArray)
+remove(intensityFlat)

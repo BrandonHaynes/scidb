@@ -1,0 +1,53 @@
+--setup
+--start-query-logging
+# Ticket number: 1841 & Ticket number: 1837
+# Tests to verify sort(Array asc/desc) throws error
+# Tests to verify -inf/inf print error
+
+
+create array A <r:string NULL>[x=10:17,2,0]
+store(build(A,20*x+1),A)
+store(apply(A,s, iif(x=13,null,iif(x=16,null,x))),B)
+
+create array Z <val:double NULL> [x=0:5,3,0]
+store(build(Z,iif(x=1,-5.0/(2.0-2.0),iif(x=3 or x=4,null,5.0/(2.0-2.0)))),Z)
+
+create array SortNanNullInf < I : int64, V : double NULL > [ Line=0:*,6,0 ]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load ( SortNanNullInf, '${TEST_DATA_DIR}/sort_nan_null_inf.txt')""
+
+
+--test
+sort(A)
+sort(A,r)
+sort(A, r desc)
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_SORTING_QUIRK_WRONG_USAGE "sort(A desc)"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_SORTING_QUIRK_WRONG_USAGE "sort(A asc)"
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "sort(A, desc)"
+
+sort(B,s)
+sort(B, s desc)
+sort(B, s asc)
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_SORTING_QUIRK_WRONG_USAGE "sort(B desc)"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_SORTING_QUIRK_WRONG_USAGE "sort(B desc)"
+
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_SORTING_QUIRK_WRONG_USAGE "sort(Z asc)"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_SORTING_QUIRK_WRONG_USAGE "sort(Z desc)"
+
+sort(Z)
+sort(Z,val)
+sort(Z,val desc)
+
+sort(SortNanNullInf)
+sort(SortNanNullInf, V)
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(Z)
+remove(SortNanNullInf)
+
+--stop-query-logging
+

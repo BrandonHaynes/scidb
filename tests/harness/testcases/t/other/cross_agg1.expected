@@ -1,0 +1,135 @@
+SCIDB QUERY : <create array a<x:double>[s(string)=10,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(join(build(<s:string>[i=1:10,10,0],i),build(<x:double>[i=1:10,10,0],0)),a),a)>
+{s} x
+{'1'} 0
+{'10'} 0
+{'2'} 0
+{'3'} 0
+{'4'} 0
+{'5'} 0
+{'6'} 0
+{'7'} 0
+{'8'} 0
+{'9'} 0
+
+SCIDB QUERY : <create array b <x:int32 NULL>[k=0:*,1000000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <scan(a)>
+{s} x
+{'1'} 0
+{'10'} 0
+{'2'} 0
+{'3'} 0
+{'4'} 0
+{'5'} 0
+{'6'} 0
+{'7'} 0
+{'8'} 0
+{'9'} 0
+
+SCIDB QUERY : <scan(b)>
+{k} x
+
+SCIDB QUERY : <sum(a)>
+{i} x_sum
+{0} 0
+
+SCIDB QUERY : <avg(a)>
+{i} x_avg
+{0} 0
+
+SCIDB QUERY : <sum(b)>
+{i} x_sum
+{0} 0
+
+SCIDB QUERY : <avg(b)>
+{i} x_avg
+{0} null
+
+SCIDB QUERY : <cross_join(a,sum(a))>
+{s,i} x,x_sum
+{'1',0} 0,0
+{'10',0} 0,0
+{'2',0} 0,0
+{'3',0} 0,0
+{'4',0} 0,0
+{'5',0} 0,0
+{'6',0} 0,0
+{'7',0} 0,0
+{'8',0} 0,0
+{'9',0} 0,0
+
+SCIDB QUERY : <cross_join(a,aggregate(b,sum(x)))>
+{s,i} x,x_sum
+{'1',0} 0,0
+{'10',0} 0,0
+{'2',0} 0,0
+{'3',0} 0,0
+{'4',0} 0,0
+{'5',0} 0,0
+{'6',0} 0,0
+{'7',0} 0,0
+{'8',0} 0,0
+{'9',0} 0,0
+
+SCIDB QUERY : <cross_join(a,aggregate(b,avg(x)))>
+{s,i} x,x_avg
+{'1',0} 0,null
+{'10',0} 0,null
+{'2',0} 0,null
+{'3',0} 0,null
+{'4',0} 0,null
+{'5',0} 0,null
+{'6',0} 0,null
+{'7',0} 0,null
+{'8',0} 0,null
+{'9',0} 0,null
+
+SCIDB QUERY : <cross_join(a,avg(b))>
+{s,i} x,x_avg
+{'1',0} 0,null
+{'10',0} 0,null
+{'2',0} 0,null
+{'3',0} 0,null
+{'4',0} 0,null
+{'5',0} 0,null
+{'6',0} 0,null
+{'7',0} 0,null
+{'8',0} 0,null
+{'9',0} 0,null
+
+SCIDB QUERY : <cross_join(a,max(b))>
+{s,i} x,x_max
+{'1',0} 0,null
+{'10',0} 0,null
+{'2',0} 0,null
+{'3',0} 0,null
+{'4',0} 0,null
+{'5',0} 0,null
+{'6',0} 0,null
+{'7',0} 0,null
+{'8',0} 0,null
+{'9',0} 0,null
+
+SCIDB QUERY : <cross_join(a,min(b))>
+{s,i} x,x_min
+{'1',0} 0,null
+{'10',0} 0,null
+{'2',0} 0,null
+{'3',0} 0,null
+{'4',0} 0,null
+{'5',0} 0,null
+{'6',0} 0,null
+{'7',0} 0,null
+{'8',0} 0,null
+{'9',0} 0,null
+
+SCIDB QUERY : <remove(a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(b)>
+Query was executed successfully
+

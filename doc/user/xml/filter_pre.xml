@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="filterOperator">
+  <refnamediv>
+    <refname>filter</refname>
+
+    <refpurpose><indexterm>
+        <primary>filter</primary>
+
+        <secondary>operator</secondary>
+      </indexterm>Produces a result array, filtering out elements based on a
+    supplied boolean expression.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>filter(<replaceable>array</replaceable>,<replaceable>expression</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The filter operator filters out data in an array based on an
+    expression over the attribute and dimension values. The filter operator
+    returns an array the with the same schema as the input array but marks all
+    cells in the input that do not satisfy the predicate expression
+    'empty'.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example filters an array to remove outlying values.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 4<symbol role="symbolfont">×</symbol>4
+          array:<programlisting language="test">--afl CREATE ARRAY m4x4&lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put values between 0 and 15 into the non-diagonal elements of
+          m4x4 and values greater than 100 into the diagonal
+          elements:<programlisting language="test">--afl store(build(m4x4,iif(i=j,100+i,i*4+j)),m4x4); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Filter all values of 100 or greater out of
+          m4x4:<programlisting language="test">--afl filter(m4x4,val&lt;100); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example uses a regular expression to filter the list of
+      available SciDB operators, and return the operators that contain the
+      letter <emphasis role="bold">z</emphasis>.<programlisting
+      language="test">--afl filter(list('operators'),regex(name,'(.*)z(.*)')); --output-format=csv</programlisting></para>
+    </informalexample>
+  </refsect1>
+</refentry>

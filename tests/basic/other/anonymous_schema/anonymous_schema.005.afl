@@ -1,0 +1,4 @@
+store(redimension(build(<a:int64>[x=0:8,3,0], x), empty <x:int64>[a=0:8,3,0]), anonymous_schema_005);
+
+show(anonymous_schema_005);
+

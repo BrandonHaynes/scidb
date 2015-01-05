@@ -1,0 +1,56 @@
+--setup
+--start-query-logging
+# Ticket number: 1624
+# Tests on 3D-sparse NID arrays.
+
+create array A <a1: double > [x=0:5,3,0]
+create array NID <x:int64> [a1(double)=6,3,0, a2(double)=6,3,0 ,a3(double)=6,3,0]
+store(apply(apply(build(A,13.5*6/x),a2,a1*5.72),a3,a2*0.5),A_derivative)
+
+
+--test
+scan(A_derivative)
+store(redimension(A_derivative,NID),NID)
+show(NID)
+scan(NID)
+unpack(NID,i)
+
+--aql select * from NID
+--aql select * from NID where x=1
+--aql select * from NID where a1=40.5
+--aql select * from NID where a1=20.25
+
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION --aql="select * from NID where a1=inf"
+--aql select * from NID where a1=(2.0/(2.0-2.0))
+--aql select * from NID where a1=16.2 or a1=81
+--aql select * from NID where (a1=16.2 or a2=154.44)
+--aql select * from NID where a1=16.2 or a1=20.25 or a1=27 or a1=40.5 or a1=81
+--aql select * from NID where a1=81 or a2=231.66 or a3=77.22
+--aql select x from NID where a1=81 or a2=231.66 or a3=77.22
+--aql select * from NID where a1=81 or a2=463.32 or a3=231.66
+--aql select * from NID where a1=81 and a2=463.32 and a3=231.66
+--aql select * from between(NID,16.2,92.664,46.332,81,463.32,231.66)
+
+between(NID,16.2,92.664,46.332,81,463.32,231.66)
+between(NID,0,0,0,5,5,5)
+store(subarray(NID,16.2,92.664,46.332,81,463.32,231.66),AAA)
+show(AAA)
+
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED "merge(NID,AAA)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED "merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66))"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED "unpack(merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66)),i)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED "store(unpack(merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66)),i),BBB)"
+
+join(AAA,AAA)
+join(NID,AAA)
+cross_join(NID,AAA)
+cross_join(NID,AAA)
+
+
+--cleanup
+remove(A)
+remove(NID)
+remove(A_derivative)
+remove(AAA)
+
+--stop-query-logging

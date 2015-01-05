@@ -1,0 +1,129 @@
+SCIDB QUERY : <load_library('rational')>
+Query was executed successfully
+
+SCIDB QUERY : <create array RAT <val: rational > [ x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array RAT1 <val1: rational,val2:rational >[ x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array RAT2 <val1: rational,val2:rational >[ x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array RAT3 <fraction: rational > [ x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(RAT,'${TEST_DATA_DIR}/rat.txt')">
+{x} val
+{0} '(1/3)'
+{1} '(1/2)'
+{2} '(4/7)'
+
+SCIDB QUERY : <store(join(RAT,RAT),RAT1)>
+{x} val1,val2
+{0} '(1/3)','(1/3)'
+{1} '(1/2)','(1/2)'
+{2} '(4/7)','(4/7)'
+
+SCIDB QUERY : <save(RAT, 'rational.out', 0, '(rational)')>
+{x} val
+{0} '(1/3)'
+{1} '(1/2)'
+{2} '(4/7)'
+
+SCIDB QUERY : <save(RAT1, 'ration1.bin', 0, '(rational,rational)')>
+{x} val1,val2
+{0} '(1/3)','(1/3)'
+{1} '(1/2)','(1/2)'
+{2} '(4/7)','(4/7)'
+
+SCIDB QUERY : <save(RAT, 'rational.txt', 0, 'text')>
+{x} val
+{0} '(1/3)'
+{1} '(1/2)'
+{2} '(4/7)'
+
+SCIDB QUERY : <save(RAT1, 'ration1.txt', 0, 'text')>
+{x} val1,val2
+{0} '(1/3)','(1/3)'
+{1} '(1/2)','(1/2)'
+{2} '(4/7)','(4/7)'
+
+SCIDB QUERY : <save(RAT1, 'rat11.txt')>
+{x} val1,val2
+{0} '(1/3)','(1/3)'
+{1} '(1/2)','(1/2)'
+{2} '(4/7)','(4/7)'
+
+SCIDB QUERY : <save(RAT, 'ration11.txt')>
+{x} val
+{0} '(1/3)'
+{1} '(1/2)'
+{2} '(4/7)'
+
+SCIDB QUERY : <load(RAT2, 'ration1.bin', 0, '(rational,rational)')>
+{x} val1,val2
+{0} '(1/3)','(1/3)'
+{1} '(1/2)','(1/2)'
+{2} '(4/7)','(4/7)'
+
+SCIDB QUERY : <load(RAT3, 'rational.out', 0, '(rational)')>
+{x} fraction
+{0} '(1/3)'
+{1} '(1/2)'
+{2} '(4/7)'
+
+SCIDB QUERY : <load(RAT3, 'ration11.txt')>
+{x} fraction
+{0} '(1/3)'
+{1} '(1/2)'
+{2} '(4/7)'
+
+SCIDB QUERY : <load(RAT2, 'rat11.txt')>
+{x} val1,val2
+{0} '(1/3)','(1/3)'
+{1} '(1/2)','(1/2)'
+{2} '(4/7)','(4/7)'
+
+SCIDB QUERY : <load(RAT3, 'rational.out', 0, '(double)',100)>
+[An error expected at this place for the query "load(RAT3, 'rational.out', 0, '(double)',100)". And it failed with error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER. Expected error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER.]
+
+SCIDB QUERY : <load(RAT3, 'rational.out', 0, '(string)')>
+[An error expected at this place for the query "load(RAT3, 'rational.out', 0, '(string)')". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load(RAT3, 'rational.out', 0, '(string)', 100, rat_shad)>
+{x} fraction
+{0} '(0/1)'
+{1} '(0/1)'
+
+SCIDB QUERY : <load(RAT3, 'ration1.bin', 0, '(rational,dummy(16))')>
+{x} fraction
+{0} '(1/3)'
+{1} '(1/2)'
+{2} '(4/7)'
+
+SCIDB QUERY : <load(RAT3, 'ration1.bin', 0, '(dummy(16),rational)')>
+{x} fraction
+{0} '(1/3)'
+{1} '(1/2)'
+{2} '(4/7)'
+
+SCIDB QUERY : <aggregate(versions(RAT3),count(*))>
+{i} count
+{0} 5
+
+SCIDB QUERY : <remove(RAT)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(RAT1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(RAT2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(RAT3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(rat_shad)>
+Query was executed successfully
+

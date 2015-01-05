@@ -1,0 +1,9 @@
+--setup
+create array expr1 <a:int64, b:int64>[x=1:5,5,0, y=1:5,5,0]
+load(expr1,'${TEST_DATA_DIR}/expr1_1.txt')
+
+--test
+filter(expr1, 2 / b - (5 * 3 - 3 * b / 4 - b * 1 + b - 1 * b) * b - a + 5 * b / b + (4 + 5 - 4 * 1 - a + 1 - a) + (2) / 5 = a)
+
+--cleanup
+remove (expr1)

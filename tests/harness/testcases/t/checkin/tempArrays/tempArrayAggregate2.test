@@ -1,0 +1,15 @@
+--setup
+create temp array A <v:double> [I=0:9,10,0, J=0:9,10,0]
+store(filter(build(A, double(I+J)/10.0), ((I * 9) + J )%17 = 0), A)
+create temp array B <v:double> [I=0:9,10,0, J=0:9,10,0]
+store(filter(build(B, double(I+J)/10.0), ((I * 9) + J )%19 = 0), B)
+create temp array C <v:double> [I=0:9,10,0, J=0:9,10,0]
+store(build(C, I), C)
+
+--test
+aggregate(aggregate(aggregate(C as A, avg(v) as v, A.I, A.J) as B, sum(v) as v2, B.J), sum(v2), A.J)
+
+--cleanup
+remove (A)
+remove (B)
+remove (C)

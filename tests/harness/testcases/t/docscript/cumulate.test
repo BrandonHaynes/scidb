@@ -1,0 +1,26 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(build(<val:double>[row=0:2,3,0,col=0:3,4,0],row*4+col+1),A)  
+cumulate(A,sum(val),row)  
+cumulate(A,prod(val),row)  
+cumulate(A,avg(val),col)  
+cumulate(A,avg(val),min(val),max(val),row)  
+--set-format dcsv
+--start-igdata
+store(build(<val1:double, val2:double NULL> [i=0:3,4,0, j=0:2,3,0], '[ [(1.25,null),(),(-7.0,-7.0)], [(),(),(4.2,1)], [(4.5,null),(11.0,9.0),(2.6,null)], [(),(1.7,6.5),(6.2,null)] ]',true),B)  
+--set-format dense
+--stop-igdata
+scan(B) 
+cumulate(B,avg(val1),avg(val2),j)  
+cumulate(B,var(val1))  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(A)
+remove(B)

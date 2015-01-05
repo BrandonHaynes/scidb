@@ -1,0 +1,18 @@
+--setup
+create array A <a:int32>[x=0:2,3,0]
+create array B <a:string>[y=0:2,3,0]
+store(build(A,x+1),A)
+store(build(B,string(y+10)),B)
+store(join(A,B),C)
+store(join(B,A),D)
+
+--test
+cross_join(C,D)
+store(cross_join(D,C),E)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)

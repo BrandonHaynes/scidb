@@ -1,0 +1,29 @@
+--setup
+--start-query-logging
+#ticket number : 1602
+## Testcases for cross-join with different dimension alignmnet, differnt chunk size and different overlaps.
+
+create array b <sum: double>[k=1:4,2,1]
+store(build(b, 1.0/k), b)
+CREATE ARRAY d1 <a1: double NULL> [x=0:4,3,0, y=-2:1,2,1]
+store(filter(build(d1, 1.0*x+100.0*y), x<>y),d1)
+CREATE ARRAY d2 <a1: double NULL> [x=0:3,3,2, y=-2:1,2,1]
+store(filter(build(d2, 1.0*x+100.0*y), x<>y),d2)
+
+
+--test
+cross_join(d1,b)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(d1,b,y,k)"
+## work-arround for the above case 
+cross_join(subarray(d1,0,-2,4,1),subarray(b,1,4),y,k)  
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(d2,b,x,k)" 
+## In this case star cordinate as well as chunk size differs so we use both repart and subarray as a work-arround.
+cross_join(d2,repart(subarray(b,1,4),<sum: double>[k=0:3,3,2]),x,k)   
+
+
+--cleanup
+remove(b)
+remove(d1)
+remove(d2)
+
+--stop-query-logging

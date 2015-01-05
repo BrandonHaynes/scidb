@@ -1,0 +1,20 @@
+# ticket no. 1041
+
+--setup
+--start-query-logging
+create array A <a:string> [x=-2:3,2,1,y=0:2,3,0]
+create array B <a:int32> [x=-2:3,2,1,y=0:2,3,0]
+
+--test
+--aql select * into C from build(A,x),build(B,x)
+--aql select * into D from C,C
+--aql select * from show(D)
+--aql select * from D where a<>a_3
+--aql select * from D where a=a_3
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+--stop-query-logging

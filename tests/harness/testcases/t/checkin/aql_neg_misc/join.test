@@ -1,0 +1,12 @@
+--setup
+
+CREATE ARRAY mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+
+load(mult_1,'${TEST_DATA_DIR}/mult1.txt')
+
+--test
+
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION --aql="select * from mult_1 as m1 join mult_1 as m2 on m1.i=m2.i"
+
+--cleanup
+remove(mult_1)

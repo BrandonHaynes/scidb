@@ -1,0 +1,1 @@
+filter(avg(filter(sample(xyz, 0.1, 2011), a <> 0)), a_avg<0.4 or a_avg>0.7)

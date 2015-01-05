@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="hypergeometricFunctions">
+  <refnamediv>
+    <refname>Hypergeometric functions</refname>
+
+    <refpurpose><indexterm>
+        <primary>hypergeometric functions</primary>
+      </indexterm>Perform hypergeometric functions in a query
+    expression</refpurpose>
+  </refnamediv>
+
+  <refsect1>
+    <title>Library</title>
+
+    <para>The hypergeometric functions reside in the Linear Algebra library.
+    Run the following query to load this library:<programlisting>AFL% load_library('linear_algebra');</programlisting></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para/>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="4">
+        <colspec colname="c1" colwidth="10*"/>
+
+        <colspec colname="c2" colwidth="30*"/>
+
+        <colspec colname="c3" colwidth="15*"/>
+
+        <colspec colname="cgen1" colwidth="15*"/>
+
+        <thead>
+          <row>
+            <entry>Function Name</entry>
+
+            <entry>Description</entry>
+
+            <entry>Syntax</entry>
+
+            <entry>Datatypes</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>hygecdf</entry>
+
+            <entry><indexterm>
+                <primary>hypergeometric cumulative distribution</primary>
+              </indexterm>hypergeometric cumulative distribution. x is the
+            number of white marbles drawn without replacement from a jar. m is
+            the number of white marbles in the jar. n is the number of black
+            marbless in the jar. k is the number of marbless drawn from the
+            jar. lower_tail is TRUE for lower-tail quantile, FALSE for
+            upper-tail.</entry>
+
+            <entry>hygecdf (x:double, m:double, n:double,k:double,
+            lower_tail:boolean)</entry>
+
+            <entry>double</entry>
+          </row>
+
+          <row>
+            <entry>hygepmf</entry>
+
+            <entry><indexterm>
+                <primary>hypergeometric probability mass function</primary>
+              </indexterm>hypergeometric probability mass function. x is the
+            number of white marbles drawn without replacement from an jar. m
+            is the number of white marbless in the jar. n is the number of
+            black marbles in the jar. k is the number of marbles drawn from
+            the jar.</entry>
+
+            <entry>hygepmf(x:double, m:double, n;double, k:double)</entry>
+
+            <entry>double</entry>
+          </row>
+
+          <row>
+            <entry>hygequant</entry>
+
+            <entry><indexterm>
+                <primary>hypergeometric quantile function</primary>
+              </indexterm>Hypergeometric quantile function. p is probability
+            between 0 and 1 (inclusive). m is the number of white marbles in
+            the jar. n is the number of black marbless in the jar. k is the
+            number of marbles drawn from the jar. lower_tail is TRUE for
+            lower-tail quantile, FALSE for upper-tail.</entry>
+
+            <entry>hygequant(p: double, m:double, n:double, k:double,
+            lower_tail:boolean)</entry>
+
+            <entry>double</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <para>To be supplied.</para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,66 @@
+##
+# BEGIN_COPYRIGHT
+#
+# This file is part of SciDB.
+# Copyright (C) 2008-2014 SciDB, Inc.
+#
+# SciDB is free software: you can redistribute it and/or modify
+# it under the terms of the AFFERO GNU General Public License as published by
+# the Free Software Foundation.
+#
+# SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+# INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+# NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+# the AFFERO GNU General Public License for the complete license terms.
+#
+# You should have received a copy of the AFFERO GNU General Public License
+# along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+#
+# END_COPYRIGHT
+##
+
+#The very simple makefile for the example UDOs. This is the "standalone" version. Rename this file to "Makefile"
+#in order to enable it.
+
+#The SciDB source must be present in order to build. It is specified
+#As the SCIDB_SOURCE_DIR variable.
+
+#Example: make SCIDB_SOURCE_DIR=/home/user/workspace/scidb_trunk
+
+#The scidb-boost-devel package also needs to be installed:
+BOOST_LOCATION=/opt/scidb/13.6/include
+
+CFLAGS=-pedantic -W -Wextra -Wall -Wno-strict-aliasing -Wno-long-long -Wno-unused-parameter -fPIC -D__STDC_FORMAT_MACROS -Wno-system-headers -isystem -O2 -g -DNDEBUG -ggdb3  -D__STDC_LIMIT_MACROS
+INC=-I. -DPROJECT_ROOT="\"$(SCIDB_SOURCE_DIR)\"" -I"$(SCIDB_SOURCE_DIR)/include" -I"$(BOOST_LOCATION)"
+LIBS=-L"$(SCIDB_SOURCE_DIR)/lib" -shared -Wl,-soname,libexample_udos.so -L. -lm
+
+all:
+	@if test ! -d "$(SCIDB_SOURCE_DIR)"; then echo  "Error. Try:\n\nmake SCIDB_SOURCE_DIR=<PATH TO SCIDB TRUNK>"; exit 1; fi 
+	$(CXX) $(CFLAGS) $(INC) -o plugin.cpp.o -c plugin.cpp
+
+	$(CXX) $(CFLAGS) $(INC) -o LogicalHelloInstances.cpp.o -c HelloInstances/LogicalHelloInstances.cpp
+	$(CXX) $(CFLAGS) $(INC) -o PhysicalHelloInstances.cpp.o -c HelloInstances/PhysicalHelloInstances.cpp
+
+	$(CXX) $(CFLAGS) $(INC) -o LogicalInstanceStats.cpp.o -c InstanceStats/LogicalInstanceStats.cpp
+	$(CXX) $(CFLAGS) $(INC) -o PhysicalInstanceStats.cpp.o -c InstanceStats/PhysicalInstanceStats.cpp
+
+	$(CXX) $(CFLAGS) $(INC) -o LogicalUniq.cpp.o -c Uniq/LogicalUniq.cpp
+	$(CXX) $(CFLAGS) $(INC) -o PhysicalUniq.cpp.o -c Uniq/PhysicalUniq.cpp
+
+	$(CXX) $(CFLAGS) $(INC) -o LogicalIndexLookup.cpp.o -c IndexLookup/LogicalIndexLookup.cpp
+	$(CXX) $(CFLAGS) $(INC) -o PhysicalIndexLookup.cpp.o -c IndexLookup/PhysicalIndexLookup.cpp
+
+	$(CXX) $(CFLAGS) $(INC) -o libexample_udos.so \
+	                           plugin.cpp.o \
+	                           LogicalHelloInstances.cpp.o \
+	                           PhysicalHelloInstances.cpp.o \
+	                           LogicalInstanceStats.cpp.o \
+	                           PhysicalInstanceStats.cpp.o \
+	                           LogicalUniq.cpp.o \
+	                           PhysicalUniq.cpp.o \
+	                           LogicalIndexLookup.cpp.o \
+	                           PhysicalIndexLookup.cpp.o \
+	                           $(LIBS)
+
+clean:
+	rm -f *.o *.so

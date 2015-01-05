@@ -1,0 +1,427 @@
+SCIDB QUERY : <create  array m_bool	  <a:bool>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array mn_bool 	  <a:bool null>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array m_string   <a:string>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array mn_string  <a:string null>  [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array m_i32 	  <a:int32>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array mn_i32 	  <a:int32 null>   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array m_i8 	  <a:int8>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array mn_i8 	  <a:int8 null>    [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array m_i16 	  <a:int16>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array mn_i16 	  <a:int16 null>   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array m_char 	  <a:char>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array mn_char 	  <a:char null>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array m_dt 	  <a:datetime>	   [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array mn_dt 	  <a:datetime null>[x=0:3,2,0]>
+Query was executed successfully
+
+datatype = bool
+SCIDB QUERY : <load m_bool from '../tests/basic/data/null_5.txt'>
+[(false),(false),(false),(false)]
+
+SCIDB QUERY : <substitute(m_bool,build(<a:bool>[x=0:4,2,0],true))>
+[(false),(false),(false),(false)]
+
+SCIDB QUERY : <load mn_bool from '../tests/basic/data/null_5.txt'>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_bool,build(<a:bool>[x=0:4,2,0],true))>
+[(true),(true),(true),(true)]
+
+SCIDB QUERY : <load mn_bool from '../tests/basic/data/null_6.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_bool,build(<a:bool>[x=0:4,2,0],iif(x%2=0,false,true)))>
+[(false),(true),(false),(false)]
+
+SCIDB QUERY : <load mn_bool from '../tests/basic/data/null_7.txt'>
+[(?1),(null),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_bool,build(<a:bool>[x=0:4,2,0],iif(x%2=0,false,true)))>
+[(true),(false),(true),(false)]
+
+SCIDB QUERY : <load mn_bool from '../tests/basic/data/null_8.txt'>
+[(null),(null),(null),(?1)]
+
+SCIDB QUERY : <substitute(mn_bool,build(<a:bool>[x=0:4,2,0],iif(x%2=0,false,true)))>
+[(false),(false),(false),(true)]
+
+SCIDB QUERY : <load mn_bool from '../tests/basic/data/null_9.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_bool,build(<a:bool>[x=0:4,2,0],iif(x%2=0,false,true)))>
+[(false),(true),(false),(false)]
+
+SCIDB QUERY : <load mn_bool from '../tests/basic/data/null_10.txt'>
+[(null),(?1),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_bool,build(<a:bool>[x=0:4,2,0],iif(x%2=0,false,true)))>
+[(false),(true),(true),(false)]
+
+SCIDB QUERY : <store(substitute(mn_bool,build(<a:bool null>[x=0:4,2,0],null)),mn_bool)>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_bool,build(<a:bool>[x=0:4,2,0],true))>
+[(true),(true),(true),(true)]
+
+datatype = string
+SCIDB QUERY : <load m_string from '../tests/basic/data/null_5.txt'>
+[(''),(''),(''),('')]
+
+SCIDB QUERY : <substitute(m_string,build(<a:string>[x=0:4,2,0],'null_'+string(x)))>
+[(''),(''),(''),('')]
+
+SCIDB QUERY : <load mn_string from '../tests/basic/data/null_5.txt'>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_string,build(<a:string>[x=0:4,2,0],'null_'+string(x)))>
+[('null_0'),('null_0'),('null_0'),('null_0')]
+
+SCIDB QUERY : <load mn_string from '../tests/basic/data/null_6.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_string,build(<a:string>[x=0:4,2,0],'null_'+string(x)))>
+[('null_0'),('null_1'),('null_0'),('null_0')]
+
+SCIDB QUERY : <load mn_string from '../tests/basic/data/null_7.txt'>
+[(?1),(null),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_string,build(<a:string>[x=0:4,2,0],'null_'+string(x)))>
+[('null_1'),('null_0'),('null_1'),('null_0')]
+
+SCIDB QUERY : <load mn_string from '../tests/basic/data/null_8.txt'>
+[(null),(null),(null),(?1)]
+
+SCIDB QUERY : <substitute(mn_string,build(<a:string>[x=0:4,2,0],'null_'+string(x)))>
+[('null_0'),('null_0'),('null_0'),('null_1')]
+
+SCIDB QUERY : <load mn_string from '../tests/basic/data/null_9.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_string,build(<a:string>[x=0:4,2,0],'null_'+string(x)))>
+[('null_0'),('null_1'),('null_0'),('null_0')]
+
+SCIDB QUERY : <load mn_string from '../tests/basic/data/null_10.txt'>
+[(null),(?1),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_string,build(<a:string>[x=0:4,2,0],'null_'+string(x)))>
+[('null_0'),('null_1'),('null_1'),('null_0')]
+
+SCIDB QUERY : <store(substitute(mn_string,build(<a:string null>[x=0:4,2,0],null)),mn_string)>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_string,build(<a:string>[x=0:4,2,0],'null*'))>
+[('null*'),('null*'),('null*'),('null*')]
+
+datatype = int32
+SCIDB QUERY : <load m_i32 from '../tests/basic/data/null_5.txt'>
+[(0),(0),(0),(0)]
+
+SCIDB QUERY : <substitute(m_i32,build(<a:int32>[x=0:4,2,0],x+100))>
+[(0),(0),(0),(0)]
+
+SCIDB QUERY : <load mn_i32 from '../tests/basic/data/null_5.txt'>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i32,build(<a:int32>[x=0:4,2,0],x+100))>
+[(100),(100),(100),(100)]
+
+SCIDB QUERY : <load mn_i32 from '../tests/basic/data/null_6.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i32,build(<a:int32>[x=0:4,2,0],x+100))>
+[(100),(101),(100),(100)]
+
+SCIDB QUERY : <load mn_i32 from '../tests/basic/data/null_7.txt'>
+[(?1),(null),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_i32,build(<a:int32>[x=0:4,2,0],x+100))>
+[(101),(100),(101),(100)]
+
+SCIDB QUERY : <load mn_i32 from '../tests/basic/data/null_8.txt'>
+[(null),(null),(null),(?1)]
+
+SCIDB QUERY : <substitute(mn_i32,build(<a:int32>[x=0:4,2,0],x+100))>
+[(100),(100),(100),(101)]
+
+SCIDB QUERY : <load mn_i32 from '../tests/basic/data/null_9.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i32,build(<a:int32>[x=0:4,2,0],x+100))>
+[(100),(101),(100),(100)]
+
+SCIDB QUERY : <load mn_i32 from '../tests/basic/data/null_10.txt'>
+[(null),(?1),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_i32,build(<a:int32>[x=0:4,2,0],x+100))>
+[(100),(101),(101),(100)]
+
+SCIDB QUERY : <store(substitute(mn_i32,build(<a:int32 null>[x=0:4,2,0],null)),mn_i32)>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i32,build(<a:int32>[x=0:4,2,0],9))>
+[(9),(9),(9),(9)]
+
+datatype = int8
+SCIDB QUERY : <load m_i8 from '../tests/basic/data/null_5.txt'>
+[(0),(0),(0),(0)]
+
+SCIDB QUERY : <substitute(m_i8,build(<a:int8>[x=0:4,2,0],x+10))>
+[(0),(0),(0),(0)]
+
+SCIDB QUERY : <load mn_i8 from '../tests/basic/data/null_5.txt'>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i8,build(<a:int8>[x=0:4,2,0],x+10))>
+[(10),(10),(10),(10)]
+
+SCIDB QUERY : <load mn_i8 from '../tests/basic/data/null_6.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i8,build(<a:int8>[x=0:4,2,0],x+10))>
+[(10),(11),(10),(10)]
+
+SCIDB QUERY : <load mn_i8 from '../tests/basic/data/null_7.txt'>
+[(?1),(null),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_i8,build(<a:int8>[x=0:4,2,0],x+10))>
+[(11),(10),(11),(10)]
+
+SCIDB QUERY : <load mn_i8 from '../tests/basic/data/null_8.txt'>
+[(null),(null),(null),(?1)]
+
+SCIDB QUERY : <substitute(mn_i8,build(<a:int8>[x=0:4,2,0],x+10))>
+[(10),(10),(10),(11)]
+
+SCIDB QUERY : <load mn_i8 from '../tests/basic/data/null_9.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i8,build(<a:int8>[x=0:4,2,0],x+10))>
+[(10),(11),(10),(10)]
+
+SCIDB QUERY : <load mn_i8 from '../tests/basic/data/null_10.txt'>
+[(null),(?1),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_i8,build(<a:int8>[x=0:4,2,0],x+10))>
+[(10),(11),(11),(10)]
+
+SCIDB QUERY : <store(substitute(mn_i8,build(<a:int8 null>[x=0:4,2,0],null)),mn_i8)>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i8,build(<a:int8>[x=0:4,2,0],9))>
+[(9),(9),(9),(9)]
+
+datatype = int16
+SCIDB QUERY : <load m_i16 from '../tests/basic/data/null_5.txt'>
+[(0),(0),(0),(0)]
+
+SCIDB QUERY : <substitute(m_i16,build(<a:int16>[x=0:4,2,0],x+10))>
+[(0),(0),(0),(0)]
+
+SCIDB QUERY : <load mn_i16 from '../tests/basic/data/null_5.txt'>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i16,build(<a:int16>[x=0:4,2,0],x+10))>
+[(10),(10),(10),(10)]
+
+SCIDB QUERY : <load mn_i16 from '../tests/basic/data/null_6.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i16,build(<a:int16>[x=0:4,2,0],x+10))>
+[(10),(11),(10),(10)]
+
+SCIDB QUERY : <load mn_i16 from '../tests/basic/data/null_7.txt'>
+[(?1),(null),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_i16,build(<a:int16>[x=0:4,2,0],x+10))>
+[(11),(10),(11),(10)]
+
+SCIDB QUERY : <load mn_i16 from '../tests/basic/data/null_8.txt'>
+[(null),(null),(null),(?1)]
+
+SCIDB QUERY : <substitute(mn_i16,build(<a:int16>[x=0:4,2,0],x+10))>
+[(10),(10),(10),(11)]
+
+SCIDB QUERY : <load mn_i16 from '../tests/basic/data/null_9.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i16,build(<a:int16>[x=0:4,2,0],x+10))>
+[(10),(11),(10),(10)]
+
+SCIDB QUERY : <load mn_i16 from '../tests/basic/data/null_10.txt'>
+[(null),(?1),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_i16,build(<a:int16>[x=0:4,2,0],x+10))>
+[(10),(11),(11),(10)]
+
+SCIDB QUERY : <store(substitute(mn_i16,build(<a:int16 null>[x=0:4,2,0],null)),mn_i16)>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_i16,build(<a:int16>[x=0:4,2,0],9))>
+[(9),(9),(9),(9)]
+
+datatype = char
+SCIDB QUERY : <load m_char from '../tests/basic/data/null_5.txt'>
+[('\0'),('\0'),('\0'),('\0')]
+
+SCIDB QUERY : <substitute(m_char,build(<a:char>[x=0:4,2,0],iif(x%2=0,'*','%')))>
+[('\0'),('\0'),('\0'),('\0')]
+
+SCIDB QUERY : <load mn_char from '../tests/basic/data/null_5.txt'>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_char,build(<a:char>[x=0:4,2,0],iif(x%2=0,'*','%')))>
+[('*'),('*'),('*'),('*')]
+
+SCIDB QUERY : <load mn_char from '../tests/basic/data/null_6.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_char,build(<a:char>[x=0:4,2,0],iif(x%2=0,'*','%')))>
+[('*'),('%'),('*'),('*')]
+
+SCIDB QUERY : <load mn_char from '../tests/basic/data/null_7.txt'>
+[(?1),(null),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_char,build(<a:char>[x=0:4,2,0],iif(x%2=0,'*','%')))>
+[('%'),('*'),('%'),('*')]
+
+SCIDB QUERY : <load mn_char from '../tests/basic/data/null_8.txt'>
+[(null),(null),(null),(?1)]
+
+SCIDB QUERY : <substitute(mn_char,build(<a:char>[x=0:4,2,0],iif(x%2=0,'*','%')))>
+[('*'),('*'),('*'),('%')]
+
+SCIDB QUERY : <load mn_char from '../tests/basic/data/null_9.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_char,build(<a:char>[x=0:4,2,0],iif(x%2=0,'*','%')))>
+[('*'),('%'),('*'),('*')]
+
+SCIDB QUERY : <load mn_char from '../tests/basic/data/null_10.txt'>
+[(null),(?1),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_char,build(<a:char>[x=0:4,2,0],iif(x%2=0,'*','%')))>
+[('*'),('%'),('%'),('*')]
+
+SCIDB QUERY : <store(substitute(mn_char,build(<a:char null>[x=0:4,2,0],null)),mn_char)>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_char,build(<a:char>[x=0:4,2,0],'-'))>
+[('-'),('-'),('-'),('-')]
+
+datatype = datetime
+SCIDB QUERY : <load m_dt from '../tests/basic/data/null_5.txt'>
+[('1970-01-01 00:00:00'),('1970-01-01 00:00:00'),('1970-01-01 00:00:00'),('1970-01-01 00:00:00')]
+
+SCIDB QUERY : <substitute(m_dt,build(<a:datetime>[x=0:4,2,0],iif(x%2=0,'2011-06-06 01:02:03','2011-03-03 06:07:08')))>
+[('1970-01-01 00:00:00'),('1970-01-01 00:00:00'),('1970-01-01 00:00:00'),('1970-01-01 00:00:00')]
+
+SCIDB QUERY : <load mn_dt from '../tests/basic/data/null_5.txt'>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_dt,build(<a:datetime>[x=0:4,2,0],iif(x%2=0,'2011-06-06 01:02:03','2011-03-03 06:07:08')))>
+[('2011-06-06 01:02:03'),('2011-06-06 01:02:03'),('2011-06-06 01:02:03'),('2011-06-06 01:02:03')]
+
+SCIDB QUERY : <load mn_dt from '../tests/basic/data/null_6.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_dt,build(<a:datetime>[x=0:4,2,0],iif(x%2=0,'2011-06-06 01:02:03','2011-03-03 06:07:08')))>
+[('2011-06-06 01:02:03'),('2011-03-03 06:07:08'),('2011-06-06 01:02:03'),('2011-06-06 01:02:03')]
+
+SCIDB QUERY : <load mn_dt from '../tests/basic/data/null_7.txt'>
+[(?1),(null),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_dt,build(<a:datetime>[x=0:4,2,0],iif(x%2=0,'2011-06-06 01:02:03','2011-03-03 06:07:08')))>
+[('2011-03-03 06:07:08'),('2011-06-06 01:02:03'),('2011-03-03 06:07:08'),('2011-06-06 01:02:03')]
+
+SCIDB QUERY : <load mn_dt from '../tests/basic/data/null_8.txt'>
+[(null),(null),(null),(?1)]
+
+SCIDB QUERY : <substitute(mn_dt,build(<a:datetime>[x=0:4,2,0],iif(x%2=0,'2011-06-06 01:02:03','2011-03-03 06:07:08')))>
+[('2011-06-06 01:02:03'),('2011-06-06 01:02:03'),('2011-06-06 01:02:03'),('2011-03-03 06:07:08')]
+
+SCIDB QUERY : <load mn_dt from '../tests/basic/data/null_9.txt'>
+[(null),(?1),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_dt,build(<a:datetime>[x=0:4,2,0],iif(x%2=0,'2011-06-06 01:02:03','2011-03-03 06:07:08')))>
+[('2011-06-06 01:02:03'),('2011-03-03 06:07:08'),('2011-06-06 01:02:03'),('2011-06-06 01:02:03')]
+
+SCIDB QUERY : <load mn_dt from '../tests/basic/data/null_10.txt'>
+[(null),(?1),(?1),(null)]
+
+SCIDB QUERY : <substitute(mn_dt,build(<a:datetime>[x=0:4,2,0],iif(x%2=0,'2011-06-06 01:02:03','2011-03-03 06:07:08')))>
+[('2011-06-06 01:02:03'),('2011-03-03 06:07:08'),('2011-03-03 06:07:08'),('2011-06-06 01:02:03')]
+
+SCIDB QUERY : <store(substitute(mn_dt,build(<a:datetime null>[x=0:4,2,0],null)),mn_dt)>
+[(null),(null),(null),(null)]
+
+SCIDB QUERY : <substitute(mn_dt,build(<a:datetime>[x=0:4,2,0],'2011-01-02 03:04:05'))>
+[('2011-01-02 03:04:05'),('2011-01-02 03:04:05'),('2011-01-02 03:04:05'),('2011-01-02 03:04:05')]
+
+SCIDB QUERY : <remove(m_bool)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(mn_bool)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(m_string)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(mn_string)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(m_i32)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(mn_i32)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(m_i8)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(mn_i8)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(m_i16)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(mn_i16)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(m_char)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(mn_char)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(m_dt)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(mn_dt)>
+Query was executed successfully
+

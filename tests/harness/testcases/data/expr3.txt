@@ -1,0 +1,35 @@
+[
+[("Sneezy", 3), ("Sleepy",7)],
+[("Dopey", 23), ("Doc",27)]
+];
+[
+[("Happy",11), ("Bashful",15)],
+[("Grumpy",31), ("Snow White",35)]
+];
+[
+[("Red",19)],
+[("Orange",39)]
+];
+
+[
+[("Blue", 43), ("Green",47)],
+[("Indigo", 63), ("Violet",67)]
+];
+[
+[("Black",51), ("White",55)],
+[("Pyramids of Giza",71), ("Gardens of Babylon",75)]
+];
+[
+[("Temple of Artemis",59)],
+[("Statue of Zeus",79)]
+];
+
+[
+[("Mausoleum of Halicarnassus",83), ("Colossus of  Rhodes",87)]
+];
+[
+[("Lighthouse of Alexandria",91), ("foo",95)]
+];
+[
+[("bar",99)]
+]

@@ -1,0 +1,111 @@
+SCIDB QUERY : <create array A <a:int32 default 99, b:string default 'test'> [x=0:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ti <a:int32> [x=0:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts <b:string> [x=0:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from filter(build(Ti,x+10),true),filter(build(Ts,x+10),true)>
+{x} a,b
+{0} 10,'10'
+{1} 11,'11'
+{2} 12,'12'
+{3} 13,'13'
+{4} 14,'14'
+{5} 15,'15'
+{6} 16,'16'
+{7} 17,'17'
+{8} 18,'18'
+
+SCIDB QUERY : <update A set a=99 where x=0>
+{x} a,b
+{0} 99,'10'
+{1} 11,'11'
+{2} 12,'12'
+{3} 13,'13'
+{4} 14,'14'
+{5} 15,'15'
+{6} 16,'16'
+{7} 17,'17'
+{8} 18,'18'
+
+SCIDB QUERY : <update A set b='test' where x=5>
+{x} a,b
+{0} 99,'10'
+{1} 11,'11'
+{2} 12,'12'
+{3} 13,'13'
+{4} 14,'14'
+{5} 15,'test'
+{6} 16,'16'
+{7} 17,'17'
+{8} 18,'18'
+
+SCIDB QUERY : <update A set a=99, b='test' where x=0 and x=5>
+{x} a,b
+{0} 99,'10'
+{1} 11,'11'
+{2} 12,'12'
+{3} 13,'13'
+{4} 14,'14'
+{5} 15,'test'
+{6} 16,'16'
+{7} 17,'17'
+{8} 18,'18'
+
+SCIDB QUERY : <thin(A,0,1)>
+{x} a,b
+{0} 99,'10'
+{1} 11,'11'
+{2} 12,'12'
+{3} 13,'13'
+{4} 14,'14'
+{5} 15,'test'
+{6} 16,'16'
+{7} 17,'17'
+{8} 18,'18'
+
+SCIDB QUERY : <thin(A,0,2)>
+{x} a,b
+{0} 99,'10'
+{1} 12,'12'
+{2} 14,'14'
+{3} 16,'16'
+{4} 18,'18'
+
+SCIDB QUERY : <thin(A,0,3)>
+{x} a,b
+{0} 99,'10'
+{1} 13,'13'
+{2} 16,'16'
+
+SCIDB QUERY : <thin(A,1,2)>
+{x} a,b
+{0} 11,'11'
+{1} 13,'13'
+{2} 15,'test'
+{3} 17,'17'
+
+SCIDB QUERY : <thin(A,1,3)>
+{x} a,b
+{0} 11,'11'
+{1} 14,'14'
+{2} 17,'17'
+
+SCIDB QUERY : <thin(A,2,3)>
+{x} a,b
+{0} 12,'12'
+{1} 15,'test'
+{2} 18,'18'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ti)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+

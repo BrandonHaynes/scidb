@@ -1,0 +1,28 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY source_array<val:double>[i=0:3,4,0,j=0:3,4,0]  
+--set-format dense
+--stop-igdata
+store(build(source_array,i*4+j),source_array)  
+--set-format dcsv
+--start-igdata
+store(between(source_array,1,1,1,2),count_array)  
+--set-format dense
+--stop-igdata
+scan(count_array) 
+aggregate(count_array,count(val))  
+aggregate(count_array,count(val),i)  
+aggregate(count_array,count(val),j)  
+aggregate(count_array,count(val),i,j)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(source_array)
+remove(count_array)

@@ -1,0 +1,1 @@
+sum(apply(join(subarray(join(dense as a,dense as b), 3,3,5,5),subarray(dense as c,0,0,2,2)),v,a.a+b.a+c.a),v)

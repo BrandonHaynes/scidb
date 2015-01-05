@@ -1,0 +1,95 @@
+Query was executed successfully
+
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+{x} a,a_2
+{0} 1,10
+{1} 2,11
+{2} 3,12
+
+{i} sum
+{0} 6
+
+{i} sum
+{0} 33
+
+{i} sum
+{0} 6
+
+{i} sum
+{0} 33
+
+{i} a_sum
+{0} 6
+
+{i} a_sum
+{0} 33
+
+{i} max
+{0} 3
+
+{i} max
+{0} 12
+
+{i} max
+{0} 3
+
+{i} max
+{0} 12
+
+{i} a_max
+{0} 3
+
+{i} a_max
+{0} 12
+
+{i} min
+{0} 1
+
+{i} min
+{0} 10
+
+{i} min
+{0} 1
+
+{i} min
+{0} 10
+
+{i} a_min
+{0} 1
+
+{i} a_min
+{0} 10
+
+{i} avg
+{0} 2
+
+{i} avg
+{0} 11
+
+{i} avg
+{0} 2
+
+{i} avg
+{0} 11
+
+{i} a_avg
+{0} 2
+
+{i} a_avg
+{0} 11
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

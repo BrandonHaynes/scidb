@@ -1,0 +1,321 @@
+SCIDB QUERY : <create array m4x4 <val:double NULL>[a=-2:1,4,0, b=1:4,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array m4x4_A <val:double NULL>[a=-2:1,3,0, b=1:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(m4x4, a*a+b/(3.0-a-4)), m4x4)>
+{a,b} val
+{-2,1} 5
+{-2,2} 6
+{-2,3} 7
+{-2,4} 8
+{-1,1} inf
+{-1,2} inf
+{-1,3} inf
+{-1,4} inf
+{0,1} -1
+{0,2} -2
+{0,3} -3
+{0,4} -4
+{1,1} 0.5
+{1,2} 0
+{1,3} -0.5
+{1,4} -1
+
+SCIDB QUERY : <store(build(m4x4_A, a*a+b/(3.0-a-4)), m4x4_A)>
+{a,b} val
+{-2,1} 5
+{-2,2} 6
+{-1,1} inf
+{-1,2} inf
+{0,1} -1
+{0,2} -2
+{-2,3} 7
+{-2,4} 8
+{-1,3} inf
+{-1,4} inf
+{0,3} -3
+{0,4} -4
+{1,1} 0.5
+{1,2} 0
+{1,3} -0.5
+{1,4} -1
+
+SCIDB QUERY : <select sum(val) from m4x4 group by a>
+{a} sum
+{-2} 26
+{-1} inf
+{0} -10
+{1} -1
+
+SCIDB QUERY : <select sum(val) from m4x4_A group by a>
+{a} sum
+{-2} 26
+{-1} inf
+{0} -10
+{1} -1
+
+SCIDB QUERY : <select a,sum(val) from m4x4 group by a>
+{a} expr,sum
+{-2} -2,26
+{-1} -1,inf
+{0} 0,-10
+{1} 1,-1
+
+SCIDB QUERY : <select cos(val+a-b) from m4x4>
+{a,b} expr
+{-2,1} -0.416147
+{-2,2} -0.416147
+{-2,3} -0.416147
+{-2,4} -0.416147
+{-1,1} nan
+{-1,2} nan
+{-1,3} nan
+{-1,4} nan
+{0,1} -0.416147
+{0,2} -0.653644
+{0,3} 0.96017
+{0,4} -0.1455
+{1,1} 0.877583
+{1,2} 0.540302
+{1,3} -0.801144
+{1,4} -0.653644
+
+SCIDB QUERY : <select cos(val+a-b),sin(val),sqrt(val/a) into SP from m4x4>
+{a,b} expr,expr_1,expr_2
+{-2,1} -0.416147,-0.958924,nan
+{-2,2} -0.416147,-0.279415,nan
+{-2,3} -0.416147,0.656987,nan
+{-2,4} -0.416147,0.989358,nan
+{-1,1} nan,nan,nan
+{-1,2} nan,nan,nan
+{-1,3} nan,nan,nan
+{-1,4} nan,nan,nan
+{0,1} -0.416147,-0.841471,nan
+{0,2} -0.653644,-0.909297,nan
+{0,3} 0.96017,-0.14112,nan
+{0,4} -0.1455,0.756802,nan
+{1,1} 0.877583,0.479426,0.707107
+{1,2} 0.540302,0,0
+{1,3} -0.801144,-0.479426,nan
+{1,4} -0.653644,-0.841471,nan
+
+SCIDB QUERY : <select * from ( select avg(val) from m4x4 group by a) where avg < 5>
+{a} avg
+{0} -2.5
+{1} -0.25
+
+SCIDB QUERY : <select a,sum(val) from m4x4 group by a>
+{a} expr,sum
+{-2} -2,26
+{-1} -1,inf
+{0} 0,-10
+{1} 1,-1
+
+SCIDB QUERY : <select a*10,sum(val+1) from m4x4 group by a>
+{a} expr,sum
+{-2} -20,30
+{-1} -10,inf
+{0} 0,-6
+{1} 10,3
+
+SCIDB QUERY : <select b,avg(val*10) from m4x4 group by b>
+{b} expr,avg
+{1} 1,inf
+{2} 2,inf
+{3} 3,inf
+{4} 4,inf
+
+SCIDB QUERY : <select b,avg(val*10) from m4x4_A group by b>
+{b} expr,avg
+{1} 1,inf
+{2} 2,inf
+{3} 3,inf
+{4} 4,inf
+
+SCIDB QUERY : <select sum(a/val),var(val*10) from m4x4_A group by a>
+{a} sum,var_1
+{-2} -1.26905,166.667
+{-1} 0,nan
+{0} 0,166.667
+{1} inf,41.6667
+
+SCIDB QUERY : <select sum(val),var(val*10) from m4x4_A group by a>
+{a} sum,var_1
+{-2} 26,166.667
+{-1} inf,nan
+{0} -10,166.667
+{1} -1,41.6667
+
+SCIDB QUERY : <select sum(val),avg(val) into c from m4x4 group by a>
+{a} sum,avg_1
+{-2} 26,6.5
+{-1} inf,inf
+{0} -10,-2.5
+{1} -1,-0.25
+
+SCIDB QUERY : <select sum(val),avg(val),min(val),max(val) into d from m4x4 regrid as (partition by a 2, b 2)>
+{a,b} sum,avg_1,min_2,max_3
+{-2,1} inf,inf,5,inf
+{-2,2} inf,inf,7,inf
+{-1,1} -2.5,-0.625,-2,0.5
+{-1,2} -8.5,-2.125,-4,-0.5
+
+SCIDB QUERY : <select sum(val),avg(val),min(val),max(val),count(val) into e from m4x4 regrid as (partition by a 3, b 3)>
+{a,b} sum,avg_1,min_2,max_3,count_4
+{-2,1} inf,inf,-3,inf,9
+{-2,2} inf,inf,-4,inf,3
+{-1,1} 0,0,-0.5,0.5,3
+{-1,2} -1,-1,-1,-1,1
+
+SCIDB QUERY : <select sum(val),avg(val),min(val),max(val),count(val) from m4x4 fixed window as (partition by a 1 preceding and 1 following, b 1 preceding and 1 following)>
+{a,b} sum,avg_1,min_2,max_3,count_4
+{-2,1} inf,inf,5,inf,4
+{-2,2} inf,inf,5,inf,6
+{-2,3} inf,inf,6,inf,6
+{-2,4} inf,inf,7,inf,4
+{-1,1} inf,inf,-2,inf,6
+{-1,2} inf,inf,-3,inf,9
+{-1,3} inf,inf,-4,inf,9
+{-1,4} inf,inf,-4,inf,6
+{0,1} inf,inf,-2,inf,6
+{0,2} inf,inf,-3,inf,9
+{0,3} inf,inf,-4,inf,9
+{0,4} inf,inf,-4,inf,6
+{1,1} -2.5,-0.625,-2,0.5,4
+{1,2} -6,-1,-3,0.5,6
+{1,3} -10.5,-1.75,-4,0,6
+{1,4} -8.5,-2.125,-4,-0.5,4
+
+SCIDB QUERY : <select sin(sum+avg_1+min_2+max_3+count_4*a/b) from e>
+{a,b} expr
+{-2,1} nan
+{-2,2} nan
+{-1,1} -0.14112
+{-1,2} 0.756802
+
+SCIDB QUERY : <select * from subarray (m4x4,-2,1,-1,2),subarray(m4x4,-1,2,0,3)>
+{a,b} val,val
+{0,0} 5,inf
+{0,1} 6,inf
+{1,0} inf,-2
+{1,1} inf,-3
+
+SCIDB QUERY : <select max(expr),max(expr_2) from SP>
+{i} max,max_1
+{0} nan,nan
+
+SCIDB QUERY : <select min(expr),min(expr_2) from SP group by a>
+{a} min,min_1
+{-2} -0.416147,nan
+{-1} nan,nan
+{0} -0.653644,nan
+{1} -0.801144,nan
+
+SCIDB QUERY : <select sum(val) from m4x4_A group by a>
+{a} sum
+{-2} 26
+{-1} inf
+{0} -10
+{1} -1
+
+SCIDB QUERY : <select sum(val) from m4x4_A group by b>
+{b} sum
+{1} inf
+{2} inf
+{3} inf
+{4} inf
+
+SCIDB QUERY : <select sin(val + val+2) from m4x4>
+{a,b} expr
+{-2,1} -0.536573
+{-2,2} 0.990607
+{-2,3} -0.287903
+{-2,4} -0.750987
+{-1,1} nan
+{-1,2} nan
+{-1,3} nan
+{-1,4} nan
+{0,1} 0
+{0,2} -0.909297
+{0,3} 0.756802
+{0,4} 0.279415
+{1,1} 0.14112
+{1,2} 0.909297
+{1,3} 0.841471
+{1,4} 0
+
+SCIDB QUERY : <select * from d,e>
+{a,b} sum,avg_1,min_2,max_3,sum,avg_1,min_2,max_3,count_4
+{-2,1} inf,inf,5,inf,inf,inf,-3,inf,9
+{-2,2} inf,inf,7,inf,inf,inf,-4,inf,3
+{-1,1} -2.5,-0.625,-2,0.5,0,0,-0.5,0.5,3
+{-1,2} -8.5,-2.125,-4,-0.5,-1,-1,-1,-1,1
+
+SCIDB QUERY : <select count(sum) from e>
+{i} count
+{0} 4
+
+SCIDB QUERY : <select avg(sum) from e>
+{i} avg
+{0} inf
+
+SCIDB QUERY : <select * from d join e on d.a=e.a>
+{a,b,b} sum,avg_1,min_2,max_3,sum,avg_1,min_2,max_3,count_4
+{-2,1,1} inf,inf,5,inf,inf,inf,-3,inf,9
+{-2,1,2} inf,inf,5,inf,inf,inf,-4,inf,3
+{-2,2,1} inf,inf,7,inf,inf,inf,-3,inf,9
+{-2,2,2} inf,inf,7,inf,inf,inf,-4,inf,3
+{-1,1,1} -2.5,-0.625,-2,0.5,0,0,-0.5,0.5,3
+{-1,1,2} -2.5,-0.625,-2,0.5,-1,-1,-1,-1,1
+{-1,2,1} -8.5,-2.125,-4,-0.5,0,0,-0.5,0.5,3
+{-1,2,2} -8.5,-2.125,-4,-0.5,-1,-1,-1,-1,1
+
+SCIDB QUERY : <select * from d join e on d.b=e.b>
+{a,b,a} sum,avg_1,min_2,max_3,sum,avg_1,min_2,max_3,count_4
+{-2,1,-2} inf,inf,5,inf,inf,inf,-3,inf,9
+{-2,1,-1} inf,inf,5,inf,0,0,-0.5,0.5,3
+{-2,2,-2} inf,inf,7,inf,inf,inf,-4,inf,3
+{-2,2,-1} inf,inf,7,inf,-1,-1,-1,-1,1
+{-1,1,-2} -2.5,-0.625,-2,0.5,inf,inf,-3,inf,9
+{-1,1,-1} -2.5,-0.625,-2,0.5,0,0,-0.5,0.5,3
+{-1,2,-2} -8.5,-2.125,-4,-0.5,inf,inf,-4,inf,3
+{-1,2,-1} -8.5,-2.125,-4,-0.5,-1,-1,-1,-1,1
+
+SCIDB QUERY : <update c set sum=NULL where a=0>
+{a} sum,avg_1
+{-2} 26,6.5
+{-1} inf,inf
+{0} null,-2.5
+{1} -1,-0.25
+
+SCIDB QUERY : <select count(sum),avg(sum),min(sum) from c>
+{i} count,avg_2,min_3
+{0} 3,inf,-1
+
+SCIDB QUERY : <update c set sum=inf where a=1>
+{a} sum,avg_1
+{-2} 26,6.5
+{-1} inf,inf
+{0} null,-2.5
+{1} inf,-0.25
+
+SCIDB QUERY : <remove(m4x4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(m4x4_A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(c)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(d)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(e)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SP)>
+Query was executed successfully
+

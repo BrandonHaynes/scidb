@@ -1,0 +1,350 @@
+SCIDB QUERY : <create array A1 <val1:double> [x=0:3,2,0,y=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A1,x+y+2.5),A1)>
+{x,y} val1
+{0,0} 2.5
+{0,1} 3.5
+{1,0} 3.5
+{1,1} 4.5
+{0,2} 4.5
+{0,3} 5.5
+{1,2} 5.5
+{1,3} 6.5
+{2,0} 4.5
+{2,1} 5.5
+{3,0} 5.5
+{3,1} 6.5
+{2,2} 6.5
+{2,3} 7.5
+{3,2} 7.5
+{3,3} 8.5
+
+SCIDB QUERY : <create array A2 <val1:double> [x=0:3,2,0,y=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2,'${TEST_DATA_DIR}/adc1.txt')">
+{x,y} val1
+{0,0} 1
+{0,1} 2
+{1,0} 2
+{1,1} 9
+{0,2} 3
+{0,3} 4
+{1,2} 4
+{1,3} 100
+{2,0} 3
+{2,1} 4
+{3,0} 4
+{3,1} 5
+{2,2} 5
+{2,3} 6
+{3,2} 6
+{3,3} 82
+
+SCIDB QUERY : <create array A3 <val1:int32> [x=0:3,2,0,y=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A3,x+y+1),A3)>
+{x,y} val1
+{0,0} 1
+{0,1} 2
+{1,0} 2
+{1,1} 3
+{0,2} 3
+{0,3} 4
+{1,2} 4
+{1,3} 5
+{2,0} 3
+{2,1} 4
+{3,0} 4
+{3,1} 5
+{2,2} 5
+{2,3} 6
+{3,2} 6
+{3,3} 7
+
+SCIDB QUERY : <create array A4 <val1:int64> [x=0:3,2,0,y=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A4,x+y+1),A4)>
+{x,y} val1
+{0,0} 1
+{0,1} 2
+{1,0} 2
+{1,1} 3
+{0,2} 3
+{0,3} 4
+{1,2} 4
+{1,3} 5
+{2,0} 3
+{2,1} 4
+{3,0} 4
+{3,1} 5
+{2,2} 5
+{2,3} 6
+{3,2} 6
+{3,3} 7
+
+SCIDB QUERY : <create array A5 <val1:string> [x=0:3,2,0,y=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A5,'a'+string(x)+string(y)),A5)>
+{x,y} val1
+{0,0} 'a00'
+{0,1} 'a01'
+{1,0} 'a10'
+{1,1} 'a11'
+{0,2} 'a02'
+{0,3} 'a03'
+{1,2} 'a12'
+{1,3} 'a13'
+{2,0} 'a20'
+{2,1} 'a21'
+{3,0} 'a30'
+{3,1} 'a31'
+{2,2} 'a22'
+{2,3} 'a23'
+{3,2} 'a32'
+{3,3} 'a33'
+
+SCIDB QUERY : <create array A6 <val1:float> [x=0:3,2,0,y=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A6,x+y+1.5),A6)>
+{x,y} val1
+{0,0} 1.5
+{0,1} 2.5
+{1,0} 2.5
+{1,1} 3.5
+{0,2} 3.5
+{0,3} 4.5
+{1,2} 4.5
+{1,3} 5.5
+{2,0} 3.5
+{2,1} 4.5
+{3,0} 4.5
+{3,1} 5.5
+{2,2} 5.5
+{2,3} 6.5
+{3,2} 6.5
+{3,3} 7.5
+
+SCIDB QUERY : <load_library ('rational')>
+Query was executed successfully
+
+SCIDB QUERY : <create array A7 <val1:rational> [x=0:3,2,0,y=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A7,'${TEST_DATA_DIR}/adc2.txt')">
+{x,y} val1
+{0,0} '(3/4)'
+{0,1} '(9/7)'
+{1,0} '(1/2)'
+{1,1} '(3/5)'
+{0,2} '(3/7)'
+{0,3} '(3/4)'
+{1,2} '(4/7)'
+{1,3} '(50/3)'
+{2,0} '(1/3)'
+{2,1} '(4/3)'
+{3,0} '(4/5)'
+{3,1} '(5/3)'
+{2,2} '(5/9)'
+{2,3} '(6/7)'
+{3,2} '(3/2)'
+{3,3} '(82/5)'
+
+SCIDB QUERY : <aggregate(A1, ApproxDC(val1))>
+{i} val1_ApproxDC
+{0} 7
+
+SCIDB QUERY : <aggregate(A2, ApproxDC(val1))>
+{i} val1_ApproxDC
+{0} 9
+
+SCIDB QUERY : <aggregate(A3, ApproxDC(val1))>
+{i} val1_ApproxDC
+{0} 7
+
+SCIDB QUERY : <aggregate(A4, ApproxDC(val1))>
+{i} val1_ApproxDC
+{0} 7
+
+SCIDB QUERY : <aggregate(A5, ApproxDC(val1))>
+{i} val1_ApproxDC
+{0} 16
+
+SCIDB QUERY : <aggregate(A6, ApproxDC(val1))>
+{i} val1_ApproxDC
+{0} 7
+
+SCIDB QUERY : <aggregate(A7, ApproxDC(val1))>
+{i} val1_ApproxDC
+{0} 15
+
+SCIDB QUERY : <select ApproxDC(A1)>
+{i} val1_ApproxDC
+{0} 7
+
+SCIDB QUERY : <select ApproxDC(A3)>
+{i} val1_ApproxDC
+{0} 7
+
+SCIDB QUERY : <select ApproxDC(A5)>
+{i} val1_ApproxDC
+{0} 16
+
+SCIDB QUERY : <select ApproxDC(A7)>
+{i} val1_ApproxDC
+{0} 15
+
+SCIDB QUERY : <select ApproxDC(val1) from A1>
+{i} ApproxDC
+{0} 7
+
+SCIDB QUERY : <select ApproxDC(val1) from A2>
+{i} ApproxDC
+{0} 9
+
+SCIDB QUERY : <select ApproxDC(val1) from A3>
+{i} ApproxDC
+{0} 7
+
+SCIDB QUERY : <select ApproxDC(val1) from A4>
+{i} ApproxDC
+{0} 7
+
+SCIDB QUERY : <select ApproxDC(val1) from A5>
+{i} ApproxDC
+{0} 16
+
+SCIDB QUERY : <select ApproxDC(val1) from A6>
+{i} ApproxDC
+{0} 7
+
+SCIDB QUERY : <select ApproxDC(val1) from A7>
+{i} ApproxDC
+{0} 15
+
+SCIDB QUERY : <select count(val1),ApproxDC(val1) from A1>
+{i} count,ApproxDC_1
+{0} 16,7
+
+SCIDB QUERY : <select count(val1),ApproxDC(val1) from A3>
+{i} count,ApproxDC_1
+{0} 16,7
+
+SCIDB QUERY : <select count(val1),ApproxDC(val1) from A5>
+{i} count,ApproxDC_1
+{0} 16,16
+
+SCIDB QUERY : <select count(val1),ApproxDC(val1) from A7>
+{i} count,ApproxDC_1
+{0} 16,15
+
+SCIDB QUERY : <select count(val1),ApproxDC(val1) from A1 regrid as (partition by x 2, y 2)>
+{x,y} count,ApproxDC_1
+{0,0} 4,3
+{0,1} 4,3
+{1,0} 4,3
+{1,1} 4,3
+
+SCIDB QUERY : <select count(val1),ApproxDC(val1) from A3 regrid as (partition by x 2, y 2)>
+{x,y} count,ApproxDC_1
+{0,0} 4,3
+{0,1} 4,3
+{1,0} 4,3
+{1,1} 4,3
+
+SCIDB QUERY : <select count(val1),ApproxDC(val1) from A5 regrid as (partition by x 2, y 4)>
+{x,y} count,ApproxDC_1
+{0,0} 8,8
+{1,0} 8,8
+
+SCIDB QUERY : <select count(val1),ApproxDC(val1) from A7 regrid as (partition by x 2, y 2)>
+{x,y} count,ApproxDC_1
+{0,0} 4,4
+{0,1} 4,4
+{1,0} 4,4
+{1,1} 4,4
+
+SCIDB QUERY : <select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7>
+{i} sum,max_1,min_2,avg_3,var_4,count_5,ApproxDc_6
+{0} '(28349/630)','(50/3)','(1/3)','(28349/10080)','(915902261/31752000)',16,15
+
+SCIDB QUERY : <select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7 regrid as (partition by x 4, y 4)>
+{x,y} sum,max_1,min_2,avg_3,var_4,count_5,ApproxDc_6
+{0,0} '(28349/630)','(50/3)','(1/3)','(28349/10080)','(915902261/31752000)',16,15
+
+SCIDB QUERY : <select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7 regrid as (partition by x 2, y 2)>
+{x,y} sum,max_1,min_2,avg_3,var_4,count_5,ApproxDc_6
+{0,0} '(439/140)','(9/7)','(1/2)','(439/560)','(9601/78400)',4,4
+{0,1} '(221/12)','(50/3)','(3/7)','(221/48)','(608563/9408)',4,4
+{1,0} '(62/15)','(5/3)','(1/3)','(31/30)','(233/675)',4,4
+{1,1} '(12167/630)','(82/5)','(5/9)','(12167/2520)','(94731169/1587600)',4,4
+
+SCIDB QUERY : <select count(*) from (select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7 regrid as (partition by x 4, y 4))>
+{i} count
+{0} 1
+
+SCIDB QUERY : <select count(*) from (select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7 As Q2)>
+{i} count
+{0} 1
+
+SCIDB QUERY : <select ApproxDC(val1) from A7 group by x>
+{x} ApproxDC
+{0} 3
+{1} 4
+{2} 4
+{3} 4
+
+SCIDB QUERY : <select x,ApproxDC(val1) from A7 group by x>
+{x} expr,ApproxDC
+{0} 0,3
+{1} 1,4
+{2} 2,4
+{3} 3,4
+
+SCIDB QUERY : <select x,ApproxDC(val1),count(val1) from A7 group by x>
+{x} expr,ApproxDC,count_1
+{0} 0,3,4
+{1} 1,4,4
+{2} 2,4,4
+{3} 3,4,4
+
+SCIDB QUERY : <select y,ApproxDC(val1),count(val1) from A7 group by y>
+{y} expr,ApproxDC,count_1
+{0} 0,4,4
+{1} 1,4,4
+{2} 2,4,4
+{3} 3,4,4
+
+SCIDB QUERY : <select cos(2*y),y,ApproxDC(val1),count(val1) from A7 group by y>
+{y} expr,expr_1,ApproxDC,count_1
+{0} 1,0,4,4
+{1} -0.416147,1,4,4
+{2} -0.653644,2,4,4
+{3} 0.96017,3,4,4
+
+SCIDB QUERY : <remove(A1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A5)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A6)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A7)>
+Query was executed successfully
+

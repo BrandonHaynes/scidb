@@ -1,0 +1,2096 @@
+Query was executed successfully
+
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,1,1 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 1 to 1 (if any)
+../../bin/doSvd.sh: verbose svd test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+../../bin/doSvd.sh: verbose U test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+../../bin/doSvd.sh: verbose VT test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+../../bin/doSvd.sh: verbose S test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+0,0,1
+r,c,multiply
+
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 2 to 1 (if any)
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,1,1 end
+
+
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,-1,1 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 1 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 1 to 1 (if any)
+../../bin/doSvd.sh: U-only test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*1), 'U'))
+i,count
+0,1
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,-1,1 end
+
+
+1-31
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,-1,31 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 1 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 1 to 31 (if any)
+../../bin/doSvd.sh: U-only test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*1), 'U'))
+i,count
+0,1
+
+../../bin/doSvd.sh: U-only test @ 2 x 2 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*2), 'U'))
+i,count
+0,4
+
+../../bin/doSvd.sh: U-only test @ 3 x 3 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*3), 'U'))
+i,count
+0,9
+
+../../bin/doSvd.sh: U-only test @ 4 x 4 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*4), 'U'))
+i,count
+0,16
+
+../../bin/doSvd.sh: U-only test @ 5 x 5 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*5), 'U'))
+i,count
+0,25
+
+../../bin/doSvd.sh: U-only test @ 6 x 6 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*6), 'U'))
+i,count
+0,36
+
+../../bin/doSvd.sh: U-only test @ 7 x 7 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*7), 'U'))
+i,count
+0,49
+
+../../bin/doSvd.sh: U-only test @ 8 x 8 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*8), 'U'))
+i,count
+0,64
+
+../../bin/doSvd.sh: U-only test @ 9 x 9 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*9), 'U'))
+i,count
+0,81
+
+../../bin/doSvd.sh: U-only test @ 10 x 10 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*10), 'U'))
+i,count
+0,100
+
+../../bin/doSvd.sh: U-only test @ 11 x 11 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*11), 'U'))
+i,count
+0,121
+
+../../bin/doSvd.sh: U-only test @ 12 x 12 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*12), 'U'))
+i,count
+0,144
+
+../../bin/doSvd.sh: U-only test @ 13 x 13 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*13), 'U'))
+i,count
+0,169
+
+../../bin/doSvd.sh: U-only test @ 14 x 14 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*14), 'U'))
+i,count
+0,196
+
+../../bin/doSvd.sh: U-only test @ 15 x 15 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*15), 'U'))
+i,count
+0,225
+
+../../bin/doSvd.sh: U-only test @ 16 x 16 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*16), 'U'))
+i,count
+0,256
+
+../../bin/doSvd.sh: U-only test @ 17 x 17 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*17), 'U'))
+i,count
+0,289
+
+../../bin/doSvd.sh: U-only test @ 18 x 18 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*18), 'U'))
+i,count
+0,324
+
+../../bin/doSvd.sh: U-only test @ 19 x 19 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*19), 'U'))
+i,count
+0,361
+
+../../bin/doSvd.sh: U-only test @ 20 x 20 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*20), 'U'))
+i,count
+0,400
+
+../../bin/doSvd.sh: U-only test @ 21 x 21 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*21), 'U'))
+i,count
+0,441
+
+../../bin/doSvd.sh: U-only test @ 22 x 22 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*22), 'U'))
+i,count
+0,484
+
+../../bin/doSvd.sh: U-only test @ 23 x 23 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*23), 'U'))
+i,count
+0,529
+
+../../bin/doSvd.sh: U-only test @ 24 x 24 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*24), 'U'))
+i,count
+0,576
+
+../../bin/doSvd.sh: U-only test @ 25 x 25 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*25), 'U'))
+i,count
+0,625
+
+../../bin/doSvd.sh: U-only test @ 26 x 26 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*26), 'U'))
+i,count
+0,676
+
+../../bin/doSvd.sh: U-only test @ 27 x 27 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*27), 'U'))
+i,count
+0,729
+
+../../bin/doSvd.sh: U-only test @ 28 x 28 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*28), 'U'))
+i,count
+0,784
+
+../../bin/doSvd.sh: U-only test @ 29 x 29 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*29), 'U'))
+i,count
+0,841
+
+../../bin/doSvd.sh: U-only test @ 30 x 30 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*30), 'U'))
+i,count
+0,900
+
+../../bin/doSvd.sh: U-only test @ 31 x 31 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*31), 'U'))
+i,count
+0,961
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,-1,31 end
+
+
+32-63
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 32,-1,63 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 32 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 32 to 63 (if any)
+../../bin/doSvd.sh: U-only test @ 32 x 32 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*32), 'U'))
+i,count
+0,1024
+
+../../bin/doSvd.sh: U-only test @ 33 x 33 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*33), 'U'))
+i,count
+0,1089
+
+../../bin/doSvd.sh: U-only test @ 34 x 34 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*34), 'U'))
+i,count
+0,1156
+
+../../bin/doSvd.sh: U-only test @ 35 x 35 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*35), 'U'))
+i,count
+0,1225
+
+../../bin/doSvd.sh: U-only test @ 36 x 36 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*36), 'U'))
+i,count
+0,1296
+
+../../bin/doSvd.sh: U-only test @ 37 x 37 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*37), 'U'))
+i,count
+0,1369
+
+../../bin/doSvd.sh: U-only test @ 38 x 38 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*38), 'U'))
+i,count
+0,1444
+
+../../bin/doSvd.sh: U-only test @ 39 x 39 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*39), 'U'))
+i,count
+0,1521
+
+../../bin/doSvd.sh: U-only test @ 40 x 40 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*40), 'U'))
+i,count
+0,1600
+
+../../bin/doSvd.sh: U-only test @ 41 x 41 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*41), 'U'))
+i,count
+0,1681
+
+../../bin/doSvd.sh: U-only test @ 42 x 42 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*42), 'U'))
+i,count
+0,1764
+
+../../bin/doSvd.sh: U-only test @ 43 x 43 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*43), 'U'))
+i,count
+0,1849
+
+../../bin/doSvd.sh: U-only test @ 44 x 44 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*44), 'U'))
+i,count
+0,1936
+
+../../bin/doSvd.sh: U-only test @ 45 x 45 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*45), 'U'))
+i,count
+0,2025
+
+../../bin/doSvd.sh: U-only test @ 46 x 46 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*46), 'U'))
+i,count
+0,2116
+
+../../bin/doSvd.sh: U-only test @ 47 x 47 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*47), 'U'))
+i,count
+0,2209
+
+../../bin/doSvd.sh: U-only test @ 48 x 48 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*48), 'U'))
+i,count
+0,2304
+
+../../bin/doSvd.sh: U-only test @ 49 x 49 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*49), 'U'))
+i,count
+0,2401
+
+../../bin/doSvd.sh: U-only test @ 50 x 50 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*50), 'U'))
+i,count
+0,2500
+
+../../bin/doSvd.sh: U-only test @ 51 x 51 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*51), 'U'))
+i,count
+0,2601
+
+../../bin/doSvd.sh: U-only test @ 52 x 52 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*52), 'U'))
+i,count
+0,2704
+
+../../bin/doSvd.sh: U-only test @ 53 x 53 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*53), 'U'))
+i,count
+0,2809
+
+../../bin/doSvd.sh: U-only test @ 54 x 54 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*54), 'U'))
+i,count
+0,2916
+
+../../bin/doSvd.sh: U-only test @ 55 x 55 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*55), 'U'))
+i,count
+0,3025
+
+../../bin/doSvd.sh: U-only test @ 56 x 56 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*56), 'U'))
+i,count
+0,3136
+
+../../bin/doSvd.sh: U-only test @ 57 x 57 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*57), 'U'))
+i,count
+0,3249
+
+../../bin/doSvd.sh: U-only test @ 58 x 58 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*58), 'U'))
+i,count
+0,3364
+
+../../bin/doSvd.sh: U-only test @ 59 x 59 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*59), 'U'))
+i,count
+0,3481
+
+../../bin/doSvd.sh: U-only test @ 60 x 60 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*60), 'U'))
+i,count
+0,3600
+
+../../bin/doSvd.sh: U-only test @ 61 x 61 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*61), 'U'))
+i,count
+0,3721
+
+../../bin/doSvd.sh: U-only test @ 62 x 62 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*62), 'U'))
+i,count
+0,3844
+
+../../bin/doSvd.sh: U-only test @ 63 x 63 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*63), 'U'))
+i,count
+0,3969
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 32,-1,63 end
+
+
+64-95 (hangs 1/4 time on 16ix4n)
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 64,-1,95 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 64 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 64 to 95 (if any)
+../../bin/doSvd.sh: U-only test @ 64 x 64 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*64), 'U'))
+i,count
+0,4096
+
+../../bin/doSvd.sh: U-only test @ 65 x 65 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*65), 'U'))
+i,count
+0,4225
+
+../../bin/doSvd.sh: U-only test @ 66 x 66 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*66), 'U'))
+i,count
+0,4356
+
+../../bin/doSvd.sh: U-only test @ 67 x 67 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*67), 'U'))
+i,count
+0,4489
+
+../../bin/doSvd.sh: U-only test @ 68 x 68 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*68), 'U'))
+i,count
+0,4624
+
+../../bin/doSvd.sh: U-only test @ 69 x 69 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*69), 'U'))
+i,count
+0,4761
+
+../../bin/doSvd.sh: U-only test @ 70 x 70 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*70), 'U'))
+i,count
+0,4900
+
+../../bin/doSvd.sh: U-only test @ 71 x 71 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*71), 'U'))
+i,count
+0,5041
+
+../../bin/doSvd.sh: U-only test @ 72 x 72 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*72), 'U'))
+i,count
+0,5184
+
+../../bin/doSvd.sh: U-only test @ 73 x 73 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*73), 'U'))
+i,count
+0,5329
+
+../../bin/doSvd.sh: U-only test @ 74 x 74 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*74), 'U'))
+i,count
+0,5476
+
+../../bin/doSvd.sh: U-only test @ 75 x 75 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*75), 'U'))
+i,count
+0,5625
+
+../../bin/doSvd.sh: U-only test @ 76 x 76 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*76), 'U'))
+i,count
+0,5776
+
+../../bin/doSvd.sh: U-only test @ 77 x 77 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*77), 'U'))
+i,count
+0,5929
+
+../../bin/doSvd.sh: U-only test @ 78 x 78 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*78), 'U'))
+i,count
+0,6084
+
+../../bin/doSvd.sh: U-only test @ 79 x 79 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*79), 'U'))
+i,count
+0,6241
+
+../../bin/doSvd.sh: U-only test @ 80 x 80 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*80), 'U'))
+i,count
+0,6400
+
+../../bin/doSvd.sh: U-only test @ 81 x 81 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*81), 'U'))
+i,count
+0,6561
+
+../../bin/doSvd.sh: U-only test @ 82 x 82 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*82), 'U'))
+i,count
+0,6724
+
+../../bin/doSvd.sh: U-only test @ 83 x 83 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*83), 'U'))
+i,count
+0,6889
+
+../../bin/doSvd.sh: U-only test @ 84 x 84 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*84), 'U'))
+i,count
+0,7056
+
+../../bin/doSvd.sh: U-only test @ 85 x 85 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*85), 'U'))
+i,count
+0,7225
+
+../../bin/doSvd.sh: U-only test @ 86 x 86 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*86), 'U'))
+i,count
+0,7396
+
+../../bin/doSvd.sh: U-only test @ 87 x 87 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*87), 'U'))
+i,count
+0,7569
+
+../../bin/doSvd.sh: U-only test @ 88 x 88 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*88), 'U'))
+i,count
+0,7744
+
+../../bin/doSvd.sh: U-only test @ 89 x 89 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*89), 'U'))
+i,count
+0,7921
+
+../../bin/doSvd.sh: U-only test @ 90 x 90 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*90), 'U'))
+i,count
+0,8100
+
+../../bin/doSvd.sh: U-only test @ 91 x 91 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*91), 'U'))
+i,count
+0,8281
+
+../../bin/doSvd.sh: U-only test @ 92 x 92 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*92), 'U'))
+i,count
+0,8464
+
+../../bin/doSvd.sh: U-only test @ 93 x 93 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*93), 'U'))
+i,count
+0,8649
+
+../../bin/doSvd.sh: U-only test @ 94 x 94 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*94), 'U'))
+i,count
+0,8836
+
+../../bin/doSvd.sh: U-only test @ 95 x 95 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*95), 'U'))
+i,count
+0,9025
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 64,-1,95 end
+
+
+96-127
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 96,-1,127 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 96 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 96 to 127 (if any)
+../../bin/doSvd.sh: U-only test @ 96 x 96 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*96), 'U'))
+i,count
+0,9216
+
+../../bin/doSvd.sh: U-only test @ 97 x 97 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*97), 'U'))
+i,count
+0,9409
+
+../../bin/doSvd.sh: U-only test @ 98 x 98 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*98), 'U'))
+i,count
+0,9604
+
+../../bin/doSvd.sh: U-only test @ 99 x 99 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*99), 'U'))
+i,count
+0,9801
+
+../../bin/doSvd.sh: U-only test @ 100 x 100 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*100), 'U'))
+i,count
+0,10000
+
+../../bin/doSvd.sh: U-only test @ 101 x 101 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*101), 'U'))
+i,count
+0,10201
+
+../../bin/doSvd.sh: U-only test @ 102 x 102 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*102), 'U'))
+i,count
+0,10404
+
+../../bin/doSvd.sh: U-only test @ 103 x 103 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*103), 'U'))
+i,count
+0,10609
+
+../../bin/doSvd.sh: U-only test @ 104 x 104 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*104), 'U'))
+i,count
+0,10816
+
+../../bin/doSvd.sh: U-only test @ 105 x 105 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*105), 'U'))
+i,count
+0,11025
+
+../../bin/doSvd.sh: U-only test @ 106 x 106 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*106), 'U'))
+i,count
+0,11236
+
+../../bin/doSvd.sh: U-only test @ 107 x 107 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*107), 'U'))
+i,count
+0,11449
+
+../../bin/doSvd.sh: U-only test @ 108 x 108 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*108), 'U'))
+i,count
+0,11664
+
+../../bin/doSvd.sh: U-only test @ 109 x 109 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*109), 'U'))
+i,count
+0,11881
+
+../../bin/doSvd.sh: U-only test @ 110 x 110 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*110), 'U'))
+i,count
+0,12100
+
+../../bin/doSvd.sh: U-only test @ 111 x 111 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*111), 'U'))
+i,count
+0,12321
+
+../../bin/doSvd.sh: U-only test @ 112 x 112 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*112), 'U'))
+i,count
+0,12544
+
+../../bin/doSvd.sh: U-only test @ 113 x 113 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*113), 'U'))
+i,count
+0,12769
+
+../../bin/doSvd.sh: U-only test @ 114 x 114 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*114), 'U'))
+i,count
+0,12996
+
+../../bin/doSvd.sh: U-only test @ 115 x 115 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*115), 'U'))
+i,count
+0,13225
+
+../../bin/doSvd.sh: U-only test @ 116 x 116 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*116), 'U'))
+i,count
+0,13456
+
+../../bin/doSvd.sh: U-only test @ 117 x 117 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*117), 'U'))
+i,count
+0,13689
+
+../../bin/doSvd.sh: U-only test @ 118 x 118 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*118), 'U'))
+i,count
+0,13924
+
+../../bin/doSvd.sh: U-only test @ 119 x 119 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*119), 'U'))
+i,count
+0,14161
+
+../../bin/doSvd.sh: U-only test @ 120 x 120 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*120), 'U'))
+i,count
+0,14400
+
+../../bin/doSvd.sh: U-only test @ 121 x 121 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*121), 'U'))
+i,count
+0,14641
+
+../../bin/doSvd.sh: U-only test @ 122 x 122 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*122), 'U'))
+i,count
+0,14884
+
+../../bin/doSvd.sh: U-only test @ 123 x 123 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*123), 'U'))
+i,count
+0,15129
+
+../../bin/doSvd.sh: U-only test @ 124 x 124 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*124), 'U'))
+i,count
+0,15376
+
+../../bin/doSvd.sh: U-only test @ 125 x 125 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*125), 'U'))
+i,count
+0,15625
+
+../../bin/doSvd.sh: U-only test @ 126 x 126 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*126), 'U'))
+i,count
+0,15876
+
+../../bin/doSvd.sh: U-only test @ 127 x 127 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*127), 'U'))
+i,count
+0,16129
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 96,-1,127 end
+
+
+128-223  hangs on 16i x 4n
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 128,-1,159 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 128 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 128 to 159 (if any)
+../../bin/doSvd.sh: U-only test @ 128 x 128 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*128), 'U'))
+i,count
+0,16384
+
+../../bin/doSvd.sh: U-only test @ 129 x 129 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*129), 'U'))
+i,count
+0,16641
+
+../../bin/doSvd.sh: U-only test @ 130 x 130 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*130), 'U'))
+i,count
+0,16900
+
+../../bin/doSvd.sh: U-only test @ 131 x 131 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*131), 'U'))
+i,count
+0,17161
+
+../../bin/doSvd.sh: U-only test @ 132 x 132 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*132), 'U'))
+i,count
+0,17424
+
+../../bin/doSvd.sh: U-only test @ 133 x 133 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*133), 'U'))
+i,count
+0,17689
+
+../../bin/doSvd.sh: U-only test @ 134 x 134 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*134), 'U'))
+i,count
+0,17956
+
+../../bin/doSvd.sh: U-only test @ 135 x 135 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*135), 'U'))
+i,count
+0,18225
+
+../../bin/doSvd.sh: U-only test @ 136 x 136 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*136), 'U'))
+i,count
+0,18496
+
+../../bin/doSvd.sh: U-only test @ 137 x 137 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*137), 'U'))
+i,count
+0,18769
+
+../../bin/doSvd.sh: U-only test @ 138 x 138 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*138), 'U'))
+i,count
+0,19044
+
+../../bin/doSvd.sh: U-only test @ 139 x 139 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*139), 'U'))
+i,count
+0,19321
+
+../../bin/doSvd.sh: U-only test @ 140 x 140 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*140), 'U'))
+i,count
+0,19600
+
+../../bin/doSvd.sh: U-only test @ 141 x 141 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*141), 'U'))
+i,count
+0,19881
+
+../../bin/doSvd.sh: U-only test @ 142 x 142 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*142), 'U'))
+i,count
+0,20164
+
+../../bin/doSvd.sh: U-only test @ 143 x 143 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*143), 'U'))
+i,count
+0,20449
+
+../../bin/doSvd.sh: U-only test @ 144 x 144 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*144), 'U'))
+i,count
+0,20736
+
+../../bin/doSvd.sh: U-only test @ 145 x 145 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*145), 'U'))
+i,count
+0,21025
+
+../../bin/doSvd.sh: U-only test @ 146 x 146 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*146), 'U'))
+i,count
+0,21316
+
+../../bin/doSvd.sh: U-only test @ 147 x 147 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*147), 'U'))
+i,count
+0,21609
+
+../../bin/doSvd.sh: U-only test @ 148 x 148 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*148), 'U'))
+i,count
+0,21904
+
+../../bin/doSvd.sh: U-only test @ 149 x 149 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*149), 'U'))
+i,count
+0,22201
+
+../../bin/doSvd.sh: U-only test @ 150 x 150 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*150), 'U'))
+i,count
+0,22500
+
+../../bin/doSvd.sh: U-only test @ 151 x 151 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*151), 'U'))
+i,count
+0,22801
+
+../../bin/doSvd.sh: U-only test @ 152 x 152 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*152), 'U'))
+i,count
+0,23104
+
+../../bin/doSvd.sh: U-only test @ 153 x 153 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*153), 'U'))
+i,count
+0,23409
+
+../../bin/doSvd.sh: U-only test @ 154 x 154 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*154), 'U'))
+i,count
+0,23716
+
+../../bin/doSvd.sh: U-only test @ 155 x 155 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*155), 'U'))
+i,count
+0,24025
+
+../../bin/doSvd.sh: U-only test @ 156 x 156 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*156), 'U'))
+i,count
+0,24336
+
+../../bin/doSvd.sh: U-only test @ 157 x 157 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*157), 'U'))
+i,count
+0,24649
+
+../../bin/doSvd.sh: U-only test @ 158 x 158 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*158), 'U'))
+i,count
+0,24964
+
+../../bin/doSvd.sh: U-only test @ 159 x 159 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*159), 'U'))
+i,count
+0,25281
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 128,-1,159 end
+
+
+160-191  hangs on 64i x 4n
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 160,-1,191 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 160 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 160 to 191 (if any)
+../../bin/doSvd.sh: U-only test @ 160 x 160 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*160), 'U'))
+i,count
+0,25600
+
+../../bin/doSvd.sh: U-only test @ 161 x 161 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*161), 'U'))
+i,count
+0,25921
+
+../../bin/doSvd.sh: U-only test @ 162 x 162 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*162), 'U'))
+i,count
+0,26244
+
+../../bin/doSvd.sh: U-only test @ 163 x 163 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*163), 'U'))
+i,count
+0,26569
+
+../../bin/doSvd.sh: U-only test @ 164 x 164 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*164), 'U'))
+i,count
+0,26896
+
+../../bin/doSvd.sh: U-only test @ 165 x 165 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*165), 'U'))
+i,count
+0,27225
+
+../../bin/doSvd.sh: U-only test @ 166 x 166 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*166), 'U'))
+i,count
+0,27556
+
+../../bin/doSvd.sh: U-only test @ 167 x 167 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*167), 'U'))
+i,count
+0,27889
+
+../../bin/doSvd.sh: U-only test @ 168 x 168 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*168), 'U'))
+i,count
+0,28224
+
+../../bin/doSvd.sh: U-only test @ 169 x 169 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*169), 'U'))
+i,count
+0,28561
+
+../../bin/doSvd.sh: U-only test @ 170 x 170 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*170), 'U'))
+i,count
+0,28900
+
+../../bin/doSvd.sh: U-only test @ 171 x 171 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*171), 'U'))
+i,count
+0,29241
+
+../../bin/doSvd.sh: U-only test @ 172 x 172 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*172), 'U'))
+i,count
+0,29584
+
+../../bin/doSvd.sh: U-only test @ 173 x 173 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*173), 'U'))
+i,count
+0,29929
+
+../../bin/doSvd.sh: U-only test @ 174 x 174 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*174), 'U'))
+i,count
+0,30276
+
+../../bin/doSvd.sh: U-only test @ 175 x 175 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*175), 'U'))
+i,count
+0,30625
+
+../../bin/doSvd.sh: U-only test @ 176 x 176 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*176), 'U'))
+i,count
+0,30976
+
+../../bin/doSvd.sh: U-only test @ 177 x 177 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*177), 'U'))
+i,count
+0,31329
+
+../../bin/doSvd.sh: U-only test @ 178 x 178 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*178), 'U'))
+i,count
+0,31684
+
+../../bin/doSvd.sh: U-only test @ 179 x 179 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*179), 'U'))
+i,count
+0,32041
+
+../../bin/doSvd.sh: U-only test @ 180 x 180 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*180), 'U'))
+i,count
+0,32400
+
+../../bin/doSvd.sh: U-only test @ 181 x 181 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*181), 'U'))
+i,count
+0,32761
+
+../../bin/doSvd.sh: U-only test @ 182 x 182 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*182), 'U'))
+i,count
+0,33124
+
+../../bin/doSvd.sh: U-only test @ 183 x 183 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*183), 'U'))
+i,count
+0,33489
+
+../../bin/doSvd.sh: U-only test @ 184 x 184 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*184), 'U'))
+i,count
+0,33856
+
+../../bin/doSvd.sh: U-only test @ 185 x 185 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*185), 'U'))
+i,count
+0,34225
+
+../../bin/doSvd.sh: U-only test @ 186 x 186 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*186), 'U'))
+i,count
+0,34596
+
+../../bin/doSvd.sh: U-only test @ 187 x 187 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*187), 'U'))
+i,count
+0,34969
+
+../../bin/doSvd.sh: U-only test @ 188 x 188 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*188), 'U'))
+i,count
+0,35344
+
+../../bin/doSvd.sh: U-only test @ 189 x 189 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*189), 'U'))
+i,count
+0,35721
+
+../../bin/doSvd.sh: U-only test @ 190 x 190 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*190), 'U'))
+i,count
+0,36100
+
+../../bin/doSvd.sh: U-only test @ 191 x 191 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*191), 'U'))
+i,count
+0,36481
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 160,-1,191 end
+
+
+192-123  hangs on 64i x 4n
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 192,-1,223 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 192 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 192 to 223 (if any)
+../../bin/doSvd.sh: U-only test @ 192 x 192 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*192), 'U'))
+i,count
+0,36864
+
+../../bin/doSvd.sh: U-only test @ 193 x 193 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*193), 'U'))
+i,count
+0,37249
+
+../../bin/doSvd.sh: U-only test @ 194 x 194 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*194), 'U'))
+i,count
+0,37636
+
+../../bin/doSvd.sh: U-only test @ 195 x 195 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*195), 'U'))
+i,count
+0,38025
+
+../../bin/doSvd.sh: U-only test @ 196 x 196 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*196), 'U'))
+i,count
+0,38416
+
+../../bin/doSvd.sh: U-only test @ 197 x 197 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*197), 'U'))
+i,count
+0,38809
+
+../../bin/doSvd.sh: U-only test @ 198 x 198 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*198), 'U'))
+i,count
+0,39204
+
+../../bin/doSvd.sh: U-only test @ 199 x 199 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*199), 'U'))
+i,count
+0,39601
+
+../../bin/doSvd.sh: U-only test @ 200 x 200 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*200), 'U'))
+i,count
+0,40000
+
+../../bin/doSvd.sh: U-only test @ 201 x 201 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*201), 'U'))
+i,count
+0,40401
+
+../../bin/doSvd.sh: U-only test @ 202 x 202 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*202), 'U'))
+i,count
+0,40804
+
+../../bin/doSvd.sh: U-only test @ 203 x 203 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*203), 'U'))
+i,count
+0,41209
+
+../../bin/doSvd.sh: U-only test @ 204 x 204 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*204), 'U'))
+i,count
+0,41616
+
+../../bin/doSvd.sh: U-only test @ 205 x 205 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*205), 'U'))
+i,count
+0,42025
+
+../../bin/doSvd.sh: U-only test @ 206 x 206 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*206), 'U'))
+i,count
+0,42436
+
+../../bin/doSvd.sh: U-only test @ 207 x 207 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*207), 'U'))
+i,count
+0,42849
+
+../../bin/doSvd.sh: U-only test @ 208 x 208 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*208), 'U'))
+i,count
+0,43264
+
+../../bin/doSvd.sh: U-only test @ 209 x 209 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*209), 'U'))
+i,count
+0,43681
+
+../../bin/doSvd.sh: U-only test @ 210 x 210 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*210), 'U'))
+i,count
+0,44100
+
+../../bin/doSvd.sh: U-only test @ 211 x 211 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*211), 'U'))
+i,count
+0,44521
+
+../../bin/doSvd.sh: U-only test @ 212 x 212 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*212), 'U'))
+i,count
+0,44944
+
+../../bin/doSvd.sh: U-only test @ 213 x 213 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*213), 'U'))
+i,count
+0,45369
+
+../../bin/doSvd.sh: U-only test @ 214 x 214 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*214), 'U'))
+i,count
+0,45796
+
+../../bin/doSvd.sh: U-only test @ 215 x 215 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*215), 'U'))
+i,count
+0,46225
+
+../../bin/doSvd.sh: U-only test @ 216 x 216 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*216), 'U'))
+i,count
+0,46656
+
+../../bin/doSvd.sh: U-only test @ 217 x 217 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*217), 'U'))
+i,count
+0,47089
+
+../../bin/doSvd.sh: U-only test @ 218 x 218 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*218), 'U'))
+i,count
+0,47524
+
+../../bin/doSvd.sh: U-only test @ 219 x 219 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*219), 'U'))
+i,count
+0,47961
+
+../../bin/doSvd.sh: U-only test @ 220 x 220 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*220), 'U'))
+i,count
+0,48400
+
+../../bin/doSvd.sh: U-only test @ 221 x 221 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*221), 'U'))
+i,count
+0,48841
+
+../../bin/doSvd.sh: U-only test @ 222 x 222 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*222), 'U'))
+i,count
+0,49284
+
+../../bin/doSvd.sh: U-only test @ 223 x 223 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*223), 'U'))
+i,count
+0,49729
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 192,-1,223 end
+
+
+ 224-297  (224 hangs on 64i x 4n)
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 224,-1,287 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 224 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 224 to 287 (if any)
+../../bin/doSvd.sh: U-only test @ 224 x 224 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*224), 'U'))
+i,count
+0,50176
+
+../../bin/doSvd.sh: U-only test @ 225 x 225 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*225), 'U'))
+i,count
+0,50625
+
+../../bin/doSvd.sh: U-only test @ 226 x 226 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*226), 'U'))
+i,count
+0,51076
+
+../../bin/doSvd.sh: U-only test @ 227 x 227 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*227), 'U'))
+i,count
+0,51529
+
+../../bin/doSvd.sh: U-only test @ 228 x 228 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*228), 'U'))
+i,count
+0,51984
+
+../../bin/doSvd.sh: U-only test @ 229 x 229 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*229), 'U'))
+i,count
+0,52441
+
+../../bin/doSvd.sh: U-only test @ 230 x 230 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*230), 'U'))
+i,count
+0,52900
+
+../../bin/doSvd.sh: U-only test @ 231 x 231 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*231), 'U'))
+i,count
+0,53361
+
+../../bin/doSvd.sh: U-only test @ 232 x 232 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*232), 'U'))
+i,count
+0,53824
+
+../../bin/doSvd.sh: U-only test @ 233 x 233 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*233), 'U'))
+i,count
+0,54289
+
+../../bin/doSvd.sh: U-only test @ 234 x 234 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*234), 'U'))
+i,count
+0,54756
+
+../../bin/doSvd.sh: U-only test @ 235 x 235 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*235), 'U'))
+i,count
+0,55225
+
+../../bin/doSvd.sh: U-only test @ 236 x 236 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*236), 'U'))
+i,count
+0,55696
+
+../../bin/doSvd.sh: U-only test @ 237 x 237 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*237), 'U'))
+i,count
+0,56169
+
+../../bin/doSvd.sh: U-only test @ 238 x 238 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*238), 'U'))
+i,count
+0,56644
+
+../../bin/doSvd.sh: U-only test @ 239 x 239 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*239), 'U'))
+i,count
+0,57121
+
+../../bin/doSvd.sh: U-only test @ 240 x 240 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*240), 'U'))
+i,count
+0,57600
+
+../../bin/doSvd.sh: U-only test @ 241 x 241 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*241), 'U'))
+i,count
+0,58081
+
+../../bin/doSvd.sh: U-only test @ 242 x 242 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*242), 'U'))
+i,count
+0,58564
+
+../../bin/doSvd.sh: U-only test @ 243 x 243 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*243), 'U'))
+i,count
+0,59049
+
+../../bin/doSvd.sh: U-only test @ 244 x 244 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*244), 'U'))
+i,count
+0,59536
+
+../../bin/doSvd.sh: U-only test @ 245 x 245 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*245), 'U'))
+i,count
+0,60025
+
+../../bin/doSvd.sh: U-only test @ 246 x 246 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*246), 'U'))
+i,count
+0,60516
+
+../../bin/doSvd.sh: U-only test @ 247 x 247 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*247), 'U'))
+i,count
+0,61009
+
+../../bin/doSvd.sh: U-only test @ 248 x 248 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*248), 'U'))
+i,count
+0,61504
+
+../../bin/doSvd.sh: U-only test @ 249 x 249 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*249), 'U'))
+i,count
+0,62001
+
+../../bin/doSvd.sh: U-only test @ 250 x 250 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*250), 'U'))
+i,count
+0,62500
+
+../../bin/doSvd.sh: U-only test @ 251 x 251 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*251), 'U'))
+i,count
+0,63001
+
+../../bin/doSvd.sh: U-only test @ 252 x 252 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*252), 'U'))
+i,count
+0,63504
+
+../../bin/doSvd.sh: U-only test @ 253 x 253 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*253), 'U'))
+i,count
+0,64009
+
+../../bin/doSvd.sh: U-only test @ 254 x 254 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*254), 'U'))
+i,count
+0,64516
+
+../../bin/doSvd.sh: U-only test @ 255 x 255 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*255), 'U'))
+i,count
+0,65025
+
+../../bin/doSvd.sh: U-only test @ 256 x 256 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*256), 'U'))
+i,count
+0,65536
+
+../../bin/doSvd.sh: U-only test @ 257 x 257 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*257), 'U'))
+i,count
+0,66049
+
+../../bin/doSvd.sh: U-only test @ 258 x 258 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*258), 'U'))
+i,count
+0,66564
+
+../../bin/doSvd.sh: U-only test @ 259 x 259 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*259), 'U'))
+i,count
+0,67081
+
+../../bin/doSvd.sh: U-only test @ 260 x 260 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*260), 'U'))
+i,count
+0,67600
+
+../../bin/doSvd.sh: U-only test @ 261 x 261 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*261), 'U'))
+i,count
+0,68121
+
+../../bin/doSvd.sh: U-only test @ 262 x 262 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*262), 'U'))
+i,count
+0,68644
+
+../../bin/doSvd.sh: U-only test @ 263 x 263 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*263), 'U'))
+i,count
+0,69169
+
+../../bin/doSvd.sh: U-only test @ 264 x 264 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*264), 'U'))
+i,count
+0,69696
+
+../../bin/doSvd.sh: U-only test @ 265 x 265 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*265), 'U'))
+i,count
+0,70225
+
+../../bin/doSvd.sh: U-only test @ 266 x 266 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*266), 'U'))
+i,count
+0,70756
+
+../../bin/doSvd.sh: U-only test @ 267 x 267 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*267), 'U'))
+i,count
+0,71289
+
+../../bin/doSvd.sh: U-only test @ 268 x 268 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*268), 'U'))
+i,count
+0,71824
+
+../../bin/doSvd.sh: U-only test @ 269 x 269 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*269), 'U'))
+i,count
+0,72361
+
+../../bin/doSvd.sh: U-only test @ 270 x 270 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*270), 'U'))
+i,count
+0,72900
+
+../../bin/doSvd.sh: U-only test @ 271 x 271 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*271), 'U'))
+i,count
+0,73441
+
+../../bin/doSvd.sh: U-only test @ 272 x 272 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*272), 'U'))
+i,count
+0,73984
+
+../../bin/doSvd.sh: U-only test @ 273 x 273 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*273), 'U'))
+i,count
+0,74529
+
+../../bin/doSvd.sh: U-only test @ 274 x 274 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*274), 'U'))
+i,count
+0,75076
+
+../../bin/doSvd.sh: U-only test @ 275 x 275 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*275), 'U'))
+i,count
+0,75625
+
+../../bin/doSvd.sh: U-only test @ 276 x 276 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*276), 'U'))
+i,count
+0,76176
+
+../../bin/doSvd.sh: U-only test @ 277 x 277 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*277), 'U'))
+i,count
+0,76729
+
+../../bin/doSvd.sh: U-only test @ 278 x 278 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*278), 'U'))
+i,count
+0,77284
+
+../../bin/doSvd.sh: U-only test @ 279 x 279 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*279), 'U'))
+i,count
+0,77841
+
+../../bin/doSvd.sh: U-only test @ 280 x 280 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*280), 'U'))
+i,count
+0,78400
+
+../../bin/doSvd.sh: U-only test @ 281 x 281 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*281), 'U'))
+i,count
+0,78961
+
+../../bin/doSvd.sh: U-only test @ 282 x 282 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*282), 'U'))
+i,count
+0,79524
+
+../../bin/doSvd.sh: U-only test @ 283 x 283 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*283), 'U'))
+i,count
+0,80089
+
+../../bin/doSvd.sh: U-only test @ 284 x 284 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*284), 'U'))
+i,count
+0,80656
+
+../../bin/doSvd.sh: U-only test @ 285 x 285 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*285), 'U'))
+i,count
+0,81225
+
+../../bin/doSvd.sh: U-only test @ 286 x 286 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*286), 'U'))
+i,count
+0,81796
+
+../../bin/doSvd.sh: U-only test @ 287 x 287 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*287), 'U'))
+i,count
+0,82369
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 224,-1,287 end
+
+
+ 288-319
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 288,-1,319 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 288 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 288 to 319 (if any)
+../../bin/doSvd.sh: U-only test @ 288 x 288 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*288), 'U'))
+i,count
+0,82944
+
+../../bin/doSvd.sh: U-only test @ 289 x 289 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*289), 'U'))
+i,count
+0,83521
+
+../../bin/doSvd.sh: U-only test @ 290 x 290 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*290), 'U'))
+i,count
+0,84100
+
+../../bin/doSvd.sh: U-only test @ 291 x 291 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*291), 'U'))
+i,count
+0,84681
+
+../../bin/doSvd.sh: U-only test @ 292 x 292 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*292), 'U'))
+i,count
+0,85264
+
+../../bin/doSvd.sh: U-only test @ 293 x 293 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*293), 'U'))
+i,count
+0,85849
+
+../../bin/doSvd.sh: U-only test @ 294 x 294 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*294), 'U'))
+i,count
+0,86436
+
+../../bin/doSvd.sh: U-only test @ 295 x 295 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*295), 'U'))
+i,count
+0,87025
+
+../../bin/doSvd.sh: U-only test @ 296 x 296 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*296), 'U'))
+i,count
+0,87616
+
+../../bin/doSvd.sh: U-only test @ 297 x 297 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*297), 'U'))
+i,count
+0,88209
+
+../../bin/doSvd.sh: U-only test @ 298 x 298 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*298), 'U'))
+i,count
+0,88804
+
+../../bin/doSvd.sh: U-only test @ 299 x 299 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*299), 'U'))
+i,count
+0,89401
+
+../../bin/doSvd.sh: U-only test @ 300 x 300 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*300), 'U'))
+i,count
+0,90000
+
+../../bin/doSvd.sh: U-only test @ 301 x 301 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*301), 'U'))
+i,count
+0,90601
+
+../../bin/doSvd.sh: U-only test @ 302 x 302 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*302), 'U'))
+i,count
+0,91204
+
+../../bin/doSvd.sh: U-only test @ 303 x 303 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*303), 'U'))
+i,count
+0,91809
+
+../../bin/doSvd.sh: U-only test @ 304 x 304 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*304), 'U'))
+i,count
+0,92416
+
+../../bin/doSvd.sh: U-only test @ 305 x 305 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*305), 'U'))
+i,count
+0,93025
+
+../../bin/doSvd.sh: U-only test @ 306 x 306 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*306), 'U'))
+i,count
+0,93636
+
+../../bin/doSvd.sh: U-only test @ 307 x 307 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*307), 'U'))
+i,count
+0,94249
+
+../../bin/doSvd.sh: U-only test @ 308 x 308 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*308), 'U'))
+i,count
+0,94864
+
+../../bin/doSvd.sh: U-only test @ 309 x 309 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*309), 'U'))
+i,count
+0,95481
+
+../../bin/doSvd.sh: U-only test @ 310 x 310 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*310), 'U'))
+i,count
+0,96100
+
+../../bin/doSvd.sh: U-only test @ 311 x 311 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*311), 'U'))
+i,count
+0,96721
+
+../../bin/doSvd.sh: U-only test @ 312 x 312 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*312), 'U'))
+i,count
+0,97344
+
+../../bin/doSvd.sh: U-only test @ 313 x 313 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*313), 'U'))
+i,count
+0,97969
+
+../../bin/doSvd.sh: U-only test @ 314 x 314 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*314), 'U'))
+i,count
+0,98596
+
+../../bin/doSvd.sh: U-only test @ 315 x 315 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*315), 'U'))
+i,count
+0,99225
+
+../../bin/doSvd.sh: U-only test @ 316 x 316 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*316), 'U'))
+i,count
+0,99856
+
+../../bin/doSvd.sh: U-only test @ 317 x 317 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*317), 'U'))
+i,count
+0,100489
+
+../../bin/doSvd.sh: U-only test @ 318 x 318 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*318), 'U'))
+i,count
+0,101124
+
+../../bin/doSvd.sh: U-only test @ 319 x 319 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*319), 'U'))
+i,count
+0,101761
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 288,-1,319 end
+
+
+ 320
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 320,-1,320 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 320 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 320 to 320 (if any)
+../../bin/doSvd.sh: U-only test @ 320 x 320 csize 32 x 32
+Query was executed successfully
+count(gesvd(build(TEST_DOSVD_IN, 1+c+r*320), 'U'))
+i,count
+0,102400
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 320,-1,320 end
+
+

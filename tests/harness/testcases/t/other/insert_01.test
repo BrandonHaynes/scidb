@@ -1,0 +1,46 @@
+--setup
+--start-query-logging
+# Ticket number: 1950
+# Testing INSERT operator on 1D arrays.
+# Test covers inserting on arrays, filled arrays and negative tests
+
+create array A <val:double> [x=0:3,2,0]
+create array B <val:double> [x=0:3,2,0]
+create array C <val:double> [x=-4:-1,2,0]
+create array D <sal:double> [x=0:3,4,0]
+
+
+--test
+insert(filter(build(A,(5*x+3.9/x)), x=1 or x=2),A)
+insert(filter(build(A,(5*x+3.9/x)), x=0 or x=3),A)
+insert(build(B,2*x),A)
+
+insert(B,A)
+scan(B)
+insert(A,B)
+scan(B)
+
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH "insert(C,A)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH "insert(A,C)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH "insert(A,D)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH "insert(repart(D,<val:double> [x=0:3,2,0]),D)"
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "insert(B, repart(D,<sal:double> [x=0:3,2,0]))"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAY_DOESNT_EXIST "insert(B,ZZ)"
+
+insert(repart(D,<val:double> [x=0:3,2,0]),B)
+insert(repart(D,<sal:double> [x=0:3,2,0]),B)
+insert(subarray(A,2,3),B)
+aggregate(versions(A),count(*))
+insert(filter(A,true),B)
+aggregate(versions(B),count(*))
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+
+--stop-query-logging
+
+

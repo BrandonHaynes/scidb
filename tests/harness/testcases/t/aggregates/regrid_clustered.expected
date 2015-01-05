@@ -1,0 +1,160 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a
+{0} 10
+{1} null
+{2} 12
+{3} null
+
+{x} a
+{0} null
+{1} 10
+{2} null
+{3} 12
+
+{x} a
+{0} 10
+{1} null
+{2} 12
+{3} null
+
+{x} a
+{0} null
+{1} 10
+{2} null
+{3} 12
+
+{x} a
+{0} 10
+{1} null
+{2} 12
+{3} null
+
+{x} a
+{0} null
+{1} 10
+{2} null
+{3} 12
+
+{x} a
+{0} 10
+{1} null
+{2} 12
+{3} null
+
+{x} a
+{0} null
+{1} 10
+{2} null
+{3} 12
+
+{x} a_min
+{0} 10
+{1} 12
+
+{x} a_min
+{0} 10
+{1} 12
+
+{x} a_min
+{0} 10
+{1} 12
+
+{x} a_min
+{0} 10
+{1} 12
+
+{x} a_max
+{0} 10
+{1} 12
+
+{x} a_max
+{0} 10
+{1} 12
+
+{x} a_max
+{0} 10
+{1} 12
+
+{x} a_max
+{0} 10
+{1} 12
+
+{x} a_count
+{0} 1
+{1} 1
+
+{x} a_count
+{0} 1
+{1} 1
+
+{x} a_count
+{0} 1
+{1} 1
+
+{x} a_count
+{0} 1
+{1} 1
+
+{x} count
+{0} 2
+{1} 2
+
+{x} count
+{0} 2
+{1} 2
+
+{x} count
+{0} 2
+{1} 2
+
+{x} count
+{0} 2
+{1} 2
+
+{x} a_sum
+{0} 10
+{1} 12
+
+{x} a_sum
+{0} 10
+{1} 12
+
+{x} a_sum
+{0} 10
+{1} 12
+
+{x} a_sum
+{0} 10
+{1} 12
+
+{x} a_avg
+{0} 10
+{1} 12
+
+{x} a_avg
+{0} 10
+{1} 12
+
+{x} a_avg
+{0} 10
+{1} 12
+
+{x} a_avg
+{0} 10
+{1} 12
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

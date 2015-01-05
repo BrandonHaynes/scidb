@@ -1,0 +1,89 @@
+--setup
+
+# I'm a bit bummed that the test harness won't allow me to break this
+# up over multiple lines.  Grrrr.
+#
+CREATE ARRAY gradebook <LName:string,FName:string,Dept:string null,Course:int32,GPA:double null,Remarks:string null>[i=0:*,8,0]
+
+# Array for testing TSV encoding of data with funky embedded characters.
+CREATE ARRAY funky <Last:string,First:string,Middle:string null>[i=0:*,8,0]
+
+--test
+
+--set-format tsv
+--shell --store --command "cat ${TEST_DATA_DIR}/grades.tsv | csv2scidb -d '	' -s 1 -p SSSNNS > /tmp/tsv_io.load"
+load(gradebook, '/tmp/tsv_io.load')
+
+# When diff(1) is expected to detect a difference, "... || true" is
+# used to prevent the test from bombing.
+
+--echo Test plain tsv format, expect diffs due to null
+--igdata "save(gradebook, '/tmp/tsv_io_plain.out', -2, 'tsv')"
+--shell --store --command "diff ${TEST_DATA_DIR}/grades.tsv /tmp/tsv_io_plain.out || true"
+
+--echo Test tsv:E format
+--igdata "save(gradebook, '/tmp/tsv_io_E.out', -2, 'tsv:E')"
+--shell --store --command "diff ${TEST_DATA_DIR}/grades.tsv /tmp/tsv_io_E.out"
+
+--echo Test tsv:N format
+--igdata "save(gradebook, '/tmp/tsv_io_N.out', -2, 'tsv:N')"
+--shell --store --command "sed 's/\\N//g' /tmp/tsv_io_N.out | diff ${TEST_DATA_DIR}/grades.tsv -"
+
+--echo Test tsv:? format
+--igdata "save(gradebook, '/tmp/tsv_io_qmark.out', -2, 'tsv:?')"
+--shell --store --command "sed 's/\?0//g' /tmp/tsv_io_qmark.out | diff ${TEST_DATA_DIR}/grades.tsv -"
+
+--echo Test tsv+ format, expect diffs due to null
+--igdata "save(gradebook, '/tmp/tsv_io_plus.out', -2, 'tsv+')"
+--shell --store --command "awk 'NR == 1 {printf "i\t%s\n", $0} NR != 1 {printf "%d\t%s\n", NR - 2, $0}' ${TEST_DATA_DIR}/grades.tsv | diff - /tmp/tsv_io_plus.out || true"
+
+--echo Test tsv+:E format
+--igdata "save(gradebook, '/tmp/tsv_io_plusE.out', -2, 'tsv+:E')"
+--shell --store --command "awk 'NR == 1 {printf "i\t%s\n", $0} NR != 1 {printf "%d\t%s\n", NR - 2, $0}' ${TEST_DATA_DIR}/grades.tsv | diff - /tmp/tsv_io_plusE.out"
+
+--echo Test tsv+:N format
+--igdata "save(gradebook, '/tmp/tsv_io_plusN.out', -2, 'tsv+:N')"
+--shell --command "awk 'NR == 1 {printf "i\t%s\n", $0} NR != 1 {printf "%d\t%s\n", NR - 2, $0}' ${TEST_DATA_DIR}/grades.tsv > /tmp/grades_plus.tsv"
+--shell --store --command "sed 's/\\N//g' /tmp/tsv_io_plusN.out | diff - /tmp/grades_plus.tsv"
+
+--echo Test tsv+:? format
+--igdata "save(gradebook, '/tmp/tsv_io_plusQ.out', -2, 'tsv+:?')"
+--shell --command "awk 'NR == 1 {printf "i\t%s\n", $0} NR != 1 {printf "%d\t%s\n", NR - 2, $0}' ${TEST_DATA_DIR}/grades.tsv > /tmp/grades_plus.tsv"
+--shell --store --command "sed 's/\?0//g' /tmp/tsv_io_plusQ.out | diff - /tmp/grades_plus.tsv"
+
+# On this tiny data set, ltsv+ output looks pretty much like tsv+
+# output, so use basically the same tests.
+
+--echo Test ltsv+ format, expect diffs due to null
+--igdata "save(gradebook, '/tmp/tsv_io_L.out', -2, 'ltsv+')"
+--shell --store --command "awk 'NR == 1 {printf "i\t%s\n", $0} NR != 1 {printf "%d\t%s\n", NR - 2, $0}' ${TEST_DATA_DIR}/grades.tsv | diff - /tmp/tsv_io_L.out || true"
+
+--echo Test ltsv+:E format
+--igdata "save(gradebook, '/tmp/tsv_io_LE.out', -2, 'ltsv+:E')"
+--shell --store --command "awk 'NR == 1 {printf "i\t%s\n", $0} NR != 1 {printf "%d\t%s\n", NR - 2, $0}' ${TEST_DATA_DIR}/grades.tsv | diff - /tmp/tsv_io_LE.out"
+
+--echo Test ltsv+:N format
+--igdata "save(gradebook, '/tmp/tsv_io_LN.out', -2, 'ltsv+:N')"
+--shell --command "awk 'NR == 1 {printf "i\t%s\n", $0} NR != 1 {printf "%d\t%s\n", NR - 2, $0}' ${TEST_DATA_DIR}/grades.tsv > /tmp/grades_L.tsv"
+--shell --store --command "sed 's/\\N//g' /tmp/tsv_io_LN.out | diff - /tmp/grades_L.tsv"
+
+--echo Test ltsv+:? format
+--igdata "save(gradebook, '/tmp/tsv_io_LQ.out', -2, 'ltsv+:?')"
+--shell --command "awk 'NR == 1 {printf "i\t%s\n", $0} NR != 1 {printf "%d\t%s\n", NR - 2, $0}' ${TEST_DATA_DIR}/grades.tsv > /tmp/grades_LQ.tsv"
+--shell --store --command "sed 's/\?0//g' /tmp/tsv_io_LQ.out | diff - /tmp/grades_L.tsv"
+
+--echo Test TSV string field encoding
+
+# Painfully get a few hard tabs into SciDB.
+--shell --command "echo 'Hunter,	,Q' > /tmp/tabby.csv"
+--shell --command "echo 'Get it? It is a 	 joke.,Ha,ha' >> /tmp/tabby.csv"
+--shell --command "csv2scidb -p sss < /tmp/tabby.csv > /tmp/tabby.scidb"
+--igdata "load(funky, '/tmp/tabby.scidb')"
+--igdata "save(funky, '/tmp/tabby.tsv', -2, 'tsv')"
+--shell --store --command "cat /tmp/tabby.tsv"
+--shell --command "rm /tmp/tabby.*"
+
+--cleanup
+remove(gradebook)
+remove(funky)
+--shell --command "rm -f /tmp/tsv_io* /tmp/grades_*.tsv"

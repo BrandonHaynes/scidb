@@ -1,0 +1,35 @@
+--setup
+--start-query-logging
+
+create array A <a:int32, b:string, c:string> [x=0:2,3,0,y=4:5,1,0]
+create array A2 <a:int32, b:string> [c(string)=6,2,0]
+create array A3 <c:string, a:int32> [b(string)=6,2,0,x=0:2,3,0]
+load(A,'${TEST_DATA_DIR}/iquery_5.txt')
+
+--test
+
+#--shell --command " iquery   -o lcsv+ -aq 'filter(redimension_store(A,A2), a>0)' 2>iquery_6.stderr" --store
+--shell --command " iquery   -o lcsv+ -aq 'store(redimension(A,A2),A2)' 2>iquery_6.stderr" --store
+--shell --command "cat iquery_6.stderr" --store
+--shell --command "rm iquery_6.stderr" --store
+
+#--shell --command " iquery   -o lsparse -aq 'filter(redimension_store(A,A2), a>0)' 2>iquery_6.stderr" --store
+--shell --command " iquery   -o lsparse -aq 'store(redimension(A,A2),A2)' 2>iquery_6.stderr" --store
+--shell --command "cat iquery_6.stderr" --store
+--shell --command "rm iquery_6.stderr" --store
+
+#--shell --command " iquery   -o lcsv+ -aq 'store(redimension_store(A,A3), A3)' 2>iquery_6.stderr" --store
+--shell --command " iquery   -o lcsv+ -aq 'store(redimension(A,A3),A3)' 2>iquery_6.stderr" --store
+--shell --command "cat iquery_6.stderr" --store
+--shell --command "rm iquery_6.stderr" --store
+
+#--shell --command " iquery   -o lsparse -aq 'store(redimension_store(A,A3), A3)' 2>iquery_6.stderr" --store
+--shell --command " iquery   -o lsparse -aq 'store(redimension(A,A3),A3)' 2>iquery_6.stderr" --store
+--shell --command "cat iquery_6.stderr" --store
+--shell --command "rm iquery_6.stderr" --store
+
+--cleanup
+remove(A)
+remove(A2)
+remove(A3)
+--stop-query-logging

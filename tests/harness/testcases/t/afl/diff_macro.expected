@@ -1,0 +1,32 @@
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+SCIDB QUERY : <diff1(A,B,A.v,B.v)>
+count
+0
+
+SCIDB QUERY : <diff2(A,B,A.v,B.v)>
+count
+0
+
+SCIDB QUERY : <diff1(build(<v1:double>[i=0:999,1000,0,j=0:99,1000,0],2),build(<v2:double>[i=0:999,1000,0,j=0:99,1000,0],2),v1,v2)>
+count
+0
+
+SCIDB QUERY : <diff2(build(<v1:double>[i=0:999,1000,0,j=0:99,1000,0],2),build(<v2:double>[i=0:999,1000,0,j=0:99,1000,0],2),v1,v2)>
+count
+0
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

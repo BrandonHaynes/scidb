@@ -1,0 +1,109 @@
+--setup
+--start-query-logging
+create array Ts <a:int32> [x=-2:3,2,1]
+create array Ts_rle <a:int32 compression 'rle'> [x=-2:3,2,1]
+create array Ts_d <a:int32 compression 'dictionary'> [x=-2:3,2,1]
+create array Ts_ns <a:int32 compression 'null suppression'> [x=-2:3,2,1]
+create array Ts_be <a:int32 compression 'bitmap encoding'> [x=-2:3,2,1]
+create array Ts_z <a:int32 compression 'zlib'> [x=-2:3,2,1]
+create array Ts_bz <a:int32 compression 'bzlib'> [x=-2:3,2,1]
+create array Ts_nf <a:int32 compression 'null filter'> [x=-2:3,2,1]
+
+create array eTs <a:int32> [x=-2:3,2,1]
+create array eTs_rle <a:int32 compression 'rle'> [x=-2:3,2,1]
+create array eTs_d <a:int32 compression 'dictionary'> [x=-2:3,2,1]
+create array eTs_ns <a:int32 compression 'null suppression'> [x=-2:3,2,1]
+create array eTs_be <a:int32 compression 'bitmap encoding'> [x=-2:3,2,1]
+create array eTs_z <a:int32 compression 'zlib'> [x=-2:3,2,1]
+create array eTs_bz <a:int32 compression 'bzlib'> [x=-2:3,2,1]
+create array eTs_nf <a:int32 compression 'null filter'> [x=-2:3,2,1]
+
+create array dTs <a:int32 default 5> [x=-2:3,2,1]
+create array dTs_rle <a:int32 default 5 compression 'rle'> [x=-2:3,2,1]
+create array dTs_d <a:int32 default 5 compression 'dictionary'> [x=-2:3,2,1]
+create array dTs_ns <a:int32 default 5 compression 'null suppression'> [x=-2:3,2,1]
+create array dTs_be <a:int32 default 5 compression 'bitmap encoding'> [x=-2:3,2,1]
+create array dTs_z <a:int32 default 5 compression 'zlib'> [x=-2:3,2,1]
+create array dTs_bz <a:int32 default 5 compression 'bzlib'> [x=-2:3,2,1]
+create array dTs_nf <a:int32 default 5 compression 'null filter'> [x=-2:3,2,1]
+
+create array edTs <a:int32 default 5> [x=-2:3,2,1]
+create array edTs_rle <a:int32 default 5 compression 'rle'> [x=-2:3,2,1]
+create array edTs_d <a:int32 default 5 compression 'dictionary'> [x=-2:3,2,1]
+create array edTs_ns <a:int32 default 5 compression 'null suppression'> [x=-2:3,2,1]
+create array edTs_be <a:int32 default 5 compression 'bitmap encoding'> [x=-2:3,2,1]
+create array edTs_z <a:int32 default 5 compression 'zlib'> [x=-2:3,2,1]
+create array edTs_bz <a:int32 default 5 compression 'bzlib'> [x=-2:3,2,1]
+create array edTs_nf <a:int32 default 5 compression 'null filter'> [x=-2:3,2,1]
+
+
+--test
+--aql select * into Ts_rle from filter(build(Ts,x),x<>0)
+--aql select * into Ts_d from filter(build(Ts,x),x<>x)
+--aql select * into Ts_ns from filter(build(Ts,x),x<>1 or x<>-1)
+--aql select * into Ts_be from filter(build(Ts,x),x=0 or x=3)
+--aql select * into Ts_z from filter(build(Ts,x),x=-1)
+--aql select * into Ts_bz from filter(build(Ts,x),x=9)
+--aql select * into Ts_nf from filter(build(Ts,x),x=x)
+
+--aql select * into eTs_rle from filter(build(eTs,x),x<>0)
+--aql select * into eTs_d from filter(build(eTs,x),x<>x)
+--aql select * into eTs_ns from filter(build(eTs,x),x<>1 or x<>-1)
+--aql select * into eTs_be from filter(build(eTs,x),x=0 or x=3)
+--aql select * into eTs_z from filter(build(eTs,x),x=-1)
+--aql select * into eTs_bz from filter(build(eTs,x),x=9)
+--aql select * into eTs_nf from filter(build(eTs,x),x=x)
+
+--aql select * into dTs_rle from filter(build(dTs,x),true)
+--aql select * into dTs_d from filter(build(dTs,x),true)
+--aql select * into dTs_ns from filter(build(dTs,x),true)
+--aql select * into dTs_be from filter(build(dTs,x),true)
+--aql select * into dTs_z from filter(build(dTs,x),true)
+--aql select * into dTs_bz from filter(build(dTs,x),true)
+--aql select * into dTs_nf from filter(build(dTs,x),true)
+
+--aql select * into edTs_rle from filter(build(edTs,x),x<>0)
+--aql select * into edTs_d from filter(build(edTs,x),x<>x)
+--aql select * into edTs_ns from filter(build(edTs,x),x<>1 or x<>-1)
+--aql select * into edTs_be from filter(build(edTs,x),x=0 or x=3)
+--aql select * into edTs_z from filter(build(edTs,x),x=-1)
+--aql select * into edTs_bz from filter(build(edTs,x),x=9)
+--aql select * into edTs_nf from filter(build(edTs,x),x=x)
+
+--cleanup
+remove(Ts)
+remove(Ts_rle)
+remove(Ts_d)
+remove(Ts_ns)
+remove(Ts_be)
+remove(Ts_z)
+remove(Ts_bz)
+remove(Ts_nf)
+
+remove(eTs)
+remove(eTs_rle)
+remove(eTs_d)
+remove(eTs_ns)
+remove(eTs_be)
+remove(eTs_z)
+remove(eTs_bz)
+remove(eTs_nf)
+
+remove(dTs)
+remove(dTs_rle)
+remove(dTs_d)
+remove(dTs_ns)
+remove(dTs_be)
+remove(dTs_z)
+remove(dTs_bz)
+remove(dTs_nf)
+
+remove(edTs)
+remove(edTs_rle)
+remove(edTs_d)
+remove(edTs_ns)
+remove(edTs_be)
+remove(edTs_z)
+remove(edTs_bz)
+remove(edTs_nf)
+--stop-query-logging

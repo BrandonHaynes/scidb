@@ -1,0 +1,94 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+create array spShape  <a:double>[x=0:0,1,0, y=0:0,1,0]
+
+--test
+
+# something that's a non-identity, non-annihilator for all system tested:
+# or "ordinary element" E
+store( filter(build(spShape, 3), true), spE)
+
+# round 1, normal arithmetic:
+# identities (additive is both explict and implicit, which I call 'none')
+store( filter(build(spShape, -1), false), spNone )
+store( filter(build(spShape, 0), true), spAdd)
+store( filter(build(spShape, 1), true), spMul)
+
+# check additive identity causes annihilation when multiplied
+# A,A->N, A,N->N, N,A->N, N,N->N
+--echo "annihilation"
+spgemm(spAdd, spAdd)
+spgemm(spAdd, spNone)
+spgemm(spNone, spAdd)
+spgemm(spNone, spNone)
+
+# check that mult. identity preserves E
+# ME->E, EM->E, MM->M
+--echo "should be: 3, 3, 1
+spgemm(spMul, spE)
+spgemm(spE, spMul)
+spgemm(spMul, spMul)
+
+#check ordinary
+--echo "should be 9"
+spgemm(spE, spE)
+
+
+# round 2 for the (min, +, inf, 0) semigroup
+# change the (Add,Mul) identities to (inf,0)
+store( filter(build(spShape, inf), true), spAdd)
+store( filter(build(spShape, 0), true), spMul)
+
+# check additive identity causes annihilation when multiplied
+# A,A->N, A,N->N, N,A->N, N,N->N
+--echo "annihilation"
+spgemm(spAdd, spAdd, 'min.+')
+spgemm(spAdd, spNone, 'min.+')
+spgemm(spNone, spAdd, 'min.+')
+spgemm(spNone, spNone, 'min.+')
+
+# check that mult. identity preserves E
+# ME->E, EM->E, MM->M
+--echo "should be: 3, 3, 0(annihilation)
+spgemm(spMul, spE, 'min.+')
+spgemm(spE, spMul, 'min.+')
+spgemm(spMul, spMul, 'min.+')
+
+#check ordinary
+--echo "should be 6"
+spgemm(spE, spE, 'min.+')
+
+# round 3 for the (max, +, -inf, 0) semigroup
+# change the (Add,Mul) identities to (-inf,0)
+store( filter(build(spShape, -inf), true), spAdd)
+store( filter(build(spShape, 0), true), spMul)
+
+# check additive identity causes annihilation when multiplied
+# A,A->N, A,N->N, N,A->N, N,N->N
+--echo "annihilation"
+spgemm(spAdd, spAdd, 'max.+')
+spgemm(spAdd, spNone, 'max.+')
+spgemm(spNone, spAdd, 'max.+')
+spgemm(spNone, spNone, 'max.+')
+
+# check that mult. identity preserves E
+# ME->E, EM->E, MM->M
+--echo "should be: 3, 3, 0(annihilation)
+spgemm(spMul, spE, 'max.+')
+spgemm(spE, spMul, 'max.+')
+spgemm(spMul, spMul, 'max.+')
+
+#check ordinary
+--echo "should be 6"
+spgemm(spE, spE, 'max.+')
+
+--cleanup
+remove(spE)
+remove(spShape)
+remove(spNone)
+remove(spAdd)
+remove(spMul)
+
+--stop-query-logging

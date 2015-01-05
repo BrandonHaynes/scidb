@@ -1,0 +1,13 @@
+--setup
+
+CREATE ARRAY A<x:int64>[i=0:2,100,0]
+
+--test
+
+# missing aggregate_call argument...
+# (ticket #2165)
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2  "aggregate(A)"
+
+--cleanup
+
+remove(A)

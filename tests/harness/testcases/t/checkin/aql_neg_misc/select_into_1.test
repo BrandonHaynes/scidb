@@ -1,0 +1,14 @@
+# ticket no. 813
+
+--setup
+create array A <a:int32> [x=0:2,3,0]
+create array B <x:int32>[a(int32)=3,3,0]
+
+--test
+--aql select * into A from build(A,x+10)
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_CAN_NOT_STORE --aql="select * into B from A"
+--aql select name,schema from list('arrays')
+
+--cleanup
+remove(A)
+remove(B)

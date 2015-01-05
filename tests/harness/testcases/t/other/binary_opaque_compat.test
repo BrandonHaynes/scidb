@@ -1,0 +1,24 @@
+--setup 
+--start-query-logging
+--start-ignore-warnings
+
+create array SortedPrevious <d:int64> [ X=0:*,10000,0]
+
+--test
+# load the array from the opaque file saved by the previous version of SciDB
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(SortedPrevious, '${TEST_DATA_DIR}/previous.out', -2, 'opaque')""
+
+# check that the size is correct and that the data is sorted
+aggregate(SortedPrevious, count(d))
+--igdata "store(subarray(SortedPrevious, 1000, 1100), Slice)"
+--igdata "store(window(Slice, 0, 1, min(d)), Window)"
+aggregate(filter(join(Slice, Window), d!=d_min), count(*))
+
+--cleanup
+
+remove(SortedPrevious)
+remove(Slice)
+remove(Window)
+
+--stop-ignore-warnings
+--stop-query-logging

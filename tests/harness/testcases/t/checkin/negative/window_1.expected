@@ -1,0 +1,42 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:2,3,3]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <window(A,1,1,sum(A))>
+[An error expected at this place for the query "window(A,1,1,sum(A))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+SCIDB QUERY : <window(A,1,1,sum(x))>
+[An error expected at this place for the query "window(A,1,1,sum(x))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+SCIDB QUERY : <window(A,1,1,avg(a),max(*),count(*))>
+[An error expected at this place for the query "window(A,1,1,avg(a),max(*),count(*))". And it failed with error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_ASTERISK. Expected error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_ASTERISK.]
+
+SCIDB QUERY : <window(A,1,1,test_aggr(a))>
+[An error expected at this place for the query "window(A,1,1,test_aggr(a))". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_NOT_FOUND. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_NOT_FOUND.]
+
+SCIDB QUERY : <window(A,1,1,test_aggr(x))>
+[An error expected at this place for the query "window(A,1,1,test_aggr(x))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+SCIDB QUERY : <window(A,sum(a))>
+[An error expected at this place for the query "window(A,sum(a))". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <window(A,2,2,1,stdev(a))>
+[An error expected at this place for the query "window(A,2,2,1,stdev(a))". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <window(aggregate(A,count(*)))>
+[An error expected at this place for the query "window(aggregate(A,count(*)))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2.]
+
+SCIDB QUERY : <window(count(a))>
+[An error expected at this place for the query "window(count(a))". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_LOGICAL_OP_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_LOGICAL_OP_DOESNT_EXIST.]
+
+SCIDB QUERY : <window(A,1,1,sum(a),'invalid')>
+[An error expected at this place for the query "window(A,1,1,sum(a),'invalid')". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR5. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR5.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

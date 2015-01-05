@@ -1,0 +1,1 @@
+filter(join(subarray(dense, NULL, NULL, 2, 2) as d1, subarray(dense, 3, 3, NULL, NULL) as d2), d1.a < d2.a)

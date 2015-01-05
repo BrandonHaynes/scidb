@@ -1,0 +1,15 @@
+sum(
+    apply(
+    join(
+        subarray(
+            subarray( opt_dense_quad_small_1, 50,50,399,399), 
+            1,1,340,340
+        ),
+        subarray(
+            subarray( opt_dense_quad_small_2, 49,49,389,389), 
+            1,1,340,340
+        )
+    ),
+     result, opt_dense_quad_small_1.val + opt_dense_quad_small_2.val),
+     result
+)

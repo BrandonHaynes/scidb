@@ -1,0 +1,1 @@
+window(repart(a10x10, <x:double>[i=1:10,5,1, j=1:10,5,1]), 3, 3, sum(x),count(x))

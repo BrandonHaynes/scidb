@@ -1,0 +1,50 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array dates <dt:datetime>[i=0:*,10,0]  
+--set-format dense
+--stop-igdata
+show(dates)  
+--set-format dcsv
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -aq "load(dates,'${TEST_DATA_DIR}/doc/dates.scidb')""
+--set-format csv+
+apply(dates, weekday, day_of_week(dt))  
+apply(dates, time_hour, hour_of_day(dt))  
+--set-format dcsv
+apply(dates,date,strftime(dt,'%B %d, %Y')) 
+apply(dates,date,strftime(dt,'%l:%M:%S %p')) 
+apply(dates,date,strftime(dt,'%r')) 
+apply(dates,date,strftime(dt,'%F')) 
+store(project(apply(dates,dt_plusI,append_offset(dt,3600*(i+1))),dt_plusI),datesTZ) 
+apply(datesTZ,offset_integer,get_offset(dt_plusI)) 
+apply(datesTZ,date_stripped,strip_offset(dt_plusI)) 
+--set-format dense
+--start-igdata
+store(build(<current:datetimetz>[i=0:0,1,0],tznow()),nowDate)  
+--stop-igdata
+--start-igdata
+ project(apply(nowDate,GMTdate,togmt(current)),GMTdate)  
+--stop-igdata
+--start-igdata
+store(build(<current:datetime>[i=0:0,1,0],now()),currentDate)  
+--set-format dcsv
+--stop-igdata
+--start-igdata
+apply(currentDate, currentGMT, append_offset(current, (-5*3600)))  
+--stop-igdata
+--start-igdata
+apply(currentDate, currentGMT, apply_offset(current, (-5*3600)))  
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(dates)
+remove(datesTZ)
+remove(nowDate)
+remove(currentDate)

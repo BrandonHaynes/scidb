@@ -1,0 +1,36 @@
+--setup
+--start-query-logging
+
+create array A <a:int32, b:string, c:string> [x=0:2,3,0,y=4:5,1,0]
+create array A2 <a:int32, b:string> [c(string)=6,2,0]
+create array A3 <c:string, a:int32> [b(string)=6,2,0,x=0:2,3,0]
+load(A,'${TEST_DATA_DIR}/iquery_5.txt')
+store(redimension(A,A2),A2)
+store(redimension(A,A3),A3)
+
+--test
+
+echo ('iquery   -o lcsv+ -aq \'scan ( A )\'')
+--shell --command " iquery   -o lcsv+ -aq 'scan ( A )' " --store
+
+echo ('iquery   -o lsparse -aq \'scan ( A )\'')
+--shell --command " iquery   -o lsparse -aq 'scan ( A )' " --store
+
+echo ('iquery   -o lcsv+ -aq \'scan ( A2 )\'')
+--shell --command " iquery   -o lcsv+ -aq 'scan ( A2 )' " --store
+
+echo ('iquery   -o lsparse -aq \'scan ( A2 )\'')
+--shell --command " iquery   -o lsparse -aq 'scan ( A2 )' " --store
+
+echo ('iquery   -o lcsv+ -aq \'scan ( A3 )\'')
+--shell --command " iquery   -o lcsv+ -aq 'scan ( A3 )' " --store
+
+echo ('iquery   -o lsparse -aq \'scan ( A3 )\'')
+--shell --command " iquery   -o lsparse -aq 'scan ( A3 )' " --store
+
+
+--cleanup
+remove(A)
+remove(A2)
+remove(A3)
+--stop-query-logging

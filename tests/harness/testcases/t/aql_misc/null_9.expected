@@ -1,0 +1,78 @@
+SCIDB QUERY : <create array A <a:int32 null> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from build(A,x+10)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <update A set a=null where x=1>
+{x} a
+{0} 10
+{1} null
+{2} 12
+
+SCIDB QUERY : <select a+100 from A>
+{x} expr
+{0} 110
+{1} null
+{2} 112
+
+SCIDB QUERY : <select 100+a from A>
+{x} expr
+{0} 110
+{1} null
+{2} 112
+
+SCIDB QUERY : <select 100+a+200 from A>
+{x} expr
+{0} 310
+{1} null
+{2} 312
+
+SCIDB QUERY : <select null+a from A>
+{x} expr
+{0} null
+{1} null
+{2} null
+
+SCIDB QUERY : <select a-null from A>
+{x} expr
+{0} null
+{1} null
+{2} null
+
+SCIDB QUERY : <select null-a from A>
+{x} expr
+{0} null
+{1} null
+{2} null
+
+SCIDB QUERY : <select a*null from A>
+{x} expr
+{0} null
+{1} null
+{2} null
+
+SCIDB QUERY : <select null*a from A>
+{x} expr
+{0} null
+{1} null
+{2} null
+
+SCIDB QUERY : <select a/null from A>
+{x} expr
+{0} null
+{1} null
+{2} null
+
+SCIDB QUERY : <select null/a from A>
+{x} expr
+{0} null
+{1} null
+{2} null
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

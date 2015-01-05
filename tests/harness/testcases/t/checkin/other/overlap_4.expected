@@ -1,0 +1,78 @@
+SCIDB QUERY : <create array A <a:string,b:double> [x=-2:3,2,1,y=0:2,2,2]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts <a:string> [x=-2:3,2,1,y=0:2,2,2]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ti <b:double> [x=-2:3,2,1,y=0:2,2,2]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from filter(build(Ts,string(x)+'_'+string(y)),y<>2),filter(build(Ti,x+0.4),y<>2)>
+{x,y} a,b
+{-2,0} '-2_0',-1.6
+{-2,1} '-2_1',-1.6
+{-1,0} '-1_0',-0.6
+{-1,1} '-1_1',-0.6
+{0,0} '0_0',0.4
+{0,1} '0_1',0.4
+{1,0} '1_0',1.4
+{1,1} '1_1',1.4
+{2,0} '2_0',2.4
+{2,1} '2_1',2.4
+{3,0} '3_0',3.4
+{3,1} '3_1',3.4
+
+SCIDB QUERY : <save(A,'a_test.txt',-1,'store')>
+{x,y} a,b
+{-2,0} '-2_0',-1.6
+{-2,1} '-2_1',-1.6
+{-1,0} '-1_0',-0.6
+{-1,1} '-1_1',-0.6
+{0,0} '0_0',0.4
+{0,1} '0_1',0.4
+{1,0} '1_0',1.4
+{1,1} '1_1',1.4
+{2,0} '2_0',2.4
+{2,1} '2_1',2.4
+{3,0} '3_0',3.4
+{3,1} '3_1',3.4
+
+SCIDB QUERY : <load(A,'a_test.txt',-1)>
+{x,y} a,b
+{-2,0} '-2_0',-1.6
+{-2,1} '-2_1',-1.6
+{-1,0} '-1_0',-0.6
+{-1,1} '-1_1',-0.6
+{0,0} '0_0',0.4
+{0,1} '0_1',0.4
+{1,0} '1_0',1.4
+{1,1} '1_1',1.4
+{2,0} '2_0',2.4
+{2,1} '2_1',2.4
+{3,0} '3_0',3.4
+{3,1} '3_1',3.4
+
+SCIDB QUERY : <scan(A)>
+{x,y} a,b
+{-2,0} '-2_0',-1.6
+{-2,1} '-2_1',-1.6
+{-1,0} '-1_0',-0.6
+{-1,1} '-1_1',-0.6
+{0,0} '0_0',0.4
+{0,1} '0_1',0.4
+{1,0} '1_0',1.4
+{1,1} '1_1',1.4
+{2,0} '2_0',2.4
+{2,1} '2_1',2.4
+{3,0} '3_0',3.4
+{3,1} '3_1',3.4
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ti)>
+Query was executed successfully
+

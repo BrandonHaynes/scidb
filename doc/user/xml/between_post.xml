@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="betweenOperator">
+  <refnamediv>
+    <refname>between</refname>
+
+    <refpurpose><indexterm>
+        <primary>between</primary>
+      </indexterm>Produces a result array from a specified, contiguous region
+    of a source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>between(<replaceable>array</replaceable>,<replaceable>low_coord1</replaceable><optional>,<replaceable>low_coord2</replaceable>,...</optional>,
+<replaceable>              high_coord1</replaceable><optional>,<replaceable>high_coord2</replaceable>,...</optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The between operator accepts an input array and a set of coordinates
+    specifying a region within the array. The number of coordinate pairs in
+    the input must be equal to the number of dimensions in the array. The
+    output is an array of the same shape as input, where all cells outside of
+    the given region are marked empty.</para>
+
+    <para>The subarray operator is similar, except that it returns the
+    specified region only. For details, see the <link linkend="subarrayOperator">subarray</link> operator reference.</para>
+
+    <para>You can use the between operator in the FROM clause of an AQL SELECT
+    statement, as a stand-alone operator in a AFL statement, or as an operand
+    within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example selects 4 elements from a 16-element array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 4<symbol role="symbolfont">×</symbol>4 array called
+          between_array:<para><programlisting>AQL% <command>CREATE ARRAY</command> between_array &lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para><para><programlisting>AFL% store(build(between_array,i*4+j),between_array);  </programlisting><screen>[
+[(0),(1),(2),(3)],
+[(4),(5),(6),(7)],
+[(8),(9),(10),(11)],
+[(12),(13),(14),(15)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Select all values from the last two rows and last two columns
+          from between_array:<para><programlisting>AFL% between(between_array,2,2,3,3);  </programlisting><screen>[
+[(),(),(),()],
+[(),(),(),()],
+[(),(),(10),(11)],
+[(),(),(14),(15)]
+]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

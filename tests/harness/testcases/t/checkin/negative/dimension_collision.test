@@ -1,0 +1,8 @@
+# Ticket 2376 (adddim(...) doesn't check for clash in dim names...)
+
+--setup
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DUPLICATE_DIMENSION_NAME "adddim(project(join(build(<attr1:double>[I=0:9,10,0],double(random()%1000)/100.0),build(<attr2:double>[I=0:9,10,0],double(random()%1000)/100.0)),attr1),I)"
+
+--cleanup

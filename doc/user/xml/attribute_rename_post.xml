@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="attRenameOperator">
+  <refnamediv>
+    <refname>attribute_rename</refname>
+
+    <refpurpose><indexterm>
+        <primary>attribute_rename</primary>
+      </indexterm><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>renaming</secondary>
+      </indexterm>Produces a result array with the same dimensions,
+    attributes, and cell values as a source array, but with one or more of the
+    attributes renamed.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>attribute_rename(<replaceable>array</replaceable>,<replaceable>old_attribute1</replaceable>,<replaceable>new_attribute1</replaceable>
+<optional>, <replaceable>old_attribute2</replaceable>,<replaceable>new_attribute2</replaceable></optional>...);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <literal>attribute_rename</literal> operator produces a result
+    array that is nearly identical to a source array, except that one or more
+    attributes are renamed.</para>
+
+    <para>To persist the new attribute names when you use
+    <literal>attribute_rename</literal>, you must store the results to a new
+    array—if you store to the original array, the original attribute names are
+    left in place.</para>
+
+    <para>You can achieve the same functionality (and more) by using the
+    <literal>cast</literal> operator. For details, see <xref linkend="castOperator"/>.</para>
+
+    <para>You can use the attribute_rename operator in the FROM clause of an
+    AQL SELECT statement, as a stand-alone operator in a AFL statement, or as
+    an operand within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example takes an array, and renames one attribute and
+      excludes one attribute from the results.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array:<para><screen>{i} year,event,person,country,time
+{0} 1996,'dash','Bailey','Canada',9.84
+{1} 2000,'dash','Greene','USA',9.87
+{2} 2000,'steeplechase','Kosgei','Kenya',503.17
+{3} 1996,'marathon','Thugwane','Kenya',7956
+{4} 2000,'marathon','Abera','Ethiopia',7811
+{5} 2008,'marathon','Wanjiru','Kenya',7596
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the project operator to exclude the
+          <literal>person</literal> attribute, and the attribute_rename
+          operator to rename the <literal>time</literal>
+          attribute:<para><programlisting>AFL% store(attribute_rename(project(winnersFlat,year, event, country, time),
+      time,time_in_seconds),result);  </programlisting><screen>{i} year,event,country,time_in_seconds
+{0} 1996,'dash','Canada',9.84
+{1} 2000,'dash','USA',9.87
+{2} 2000,'steeplechase','Kenya',503.17
+{3} 1996,'marathon','Kenya',7956
+{4} 2000,'marathon','Ethiopia',7811
+{5} 2008,'marathon','Kenya',7596
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

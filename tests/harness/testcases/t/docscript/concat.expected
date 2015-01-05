@@ -1,0 +1,17 @@
+SCIDB QUERY : <store(build(<val:double>[row=0:2,6,0, col=0:1,2,0],row*2+col),left_array)>
+[[(0),(1)],[(2),(3)],[(4),(5)]]
+
+SCIDB QUERY : <store(build(<val:double>[row=0:1,6,0, col=0:1,2,0],pow( double(row*2+col+1),2.0)),right_array)>
+[[(1),(4)],[(9),(16)]]
+
+SCIDB QUERY : <concat(left_array,right_array)>
+[[(0),(1)],[(2),(3)],[(4),(5)],[(1),(4)],[(9),(16)]]
+
+SCIDB QUERY : <show('concat(left_array,right_array)','afl')>
+{i} schema
+{0} 'left_array@1right_array@1<val:double> [row=0:4,6,0,col=0:1,2,0]'
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,15 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+
+create array sp1_c1_1  <a:double>[x=0:1,1,0, y=0:1,1,0]
+
+--test
+store( filter(build(sp1_c1_1,   1), true),  sp1_c1_1 )
+
+spgemm(sp1_c1_1, sp1_c1_1)
+
+--cleanup
+remove(sp1_c1_1)
+

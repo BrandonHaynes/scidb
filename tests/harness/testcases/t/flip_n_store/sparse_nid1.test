@@ -1,0 +1,49 @@
+--setup
+--start-query-logging
+# Ticket number: 1624
+# Tests on 3D-sparse NID arrays.
+# Tests covering aggregates,joins,subarray,slice,thin on NID single/multi attribute 3D arrays
+
+create array A <a1: double > [x=0:5,3,0]
+create array NID <x:int64> [a1(double)=6,3,0, a2(double)=6,3,0 ,a3(double)=6,3,0]
+store(apply(apply(build(A,13.5*6/x),a2,a1*5.72),a3,a2*0.5),A_derivative)
+
+
+--test
+--set-format sparse
+store(redimension(A_derivative,NID),NID)
+store(subarray(NID,16.2,92.664,46.332,81,463.32,231.66),AAA)
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AMBIGUOUS_DIMENSION "cross_join(NID,AAA,a1,a1)"
+
+slice(NID,a1,81)
+slice(NID,a2,154.44)
+join(slice(NID,a2,154.44),slice(NID,a1,81))
+cross_join(join(slice(NID,a2,154.44),slice(NID,a1,81)),NID)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(AAA,cast(AAA,<x:int64> [a11(double)=5,3,0,a22(double)=4,3,0,a33(double)=4,3,0]),a1,a22)"
+--error --code=scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_IMPLICIT_CONVERTER "thin(NID,16.2,3,92.664,3,46.332,3)"
+
+store(apply(apply(NID,y,x*100.5),z,y*12),NID_multi)
+aggregate(NID_multi,sum(x))
+aggregate(NID_multi,sum(y))
+aggregate(NID_multi,sum(z))
+aggregate(NID_multi,sum(x))
+
+--aql select cos(x),sin(2*y) from NID_multi
+--aql select cos(x),sin(2*y),sqrt(z) from NID_multi
+--aql select sum(x+2), avg(x+1) from NID_multi
+--aql select sum(x), avg(x) from NID_multi
+--aql select cos(x),sin(2*y) from NID_multi
+
+aggregate(NID_multi,sum(z),var(x),min(x),max(z))
+join(NID,NID_multi)
+cross_join(NID,NID_multi)
+
+
+--cleanup
+remove(A)
+remove(NID)
+remove(A_derivative)
+remove(AAA)
+remove(NID_multi)
+
+--stop-query-logging

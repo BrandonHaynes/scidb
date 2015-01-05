@@ -1,0 +1,8 @@
+# this query should result in an error due to parameters not passed
+--setup
+
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT "filter()"
+
+--cleanup
+

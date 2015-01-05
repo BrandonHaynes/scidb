@@ -1,0 +1,216 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<section>
+  <title>Order Statistics</title>
+
+  <para>SciDB offers the following ordering and ranking capabilities.</para>
+
+  <itemizedlist>
+    <listitem>
+      <para>Sort, which can be used to return a sorted vector of all array
+      elements.</para>
+    </listitem>
+
+    <listitem>
+      <para>Rank and avg_rank. These methods can be used to assign an ordinal
+      rank to each element of the array. These can be calculated for the
+      entire array, or on a per dimension basis.</para>
+    </listitem>
+
+    <listitem>
+      <para>Quantiles. These can be calculated for the entire array, or on a
+      per dimension basis.</para>
+    </listitem>
+  </itemizedlist>
+
+  <section remap="h3">
+    <title>Sort</title>
+
+    <para><indexterm>
+        <primary>sort</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>sorting</secondary>
+      </indexterm>The sort operator takes as input a multi-dimensional array
+    and produces a one-dimensional vector of elements sorted by the specified
+    attribute.</para>
+
+    <para>If you specify multiple attributes, all attributes are used for
+    sorting. Array elements are sorted first by the first attribute, and then
+    for each value of the first attribute, they are sorted by the second
+    attribute, and so on for each specified attribute.</para>
+
+    <para>If multiple elements have the same attribute value—for an attribute
+    that is not specified in the sort operator—the sort operator selects an
+    arbitrary ordering of elements when producing the sorted output.</para>
+
+    <para>The result array contains only non-empty cells from the source
+    array. Consider the array <code>m4x4_empty</code>, which is a
+    2-dimensional array with some empty cells. Each element contains two
+    attributes. Here are the contents of the array:<para><screen>[
+[(13,'sand'),(),(),()],
+[(8,'peanut'),(),(6,'pastry'),(7,'doc')],
+[(4,'four'),(),(7,'carl'),()],
+[(),(0,'livia'),(14,'Apostrophe'),()]
+]</screen></para></para>
+
+    <para> To sort the array elements by <code>val</code>, use the following
+    query:</para>
+
+    <para><programlisting>AQL% <command>SELECT</command> * 
+      <command>FROM</command> sort(m4x4_empty, val);  </programlisting><screen>{n} val,label
+{0} 0,'livia'
+{1} 4,'four'
+{2} 6,'pastry'
+{3} 7,'doc'
+{4} 7,'carl'
+{5} 8,'peanut'
+{6} 13,'sand'
+{7} 14,'Apostrophe'
+</screen><para>To sort the array by val, and then by label, use the following
+    query.</para>
+
+    <para><programlisting>AQL% 
+<command>SELECT</command> * 
+<command>FROM</command> sort(m4x4_empty, val, label);  </programlisting><screen>{n} val,label
+{0} 0,'livia'
+{1} 4,'four'
+{2} 6,'pastry'
+{3} 7,'carl'
+{4} 7,'doc'
+{5} 8,'peanut'
+{6} 13,'sand'
+{7} 14,'Apostrophe'
+</screen><para>To use a descending sort, use the following command:</para>
+
+    <para><programlisting>AQL% 
+<command>SELECT</command> * 
+<command>FROM</command> sort(m4x4_empty, val desc); 
+</programlisting><screen>{n} val,label
+{0} 14,'Apostrophe'
+{1} 13,'sand'
+{2} 8,'peanut'
+{3} 7,'doc'
+{4} 7,'carl'
+{5} 6,'pastry'
+{6} 4,'four'
+{7} 0,'livia'
+</screen></para></para></para></section>
+
+  <section remap="h3">
+    <title>Ranking Methods</title>
+
+    <para><indexterm>
+        <primary>rank</primary>
+      </indexterm>The <code>rank</code> and <code>avg_rank</code> operators
+    rank the elements of an array or within subgroups of an array.</para>
+
+    <para>Consider the following examples using the <code>m4x4_double</code>
+    array.</para>
+
+    <para><indexterm>
+        <primary>ranking methods</primary>
+
+        <secondary>rank</secondary>
+      </indexterm>You can rank the elements of <code>m4x4_double</code> by
+    dimension with the rank operator. For example, this query returns an array
+    where the second attribute of each cell is the rank of the element for
+    dimension j (columns):</para>
+
+    <para><programlisting>AFL% CREATE ARRAY m4x4_double &lt; val:double &gt;[i=0:3,4,0,j=0:3,4,0];  </programlisting><screen><command>m4x4_double</command>
+
+&lt; val:double &gt;
+
+[i=0:3,4,0,
+j=0:3,4,0]</screen><programlisting>AFL% scan(m4x4_double);  </programlisting><screen>[
+[(0),(10.0977),(10.9116),(1.69344)],
+[(9.08163),(11.5071),(3.35299),(7.88384)],
+[(11.8723),(4.94542),(6.52825),(11.9999)],
+[(6.43888),(5.042),(11.8873),(7.80345)]
+]</screen><para><programlisting>AQL% <command>SELECT</command> * <command>FROM</command> rank(m4x4_double,val,j);  </programlisting><screen>[
+[(0,1),(10.0977,3),(10.9116,3),(1.69344,1)],
+[(9.08163,3),(11.5071,4),(3.35299,1),(7.88384,3)],
+[(11.8723,4),(4.94542,1),(6.52825,2),(11.9999,4)],
+[(6.43888,2),(5.042,2),(11.8873,4),(7.80345,2)]
+]</screen><para><indexterm>
+        <primary>ranking methods</primary>
+
+        <secondary>avg_rank</secondary>
+      </indexterm>The operators rank and avg_rank offer different ways to
+    handle ties. For example, consider the array <code>m4x4_floor</code>:
+    <para><programlisting>AQL% 
+<command>SELECT</command> floor(val) 
+<command>INTO</command> m4x4_floor
+<command>FROM</command> m4x4_double;  </programlisting><screen>[[(0),(10),(10),(1)],[(9),(11),(3),(7)],[(11),(4),(6),(11)],[(6),(5),(11),(7)]]
+</screen></para></para>
+
+    <para>Ranking by dimension j produces ties. There are two cells with value
+    7 in the last column. The <code>rank</code> operator assigns the tied
+    values the same rank. The <code>avg_rank</code> operator assigns the
+    average of the rank positions occupied by the tied values.</para>
+
+    <para><programlisting>AQL% 
+<command>SELECT</command> *
+<command>FROM</command> rank(m4x4_floor,expr,j);  </programlisting><screen>[
+[(0,1),(10,3),(10,3),(1,1)],
+[(9,3),(11,4),(3,1),(7,2)],
+[(11,4),(4,1),(6,2),(11,4)],
+[(6,2),(5,2),(11,4),(7,2)]
+]</screen><programlisting>AQL% 
+<command>SELECT</command> *
+<command>FROM</command> avg_rank(m4x4_floor,expr,j);  </programlisting><screen>[
+[(0,1),(10,3),(10,3),(1,1)],
+[(9,3),(11,4),(3,1),(7,2.5)],
+[(11,4),(4,1),(6,2),(11,4)],
+[(6,2),(5,2),(11,4),(7,2.5)]
+]</screen></para></para></para></section>
+
+  <section>
+    <title>Calculating Quantiles</title>
+
+    <para><indexterm>
+        <primary>quantile</primary>
+      </indexterm>The <code>quantile</code> operator calculates quantiles over
+    array attributes. A <emphasis>q</emphasis>-quantile is a point taken at a
+    specified interval on a sorted data set that divides the data set into q
+    subsets. The 2-quantile is the <emphasis>median</emphasis>, that is, the
+    numerical value separating the lower half and upper half of the data set.
+    For example, consider the data set represented by the array
+    <code>m4x4_floor</code>: <para><programlisting>AFL% show(m4x4_floor)</programlisting><screen><command>m4x4_floor</command>
+
+&lt; expr:int64 &gt;
+
+[i=0:3,4,0,
+j=0:3,4,0]</screen><programlisting>AFL% scan(m4x4_floor);  </programlisting><screen>[
+[(0),(10),(10),(1)],
+[(9),(11),(3),(7)],
+[(11),(4),(6),(11)],
+[(6),(5),(11),(7)]
+]</screen></para></para>
+
+    <para>The lowest value in <code>m4x4_floor</code> is 0, the median value
+    is 7, and the highest value is 11. <para><programlisting>AQL% 
+<command>SELECT</command> * 
+<command>FROM</command> quantile(m4x4_floor,2); 
+</programlisting><screen>{quantile} percentage,expr_quantile
+{0} 0,0
+{1} 0.5,7
+{2} 1,11
+</screen> The result of the 8-quantile for <code>m4x4_floor</code> is
+    shown below. <para><programlisting>AQL% 
+<command>SELECT</command> * 
+<command>FROM</command> quantile(m4x4_floor,8); 
+</programlisting><screen>{quantile} percentage,expr_quantile
+{0} 0,0
+{1} 0.125,1
+{2} 0.25,4
+{3} 0.375,6
+{4} 0.5,7
+{5} 0.625,9
+{6} 0.75,10
+{7} 0.875,11
+{8} 1,11
+</screen></para></para></para>
+  </section>
+</section>

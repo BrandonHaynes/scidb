@@ -1,0 +1,12 @@
+--setup
+CREATE ARRAY xyz <a:double compression 'dictionary'> [x=0:1999,100,0, y=0:1999,100,0]
+
+load(xyz,'${TEST_DATA_DIR}/xyz_small.txt')
+
+--test
+
+aggregate(apply(aggregate(xyz, var(a), stdev(a), y), s, a_var+a_stdev),sum(s))
+
+--cleanup
+
+remove(xyz)

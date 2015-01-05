@@ -1,0 +1,29 @@
+--setup
+
+# size = chunksize
+create array schema1 <v:double> [row=0:3,4,0, col=0:3,4,0]
+
+# size is multiple of chunksize
+create array schema2 <v:double> [row=0:7,8,0, col=0:7,8,0]
+
+# size is halfway between chunk boundaries, a case that has broken some clients code
+# e.g. chunksize 4: 2*4  + 2  = 10
+create array schema3 <v:double> [row=0:9,4,0, col=0:9,4,0]
+
+# e.g. chunksize 32: 3*32 + 16 = 96 + 16 = 112
+# (note parse-time expression evaluation in the query processor would be quite useful, see #2210)
+create array schema4 <v:double> [row=0:111,32,0, col=0:111,32,0]
+
+
+--test
+# output for all must be the row-major ordering beginning with 0
+splitarraytest(schema1)
+splitarraytest(schema2)
+splitarraytest(schema3)
+splitarraytest(schema4) 
+
+--cleanup
+remove(schema1)
+remove(schema2)
+remove(schema3)
+remove(schema4)

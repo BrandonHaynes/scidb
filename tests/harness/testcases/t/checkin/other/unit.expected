@@ -1,0 +1,64 @@
+................................Start Testing TypeLibrary and Type Class handling
+List of Types
+	binary
+	bool
+	char
+	datetime
+	datetimetz
+	double
+	float
+	indicator
+	int16
+	int32
+	int64
+	int8
+	string
+	uint16
+	uint32
+	uint64
+	uint8
+	void
+End Testing TypeLibrary and Type Class handling
+.Start Testing TypeLibrary and Type Class handling
+End Testing TypeLibrary and Type Class handling
+......................
+Options{name="A",limit=unlimited,pagesize=1KiB,parent="root",finalizing=1,recycling=0,resetting=0,debugging=0,locking=0}
+Options{name="B",limit=unlimited,pagesize=4KiB,parent="root",finalizing=1,recycling=0,resetting=1,debugging=0,locking=1}
+.
+.
+.
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+.
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+.
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+.
+78: extensive testing shows that allocate_shared() is AOK.
+.
+SystemException in file: src/util/arena/Arena.cpp function: exhausted line: 508
+Error id: scidb::SCIDB_SE_NO_MEMORY::SCIDB_LE_ARENA_EXHAUSTED
+Error description: Not enough memory. An attempt was made to allocate more memory than is available.
+   arena  : {name="root/100",available=100B,allocated=0B,peakUsage=96B,allocations=0}
+   request: 112B.
+.
+An Example ==================================================
+SystemException in file: src/util/arena/Arena.cpp function: exhausted line: 508
+Error id: scidb::SCIDB_SE_NO_MEMORY::SCIDB_LE_ARENA_EXHAUSTED
+Error description: Not enough memory. An attempt was made to allocate more memory than is available.
+   arena  : {name="root/B",available=1e+03KiB,allocated=8B,peakUsage=136B,allocations=1}
+   request: 7.6MiB.
+
+update("PhysicalFoo.cpp checkpoint",{name="root/Foo",available=1GiB,allocated=0B,peakUsage=0B,allocations=0})
+=============================================================
+
+
+
+OK (63 tests)
+
+
+

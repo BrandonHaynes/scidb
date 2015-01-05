@@ -1,0 +1,42 @@
+SCIDB QUERY : <create array A <a:int64> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+1),A)>
+{x} a
+{-2} -1
+{-1} 0
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+
+SCIDB QUERY : <save(A,'a_test.txt',-1,'store')>
+{x} a
+{-2} -1
+{-1} 0
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+
+SCIDB QUERY : <load(A,'a_test.txt',-1)>
+{x} a
+{-2} -1
+{-1} 0
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+
+SCIDB QUERY : <scan(A)>
+{x} a
+{-2} -1
+{-1} 0
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

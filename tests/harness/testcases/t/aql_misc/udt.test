@@ -1,0 +1,15 @@
+--setup
+load_library ( 'rational' )
+--aql create array rational_example_2 < N : rational > [ I=0:9,10,0, J=0:9,10,0 ]
+--aql create array rational_example_1 < N : int64 > [ I=0:9,10,0, J=0:9,10,0 ]
+
+--test
+--set-format csv
+filter(list('types'),library='rational')
+--set-format dcsv
+attributes (rational_example_2)
+project ( apply (apply (apply (apply (join (apply ( join ( build ( rational_example_1, I + 1 ) AS N1, build ( rational_example_1, 101 - I ) AS D1 ), R, rational(N1.N, D1.N)) AS R1,apply ( join ( build ( rational_example_1, I + 3 ) AS N2, build ( rational_example_1, 107 - J ) AS D2), R, rational(N2.N, D2.N)) AS R2 ),Res_Plus, str( R1.R + R2.R)), Res_Minus, str( R1.R - R2.R)), Res_Times, str( R1.R * R2.R)), Res_Divide, str( R1.R / R2.R)), Res_Plus, Res_Minus, Res_Times, Res_Divide)
+
+--cleanup
+remove ( rational_example_1 )
+remove ( rational_example_2 )

@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="subarrayOperator">
+    <refname>subarray</refname>
+
+    <refpurpose><indexterm>
+        <primary>subarray</primary>
+      </indexterm><indexterm>
+        <primary>array reductions</primary>
+
+        <secondary>subarray</secondary>
+      </indexterm>Produce a result array by selecting a contiguous area of
+    cells.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>subarray(<replaceable>array</replaceable>,<replaceable>low_coord1</replaceable><optional>,<replaceable>low_coord2</replaceable>,...</optional>,
+<replaceable>              high_coord1</replaceable><optional>,<replaceable>high_coord2</replaceable>,...</optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The subarray operator accepts an input array and a set of
+    coordinates specifying a region within the array. The result is an array
+    whose shape is defined by the boundary coordinates specified by the
+    subarray arguments.</para>
+
+    <para>Note the following:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The number of coordinate pairs in the input must be equal to the
+        number of dimensions in the array.</para>
+      </listitem>
+
+      <listitem>
+        <para>The dimensions in the result array begin at 0, even if the
+        dimensions in the input array do not.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example selects the values from the last two columns and the
+      last two rows of a 4<symbol role="symbolfont">×</symbol>4 array.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called m4x4: <para><programlisting>AFL% CREATE ARRAY m4x4 &lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Store values of 0–15 in m4x4: <para><programlisting>AFL% store(build(m4x4,i*4+j),m4x4);  </programlisting><screen>[
+[(0),(1),(2),(3)],
+[(4),(5),(6),(7)],
+[(8),(9),(10),(11)],
+[(12),(13),(14),(15)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Return an array containing the cells that were in both the
+          last two columns and the last two rows on m4x4: <para><programlisting>AFL% subarray(m4x4,2,2,3,3);  </programlisting><screen>[
+[(10),(11)],
+[(14),(15)]
+]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,43 @@
+--setup
+--start-query-logging
+##Ticket number: 1602
+#testcases for join,merge and cross_join for unbounded array.
+
+create array unbounded <a:int64>[x=0:*,5,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(unbounded, '${TEST_DATA_DIR}/unbounded_cross.txt')""
+create array unbound_A <a:int64>[x=0:*,10,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(unbound_A, '${TEST_DATA_DIR}/unbounded_cross.txt')""
+create array Z < b: int64 >[ y=0:9,5,0]
+store(filter(build(Z,100*y), 2<y),Z)
+
+
+
+--test
+
+join(unbounded,Z)
+join(Z,unbounded)
+cross_join(unbounded,Z)
+cross_join(Z,unbounded)
+cross_join(Z,unbounded,y,x)
+cross_join(unbounded,Z,x,y)
+cross_join(unbounded,unbound_A)
+cross_join(unbound_A,unbounded)
+merge(unbounded,Z)
+merge(Z,unbounded)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(unbounded,unbound_A)"      
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(subarray(unbounded,0,5),unbound_A)"
+join(repart(unbounded,unbound_A),unbound_A)
+merge(subarray(unbounded,0,5),repart(unbound_A,unbounded))
+
+
+
+
+--cleanup
+remove(unbounded)
+remove(unbound_A)
+remove(Z)
+
+
+--stop-query-logging
+
+

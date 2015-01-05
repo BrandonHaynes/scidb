@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="store">
+  <refnamediv>
+    <refname>store</refname>
+
+    <refpurpose><indexterm>
+        <primary>store</primary>
+      </indexterm>Store query output in a SciDB array</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>store(<replaceable>operator</replaceable>(<replaceable>operator_args</replaceable>),<replaceable>named_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><literal>store()</literal> is a write operator, that is, one of the
+    AFL operations that can update an array. Each execution of store causes a
+    new version of the array to be created. When an array is removed, so are
+    all of its versions. The argument <replaceable>named_array</replaceable>
+    must be an array that was previously created and stored in the SciDB
+    namespace.</para>
+
+    <para><literal>store()</literal> can be used to save the resultant output
+    array into an existing/new array. It can also be used to duplicate an
+    array (by using the name of the source array in the first parameter and
+    target_array in the second parameter).</para>
+
+    <note>
+      <para>The AFL store operator provides the same functionality as the AQL
+      <code><command>SELECT</command></code> *
+      <code><command>INTO</command></code> ...
+      <code><command>FROM</command></code> ... statement.</para>
+    </note>
+
+    <para><indexterm>
+        <primary>storage</primary>
+
+        <secondary>reclaiming</secondary>
+      </indexterm>You can also use <literal>store()</literal> to reclaim
+    storage space to Linux file system. As you update an array, new versions
+    are created, and more space is used to store the array versions. When an
+    array is deleted, all the file space is returned to the operating system.
+    If, however, you want to keep the array, but do not care about previous
+    versions, you can copy the array, and then delete the original.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>Build and store a 2-dimensional, 1-attribute array of zeros:
+      <programlisting language="test">--afl store(build(&lt;val: double&gt;[i=0:2,3,0,j=0:2,3,0],0),zeros_array); --show-output=no --output-format=dense --chunkify=yes
+</programlisting> You can create a new array from the existing array's schema,
+      store cell values of 1 with a store statement: <programlisting
+      language="test">--afl store(build(zeros_array,1),ones_array); --show-output=no --output-format=dense --chunkify=yes</programlisting></para>
+    </informalexample>
+
+    <informalexample>
+      <para>Build and store a 2-dimensional, 1-attribute array of random
+      numbers between 1 and 10: <programlisting language="test">--afl CREATE ARRAY random_array &lt;val:double null&gt;[i=0:3,4,0,j=0:3,4,0]; --show-output=no
+--afl store(build(random_array,random()%10),random_array); --output-format=dense --chunkify=yes --show-output-in-test-file=no
+</programlisting> You can update the array with a different set of random
+      numbers by re-running the store statement: <programlisting
+      language="test">--afl store(build(random_array,random()%10),random_array); --output-format=dense --chunkify=yes --show-output-in-test-file=no
+</programlisting></para>
+    </informalexample>
+
+    <informalexample>
+      <para>Remove all versions of an array, except for the current one, to
+      reclaim storage.</para>
+
+      <procedure>
+        <step>
+          <para>Assume you have an array that has several
+          versions.<programlisting language="test">--afl store(build(&lt;v:int64&gt;[i=0:19,10,0],i),A); --show-query=no --show-output=no
+--afl store(build(&lt;v:int64&gt;[i=0:19,10,0],i),A); --show-query=no --show-output=no
+--afl store(build(&lt;v:int64&gt;[i=0:19,10,0],i),A); --show-query=no --show-output=no
+--afl store(build(&lt;v:int64&gt;[i=0:19,10,0],i),A); --show-query=no --show-output=no
+--afl store(build(&lt;v:int64&gt;[i=0:19,10,0],i),A); --show-query=no --show-output=no
+--afl aggregate(versions(A),count(*));</programlisting></para>
+        </step>
+
+        <step>
+          <para>Copy <emphasis role="bold">A</emphasis> to a new array,
+          <emphasis role="bold">B</emphasis>:<programlisting language="test">--afl store(A,B); --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Remove <emphasis role="bold">A</emphasis>.<programlisting
+          language="test">--afl remove(A); --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Optionally, change the array name back to the
+          original.<programlisting language="test">--afl rename(B,A); --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Confirm that now, there is only one version of the
+          array.<programlisting language="test">--afl aggregate(versions(A),count(*));</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

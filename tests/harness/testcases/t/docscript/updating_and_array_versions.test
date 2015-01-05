@@ -1,0 +1,106 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+--aql create array aFlat <row:int64, col:int64, value:string null> [csvRow=0:5,6,0] 
+--shell  --command="csv2scidb -s 1 -p NNs < $DOC_DATA/aInsert.csv > $DOC_DATA/aInsert.scidb "
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -nq "load aFlat from '${TEST_DATA_DIR}/doc/aInsert.scidb'""
+--aql create array A <value:string null> [row=1:3,3,0, col=1:3,3,0] 
+store(redimension(aFlat,A),A) 
+--aql create array bFlat <row:int64, col:int64, value:string null> [csvRow=0:5,6,0] 
+--shell  --command="csv2scidb -s 1 -p NNs < $DOC_DATA/bInsert.csv > $DOC_DATA/bInsert.scidb "
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -nq "load bFlat from '${TEST_DATA_DIR}/doc/bInsert.scidb'""
+--aql create array B <value:string null> [row=1:3,3,0, col=1:3,3,0] 
+store(redimension(bFlat,B),B) 
+--aql insert into B select * from A 
+store(redimension(bFlat,B),B) 
+--stop-igdata
+show(A)
+show(B)
+--start-igdata
+store(redimension(aFlat,A),A) 
+--set-format dense
+--stop-igdata
+--aql select * from A 
+--set-format dcsv
+--start-igdata
+store(redimension(bFlat,B),B) 
+--set-format dense
+--stop-igdata
+--aql select * from B 
+--aql insert into B select * from A 
+--set-format dcsv
+--start-igdata
+--aql create array cFlat <row:int64, col:int64, value:string null, value2:string null> [csvRow=0:8,9,0] 
+--shell  --command="csv2scidb -s 1 -p NNsS < $DOC_DATA/cInsert.csv > $DOC_DATA/cInsert.scidb "
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -nq "load cFlat from '${TEST_DATA_DIR}/doc/cInsert.scidb'""
+--aql create array C <value:string null, value2:string null> [row=1:3,3,0, col=1:3,3,0] 
+store(redimension(cFlat,C),C) 
+--stop-igdata
+show(C)
+--set-format dense
+--aql select * from C 
+--set-format dcsv
+--start-igdata
+store(redimension(bFlat,B),B) 
+--set-format dense
+--stop-igdata
+--aql insert into B select value from C 
+--set-format dcsv
+--start-igdata
+store(redimension(bFlat,B),B) 
+--set-format dense
+--stop-igdata
+--aql insert into B select value2 from C 
+--set-format dcsv
+--start-igdata
+store(redimension(bFlat,B),B) 
+--set-format dense
+--stop-igdata
+--aql insert into B '[ [()()(333333333)] [()(555555555)()] [(777777777)()()] ]' 
+store(build(<val:double>[i=0:3,4,0,j=0:3,4,0],i*4+j),m4x4)  
+--aql UPDATE m4x4 SET val=-val  
+--aql UPDATE m4x4 SET val=-pow(val,-1) WHERE abs(val) > 5  
+--set-format dcsv
+--start-igdata
+versions(m4x4)  
+--set-format dense
+--stop-igdata
+--start-igdata
+scan(m4x4@1)  
+--set-format dcsv
+store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],1),stocks)  
+store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],2),stocks)  
+store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],3),stocks)  
+store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],4),stocks)  
+store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],5),stocks)  
+--stop-igdata
+project(versions(stocks), version_id)  
+--start-igdata
+store(stocks,stocks_tmp)  
+remove(stocks)  
+rename(stocks_tmp,stocks)  
+--stop-igdata
+project(versions(stocks), version_id)  
+--start-igdata
+store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],2),stocks)  
+store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],3),stocks)  
+store(stocks@2,stocks_tmp)  
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(aFlat)
+remove(A)
+remove(bFlat)
+remove(B)
+remove(cFlat)
+remove(C)
+remove(m4x4)
+remove(stocks)
+remove(stocks_tmp)

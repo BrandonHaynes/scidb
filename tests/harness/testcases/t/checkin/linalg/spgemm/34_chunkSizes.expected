@@ -1,0 +1,710 @@
+Query was executed successfully
+
+SCIDB QUERY : <create array FMT2 <v:double>[i=0:1,2,0, j=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array FMT3 <v:double>[i=0:2,3,0, j=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array FMT5 <v:double>[i=0:4,5,0, j=0:4,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s2_c1 <v:double>[i=0:1,1,0, j=0:1,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s2_c2 <v:double>[i=0:1,2,0, j=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s2_c3 <v:double>[i=0:1,3,0, j=0:1,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <repart(store( filter(build(s2_c1, 1+10*i+2*j), true), s2_c1 ), FMT2)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{1,0} 11
+{1,1} 13
+
+SCIDB QUERY : <repart(store( filter(build(s2_c2, 1+10*i+2*j), true), s2_c2 ), FMT2)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{1,0} 11
+{1,1} 13
+
+SCIDB QUERY : <repart(store( filter(build(s2_c3, 1+10*i+2*j), true), s2_c3 ), FMT2)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{1,0} 11
+{1,1} 13
+
+SCIDB QUERY : <create array s3_c1 <v:double>[i=0:2,1,0, j=0:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s3_c2 <v:double>[i=0:2,2,0, j=0:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s3_c3 <v:double>[i=0:2,3,0, j=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s3_c4 <v:double>[i=0:2,4,0, j=0:2,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <repart(store( filter(build(s3_c1, 1+10*i+2*j), true), s3_c1 ), FMT3)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{2,0} 21
+{2,1} 23
+{2,2} 25
+
+SCIDB QUERY : <repart(store( filter(build(s3_c2, 1+10*i+2*j), true), s3_c2 ), FMT3)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{2,0} 21
+{2,1} 23
+{2,2} 25
+
+SCIDB QUERY : <repart(store( filter(build(s3_c3, 1+10*i+2*j), true), s3_c3 ), FMT3)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{2,0} 21
+{2,1} 23
+{2,2} 25
+
+SCIDB QUERY : <repart(store( filter(build(s3_c4, 1+10*i+2*j), true), s3_c4 ), FMT3)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{2,0} 21
+{2,1} 23
+{2,2} 25
+
+SCIDB QUERY : <create array s5_c1 <v:double>[i=0:4,1,0, j=0:4,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s5_c2 <v:double>[i=0:4,2,0, j=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s5_c3 <v:double>[i=0:4,3,0, j=0:4,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s5_c4 <v:double>[i=0:4,4,0, j=0:4,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s5_c5 <v:double>[i=0:4,5,0, j=0:4,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array s5_c6 <v:double>[i=0:4,6,0, j=0:4,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <repart(store( filter(build(s5_c1, 1+10*i+2*j), true), s5_c1 ), FMT5)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{0,3} 7
+{0,4} 9
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{1,3} 17
+{1,4} 19
+{2,0} 21
+{2,1} 23
+{2,2} 25
+{2,3} 27
+{2,4} 29
+{3,0} 31
+{3,1} 33
+{3,2} 35
+{3,3} 37
+{3,4} 39
+{4,0} 41
+{4,1} 43
+{4,2} 45
+{4,3} 47
+{4,4} 49
+
+SCIDB QUERY : <repart(store( filter(build(s5_c2, 1+10*i+2*j), true), s5_c2 ), FMT5)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{0,3} 7
+{0,4} 9
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{1,3} 17
+{1,4} 19
+{2,0} 21
+{2,1} 23
+{2,2} 25
+{2,3} 27
+{2,4} 29
+{3,0} 31
+{3,1} 33
+{3,2} 35
+{3,3} 37
+{3,4} 39
+{4,0} 41
+{4,1} 43
+{4,2} 45
+{4,3} 47
+{4,4} 49
+
+SCIDB QUERY : <repart(store( filter(build(s5_c3, 1+10*i+2*j), true), s5_c3 ), FMT5)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{0,3} 7
+{0,4} 9
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{1,3} 17
+{1,4} 19
+{2,0} 21
+{2,1} 23
+{2,2} 25
+{2,3} 27
+{2,4} 29
+{3,0} 31
+{3,1} 33
+{3,2} 35
+{3,3} 37
+{3,4} 39
+{4,0} 41
+{4,1} 43
+{4,2} 45
+{4,3} 47
+{4,4} 49
+
+SCIDB QUERY : <repart(store( filter(build(s5_c4, 1+10*i+2*j), true), s5_c4 ), FMT5)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{0,3} 7
+{0,4} 9
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{1,3} 17
+{1,4} 19
+{2,0} 21
+{2,1} 23
+{2,2} 25
+{2,3} 27
+{2,4} 29
+{3,0} 31
+{3,1} 33
+{3,2} 35
+{3,3} 37
+{3,4} 39
+{4,0} 41
+{4,1} 43
+{4,2} 45
+{4,3} 47
+{4,4} 49
+
+SCIDB QUERY : <repart(store( filter(build(s5_c5, 1+10*i+2*j), true), s5_c5 ), FMT5)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{0,3} 7
+{0,4} 9
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{1,3} 17
+{1,4} 19
+{2,0} 21
+{2,1} 23
+{2,2} 25
+{2,3} 27
+{2,4} 29
+{3,0} 31
+{3,1} 33
+{3,2} 35
+{3,3} 37
+{3,4} 39
+{4,0} 41
+{4,1} 43
+{4,2} 45
+{4,3} 47
+{4,4} 49
+
+SCIDB QUERY : <repart(store( filter(build(s5_c6, 1+10*i+2*j), true), s5_c6 ), FMT5)>
+{i,j} v
+{0,0} 1
+{0,1} 3
+{0,2} 5
+{0,3} 7
+{0,4} 9
+{1,0} 11
+{1,1} 13
+{1,2} 15
+{1,3} 17
+{1,4} 19
+{2,0} 21
+{2,1} 23
+{2,2} 25
+{2,3} 27
+{2,4} 29
+{3,0} 31
+{3,1} 33
+{3,2} 35
+{3,3} 37
+{3,4} 39
+{4,0} 41
+{4,1} 43
+{4,2} 45
+{4,3} 47
+{4,4} 49
+
+SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3),FMT3)>
+{i,j} multiply
+{0,0} 34
+{0,1} 42
+{0,2} 154
+{1,0} 202
+
+SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2),FMT3)>
+{i,j} multiply
+{0,0} 34
+{0,1} 42
+{1,0} 154
+{1,1} 202
+
+SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1),FMT3)>
+{i,j} multiply
+{0,0} 34
+{0,1} 42
+{1,0} 154
+{1,1} 202
+
+SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3, 'min.+'),FMT3)>
+{i,j} multiply
+{0,0} 2
+{0,1} 4
+{0,2} 12
+{1,0} 14
+
+SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2, 'min.+'),FMT3)>
+{i,j} multiply
+{0,0} 2
+{0,1} 4
+{1,0} 12
+{1,1} 14
+
+SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1, 'min.+'),FMT3)>
+{i,j} multiply
+{0,0} 2
+{0,1} 4
+{1,0} 12
+{1,1} 14
+
+SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3, 'max.+'),FMT3)>
+{i,j} multiply
+{0,0} 14
+{0,1} 16
+{0,2} 24
+{1,0} 26
+
+SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2, 'max.+'),FMT3)>
+{i,j} multiply
+{0,0} 14
+{0,1} 16
+{1,0} 24
+{1,1} 26
+
+SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1, 'max.+'),FMT3)>
+{i,j} multiply
+{0,0} 14
+{0,1} 16
+{1,0} 24
+{1,1} 26
+
+SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4),FMT3)>
+{i,j} multiply
+{0,0} 139
+{0,1} 157
+{0,2} 175
+{1,0} 469
+{1,1} 547
+{1,2} 625
+{2,0} 799
+{2,1} 937
+{2,2} 1075
+
+SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3),FMT3)>
+{i,j} multiply
+{0,0} 139
+{0,1} 157
+{0,2} 175
+{1,0} 469
+{1,1} 547
+{1,2} 625
+{2,0} 799
+{2,1} 937
+{2,2} 1075
+
+SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2),FMT3)>
+{i,j} multiply
+{0,0} 139
+{0,1} 157
+{0,2} 175
+{1,0} 469
+{1,1} 547
+{1,2} 625
+{2,0} 799
+{2,1} 937
+{2,2} 1075
+
+SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1),FMT3)>
+{i,j} multiply
+{0,0} 139
+{0,1} 157
+{0,2} 175
+{1,0} 469
+{1,1} 547
+{1,2} 625
+{2,0} 799
+{2,1} 937
+{2,2} 1075
+
+SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'min.+'),FMT3)>
+{i,j} multiply
+{0,0} 2
+{0,1} 4
+{0,2} 6
+{1,0} 12
+{1,1} 14
+{1,2} 16
+{2,0} 22
+{2,1} 24
+{2,2} 26
+
+SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'min.+'),FMT3)>
+{i,j} multiply
+{0,0} 2
+{0,1} 4
+{0,2} 6
+{1,0} 12
+{1,1} 14
+{1,2} 16
+{2,0} 22
+{2,1} 24
+{2,2} 26
+
+SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'min.+'),FMT3)>
+{i,j} multiply
+{0,0} 2
+{0,1} 4
+{0,2} 6
+{1,0} 12
+{1,1} 14
+{1,2} 16
+{2,0} 22
+{2,1} 24
+{2,2} 26
+
+SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'min.+'),FMT3)>
+{i,j} multiply
+{0,0} 2
+{0,1} 4
+{0,2} 6
+{1,0} 12
+{1,1} 14
+{1,2} 16
+{2,0} 22
+{2,1} 24
+{2,2} 26
+
+SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'max.+'),FMT3)>
+{i,j} multiply
+{0,0} 26
+{0,1} 28
+{0,2} 30
+{1,0} 36
+{1,1} 38
+{1,2} 40
+{2,0} 46
+{2,1} 48
+{2,2} 50
+
+SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'max.+'),FMT3)>
+{i,j} multiply
+{0,0} 26
+{0,1} 28
+{0,2} 30
+{1,0} 36
+{1,1} 38
+{1,2} 40
+{2,0} 46
+{2,1} 48
+{2,2} 50
+
+SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'max.+'),FMT3)>
+{i,j} multiply
+{0,0} 26
+{0,1} 28
+{0,2} 30
+{1,0} 36
+{1,1} 38
+{1,2} 40
+{2,0} 46
+{2,1} 48
+{2,2} 50
+
+SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'max.+'),FMT3)>
+{i,j} multiply
+{0,0} 26
+{0,1} 28
+{0,2} 30
+{1,0} 36
+{1,1} 38
+{1,2} 40
+{2,0} 46
+{2,1} 48
+{2,2} 50
+
+SCIDB QUERY : <repart(spgemm(s5_c6, s5_c6),FMT5)>
+{i,j} multiply
+{0,0} 725
+{0,1} 775
+{0,2} 825
+{0,3} 875
+{0,4} 925
+{1,0} 1775
+{1,1} 1925
+{1,2} 2075
+{1,3} 2225
+{1,4} 2375
+{2,0} 2825
+{2,1} 3075
+{2,2} 3325
+{2,3} 3575
+{2,4} 3825
+{3,0} 3875
+{3,1} 4225
+{3,2} 4575
+{3,3} 4925
+{3,4} 5275
+{4,0} 4925
+{4,1} 5375
+{4,2} 5825
+{4,3} 6275
+{4,4} 6725
+
+SCIDB QUERY : <repart(spgemm(s5_c5, s5_c5),FMT5)>
+{i,j} multiply
+{0,0} 725
+{0,1} 775
+{0,2} 825
+{0,3} 875
+{0,4} 925
+{1,0} 1775
+{1,1} 1925
+{1,2} 2075
+{1,3} 2225
+{1,4} 2375
+{2,0} 2825
+{2,1} 3075
+{2,2} 3325
+{2,3} 3575
+{2,4} 3825
+{3,0} 3875
+{3,1} 4225
+{3,2} 4575
+{3,3} 4925
+{3,4} 5275
+{4,0} 4925
+{4,1} 5375
+{4,2} 5825
+{4,3} 6275
+{4,4} 6725
+
+SCIDB QUERY : <repart(spgemm(s5_c4, s5_c4),FMT5)>
+{i,j} multiply
+{0,0} 725
+{0,1} 775
+{0,2} 825
+{0,3} 875
+{0,4} 925
+{1,0} 1775
+{1,1} 1925
+{1,2} 2075
+{1,3} 2225
+{1,4} 2375
+{2,0} 2825
+{2,1} 3075
+{2,2} 3325
+{2,3} 3575
+{2,4} 3825
+{3,0} 3875
+{3,1} 4225
+{3,2} 4575
+{3,3} 4925
+{3,4} 5275
+{4,0} 4925
+{4,1} 5375
+{4,2} 5825
+{4,3} 6275
+{4,4} 6725
+
+SCIDB QUERY : <repart(spgemm(s5_c3, s5_c3),FMT5)>
+{i,j} multiply
+{0,0} 725
+{0,1} 775
+{0,2} 825
+{0,3} 875
+{0,4} 925
+{1,0} 1775
+{1,1} 1925
+{1,2} 2075
+{1,3} 2225
+{1,4} 2375
+{2,0} 2825
+{2,1} 3075
+{2,2} 3325
+{2,3} 3575
+{2,4} 3825
+{3,0} 3875
+{3,1} 4225
+{3,2} 4575
+{3,3} 4925
+{3,4} 5275
+{4,0} 4925
+{4,1} 5375
+{4,2} 5825
+{4,3} 6275
+{4,4} 6725
+
+SCIDB QUERY : <repart(spgemm(s5_c2, s5_c2),FMT5)>
+{i,j} multiply
+{0,0} 725
+{0,1} 775
+{0,2} 825
+{0,3} 875
+{0,4} 925
+{1,0} 1775
+{1,1} 1925
+{1,2} 2075
+{1,3} 2225
+{1,4} 2375
+{2,0} 2825
+{2,1} 3075
+{2,2} 3325
+{2,3} 3575
+{2,4} 3825
+{3,0} 3875
+{3,1} 4225
+{3,2} 4575
+{3,3} 4925
+{3,4} 5275
+{4,0} 4925
+{4,1} 5375
+{4,2} 5825
+{4,3} 6275
+{4,4} 6725
+
+SCIDB QUERY : <repart(spgemm(s5_c1, s5_c1),FMT5)>
+{i,j} multiply
+{0,0} 725
+{0,1} 775
+{0,2} 825
+{0,3} 875
+{0,4} 925
+{1,0} 1775
+{1,1} 1925
+{1,2} 2075
+{1,3} 2225
+{1,4} 2375
+{2,0} 2825
+{2,1} 3075
+{2,2} 3325
+{2,3} 3575
+{2,4} 3825
+{3,0} 3875
+{3,1} 4225
+{3,2} 4575
+{3,3} 4925
+{3,4} 5275
+{4,0} 4925
+{4,1} 5375
+{4,2} 5825
+{4,3} 6275
+{4,4} 6725
+
+SCIDB QUERY : <remove(FMT2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(FMT3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(FMT5)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s2_c1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s2_c2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s2_c3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s3_c1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s3_c2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s3_c3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s3_c4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s5_c1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s5_c2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s5_c3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s5_c4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s5_c5)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s5_c6)>
+Query was executed successfully
+

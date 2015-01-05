@@ -1,0 +1,20 @@
+--test
+# The goal is to test that an option defined as Config::SIZE will not
+# accept a negative value, but *will* except something bigger than 32 bits.
+#
+#  64 MiB == 67108864 (the default)
+# 128 MiB == 134217728
+#   8 GiB == 8589934592
+--start-query-logging
+--set-format lcsv+
+filter(setopt('read-ahead-size', '134217728'), No = 0)
+filter(setopt('read-ahead-size', '8589934592'), No = 0)
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ERROR_NEAR_CONFIG_OPTION "setopt('read-ahead-size', '-42')" 
+# Restore default value...
+filter(setopt('read-ahead-size', '67108864'), No = 0)
+--reset-format
+--stop-query-logging
+
+--cleanup
+# TODO: It would be good to record the original read-ahead-size and
+# restore it here, rather than assuming it's 64MiB.

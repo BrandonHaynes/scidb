@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd" []>
+<book>
+  <title>SciDB Reference Guide</title>
+<bookinfo>
+    <copyright>
+      <year>2008&ndash;2012</year>
+      <holder>SciDB, Inc.</holder>
+    </copyright>
+    <releaseinfo>Version 12.12</releaseinfo>
+    <legalnotice>
+      <para>SciDB is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+License, version 3, as published by the Free Software Foundation.
+</para>
+      <para>SciDB is distributed &quot;AS-IS&quot; AND WITHOUT ANY WARRANTY OF ANY KIND, INCLUDING ANY
+IMPLIED WARRANTY OF MERCHANTABILITY, NON-INFRINGEMENT, OR FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License at <ulink url="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</ulink> for the
+complete license terms.
+</para>
+    </legalnotice>
+  </bookinfo>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="scidb_aggregates_ref.xml" encoding="UTF-8"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="scidb_function_reference.xml" encoding="UTF-8"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="scidb_dataypes_ref.xml" encoding="UTF-8"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="scidb_operator_ref.xml" encoding="UTF-8"/>
+</book>

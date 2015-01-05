@@ -1,0 +1,63 @@
+SCIDB QUERY : <create array rle <a:int32 compression 'rle'>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array d <a:int32 compression 'dictionary'>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ns <a:int32 compression 'null suppression'>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array be <a:int32 compression 'bitmap encoding'>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array z <a:int32 compression 'zlib'>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array bz <a:int32 compression 'bzlib'>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array nf <a:int32 compression 'null filter'>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into rle from filter(build(rle,x+10),x<>x)>
+{x} a
+
+SCIDB QUERY : <select * into d from filter(build(d,x+10),x<>x)>
+{x} a
+
+SCIDB QUERY : <select * into ns from filter(build(ns,x+10),x<>x)>
+{x} a
+
+SCIDB QUERY : <select * into be from filter(build(be,x+10),x<>x)>
+{x} a
+
+SCIDB QUERY : <select * into z from filter(build(z,x+10),x<>x)>
+{x} a
+
+SCIDB QUERY : <select * into bz from filter(build(bz,x+10),x<>x)>
+{x} a
+
+SCIDB QUERY : <select * into nf from filter(build(nf,x+10),x<>x)>
+{x} a
+
+SCIDB QUERY : <remove(rle)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(d)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ns)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(be)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(bz)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(nf)>
+Query was executed successfully
+

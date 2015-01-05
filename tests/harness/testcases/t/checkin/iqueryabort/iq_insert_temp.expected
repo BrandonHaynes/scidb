@@ -1,0 +1,39 @@
+SCIDB QUERY : <create temp array ABRTEST1<v : int64> [I=0:2000,1,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create temp array ABRTEST2<v : int64> [I=0:2000,1,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create temp array ABRTEST3<v : int64> [I=0:2000,1,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'insert(attribute_rename(project(apply(filter(ABRTEST1, I <> 0), v1, v*5 + 13), v1), v1, v), ABRTEST1)' 1> /tmp/${HPID}_1.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(ABRTEST1,sum(v))>
+[An error expected at this place for the query "aggregate(ABRTEST1,sum(v))". And it failed with error code = scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY. Expected error code = scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY.]
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 15  2 'insert(attribute_rename(project(apply(filter(ABRTEST2, I <> 0), v1, v*2), v1), v1, v), ABRTEST2)' 1> /tmp/${HPID}_2.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(ABRTEST2,sum(v))>
+[An error expected at this place for the query "aggregate(ABRTEST2,sum(v))". And it failed with error code = scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY. Expected error code = scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY.]
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 9  2 'insert(attribute_rename(project(apply(filter(ABRTEST3, I <> 0), v1, v*v), v1), v1, v), ABRTEST3)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(ABRTEST3,sum(v))>
+[An error expected at this place for the query "aggregate(ABRTEST3,sum(v))". And it failed with error code = scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY. Expected error code = scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

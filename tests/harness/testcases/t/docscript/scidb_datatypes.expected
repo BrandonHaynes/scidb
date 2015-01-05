@@ -1,0 +1,106 @@
+SCIDB QUERY : <create array datetime1 <dt:datetime>[i=0:*,100,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array datetime2 <dtz:datetimetz>[i=0:*,100,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <cat $DOC_DATA/dateformats.scidb>
+[
+ ("11/25/2009 16:11:19"),
+ ("25.11.2009 16:11:19"),
+ ("2009-11-25 16:11:19.7612"),
+ ("2009-11-25 16.11.19.76"),
+ ("2009-11-25 16.11.19"),
+ ("2009-11-25 16:11:19"),
+ ("11/25/2009 16:11"),
+ ("25.11.2009 16:11"),
+ ("2009-11-25 16:11"),
+ ("25Nov2009:16:11:19"),
+ ("25-Nov-2009 4.11.19 PM"),
+ ("25-Nov-2009 4.11.19 AM"),
+ ("2009-11-25"),
+ ("11/25/2009"),
+ ("25.11.2009"),
+]
+
+SCIDB QUERY : <scan(datetime1)>
+i,dt
+0,'2009-11-25 16:11:19'
+1,'2009-11-25 16:11:19'
+2,'2009-11-25 16:11:19'
+3,'2009-11-25 16:11:19'
+4,'2009-11-25 16:11:19'
+5,'2009-11-25 16:11:19'
+6,'2009-11-25 16:11:00'
+7,'2009-11-25 16:11:00'
+8,'2009-11-25 16:11:00'
+9,'2009-11-25 16:11:19'
+10,'2009-11-25 16:11:19'
+11,'2009-11-25 04:11:19'
+12,'2009-11-25 00:00:00'
+13,'2009-11-25 00:00:00'
+14,'2009-11-25 00:00:00'
+
+SCIDB QUERY : <cat $DOC_DATA/dateformatsTZ.scidb>
+[
+ ("11/25/2009 16:11:19 +10:01"),
+ ("25.11.2009 16:11:19 +09:02"),
+ ("2009-11-25 16:11:19.76 +08:03"),
+ ("2009-11-25 16.11.19.76 +07:04"),
+ ("2009-11-25 16.11.19 +06:05"),
+ ("2009-11-25 16:11:19 +05:06"),
+ ("25-Nov-2009 4.11.19 PM +00:11")
+]
+
+SCIDB QUERY : <scan(datetime2)>
+i,dtz
+0,'2009-11-25 16:11:19 +10:01'
+1,'2009-11-25 16:11:19 +09:02'
+2,'2009-11-25 16:11:19 +08:03'
+3,'2009-11-25 16:11:19 +07:04'
+4,'2009-11-25 16:11:19 +06:05'
+5,'2009-11-25 16:11:19 +05:06'
+6,'2009-11-25 16:11:19 +00:11'
+
+SCIDB QUERY : <store(build(<a1: int32>[i=0:0,1,0],2),A)>
+[(2)]
+
+SCIDB QUERY : <apply(A, a2, double(a1))>
+{i} a1,a2
+{0} 2,2
+
+SCIDB QUERY : <apply(A, a2, string(a1))>
+{i} a1,a2
+{0} 2,'2'
+
+SCIDB QUERY : <create array T<td: datetime>[i=0:0,1,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(T, now()), T)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <apply(T, dst, append_offset(td, 3600))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array T1 <t:datetimetz>[i=0:0,1,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(project(apply(T,dst,apply_offset(td,3600)),dst),T1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <apply(T1,dst,strip_offset(t))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <apply(T1,dst,togmt(t))>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

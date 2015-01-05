@@ -1,0 +1,36 @@
+--setup
+--start-query-logging
+
+--shell --command "echo 'GSM1,Affy_1,9416.59411' > scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM1,Affy_2,7525.57520' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM1,Affy_3,5634.55629' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM1,Affy_4,3743.63737' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM2,Affy_1,1593.61587' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM2,Affy_2,9701.59696' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM2,Affy_3,7810.57805' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM2,Affy_4,5919.55914' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM3,Affy_1,3769.63763' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM3,Affy_2,1878.61872' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM3,Affy_3,9986.59981' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM3,Affy_4,8095.58090' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM4,Affy_1,5945.55940' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM4,Affy_2,4054.54049' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM4,Affy_3,2163.62157' >> scidbLoadCsv_test.csv"
+--shell --command "echo 'GSM4,Affy_4,272.60266 ' >> scidbLoadCsv_test.csv"
+
+
+
+--test
+--shell --command "scidbLoadCsv.sh -p ${IQUERY_PORT:=1239} -a ID,AffyId,Response -D ID,AffyId -m '4,4' -c 4,4 string,string,double tmpA < scidbLoadCsv_test.csv"
+scan(tmpA)
+
+--shell --command "scidbLoadCsv.sh -p ${IQUERY_PORT:=1239} -a ID,AffyId,Response -d 0,1       -m '4,4' -c 4,4 string,string,double tmpB < scidbLoadCsv_test.csv"
+scan(tmpB)
+
+
+--cleanup
+remove(tmpA)
+remove(tmpB)
+--shell --command "rm scidbLoadCsv_test.csv"
+--stop-query-logging
+

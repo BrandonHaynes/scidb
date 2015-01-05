@@ -1,0 +1,16 @@
+--setup
+
+create array xyz_shift <a:double compression 'dictionary'> [x=1:2000,100,0, y=1:2000,100,0]
+CREATE ARRAY xyz <a:double compression 'dictionary'> [x=0:1999,100,0, y=0:1999,100,0]
+
+--test
+
+load(xyz,'${TEST_DATA_DIR}/xyz_small.txt')
+
+subarray(reshape(xyz, xyz_shift), 1, 1, 1001, 1001)
+
+aggregate(xyz, sum(a), avg(a), count(*))
+
+--cleanup
+remove(xyz)
+remove(xyz_shift)

@@ -1,0 +1,255 @@
+SCIDB QUERY : <create array data_array < A: int64 > [ X=0:9,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(data_array, 1+X), data_array)>
+{X} A
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+
+SCIDB QUERY : <create array UB <a:int64>[x=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(UB, '../tests/harness/testcases/data/unbounded_cross.txt')>
+{x} a
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <create array Media_B < val : double > [ g=1:3,2,1, h=1:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Media_B, g*g+h/(1.0)), Media_B)>
+{g,h} val
+{1,1} 2
+{1,2} 3
+{2,1} 5
+{2,2} 6
+{1,3} 4
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <create array Media_C < val : double > [ I=1:3,2,1, J=1:3,2,2]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Media_C, I*I+J/(1.0)), Media_C)>
+{I,J} val
+{1,1} 2
+{1,2} 3
+{2,1} 5
+{2,2} 6
+{1,3} 4
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <create array merge_array < A: string > [ X=0:4,5,0, Y=0:4,5,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build (merge_array, iif(X=3 OR Y=2,100,25)),merge_array)>
+{X,Y} A
+{0,0} '25'
+{0,1} '25'
+{0,2} '100'
+{0,3} '25'
+{0,4} '25'
+{1,0} '25'
+{1,1} '25'
+{1,2} '100'
+{1,3} '25'
+{1,4} '25'
+{2,0} '25'
+{2,1} '25'
+{2,2} '100'
+{2,3} '25'
+{2,4} '25'
+{3,0} '100'
+{3,1} '100'
+{3,2} '100'
+{3,3} '100'
+{3,4} '100'
+{4,0} '25'
+{4,1} '25'
+{4,2} '100'
+{4,3} '25'
+{4,4} '25'
+
+SCIDB QUERY : <merge(UB,data_array)>
+{x} a
+{0} 0
+{1} 2
+{2} 1
+{3} 4
+{4} 2
+{5} 6
+{6} 3
+{7} 8
+{8} 4
+{9} 10
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <merge(data_array,UB)>
+{X} A
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <select * into data_array_merge from data_array where X%2 = 0>
+{X} A
+{0} 1
+{2} 3
+{4} 5
+{6} 7
+{8} 9
+
+SCIDB QUERY : <merge(data_array_merge,UB)>
+{X} A
+{0} 1
+{2} 3
+{4} 5
+{6} 7
+{8} 9
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <merge(UB,data_array_merge)>
+{x} a
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <select * from merge((select * from merge_array where X=2),(select * from build (merge_array, iif(X=3 OR Y=2,100,25)) where Y=2))>
+{X,Y} A
+{0,2} '100'
+{1,2} '100'
+{2,0} '25'
+{2,1} '25'
+{2,2} '100'
+{2,3} '25'
+{2,4} '25'
+{3,2} '100'
+{4,2} '100'
+
+SCIDB QUERY : < select * from merge((select * from merge_array where A='2'),(select * from build (merge_array, iif(X=3 OR Y=2,100,25)) where Y=2))>
+{X,Y} A
+{0,2} '100'
+{1,2} '100'
+{2,2} '100'
+{3,2} '100'
+{4,2} '100'
+
+SCIDB QUERY : <merge(repart(Media_B,< val : double > [ I=1:3,2,1, J=1:3,2,2]),Media_C)>
+{I,J} val
+{1,1} 2
+{1,2} 3
+{2,1} 5
+{2,2} 6
+{1,3} 4
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <merge(Media_C,repart( Media_B,< val : double > [ I=1:3,2,1, J=1:3,2,2]))>
+{I,J} val
+{1,1} 2
+{1,2} 3
+{2,1} 5
+{2,2} 6
+{1,3} 4
+{2,3} 7
+{3,1} 10
+{3,2} 11
+{3,3} 12
+
+SCIDB QUERY : <remove(data_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UB)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Media_B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Media_C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(merge_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(data_array_merge)>
+Query was executed successfully
+

@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="adddim">
+  <refnamediv>
+    <refname>adddim</refname>
+
+    <refpurpose><indexterm>
+        <primary>adddim</primary>
+      </indexterm><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>adding</secondary>
+      </indexterm>Produces a result array with one more dimension than a given
+    source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>adddim(<replaceable>array</replaceable>,<replaceable>new_dimension</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The adddim operator adds a stub, integer dimension to an array to
+    increase its dimensionality by 1. The datatype of the new dimension is
+    int64. The size of the new dimension is 1.</para>
+
+    <para>The cardinality of the added dimension is limited to 1—that is, you
+    can only increase a 1-dimensional array to 2 dimensions, a 2-dimensional
+    array to 3 dimensions, and so on. If you need more redimensioning
+    capabilities, use the <xref linkend="redimension"/> operator.</para>
+
+    <para>SciDB does not have an analogous operator for adding an attribute.
+    To add an attribute to an array, use the <xref linkend="apply"/>
+    operator.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example creates a 2-dimensional array from 1-dimensional
+      arrays.</para>
+
+      <procedure>
+        <step>
+          <para>Create a vector of zeros:<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:4,5,0],0),vector0);</programlisting><screen>{i} val
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create a vector of ones:<para><programlisting>AFL% store(build(&lt;val:double&gt;[j=0:4,5,0],1),vector1);</programlisting><screen>{j} val
+{0} 1
+{1} 1
+{2} 1
+{3} 1
+{4} 1
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Concatenate these vectors without increasing their
+          dimensionality. Note that the output is
+          1-dimensional:<para><programlisting>AFL% concat(vector0,vector1);</programlisting><screen>{i} val
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+{9} 1
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use adddim to add a dimension to both vectors and then
+          concatenate them. The result will have two
+          dimensions:<para><programlisting>AFL% concat(adddim(vector0,x),adddim(vector1,y));  </programlisting><screen>[
+[(0),(0),(0),(0),(0)],
+[(1),(1),(1),(1),(1)]
+]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

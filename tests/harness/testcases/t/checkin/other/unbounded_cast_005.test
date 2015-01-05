@@ -1,0 +1,11 @@
+# Ticket 1592
+# A three dimension array is created and then is cast into an array with three
+# unbounded dimensions.  Both the contents and the metadata are shown.
+
+--setup
+
+--test
+cast(build(<a:int64>[i=0:2,3,0,j=0:3,5,0,k=1:5,4,0], i*100+j*10+k), <a:int64>[i=0:*,3,0,j=0:*,5,0,k=1:*,4,0])
+show('cast(build(<a:int64>[i=0:2,3,0,j=0:3,5,0,k=1:5,2,0], i*100+j*10+k), <a:int64>[i=0:*,3,0,j=0:*,5,0,k=1:*,2,0])', 'afl')
+
+--cleanup

@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="apply">
+    <refname>apply</refname>
+
+    <refpurpose>Produces a result array similar to a source array, but with
+    additional attributes whose values are calculated from parameters you
+    supply.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>
+      apply(<replaceable>source_array</replaceable>,<replaceable>new_attribute1</replaceable>,<replaceable>expression1
+                     </replaceable><optional>,<replaceable>new_attribute2</replaceable>,<replaceable>expression2</replaceable></optional>...);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>apply</primary>
+      </indexterm><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>adding</secondary>
+      </indexterm>Use the apply operator to produce a result array with new
+    attributes and to compute values for them. The new array includes all
+    attributes present in the source array, plus the newly created attributes.
+    The newly created attribute(s) must not have the same name as any of the
+    existing attributes of the source array.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example produces a result array similar to an existing array
+      (called distance), but with an additional attribute (called
+      kilometers).</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called distance with an attribute called
+          miles:<para><programlisting>AFL% CREATE ARRAY distance &lt;miles:double&gt; [i=0:9,10,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Store values of 100–1000 into the array:<para><programlisting>AFL% store(build(distance,i*100.0),distance);  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Apply the expression 1.6 * miles to distance and name the
+          result kilometers:<para><programlisting>AFL% apply(distance,kilometers,1.6*miles);</programlisting><screen>{i} miles,kilometers
+{0} 0,0
+{1} 100,160
+{2} 200,320
+{3} 300,480
+{4} 400,640
+{5} 500,800
+{6} 600,960
+{7} 700,1120
+{8} 800,1280
+{9} 900,1440
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example combines the array operator and the xgrid operator to
+      produce a result array that is an enlarged version of an existing array.
+      The enlargement includes more cells (via xgrid) and an additional
+      attribute called val_2 (via apply).</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-dimensional array called vector:<para><programlisting>AFL% CREATE ARRAY vector &lt;val:double&gt;[i=0:9,10,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Put values of 1–10 into vector and store the
+          result:<para><programlisting>AFL% store(build(vector,i+1),vector);  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Use the xgrid operator to expand <code>vector</code> and the
+          apply operator to add an attribute whose values contain the additive
+          inverse of the dimension index:<para><programlisting>AFL% apply(xgrid(vector,2),val_2,-i);</programlisting><screen>{i} val,val_2
+{0} 1,0
+{1} 1,-1
+{2} 2,-2
+{3} 2,-3
+{4} 3,-4
+{5} 3,-5
+{6} 4,-6
+{7} 4,-7
+{8} 5,-8
+{9} 5,-9
+{10} 6,-10
+{11} 6,-11
+{12} 7,-12
+{13} 7,-13
+{14} 8,-14
+{15} 8,-15
+{16} 9,-16
+{17} 9,-17
+{18} 10,-18
+{19} 10,-19
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example uses the apply operator and a data type function to
+      produce a result array whose attribute values have been cast to a new
+      datatype.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called integer with an int64
+          attribute:<para><programlisting>AFL% store(build(&lt;val:int64&gt;[i=0:9,10,0],i+1),A);  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Use apply to apply the data conversion function
+          <code>double</code> to the attribute val.<para><programlisting>AFL% apply(A,val_2,double(val));</programlisting><screen>{i} val,val_2
+{0} 1,1
+{1} 2,2
+{2} 3,3
+{3} 4,4
+{4} 5,5
+{5} 6,6
+{6} 7,7
+{7} 8,8
+{8} 9,9
+{9} 10,10
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

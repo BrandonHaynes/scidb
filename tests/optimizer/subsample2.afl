@@ -1,0 +1,3 @@
+sum(
+    subarray( opt_dense_quad_small_2, 40,40,389,389)
+)

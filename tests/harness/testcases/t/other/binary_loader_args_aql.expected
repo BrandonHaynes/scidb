@@ -1,0 +1,173 @@
+SCIDB QUERY : <create array SP <a: int32, b: string, c: double, d: int64, e: bool, f: float, g: string>[i=1:1000,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A2 <a: int32, b: int32, c: string, d: string, e: string, f: string, g: int64>[i=1:1000,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A2a <a: int32, b: int32, c: string, d: string, e: string, f: string, g: int64>[i=1:1000,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load SP from current instance '${TEST_DATA_DIR}/sp.txt'">
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{1000} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load A2 from current instance '${TEST_DATA_DIR}/A2.txt'">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',3
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',55
+{1000} 2,5,'five','ten','password1','password2',4
+
+SCIDB QUERY : <select * from SP>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{1000} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <select * from aggregate(versions(SP),count(*))>
+{i} count
+{0} 1
+
+SCIDB QUERY : <select * from show(SP)>
+{i} schema
+{0} 'SP<a:int32,b:string,c:double,d:int64,e:bool,f:float,g:string> [i=1:1000,100,0]'
+
+SCIDB QUERY : <select * from dimensions(SP)>
+{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
+{0} 'i',1,1000,100,0,1,1000,'int64'
+
+SCIDB QUERY : <(... omitted ...)>
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <(... omitted ...)>
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load A2 from current instance '${TEST_DATA_DIR}/A2_err.txt' as 'text' errors 3">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',0
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',0
+{1000} 2,5,'five','ten','','',0
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load A2 from current instance '${TEST_DATA_DIR}/A2_err.txt' as 'text' errors 9999 shadow array A2_shadow">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',0
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',0
+{1000} 2,5,'five','ten','','',0
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load A2a from current instance '${TEST_DATA_DIR}/A2_err.txt' as 'text' errors 9999">
+{i} a,b,c,d,e,f,g
+{1} 1,4,'one','four','sixteen','thirty two',128
+{888} 2,5,'five','ten','fifteen','thirty',0
+{889} 2,5,'five','ten','fifteen','thirty',256
+{998} 2,5,'five','ten','fifteen','thirty',0
+{1000} 2,5,'five','ten','','',0
+
+SCIDB QUERY : <save SP into current instance 'sp_int32.bin' as '(int32,string,double,int64,bool,float,string)'>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{1000} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <save SP into current instance'junk.bin' as '(int32,string,double,int64,datetime,float,datetime)'>
+[An error expected at this place for the query "save SP into current instance'junk.bin' as '(int32,string,double,int64,datetime,float,datetime)'". And it failed with error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER. Expected error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER.]
+
+SCIDB QUERY : <load SP from current instance 'sp_int32.bin' as '(int32,string,double,int64,bool,float,string)' errors 100 shadow array SP_err>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <load SP from current instance 'sp_int32.bin' as '(int32,string,double,int64,bool,float,string)' errors 1 shadow array SP_err>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <select * from SP>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <select * from aggregate(versions(SP),count(*))>
+{i} count
+{0} 3
+
+SCIDB QUERY : <select * from show(SP)>
+{i} schema
+{0} 'SP<a:int32,b:string,c:double,d:int64,e:bool,f:float,g:string> [i=1:1000,100,0]'
+
+SCIDB QUERY : <select * from dimensions(SP)>
+{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
+{0} 'i',1,1000,100,0,1,2,'int64'
+
+SCIDB QUERY : <save SP into current instance 'sp_int32_int64.bin' as '(int64,string,double,int64,bool,float,string)'>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <load SP from current instance 'sp_int32_int64.bin' as '(int64,string,double,int64,bool,float,string)'>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <select * from SP>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <select * from aggregate(versions(SP),count(*))>
+{i} count
+{0} 4
+
+SCIDB QUERY : <select * from show(SP)>
+{i} schema
+{0} 'SP<a:int32,b:string,c:double,d:int64,e:bool,f:float,g:string> [i=1:1000,100,0]'
+
+SCIDB QUERY : <select * from dimensions(SP)>
+{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
+{0} 'i',1,1000,100,0,1,2,'int64'
+
+SCIDB QUERY : <save SP into 'sp_aql.bin' as 'opaque'>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <load SP from 'sp_aql.bin' as 'opaque'>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <select * from SP>
+{i} a,b,c,d,e,f,g
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{2} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <select * from aggregate(versions(SP),count(*))>
+{i} count
+{0} 5
+
+SCIDB QUERY : <select * from show(SP)>
+{i} schema
+{0} 'SP<a:int32,b:string,c:double,d:int64,e:bool,f:float,g:string> [i=1:1000,100,0]'
+
+SCIDB QUERY : <select * from dimensions(SP)>
+{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
+{0} 'i',1,1000,100,0,1,2,'int64'
+
+SCIDB QUERY : <remove(SP)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SP_err)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2_shadow)>
+Query was executed successfully
+

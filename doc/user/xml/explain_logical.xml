@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd" []>
+<refentry>
+  <refmeta>
+    <refentrytitle>explain_logical</refentrytitle>
+  </refmeta>
+  <refnamediv>
+    <refname>explain_logical</refname>
+    <refname>explain_physical</refname>
+    <refpurpose>Show query plan</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <synopsis>explain_logical( query: string, language: string )
+explain_physical( query: string, language: string )</synopsis>
+    <para>This operator is designed for internal use.</para>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>Summary</title>
+    <para>The operators explain_logical and explain_physical can be used to emit a human-readable plan string for a
+particular query without running the query itself. SciDB first constructs a logical plan, optimizes it and then
+translates it into a physical plan.
+</para>
+  </refsect1>
+</refentry>

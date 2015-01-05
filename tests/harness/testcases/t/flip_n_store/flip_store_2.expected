@@ -1,0 +1,195 @@
+SCIDB QUERY : <create array A <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <x:int64> [a=0:14,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <store(filter(build(D,x+5),x<>1),D)>
+{x} a
+{0} 5
+{2} 7
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+{a} x
+{10} 0
+{11} 1
+{12} 2
+
+SCIDB QUERY : <store(redimension(D,B),B)>
+{a} x
+{5} 0
+{7} 2
+
+SCIDB QUERY : <store(redimension(B,D),D)>
+{x} a
+{0} 5
+{2} 7
+
+SCIDB QUERY : <unpack(B,row)>
+{row} a,x
+{0} 5,0
+{1} 7,2
+
+SCIDB QUERY : <unpack(D,row)>
+{row} x,a
+{0} 0,5
+{1} 2,7
+
+SCIDB QUERY : <aggregate(B,max(x))>
+{i} x_max
+{0} 2
+
+SCIDB QUERY : <aggregate(B,min(x))>
+{i} x_min
+{0} 0
+
+SCIDB QUERY : <aggregate(B,avg(x))>
+{i} x_avg
+{0} 1
+
+SCIDB QUERY : <rename(B,B1)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(B1,B)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(B,7,11)>
+{a} x
+{0} 2
+
+SCIDB QUERY : <between(B,7,20)>
+{a} x
+{7} 2
+
+SCIDB QUERY : <filter(B,x>1)>
+{a} x
+{7} 2
+
+SCIDB QUERY : <project(B,x)>
+{a} x
+{5} 0
+{7} 2
+
+SCIDB QUERY : <join(B,B)>
+{a} x,x
+{5} 0,0
+{7} 2,2
+
+SCIDB QUERY : <cross_join(B,B)>
+{a,a} x,x
+{5,5} 0,0
+{5,7} 0,2
+{7,5} 2,0
+{7,7} 2,2
+
+SCIDB QUERY : <apply(B,z,x-a)>
+{a} x,z
+{5} 0,-5
+{7} 2,-5
+
+SCIDB QUERY : <aggregate(B,count(*))>
+{i} count
+{0} 2
+
+SCIDB QUERY : <aggregate(B,sum(x))>
+{i} x_sum
+{0} 2
+
+SCIDB QUERY : <sort(B,x)>
+{n} x
+{0} 0
+{1} 2
+
+SCIDB QUERY : <sort(B,x desc)>
+{n} x
+{0} 2
+{1} 0
+
+SCIDB QUERY : <aggregate(D,max(a))>
+{i} a_max
+{0} 7
+
+SCIDB QUERY : <aggregate(D,min(a))>
+{i} a_min
+{0} 5
+
+SCIDB QUERY : <aggregate(D,avg(a))>
+{i} a_avg
+{0} 6
+
+SCIDB QUERY : <rename(D,D1)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(D1,D)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(D,1,2)>
+{x} a
+{1} 7
+
+SCIDB QUERY : <between(D,1,2)>
+{x} a
+{2} 7
+
+SCIDB QUERY : <filter(D,x>1)>
+{x} a
+{2} 7
+
+SCIDB QUERY : <project(D,a)>
+{x} a
+{0} 5
+{2} 7
+
+SCIDB QUERY : <join(D,D)>
+{x} a,a
+{0} 5,5
+{2} 7,7
+
+SCIDB QUERY : <cross_join(D,D)>
+{x,x} a,a
+{0,0} 5,5
+{0,2} 5,7
+{2,0} 7,5
+{2,2} 7,7
+
+SCIDB QUERY : <apply(D,z,x-a)>
+{x} a,z
+{0} 5,-5
+{2} 7,-5
+
+SCIDB QUERY : <aggregate(D,count(*))>
+{i} count
+{0} 2
+
+SCIDB QUERY : <aggregate(D,sum(a))>
+{i} a_sum
+{0} 12
+
+SCIDB QUERY : <sort(D,a)>
+{n} a
+{0} 5
+{1} 7
+
+SCIDB QUERY : <sort(D,a desc)>
+{n} a
+{0} 7
+{1} 5
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+

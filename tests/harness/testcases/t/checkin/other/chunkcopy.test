@@ -1,0 +1,27 @@
+--setup
+--start-query-logging
+
+create array A_trunc     <val:int64> [x=1:5 ,3,0, y=1:5 ,3,0]
+create array A_unb       <val:int64> [x=1:* ,3,0, y=1:* ,3,0]
+create array A_trunc_o   <val:int64> [x=1:5 ,3,1, y=1:5 ,3,1]
+create array A_unb_o     <val:int64> [x=1:* ,3,1, y=1:* ,3,1]
+create array A           <val:int64> [x=1:6 ,3,0, y=1:6 ,3,0]
+
+--test
+
+store(build(A_trunc, x+y), A_trunc)
+store(A_trunc, A)
+store(A_trunc, A_unb)
+store(repart(A_trunc, A_unb_o), A_unb_o)
+store(repart(A_trunc, A_trunc_o), A_trunc_o)
+store(A_trunc_o, A_unb_o)
+
+--cleanup
+
+remove(A_trunc)
+remove(A_unb)
+remove(A_trunc_o)
+remove(A_unb_o)
+remove(A)
+
+--stop-query-logging

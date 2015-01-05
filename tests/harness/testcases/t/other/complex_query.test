@@ -1,0 +1,35 @@
+--setup
+--start-query-logging
+#P4 Ticket : 467
+#Testcases for the complex querries on simple 2D arrays.
+
+create array m5x5 < val : double > [ x=0:4,5,0, y=0:4,5,0]
+store(build(m5x5, (3*x*x-4*y)/(3.5)),m5x5)
+
+
+--test
+--set-format sparse
+join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0]))
+aggregate(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),count(*))
+store(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),AAA)
+show(AAA)
+regrid(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),2,2,sum(z))
+cross_join(regrid(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),2,2,sum(z)),m5x5)
+store(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),2,2,sum(z)),m5x5),BBB)
+show(BBB)
+subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),2,2,sum(z)),m5x5),0,0,0,0,1,1,1,1)
+subarray(BBB,0,0,0,0,1,1,1,1)
+store(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),2,2,sum(z)),m5x5),0,0,0,0,1,1,1,1),CCC)
+show(CCC)
+project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),2,2,sum(z)),m5x5),0,0,0,0,1,1,1,1),val)
+project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),2,2,sum(z)),m5x5),0,0,0,0,1,1,1,1),val,z_sum)
+unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5,2,2),0,1,9,8),z,x),repart(m5x5,<val:double>[x=0:4,10,0,y=0:4,10,0])),1,1,3,3),2,2,sum(z)),m5x5),0,0,0,0,1,1,1,1),val),i)
+
+
+--cleanup
+remove(m5x5)
+remove(AAA)
+remove(BBB)
+remove(CCC)
+
+--stop-query-logging

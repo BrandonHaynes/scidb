@@ -1,0 +1,12 @@
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_REDEFINED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_REDEFINED.]
+
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_NOT_APPLICABLE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_NOT_APPLICABLE.]
+
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE.]
+
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_ARITY_MISMATCH. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_ARITY_MISMATCH.]
+
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE.]
+
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE.]
+

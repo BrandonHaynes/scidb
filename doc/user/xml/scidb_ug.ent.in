@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!ENTITY scidb_version "@SCIDB_VERSION_MAJOR@.@SCIDB_VERSION_MINOR@">
+<!ENTITY scidb_revision "@SCIDB_REVISION@">
+<!ENTITY scidb_year "20@SCIDB_VERSION_MAJOR@">

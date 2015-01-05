@@ -1,0 +1,38 @@
+Query was executed successfully
+
+[An error expected at this place for the query "op_count ( ARRAY_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "op_sum ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "op_sum ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+[An error expected at this place for the query "op_avg ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "op_avg ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+[An error expected at this place for the query "op_avg ( A, a2 )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE.]
+
+[An error expected at this place for the query "op_stdev ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "op_stdev ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+[An error expected at this place for the query "op_stdev ( A, a2 )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE.]
+
+[An error expected at this place for the query "op_min ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "op_min ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+[An error expected at this place for the query "op_max ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "op_max ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+[An error expected at this place for the query "op_range ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "op_range ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+[An error expected at this place for the query "op_distinct_count ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "op_distinct_count ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+Query was executed successfully
+

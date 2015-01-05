@@ -1,0 +1,50 @@
+Query was executed successfully
+
+Query was executed successfully
+
+SCIDB QUERY : <build(na22, null)>
+{x,y} a
+{0,0} null
+{0,1} null
+{1,0} null
+{1,1} null
+
+SCIDB QUERY : <build(na22, iif(x=y, null, 0.0))>
+{x,y} a
+{0,0} null
+{0,1} 0
+{1,0} 0
+{1,1} null
+
+SCIDB QUERY : <store(build(na22, iif(x=0 and y=0, null, iif(x=y,1,0))), na22)>
+{x,y} a
+{0,0} null
+{0,1} 0
+{1,0} 0
+{1,1} 1
+
+SCIDB QUERY : <save(na22,'naSaved.txt', -1, 'store')>
+{x,y} a
+{0,0} null
+{0,1} 0
+{1,0} 0
+{1,1} 1
+
+SCIDB QUERY : <load(na22loaded, 'naSaved.txt', -1)>
+{x,y} a
+{0,0} null
+{0,1} 0
+{1,0} 0
+{1,1} 1
+
+SCIDB QUERY : <scan(na22loaded)>
+{x,y} a
+{0,0} null
+{0,1} 0
+{1,0} 0
+{1,1} 1
+
+Query was executed successfully
+
+Query was executed successfully
+

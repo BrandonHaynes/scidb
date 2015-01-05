@@ -1,0 +1,59 @@
+--setup
+--start-query-logging
+# Ticket number : 1688
+# Tests for the binary load-save on 3D unbounded array using AQL
+# Tests for load-save in nested sub-query in joins using AFL
+
+
+create array A <num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]
+store(apply(build(A,x+y*y/1),sum,200+x*y*z+num),A11)
+create array A22 <num:double, sum:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]
+create array A33 <num:float, sum:int32> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]
+create array Unbounded <num:float, sum:int32> [x=1:*,2,0,y=1:*,2,0,z=1:*,2,0]
+create array A44 <sum:int32> [x=1:*,20,0,y=1:*,2,0,z=1:*,20,0]
+create array A55 <num:double> [x=1:2,2,0,y=1:*,2,0,z=1:2,2,0]
+create array A66 <num:double> [x=1:2,2,0,y=1:*,2,0,z=1:2,2,0]
+
+--test
+
+--aql select * from show(A11)
+--aql save A11 into '/tmp/a11.txt'
+--aql load A22 from '/tmp/a11.txt'
+--aql save A11 into current instance  '/tmp/a11.bin' as '(int64,int64)'
+--aql load  A33 from current instance  '/tmp/a11.bin' as '(int64,int64)'
+--aql load  A33 from current instance  '/tmp/a11.bin' as '(double,int64)'
+--aql load  A33 from  '/tmp/a11.bin' as '(int64,int64)'
+--aql save A11 into 0  '/tmp/a11.bin_a' as '(int64,int64)'
+
+--aql save  A33 into  '/tmp/a33.txt' as 'text'
+--aql load  A33 from  '/tmp/a33.txt' as 'text'
+--aql load Unbounded from  '/tmp/a33.txt' as 'text'
+--aql save Unbounded into current instance '/tmp/unbound.bin' as '(float,int32)'
+--aql load  A44 from current instance '/tmp/unbound.bin' as '(dummy(4),int32)'
+--aql load  A55 from  '/tmp/unbound.bin' as '(dummy(4),int32)'
+--aql load  A55 from  '/tmp/unbound.bin' as '(float,dummy(4))'
+
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql="load A55 from '/tmp/unbound.bin' as 'text'"
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql="load A55 from '/tmp/a33.txt' as '(dummy(4),int32)'"
+
+--aql load A55 from '/tmp/a33.txt' as '(dummy(4),int32)' errors 100 shadow array A55_shad
+--aql select count(*) from A55_shad
+
+join(load(A22,'/tmp/a11.txt'),A11)
+join(load(A22,'/tmp/a11.txt'),A66)
+join(load(A33,'/tmp/a33.txt',0, 'text'),load(A55,'/tmp/unbound.bin',0,'(dummy(4),int32)'))
+
+
+--cleanup
+--shell --command "rm /tmp/a11.txt /tmp/a11.bin /tmp/a33.txt /tmp/unbound.bin /tmp/a11.bin_a"
+remove(A)
+remove(A11)
+remove(A22)
+remove(A33)
+remove(A44)
+remove(Unbounded)
+remove(A55)
+remove(A66)
+remove(A55_shad)
+
+--stop-query-logging

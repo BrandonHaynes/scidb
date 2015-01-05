@@ -1,0 +1,129 @@
+SCIDB QUERY : <load_library('misc')>
+Query was executed successfully
+
+SCIDB QUERY : <store (build (<v : int64> [I=0:3,1,0], I), NODE_ID)>
+{I} v
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+
+SCIDB QUERY : <create array INH_UINT32 <X:uint32> [chromid=1:5,1,0,pos=1:25000,2500,0,id=1:43,43,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array INH_CH <ref:char>     [chromid=1:5,1,0,pos=1:25000,2500,0,id=1:43,43,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array INH_DOUBLE <X:double> [chromid=1:5,1,0,pos=1:25000,2500,0,id=1:43,43,0]>
+Query was executed successfully
+
+SCIDB QUERY : <apply(NODE_ID, foo, setMemCap (0, 2*1024*1024*1024))>
+{I} v,foo
+{0} 0,0
+{1} 1,-1
+{2} 2,-1
+{3} 3,-1
+
+SCIDB QUERY : <apply(NODE_ID, foo, setMemCap (1, 2*1024*1024*1024))>
+{I} v,foo
+{0} 0,-1
+{1} 1,1
+{2} 2,-1
+{3} 3,-1
+
+SCIDB QUERY : <apply(NODE_ID, foo, setMemCap (2, 2*1024*1024*1024))>
+{I} v,foo
+{0} 0,-1
+{1} 1,-1
+{2} 2,2
+{3} 3,-1
+
+SCIDB QUERY : <apply(NODE_ID, foo, setMemCap (3, 2*1024*1024*1024))>
+{I} v,foo
+{0} 0,-1
+{1} 1,-1
+{2} 2,-1
+{3} 3,3
+
+SCIDB QUERY : <store(build(INH_CH, char(string(random()))), INH_CH)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(INH_UINT32, uint32(random())), INH_UINT32)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(INH_DOUBLE, uint32(random())), INH_DOUBLE)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join( INH_CH, join( join(INH_UINT32,INH_UINT32), join( join(join(INH_UINT32,INH_UINT32),join(INH_UINT32,INH_DOUBLE)), join(join(INH_UINT32,INH_UINT32),join(INH_UINT32,INH_DOUBLE)) ) ) ), INHXXX)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(INHXXX, (X+X_2+X_3+X_4+X_5+X_6)%2 = 0), INHXXX)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(INHXXX,INHXXX_2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(INHXXX, (chromid+pos+id)%2=0), INHXXX)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(INHXXX, (chromid%2=0 or pos%2=0 or id%2=0)), INHXXX)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(INHXXX, (X=0)), INHXXX)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(filter(list('arrays', true), regex(name,'INHXXX@.*')), count(*))>
+{i} count
+{0} 5
+
+SCIDB QUERY : <show(INHXXX)>
+{i} schema
+{0} 'INHXXX<ref:char,X:uint32,X_2:uint32,X_3:uint32,X_4:uint32,X_5:uint32,X_6:double,X_7:uint32,X_8:uint32,X_9:uint32,X_10:double> [chromid=1:5,1,0,pos=1:25000,2500,0,id=1:43,43,0]'
+
+SCIDB QUERY : <aggregate(filter(join(INHXXX_2 as left, INHXXX@2 as right), left.X<>right.X or left.ref<>right.ref or left.X_2<>right.X_2 or left.X_3<>right.X_3 or left.X_4<>right.X_4 or left.X_5<>right.X_5 or left.X_6<>right.X_6 or left.X_7<>right.X_7 or left.X_8<>right.X_8 or left.X_9<>right.X_9 or left.X_10<>right.X_10), count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <apply(NODE_ID, foo, setMemCap (0, -1))>
+{I} v,foo
+{0} 0,0
+{1} 1,-1
+{2} 2,-1
+{3} 3,-1
+
+SCIDB QUERY : <apply(NODE_ID, foo, setMemCap (1, -1))>
+{I} v,foo
+{0} 0,-1
+{1} 1,1
+{2} 2,-1
+{3} 3,-1
+
+SCIDB QUERY : <apply(NODE_ID, foo, setMemCap (2, -1))>
+{I} v,foo
+{0} 0,-1
+{1} 1,-1
+{2} 2,2
+{3} 3,-1
+
+SCIDB QUERY : <apply(NODE_ID, foo, setMemCap (3, -1))>
+{I} v,foo
+{0} 0,-1
+{1} 1,-1
+{2} 2,-1
+{3} 3,3
+
+SCIDB QUERY : <remove(INH_UINT32)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(INH_CH)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(INH_DOUBLE)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(INHXXX)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(INHXXX_2)>
+Query was executed successfully
+

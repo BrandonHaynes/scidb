@@ -1,0 +1,42 @@
+# TEST:    Send a signal 11 to just the child process of a worker instance
+# EXPECT:  After scidb recovers, temp arrays should be unavailable for queries,
+#          but still part of the catalog.
+
+--setup
+
+load_library('misc')
+
+create temp array ARRAY1 <v:int64> [I=0:100,1,0]
+create temp array ARRAY2 <v:int64> [I=0:100,1,0]
+create      array ARRAY3 <v:int64> [I=0:100,1,0]
+store (build (ARRAY1, I), ARRAY1)
+store (build (ARRAY2,-I), ARRAY2)
+store (build (ARRAY3,-I), ARRAY3)
+
+--test
+--start-query-logging
+
+# check distribution
+aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=0),count(*))
+aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=1),count(*))
+aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=2),count(*))
+aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=3),count(*))
+
+# inject error into a write query
+apply(ARRAY1,zz,injectError(0, 4))
+--error --code=scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR "store(build(ARRAY1,0),ARRAY1)"
+
+# check that the data in the arrays is not altered:
+aggregate(filter(apply(join(ARRAY1,ARRAY2),attrSum,ARRAY1.v + ARRAY2.v), attrSum<>0),count(*))
+
+# inject error into a write query
+apply(ARRAY1,zz,injectError(3, 4))
+--error --code=scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR "store(ARRAY3,ARRAY1)"
+
+# check that the data in the arrays is not altered:
+aggregate(filter(apply(join(ARRAY1,ARRAY2),attrSum,ARRAY1.v + ARRAY2.v), attrSum<>0),count(*))
+
+--cleanup
+remove(ARRAY1)
+remove(ARRAY2)
+remove(ARRAY3)

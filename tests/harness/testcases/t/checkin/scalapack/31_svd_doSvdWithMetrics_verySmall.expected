@@ -1,0 +1,276 @@
+../../bin/doSvdWithMetrics.sh: begin ------------------------------------
+nafl -q load_library('dense_linear_algebra') 
+
+@@@@ ../../bin/doSvdWithMetrics.sh: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@ ../../bin/doSvdWithMetrics.sh: matrix orders:  4     7                           64
+CHUNKSIZES pre-sort: 64_3_4_5_2
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 4, csize 2
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*4),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/16),metric),METRIC) 
+PASS? (error < 256)? for size 4, csize 2:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 4, csize 3
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*4),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/16),metric),METRIC) 
+PASS? (error < 256)? for size 4, csize 3:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 4, csize 4
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*4),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/16),metric),METRIC) 
+PASS? (error < 256)? for size 4, csize 4:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 4, csize 5
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*4),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/16),metric),METRIC) 
+PASS? (error < 256)? for size 4, csize 5:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 4, csize 64
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*4),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/16),metric),METRIC) 
+PASS? (error < 256)? for size 4, csize 64:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+CHUNKSIZES pre-sort: 64_6_7_8_3
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 7, csize 3
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*7),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/49),metric),METRIC) 
+PASS? (error < 256)? for size 7, csize 3:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 7, csize 6
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*7),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/49),metric),METRIC) 
+PASS? (error < 256)? for size 7, csize 6:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 7, csize 7
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*7),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/49),metric),METRIC) 
+PASS? (error < 256)? for size 7, csize 7:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 7, csize 8
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*7),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/49),metric),METRIC) 
+PASS? (error < 256)? for size 7, csize 8:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 7, csize 64
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*7),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/49),metric),METRIC) 
+PASS? (error < 256)? for size 7, csize 64:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+CHUNKSIZES pre-sort: 64_63_64))_32
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 64, csize 32
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*64),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/4096),metric),METRIC) 
+PASS? (error < 256)? for size 64, csize 32:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 64, csize 63
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*64),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/4096),metric),METRIC) 
+PASS? (error < 256)? for size 64, csize 63:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate INPUT
+@@@@ ../../bin/doSvdWithMetrics.sh: ---------------------------------------
+../../bin/doSvdWithMetrics.sh: svd with check, size 64, csize 64
+../../bin/doSvdWithMetrics.sh: building test matrix
+nafl -q store(build(INPUT,1+c+r*64),INPUT) 
+eliminate S
+eliminate U
+eliminate VT
+nafl -q store(gesvd(INPUT,'values'),S) 
+nafl -q store(gesvd(INPUT,'left'),U) 
+nafl -q store(gesvd(INPUT,'right'),VT) 
+../../bin/doSvdWithMetrics.sh: calculate metrics 
+doSvdMetric begin -----------------------------------------
+../../bin/doSvdMetric.sh: output is in array DOSVD_METRIC
+../../bin/doSvdMetric.sh: doSvdMetric end -----------------------------------------
+eliminate METRIC
+nafl -q store(project(apply(sum(project(apply(DOSVD_METRIC,square,nelsb*nelsb),square)),metric,sqrt(square_sum)/4096),metric),METRIC) 
+PASS? (error < 256)? for size 64, csize 64:
+afl -q project(apply(METRIC,PASS,metric<256),PASS) -> [(true)]
+======================================================================
+eliminate METRIC
+eliminate INPUT
+eliminate S
+eliminate U
+eliminate VT
+eliminate DOSVD_METRIC
+../../bin/doSvdWithMetrics.sh: end ------------------------------------
+

@@ -1,0 +1,75 @@
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,1,1 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 1 to 1 (if any)
+../../bin/doSvd.sh: verbose svd test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+../../bin/doSvd.sh: verbose U test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+../../bin/doSvd.sh: verbose VT test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+../../bin/doSvd.sh: verbose S test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+0,0,1
+r,c,multiply
+
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 2 to 1 (if any)
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,1,1 end
+
+
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,-1,1 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 1 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 1 to 1 (if any)
+../../bin/doSvd.sh: U-only test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+i,count
+0,1
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,-1,1 end
+
+
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1024,-1,8194 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 1024 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 1024 to 8194 (if any)
+../../bin/doSvd.sh: U-only test @ 1024 x 1024 csize 32 x 32
+Query was executed successfully
+i,count
+0,1048576
+
+../../bin/doSvd.sh: U-only test @ 2048 x 2048 csize 32 x 32
+Query was executed successfully
+i,count
+0,4194304
+
+../../bin/doSvd.sh: U-only test @ 4096 x 4096 csize 32 x 32
+Query was executed successfully
+i,count
+0,16777216
+
+../../bin/doSvd.sh: U-only test @ 8192 x 8192 csize 32 x 32
+Query was executed successfully
+i,count
+0,67108864
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1024,-1,8194 end
+
+

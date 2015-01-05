@@ -1,0 +1,23 @@
+--setup
+
+create array bounded <a:int64>[x=0:30,5,0]
+load(bounded,'${TEST_DATA_DIR}/unbounded.txt')
+
+create array mutable <a:int64>[x=0:30,5,0]
+
+--test
+--start-query-logging
+
+store(merge(bounded, mutable), mutable)
+
+scan(bounded)  
+scan(mutable)
+
+# try to update mutable... just to be sure
+--aql update mutable set a=99
+
+--stop-query-logging
+--cleanup
+
+remove(bounded) 
+remove(mutable)

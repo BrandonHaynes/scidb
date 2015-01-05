@@ -1,0 +1,30 @@
+SCIDB QUERY : <create temp array ABR1 <a:double,b:double>[x=0:3000,30,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array ABR2 <a:double>[x=0:3000,30,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array ABR3 <x:int64>[a=0:*,30,0, b=0:*,30,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(join(filter(build(ABR2, x+2 ),1),filter(build(ABR2, x+1), 1)),ABR1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+"issuing redim"
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 2 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_1.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 15 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_2.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 9 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+"should be empty..."
+SCIDB QUERY : <aggregate(ABR3,count(*))>
+{i} count
+{0} 0
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

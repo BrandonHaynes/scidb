@@ -1,0 +1,10 @@
+
+--setup
+create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+load(mult_1,'${TEST_DATA_DIR}/mult1.txt')
+
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2 "subarray(mult_1, 0, 0, 0)"
+
+--cleanup
+remove (mult_1)

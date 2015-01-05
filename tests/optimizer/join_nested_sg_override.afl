@@ -1,0 +1,22 @@
+sum(
+    apply(
+        join(
+            apply(
+                join(
+                    subarray( opt_dense_quad_small_1, 50,50,199,199), 
+                    subarray( opt_dense_quad_small_2, 40,40,189,189) 
+                ),
+                result, opt_dense_quad_small_1.val + opt_dense_quad_small_2.val
+            ),
+            sg(
+            apply(
+                join(
+                    subarray( opt_dense_quad_small_1, 50,50,199,199), 
+                    subarray( opt_dense_quad_small_2, 30,30,179,179) 
+                ),
+                result2, opt_dense_quad_small_1.val + opt_dense_quad_small_2.val
+            ), 1, -1)
+        ), 
+    result3, result+result2),    
+    result3
+)    

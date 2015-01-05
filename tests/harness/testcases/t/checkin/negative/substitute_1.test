@@ -1,0 +1,15 @@
+--setup
+--start-query-logging
+create array A <a:int32 null> [x=0:2,3,0]
+store(build(A,x+1),A)
+
+--test
+--aql update A set a=null where x=1
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_SUBSTITUTE_ERROR5 "substitute(A,build(<a:int64>[x=0:2,3,0],x+100))"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_SUBSTITUTE_ERROR4 "substitute(A,build(<a:int64>[x=-1:2,3,0],x+100))"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_SUBSTITUTE_ERROR4 "substitute(A,build(<a:int32>[x=-1:2,3,0],x+100))"
+
+
+--cleanup
+remove(A)
+--stop-query-logging

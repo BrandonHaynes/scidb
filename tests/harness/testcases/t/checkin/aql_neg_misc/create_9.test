@@ -1,0 +1,3 @@
+--test
+--error --code=scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_TYPE_NOT_REGISTERED --aql="create ARRAY a <a:int64,b:int>[x=1:5,5,0,y=0:7,5,0]"
+

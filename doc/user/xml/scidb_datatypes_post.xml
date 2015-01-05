@@ -1,0 +1,807 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<chapter id="dataTypes">
+  <title>SciDB Data Types and Casting</title>
+
+  <para>This chapter discusses the built-in SciDB data types, their behavior,
+  and how to cast one type to another.</para>
+
+  <section>
+    <title>Standard Data Types</title>
+
+    <para><indexterm>
+        <primary>data types</primary>
+      </indexterm><indexterm>
+        <primary>default attribute values</primary>
+      </indexterm>SciDB supports the following data types. You can access this
+    list by using <code>list('types')</code> at the AFL command
+    line.<informaltable frame="all">
+        <tgroup cols="3">
+          <colspec colname="c1" colwidth="20*"/>
+
+          <colspec colname="cgen1" colwidth="30*"/>
+
+          <colspec colname="c2" colwidth="50*"/>
+
+          <thead>
+            <row>
+              <entry>Data Type</entry>
+
+              <entry>Default Value</entry>
+
+              <entry>Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>bool</entry>
+
+              <entry>false</entry>
+
+              <entry><indexterm>
+                  <primary>boolean type</primary>
+                </indexterm>Boolean TRUE (1) or FALSE (0)</entry>
+            </row>
+
+            <row>
+              <entry>char</entry>
+
+              <entry>\0</entry>
+
+              <entry>Single-character</entry>
+            </row>
+
+            <row>
+              <entry>datetime</entry>
+
+              <entry>1970-01-01 00:00:00</entry>
+
+              <entry>Date and time</entry>
+            </row>
+
+            <row>
+              <entry>datetimetz</entry>
+
+              <entry>1970-01-01 00:00:00 -00:00</entry>
+
+              <entry>Date and time with timezone offset.</entry>
+            </row>
+
+            <row>
+              <entry>double</entry>
+
+              <entry>0</entry>
+
+              <entry>Double-precision decimal</entry>
+            </row>
+
+            <row>
+              <entry>float</entry>
+
+              <entry>0</entry>
+
+              <entry>Floating-point number</entry>
+            </row>
+
+            <row>
+              <entry>int8</entry>
+
+              <entry>0</entry>
+
+              <entry>Signed 8-bit integer</entry>
+            </row>
+
+            <row>
+              <entry>int16</entry>
+
+              <entry>0</entry>
+
+              <entry>Signed 16-bit integer</entry>
+            </row>
+
+            <row>
+              <entry>int32</entry>
+
+              <entry>0</entry>
+
+              <entry>Signed 32-bit integer</entry>
+            </row>
+
+            <row>
+              <entry>int64</entry>
+
+              <entry>0</entry>
+
+              <entry>Signed 64-bit integer</entry>
+            </row>
+
+            <row>
+              <entry>string</entry>
+
+              <entry>''</entry>
+
+              <entry>Variable length character string; default is the empty
+              string</entry>
+            </row>
+
+            <row>
+              <entry>uint8</entry>
+
+              <entry>0</entry>
+
+              <entry>Unsigned 8-bit integer</entry>
+            </row>
+
+            <row>
+              <entry>uint16</entry>
+
+              <entry>0</entry>
+
+              <entry>Unsigned 16-bit integer</entry>
+            </row>
+
+            <row>
+              <entry>uint32</entry>
+
+              <entry>0</entry>
+
+              <entry>Unsigned 32-bit integer</entry>
+            </row>
+
+            <row>
+              <entry>uint64</entry>
+
+              <entry>0</entry>
+
+              <entry>Unsigned 64-bit integer</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable></para>
+  </section>
+
+  <section>
+    <title>Temporal Data Types</title>
+
+    <para><indexterm>
+        <primary>datetime formats</primary>
+      </indexterm><indexterm>
+        <primary>temporal data formats</primary>
+      </indexterm>This section lists the acceptable formats for the SciDB
+    datatypes datetime and datetimetz.</para>
+
+    <para>These tokens represent portions of the date and time:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">MON: </emphasis>three-character month
+          name: Jan, Feb, Mar, and so on. The three-character month name is
+          case insensitive—any combination of lowercase and uppercase letters
+          is acceptable.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">mm: </emphasis>month number: 01 for
+          January, 02 for February, and so on. Note that you can omit the
+          leading 0.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">yyyy: </emphasis>4-digit year. If you
+          specify a 2-digit year, SciDB prepends '20'. So, for years in the
+          twenty first century, you need only use 2-digits to represent the
+          year.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">hour: </emphasis>hour of the day. Can be
+          12- or 24-hour time</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">min: </emphasis>minutes</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">sec: </emphasis>seconds</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">frac: </emphasis>fractional portion of a
+          second; you can specify as many digits as you like</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">AMPM: </emphasis>For one of the
+          acceptable syntaxes, you must specify 'AM' or 'PM', to indicate the
+          period of the day.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <table>
+      <title>Acceptable formats for the datetime datatype</title>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="26*"/>
+
+        <colspec colname="cgen1" colwidth="26*"/>
+
+        <thead>
+          <row>
+            <entry>Date/Time Syntax</entry>
+
+            <entry>Example</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>mm/dd/yyyy hour:min:sec</entry>
+
+            <entry>11/25/2009 16:11:19</entry>
+          </row>
+
+          <row>
+            <entry>dd.mm.yyyy hour:min:sec</entry>
+
+            <entry>25.11.2009 16:11:19</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour:min:sec</entry>
+
+            <entry>2009-11-25 16:11:19</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour.min.sec</entry>
+
+            <entry>2009-11-25 16.11.19</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour:min:sec.frac</entry>
+
+            <entry>2009-11-25 16:11:19.76</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour.min.sec.frac</entry>
+
+            <entry>2009-11-25 16.11.19.76</entry>
+          </row>
+
+          <row>
+            <entry>mm/dd/yyyy hour:min</entry>
+
+            <entry>11/25/2009 16:11</entry>
+          </row>
+
+          <row>
+            <entry>dd.mm.yy hour:min</entry>
+
+            <entry>25.11.2009 16:11</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour:min</entry>
+
+            <entry>2009-11-25 16:11</entry>
+          </row>
+
+          <row>
+            <entry>ddMONyyyy:hour:min:sec</entry>
+
+            <entry>25Nov2009:16:11:19</entry>
+          </row>
+
+          <row>
+            <entry>dd-MON-yyyy hour.min.sec AMPM</entry>
+
+            <entry>25-Nov-2009 4.11.19 PM</entry>
+          </row>
+
+          <row>
+            <entry nameend="cgen1" namest="c1"><emphasis role="bold">Date
+            Syntax (no time element)</emphasis></entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd</entry>
+
+            <entry>2009-11-25</entry>
+          </row>
+
+          <row>
+            <entry>mm/dd/yyyy</entry>
+
+            <entry>25.11.2009</entry>
+          </row>
+
+          <row>
+            <entry>dd.mm.yyyy</entry>
+
+            <entry>25.11.2009</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>For the datetimetz datatype, you can use any of the following
+    syntaxes, where the offset (OFF) is between -13:59 and +13:59.</para>
+
+    <table>
+      <title>Acceptable formats for the datetimetz datatype</title>
+
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="26*"/>
+
+        <colspec colname="cgen1" colwidth="26*"/>
+
+        <thead>
+          <row>
+            <entry>Date/Time Syntax with offset</entry>
+
+            <entry>Example</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>mm/dd/yyyy hour:min:sec OFF</entry>
+
+            <entry>11/25/2009 16:11:19 +10:00</entry>
+          </row>
+
+          <row>
+            <entry>dd.mm.yyyy hour:min:sec OFF</entry>
+
+            <entry>25.11.2009 16:11:19 -9:15</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour:min:sec OFF</entry>
+
+            <entry>2009-11-25 16:11:19 +01:10</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour.min.sec OFF</entry>
+
+            <entry>2009-11-25 16.11.19 -5:22</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour:min:sec.frac OFF</entry>
+
+            <entry>2009-11-25 16:11:19.76 +6:10</entry>
+          </row>
+
+          <row>
+            <entry>yyyy-mm-dd hour.min.sec.frac OFF</entry>
+
+            <entry>2009-11-25 16.11.19.76 -11:05</entry>
+          </row>
+
+          <row>
+            <entry>dd-MON-yyyy hour.min.sec AMPM OFF</entry>
+
+            <entry>25-Nov-2009 4.11.19 PM +00:30</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>The following examples illustrate how to specify date/time values in
+    SciDB.</para>
+
+    <procedure>
+      <step>
+        <para>Create arrays to hold date/time information.</para>
+
+        <para><programlisting>AFL% create array datetime1 &lt;dt:datetime&gt;[i=0:*,100,0];  </programlisting><programlisting>AFL% create array datetime2 &lt;dtz:datetimetz&gt;[i=0:*,100,0];  </programlisting></para></step>
+
+      <step>
+        <para><indexterm>
+            <primary>SciDB-formatted text file example</primary>
+          </indexterm>Load array <literal>datetime1</literal> with values in
+        the SciDB-formatted file, <emphasis role="bold">dates</emphasis>:</para>
+
+        <programlisting>$ cat dates</programlisting>
+
+        <programlisting>[
+("11/25/2009 16:11:19"),
+("25.11.2009 16:11:19"),
+("2009-11-25 16:11:19.7612"),
+("2009-11-25 16.11.19.76"),
+("2009-11-25 16.11.19"),
+("2009-11-25 16:11:19"),
+("11/25/2009 16:11"),
+("25.11.2009 16:11"),
+("2009-11-25 16:11"),
+("25Nov2009:16:11:19"),
+("25-Nov-2009 4.11.19 PM"),
+("25-Nov-2009 4.11.19 AM"),
+("2009-11-25"),
+("11/25/2009"),
+("25.11.2009"),
+]</programlisting>
+
+        <programlisting>%AFL load(datetime1,'./dates');</programlisting>
+
+        <programlisting>i,dt
+0,'2009-11-25 16:11:19'
+1,'2009-11-25 16:11:19'
+2,'2009-11-25 16:11:19'
+3,'2009-11-25 16:11:19'
+4,'2009-11-25 16:11:19'
+5,'2009-11-25 16:11:19'
+6,'2009-11-25 16:11:00'
+7,'2009-11-25 16:11:00'
+8,'2009-11-25 16:11:00'
+9,'2009-11-25 16:11:19'
+10,'2009-11-25 16:11:19'
+11,'2009-11-25 04:11:19'
+12,'2009-11-25 00:00:00'
+13,'2009-11-25 00:00:00'
+14,'2009-11-25 00:00:00'</programlisting>
+      </step>
+
+      <step>
+        <para>Load array <literal>datetime2</literal> with values in the
+        SciDB-formatted file, <emphasis role="bold">dates_TZ</emphasis>
+        (containing date/time values with offsets):<programlisting>$ cat dates_TZ</programlisting><programlisting>[
+("11/25/2009 16:11:19 +10:01"),
+("25.11.2009 16:11:19 +09:02"),
+("2009-11-25 16:11:19.76 +08:03"),
+("2009-11-25 16.11.19.76 +07:04"),
+("2009-11-25 16.11.19 +06:05"),
+("2009-11-25 16:11:19 +05:06"),
+("25-Nov-2009 4.11.19 PM +00:11")
+]</programlisting><programlisting>%AFL load(datetime1,'./dates_TZ');</programlisting><programlisting>i,dtz
+0,'2009-11-25 16:11:19 +10:01'
+1,'2009-11-25 16:11:19 +09:02'
+2,'2009-11-25 16:11:19 +08:03'
+3,'2009-11-25 16:11:19 +07:04'
+4,'2009-11-25 16:11:19 +06:05'
+5,'2009-11-25 16:11:19 +05:06'
+6,'2009-11-25 16:11:19 +00:11'</programlisting> </para>
+      </step>
+    </procedure>
+  </section>
+
+  <section>
+    <title>Special Data Types</title>
+
+    <para>This section discusses some special values, as well as their
+    semantics.</para>
+
+    <section id="specialValues">
+      <title>Special Values for Attributes</title>
+
+      <para><indexterm>
+          <primary>special values</primary>
+        </indexterm><indexterm>
+          <primary>empty cells</primary>
+        </indexterm><indexterm>
+          <primary>NaN values</primary>
+        </indexterm>SciDB attributes and cells support the following types of
+      values: <itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">Ordinary values. </emphasis>These lie
+            within a defined range of representable values for the attribute
+            type. For example, "123" is an ordinary value for the data type
+            int64.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">Null (missing) values.
+            </emphasis>These match the semantics of NULL in a relational
+            database.</para>
+
+            <para>Null values can contain a missing reason code. This allows
+            applications to optionally specify multiple types of null values
+            and treat each type differently. If you are loading data, you can
+            specify a null value with a missing reason code by using
+            "?<replaceable>n</replaceable>", where
+            <replaceable>n</replaceable> is an integer from 0 to 127. There
+            are two SciDB functions that are associated with missing value
+            codes: <literal>missing()</literal> and
+            <literal>missing_reason()</literal>. For more details, see <xref linkend="missingValues"/>.</para>
+
+            <para>For clarity, throughout the document the term "null" is
+            equivalent to "?0", that is, a missing value with missing reason
+            code 0. All other missing values will be specified with the
+            corresponding missing value code, e.g. "missing value code 100"
+            will be represented by "?100".</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">Empty cells. </emphasis>This is purely
+            a SciDB concept. Typically, when you create an array that is very
+            sparse, most of its cells will be empty. In most cases, SciDB
+            treats empty cells like they simply do not exist.
+            Consider:<itemizedlist>
+                <listitem>
+                  <para>Empty cells are not considered when evaluating
+                  count(*).</para>
+                </listitem>
+
+                <listitem>
+                  <para>Empty cells are disregarded during join, sort, and
+                  unpack operations.</para>
+                </listitem>
+
+                <listitem>
+                  <para>Empty cells do not participate in aggregations.</para>
+                </listitem>
+
+                <listitem>
+                  <para>Some operators, such as the Linear Algebra operators,
+                  interpret empty cells as 0.</para>
+                </listitem>
+              </itemizedlist></para>
+
+            <para>Note that the SciDB concept of emptiness is only for entire
+            cells, not for individual attributes. For more details, see <xref linkend="emptyCells"/>.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>Additionally, there are some floating-point values that behave
+      specially. The following values are applicable to the SciDB data types
+      double and float.<itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">Infinity.</emphasis> During
+            calculations, it is possible to divide by 0 and store the result
+            into an attribute value. SciDB represents this as either <emphasis role="bold">inf</emphasis> or <emphasis role="bold">-inf</emphasis>, depending on the sign of the
+            dividend.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">NaN. </emphasis>"Not a Number." This
+            behaves the same as the IEEE floating point special value of the
+            same name. It is a floating-point value that does not actually
+            represent a floating-point number. When arithmetic is performed,
+            and one of the arguments is NaN, NaN is always the result. NaN
+            cannot take part in join operations. The following operations can
+            return NaN:<itemizedlist>
+                <listitem>
+                  <para>Operations with a NaN as at least one operand.</para>
+                </listitem>
+
+                <listitem>
+                  <para>Indeterminate forms (such as divisions 0/0 and
+                  inf/inf).</para>
+                </listitem>
+
+                <listitem>
+                  <para>Real operations with complex results:<itemizedlist>
+                      <listitem>
+                        <para>square root of a negative number</para>
+                      </listitem>
+
+                      <listitem>
+                        <para>logarithm of a negative number</para>
+                      </listitem>
+
+                      <listitem>
+                        <para>inverse sine or cosine of a number that is less
+                        than -1 or greater than +1.</para>
+                      </listitem>
+                    </itemizedlist></para>
+                </listitem>
+              </itemizedlist></para>
+          </listitem>
+        </itemizedlist></para>
+    </section>
+
+    <section>
+      <title>Semantics of Special Values</title>
+
+      <para><indexterm>
+          <primary>special values</primary>
+
+          <secondary>behavior</secondary>
+        </indexterm>This section describes the behavior of the SciDB-specific
+      special values <emphasis role="bold">empty</emphasis> and <emphasis role="bold">missing</emphasis>, and IEEE floating-point special value
+      <emphasis role="bold">NaN</emphasis>, as well as <emphasis role="bold">inf</emphasis>/<emphasis role="bold">-inf</emphasis>,</para>
+
+      <para>Note the following representations:<itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">?m</emphasis> denotes missing with a
+            non-negative integer <replaceable>m</replaceable> representing the
+            missing code.</para>
+          </listitem>
+
+          <listitem>
+            <para>Null is defined as <emphasis role="bold">?0</emphasis>, a
+            special case of <emphasis role="bold">missing</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para><command>op()</command> denotes a unary or binary expression
+            or function, such as <emphasis role="bold">x + y</emphasis>,
+            <emphasis role="bold">x &lt; y</emphasis>, or
+            <command>sin(x)</command>.</para>
+          </listitem>
+
+          <listitem>
+            <para>An <emphasis>aggregator</emphasis> is a function or operator
+            that computes aggregates, such as
+            <command>count()</command>.</para>
+          </listitem>
+
+          <listitem>
+            <para>A <emphasis>floating point value</emphasis> is a SciDB
+            attribute of type <code>float</code> or <code>double</code>. In
+            this section, it is restricted to "normal" floating-point values
+            (such 1.4, -3.75, and so on), plus <emphasis role="bold">NaN</emphasis>, <emphasis role="bold">+inf</emphasis>,
+            and <emphasis role="bold">-inf</emphasis>, but does not include
+            <emphasis role="bold">empty </emphasis>nor <emphasis role="bold">missing</emphasis>.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>When <command>op()</command> is not an aggregator:<itemizedlist>
+          <listitem>
+            <para>If at least one operand is <emphasis role="bold">empty</emphasis>, the result is <emphasis role="bold">empty</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>If at least one of x or y is<emphasis role="bold">
+            missing</emphasis>, but neither is <emphasis role="bold">empty</emphasis>: <command>op(x,y)</command> returns
+            <emphasis role="bold">?0</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>If the value for a unary operator is<emphasis role="bold">
+            missing</emphasis> but not <emphasis role="bold">empty</emphasis>,
+            <command>op(?m)</command> returns <command>?m</command>.</para>
+          </listitem>
+
+          <listitem>
+            <para>If at least one of the floating point values x or y is
+            <emphasis role="bold">NaN</emphasis>: <itemizedlist>
+                <listitem>
+                  <para>When <command>op(x,y)</command> is a comparison
+                  expression: x {==,&lt;,&gt;,&lt;=,&gt;=} y returns FALSE,
+                  and x &lt;&gt; y returns TRUE</para>
+                </listitem>
+
+                <listitem>
+                  <para>When <command>op(x,y)</command> is not a comparison
+                  expression: <command>op(x,y)</command> and
+                  <command>op(NaN)</command> both return <emphasis role="bold">NaN</emphasis>.</para>
+                </listitem>
+              </itemizedlist></para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>For aggregators:<itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">Empty</emphasis> is ignored during
+            aggregation. That is, empty cells do not participate in
+            aggregation.</para>
+          </listitem>
+
+          <listitem>
+            <para>For details on how aggregates handle <emphasis role="bold">missing</emphasis>, see the documentation for the
+            individual aggregate.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">NaN</emphasis> is included during
+            aggregation. For instance, the sum of a set of double numbers is
+            <emphasis role="bold">NaN</emphasis>, if at least one of the
+            numbers is <emphasis role="bold">NaN</emphasis>.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>Whenever possible, SciDB computations adhere to the IEEE Standard
+      for Floating-Point Arithmetic (IEEE 754). Exceptions are documented in
+      the appropriate place for the specific operator or function.</para>
+
+      <para><indexterm>
+          <primary>sort</primary>
+        </indexterm><indexterm>
+          <primary>special values</primary>
+
+          <secondary>sort order</secondary>
+        </indexterm>For the <command>sort()</command> operator, note the
+      following sort order regarding special values:<programlisting>?m &lt; NaN &lt; x</programlisting>where:<itemizedlist>
+          <listitem>
+            <para>'&lt;' indicates "comes before"</para>
+          </listitem>
+
+          <listitem>
+            <para>For <emphasis role="bold">missing</emphasis> values, the
+            sort order is based on the value of the missing code. Thus,
+            <emphasis role="bold">?0</emphasis> comes before <emphasis role="bold">?10</emphasis> which comes before <emphasis role="bold">?72</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>x represents any floating point number, other than <emphasis role="bold">NaN</emphasis>.</para>
+          </listitem>
+        </itemizedlist></para>
+    </section>
+  </section>
+
+  <section>
+    <title>Casting Between Data Types</title>
+
+    <para><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>casting</secondary>
+      </indexterm><indexterm>
+        <primary>converting data types</primary>
+      </indexterm><indexterm>
+        <primary>type conversions</primary>
+      </indexterm><indexterm>
+        <primary>casting</primary>
+      </indexterm>Attribute values in SciDB can be cast or converted from one
+    data type to another. SciDB permits type conversions between numerical
+    data types (for example, from int8 to int32 or int8 to double). SciDB also
+    supports the conversion of numeric data types to non-numeric data types,
+    such as string.</para>
+
+    <para>Attribute type conversion can be requested explicitly. For example,
+    if you have an integer data type and would like to use an operator only
+    defined to accept double data type attributes, you can use the following
+    conversion to derive an attribute of the correct type.</para>
+
+    <procedure>
+      <step>
+        <para>Create an array that contains an integer
+        attribute.<para><programlisting>AFL% store(build(&lt;a1: int32&gt;[i=0:0,1,0],2),A);  </programlisting><screen>[(2)]
+</screen></para></para>
+      </step>
+
+      <step>
+        <para>Convert the integer values to doubles.<para><programlisting>AFL% apply(A, a2, double(a1));  </programlisting><screen>{i} a1,a2
+{0} 2,2
+</screen>This
+        generates a new attribute, a2, with double data type from a1.</para></para>
+      </step>
+
+      <step>
+        <para>A numeric data type can also be converted to string, which
+        returns a UTF-8 encoded string.<para><programlisting>AFL% apply(A, a2, string(a1));  </programlisting><screen>{i} a1,a2
+{0} 2,'2'
+</screen></para></para>
+      </step>
+    </procedure>
+  </section>
+
+  <section>
+    <title>Casting Between Temporal Data Types</title>
+
+    <para>SciDB includes functions for converting between temporal data
+    types.</para>
+
+    <para>The following examples demonstrate how to use conversion functions
+    between the datetime data type and the datetime with timezone, datetimetz
+    data type. The date time with time zone data type, datetimetz, uses a
+    timezone offset relative to GMT. You can cast datetime to datetimetz by
+    appending an offset using the following example: <para><programlisting>AFL% create array T&lt;td: datetime&gt;[i=0:0,1,0];  </programlisting><programlisting>AFL% store(build(T, now()), T);  </programlisting><screen>[('2014-07-21 22:15:11')]
+</screen><programlisting>AFL% apply(T, dst, append_offset(td, 3600));  </programlisting><screen>{i} td,dst
+{0} '2014-07-21 22:15:11','2014-07-21 22:15:11 +01:00'
+</screen></para></para>
+
+    <para>To append an offset and apply it to the time, use the
+    <code>apply_offset</code> function, which converts a UTC datetime to local
+    datetime by subtracting the offset timezone value, and stores the result
+    as datetimetz including the offset timezone value. The offset must be
+    expressed in seconds. <para><programlisting>AFL% create array T1 &lt;t:datetimetz&gt;[i=0:0,1,0];  </programlisting><programlisting>AFL% store(project(apply(T,dst,apply_offset(td,3600)),dst),T1);  </programlisting><screen>{i} t
+{0} '2014-07-21 23:15:11 +01:00'
+</screen>
+    To return the datetime portion of a datetimetz value, use the
+    <code>strip_offset </code>function: <para><programlisting>AFL% apply(T1,dst,strip_offset(t));  </programlisting><screen>{i} t,dst
+{0} '2014-07-21 23:15:11 +01:00','2014-07-21 23:15:11'
+</screen>
+    To apply the offset to the datetime and return a GMT datetime, use the
+    <code>togmt</code> function: <para><programlisting>AFL% apply(T1,dst,togmt(t))  </programlisting><screen>{i} t,dst
+{0} '2014-07-21 23:15:11 +01:00','2014-07-21 22:15:11'
+</screen></para></para></para></para>
+
+    <para>For more details on the SciDB temporal functions, see <xref linkend="temporalFunctions"/>.</para>
+  </section>
+</chapter>

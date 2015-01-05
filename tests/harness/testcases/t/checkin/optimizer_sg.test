@@ -1,0 +1,10 @@
+--setup
+create array S <values : double> [x=0:1,1,0]
+store(build(S, 2-(x*2)),S)
+
+--test
+store(project(apply(join(subarray(S,0,1) as A, subarray(S,1,2) as B), c, A.values - B.values), c), R)
+
+--cleanup
+remove(S)
+remove(R)

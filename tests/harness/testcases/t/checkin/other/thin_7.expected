@@ -1,0 +1,90 @@
+SCIDB QUERY : <create array A <a:string default 'test' compression 'rle'> [x=0:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(A,x+10),x<>5),A)>
+{x} a
+{0} '10'
+{1} '11'
+{2} '12'
+{3} '13'
+{4} '14'
+{6} '16'
+{7} '17'
+{8} '18'
+
+SCIDB QUERY : <create array B <x:int64 compression 'dictionary'> [a(string)=9,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+{a} x
+{'10'} 0
+{'11'} 1
+{'12'} 2
+{'13'} 3
+{'14'} 4
+{'16'} 6
+{'17'} 7
+{'18'} 8
+
+SCIDB QUERY : <thin(A,0,1)>
+{x} a
+{0} '10'
+{1} '11'
+{2} '12'
+{3} '13'
+{4} '14'
+{6} '16'
+{7} '17'
+{8} '18'
+
+SCIDB QUERY : <thin(A,0,2)>
+{x} a
+{0} '10'
+{1} '12'
+{2} '14'
+{3} '16'
+{4} '18'
+
+SCIDB QUERY : <thin(A,0,3)>
+{x} a
+{0} '10'
+{1} '13'
+{2} '16'
+
+SCIDB QUERY : <thin(A,1,2)>
+{x} a
+{0} '11'
+{1} '13'
+{3} '17'
+
+SCIDB QUERY : <thin(A,1,3)>
+{x} a
+{0} '11'
+{1} '14'
+{2} '17'
+
+SCIDB QUERY : <thin(A,2,3)>
+{x} a
+{0} '12'
+{2} '18'
+
+SCIDB QUERY : <store(thin(B,0,2),C)>
+{a} x
+{'10'} 0
+{'12'} 2
+{'14'} 4
+{'17'} 7
+
+SCIDB QUERY : <show(C)>
+{i} schema
+{0} 'C<x:int64 COMPRESSION \'dictionary\'> [a(string)=5,3,0]'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+

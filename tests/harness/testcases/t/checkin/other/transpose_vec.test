@@ -1,0 +1,10 @@
+--setup
+create array vec22 <a:double NOT NULL>[x=0:9,10,0, y=0:0,1,0]
+load(vec22,'${TEST_DATA_DIR}/vec22.txt')
+
+--test
+transpose(vec22)
+
+--cleanup
+remove (vec22)
+

@@ -1,0 +1,64 @@
+--setup
+--start-query-logging
+
+create  array A <a:datetime>[x=0:2,3,0]
+store(build(A,datetime('2010-10-10 01:12:21')),A)
+
+--test
+
+--echo accepted values
+build(A,'2011-11-31')
+build(A,'2011-10-10 12:5:5.2')
+build(A,'2011-11-30 3:1')
+build(A,datetime('2011-11-30 3:1:8'))
+build(A,'2011-11-30 23:0')
+build(A,'2011-11-30 23:0:000020')
+build(A,'2011-10-10 12:5:0.2')
+build(A,'10-Oct-2011')
+build(A,'10-OcT-2011')
+build(A,'10-jun-2011 01.23.45')
+--error --code=scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_MONTH_REPRESENTATION "build(A,'10-jen-2011 01.23.45')"
+--error --code=scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_MONTH_REPRESENTATION "build(A,'12-xxx-2011 06.54.32')"
+
+
+--aql update A set a='2015-05-15 05:05:05' where x=0
+
+--aql update A set a='2020-10-20 20:20:20' where x=2
+
+
+--echo comparisons
+--aql select * from A where a = datetime('2010-10-10 01:12:21')
+--aql select * from A where a = datetime('2010-10-10')
+--aql select * from A where a < datetime('2010-10-10')
+--aql select * from A where a < datetime('2010-10-10')
+--aql select * from A where a <= datetime('2010-10-10')
+--aql select * from A where a > datetime('2010-10-10')
+--aql select * from A where a >= datetime('2010-10-10 01:12:21')
+--aql select * from A where a <> datetime('2010-10-10')
+
+--echo max,min
+--aql select max(a) from A
+--aql select min(a) from A
+
+--echo +/- date and integer
+--aql select a from A
+--aql select a - datetime('2015-05-15 05:05:05') from A
+--aql select a + 40 from A
+--aql select a - 10 from A
+--aql select ('2001-01-01 00:00:01') from A
+
+--echo update
+--aql update A set a='2001-01-01 00:00:00' where x=0
+
+--aql update A set a='0001-01-01 01:01:01' where x=1
+
+
+--echo versions
+--aql select * from A@1
+--aql select * from A@3
+--aql select * from A
+
+--cleanup
+remove(A)
+
+--stop-query-logging

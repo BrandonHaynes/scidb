@@ -1,0 +1,407 @@
+#!/bin/sh
+#
+#   File:  non_integer_dimensions.ail
+#
+# About: 
+#
+set -v 
+#
+#    The purpose of this script is to illustrate how non-integer dimensions 
+#  can be used in SciDB. 
+#
+#    Let's start with a timeseries example, something nice and financial. 
+#
+#    In financial timeseries applications, the typical goal is to track some 
+#  financial variable--like the market price or inventory on hand or quantity 
+#  bought and sold--relating to some kind of asset--the price of equities or 
+#  bond price / yield or foreign exchange rates. In the following figure 
+#  we illustrate a small, very simple example of how financial analysts and 
+#  'stock jobbers' conceptualize timeseries information. 
+#  
+#        1/2/2011 
+#            8:14:
+#     Time        4               5                6               7 
+# Symbol .____________________________________________________________________>
+#        |                |                |                |                |
+#  'ACC' | ($145.47, 516) | ($146.47, 255) | ($151.47, 280) | ($143.47, 353) |
+#        |________________|________________|________________|________________|>
+#        |                |                |                |                |
+# 'AACC' | ($132.82, 65)  | ($129.82, 188) | ($130.82, 186) | ($127.82, 117) |
+#        |________________|________________|________________|________________|>
+#        |                |                |                |                |
+# 'AACOU | ($116.36, 470) | ($114.36, 239) |      ()        | ($119.36, 445) |
+#        |________________|________________|________________|________________|>
+#        V                V                V                V                V
+#  
+#   A couple of notes on this figure. The two dimensions are "Time", and 
+#  "Symbol". Analysts don't think about them in terms of integer offsets from 
+#  some origin. Instead, there are time-slices, and sub-sets of the array 
+#  that contain information from stock in someone's portfolio. Consequently 
+#  it's extremely helpful to reason about these dimensions using the types 
+#  and domains that identify them. In SciDB, we do this using non-integer 
+#  dimensions, or NIDS. 
+#
+#   Second, note that these NID labels come in different forms. Consider the 
+#  list of Symbols. In this example (and typically) labels are shown in 
+#  alphabetical order. But alphabetical order does not reflect something 
+#  that is intrinsicly true of the companies or assets being labelled. The 
+#  Symbols are just arbitrary strings. There are no "companies" that are 
+#  in any real sense "between" 'ACC' and 'AACOU'. We refer to this kind 
+#  of data as codified. There's no rhyme or reason to it. We might just as 
+#  easily use numbers. Only the Symbol names are more intuitive and 
+#  convenient. 
+#
+#   On the other hand, the values that make up the Time NID do have some 
+#  relationship to one another. '1/2/2011 8:14:5' is "before" 
+#  '1/2/2011 8:14:10', and it's sensible to talk about the state of events 
+#  "between" two times. In contrast to the Symbol labels, the information in 
+#  the Time dimension is not arbitrary, and SciDB supports reasoning about 
+#  time as a property of an array dimension. 
+#
+#   Third, note the "empty" cell in this example. From the fact that a 
+#  particular value appears in a dimension, it does not follow that every 
+#  cell for that "legal" value has an entry. How you cope with "empty" 
+#  cells is very application specific.
+#
+#   Fourth, note that, in this example, we're going to non-integer dimensions 
+#  where the values in the NID are mapped to locations in the underlying 
+#  physical array. In other words, we keep a long list of the legal values 
+#  for the dimension's labels and for each legal dimension value a reference 
+#  to the offset in the underlying physical array. Thus, the Symbol NID map 
+#  would look like this: 
+#
+#  < 'ACC', 0 >, <'AACC', 1>, <'AACOU', 2> ... 
+#
+#    and the Time NID map would look like this: 
+#
+#  <'1/2/2011 8:14:4', 0>, <'1/2/2011 8:14:5', 1>, <'1/2/2011 8:14:6', 2> ... 
+#
+#    When we want to figure out where, in the physical array, a particular 
+#  cell (or block of cells) is, we consult the maps, and the physical offsets 
+#  to look up cell data in the underlying array. 
+#
+#   It's important to note that there is a second kind of NID array, which 
+#  we do not go into in this example. In this second kind of NID array SciDB 
+#  doesn't use a map to relate NID values to underlying array offsets: it uses
+#  a user-defined function. Thus, for example, we could take the set of 
+#  double precision RA / DECL values values that locate stars in the night 
+#  sky, and write functions that convert these values into integers (within 
+#  some range). Then we don't need the map; we just invoke the functions. 
+#
+#   Q1: How do I create an array that uses a non-integer dimension? 
+# 
+#   When you want to declare an array that uses a non-integer dimesnion, you 
+#  supply a type name as part of the array definition. For example, to create 
+#  an array to hold values in our timeseries example: 
+#
+#  Hygiene:
+#
+iquery -aq "
+remove ( Stock_Prices )
+"
+#
+iquery -aq "
+CREATE EMPTY ARRAY Stock_Prices 
+< 
+   Price : double, 
+   Qty   : int64
+> 
+[ Symbol(string)=*,5,0, Time(datetime)=*,20,2 ]
+"
+#
+#   Things to note about this example CREATE ARRAY ... 
+#
+#   One of the common features of Timeseries applications is that users 
+#  frequently want to load data onto the "end" of the array. Each day, new 
+#  trade data extends the array, and sometimes new Symbols enter the 
+#  market. Consequently this array is 'unbounded'. But in general, 
+#  arrays with NIDs can be bounded. Second, the array declared here is 
+#  empty-able. Arrays with NIDs, in common with any SciDB array, can 
+#  contain empty cells. 
+#
+#   The only way to load an array with non-integer dimensions is to use 
+#  the 'redimension_store()' operator (or the AQL - INSERT INTO Target 
+#  SELECT * FROM Source). For example: 
+#
+# Hygiene: 
+#
+iquery -aq "
+remove ( Raw_Stock_Prices )
+"
+#   
+#  Q2: Create an array to hold the 1D load file from a .csv source. 
+#
+iquery -aq "
+CREATE EMPTY ARRAY Raw_Stock_Prices 
+<
+ Symbol : string,
+ Time   : datetime,
+ Price  : double,
+ Qty    : int64
+>
+[ Line=0:*,1000,0]
+"
+#
+#  Q2.1: Flat .csv file to load. 
+# 
+echo "AAC,1/2/2011 8:14:4,145.47,516
+AAC,1/2/2011 8:14:5,149.47,255
+AAC,1/2/2011 8:14:6,151.47,280
+AAC,1/2/2011 8:14:7,143.47,353
+AAC,1/2/2011 8:14:8,144.47,577
+AAC,1/2/2011 8:14:9,148.47,389
+AAC,1/2/2011 8:14:10,144.47,454
+AAC,1/2/2011 8:14:11,147.47,203
+AAC,1/2/2011 8:14:12,146.47,353
+AAC,1/2/2011 8:14:13,150.47,483
+AAC,1/2/2011 8:14:14,149.47,561
+AAC,1/2/2011 8:14:15,148.47,247
+AAC,1/2/2011 8:14:16,151.47,337
+AAC,1/2/2011 8:14:17,147.47,352
+AAC,1/2/2011 8:14:18,148.47,363
+AAC,1/2/2011 8:14:19,148.47,206
+AACC,1/2/2011 8:14:4,132.82,65
+AACC,1/2/2011 8:14:5,129.82,188
+AACC,1/2/2011 8:14:6,130.82,186
+AACC,1/2/2011 8:14:7,127.82,117
+AACC,1/2/2011 8:14:8,131.82,160
+AACC,1/2/2011 8:14:9,127.82,143
+AACC,1/2/2011 8:14:10,127.82,191
+AACC,1/2/2011 8:14:11,133.82,133
+AACC,1/2/2011 8:14:12,130.82,130
+AACC,1/2/2011 8:14:13,129.82,189
+AACC,1/2/2011 8:14:14,127.82,111
+AACC,1/2/2011 8:14:15,127.82,66
+AACC,1/2/2011 8:14:16,130.82,126
+AACC,1/2/2011 8:14:17,129.82,112
+AACC,1/2/2011 8:14:18,131.82,107
+AACC,1/2/2011 8:14:19,130.82,169
+AACOU,1/2/2011 8:14:4,116.36,470
+AACOU,1/2/2011 8:14:5,114.36,239
+AACOU,1/2/2011 8:14:7,119.36,445
+AACOU,1/2/2011 8:14:8,112.36,222
+AACOU,1/2/2011 8:14:10,114.36,475
+AACOU,1/2/2011 8:14:11,117.36,195
+AACOU,1/2/2011 8:14:12,115.36,394
+AACOU,1/2/2011 8:14:13,115.36,342
+AACOU,1/2/2011 8:14:15,114.36,186
+AACOU,1/2/2011 8:14:16,117.36,283
+AACOU,1/2/2011 8:14:17,118.36,418
+AACOU,1/2/2011 8:14:18,116.36,429
+AACOU,1/2/2011 8:14:19,117.36,351
+AACOW,1/2/2011 8:14:4,111.43,834
+AACOW,1/2/2011 8:14:5,111.43,839
+AACOW,1/2/2011 8:14:6,111.43,1033
+AACOW,1/2/2011 8:14:7,112.43,771
+AACOW,1/2/2011 8:14:9,113.43,905
+AACOW,1/2/2011 8:14:10,113.43,1162
+AACOW,1/2/2011 8:14:11,110.43,1062
+AACOW,1/2/2011 8:14:12,115.43,495
+AACOW,1/2/2011 8:14:14,111.43,895
+AACOW,1/2/2011 8:14:15,111.43,1012
+AACOW,1/2/2011 8:14:16,112.43,837
+AACOW,1/2/2011 8:14:17,112.43,1115
+AACOW,1/2/2011 8:14:19,110.43,479
+AAME,1/2/2011 8:14:4,139.01,140
+AAME,1/2/2011 8:14:5,139.01,342
+AAME,1/2/2011 8:14:7,135.01,300
+AAME,1/2/2011 8:14:8,137.01,160
+AAME,1/2/2011 8:14:10,138.01,311
+AAME,1/2/2011 8:14:11,137.01,339
+AAME,1/2/2011 8:14:12,140.01,158
+AAME,1/2/2011 8:14:13,138.01,297
+AAME,1/2/2011 8:14:14,138.01,116
+AAME,1/2/2011 8:14:15,134.01,211
+AAME,1/2/2011 8:14:16,138.01,296
+AAME,1/2/2011 8:14:18,137.01,265
+AAME,1/2/2011 8:14:19,137.01,327
+AAON,1/2/2011 8:14:4,140.34,249
+AAON,1/2/2011 8:14:5,138.34,274
+AAON,1/2/2011 8:14:6,139.34,492
+AAON,1/2/2011 8:14:7,141.34,403
+AAON,1/2/2011 8:14:8,140.34,349
+AAON,1/2/2011 8:14:10,143.34,445
+AAON,1/2/2011 8:14:11,139.34,448
+AAON,1/2/2011 8:14:12,141.34,561
+AAON,1/2/2011 8:14:13,141.34,335
+AAON,1/2/2011 8:14:15,142.34,316
+AAON,1/2/2011 8:14:17,140.34,618
+AAON,1/2/2011 8:14:18,140.34,371
+AAON,1/2/2011 8:14:19,141.34,416
+AAPL,1/2/2011 8:14:4,111.75,64
+AAPL,1/2/2011 8:14:5,113.75,112
+AAPL,1/2/2011 8:14:6,115.75,139
+AAPL,1/2/2011 8:14:8,114.75,159
+AAPL,1/2/2011 8:14:10,112.75,77
+AAPL,1/2/2011 8:14:12,114.75,147
+AAPL,1/2/2011 8:14:13,109.75,156
+AAPL,1/2/2011 8:14:15,110.75,112
+AAPL,1/2/2011 8:14:16,112.75,111
+AAPL,1/2/2011 8:14:17,113.75,78
+AAPL,1/2/2011 8:14:18,112.75,91
+AAPL,1/2/2011 8:14:19,114.75,161
+AAWW,1/2/2011 8:14:4,122.28,34
+AAWW,1/2/2011 8:14:5,125.28,41
+AAWW,1/2/2011 8:14:7,124.28,39
+AAWW,1/2/2011 8:14:8,123.28,27
+AAWW,1/2/2011 8:14:9,123.28,34
+AAWW,1/2/2011 8:14:10,116.28,32
+AAWW,1/2/2011 8:14:11,123.28,43
+AAWW,1/2/2011 8:14:13,124.28,22
+AAWW,1/2/2011 8:14:15,122.28,16
+AAWW,1/2/2011 8:14:17,127.28,29
+AAWW,1/2/2011 8:14:18,125.28,25
+AAXJ,1/2/2011 8:14:4,105.15,1071
+AAXJ,1/2/2011 8:14:5,108.15,685
+AAXJ,1/2/2011 8:14:6,109.15,789
+AAXJ,1/2/2011 8:14:8,109.15,977
+AAXJ,1/2/2011 8:14:11,109.15,625
+AAXJ,1/2/2011 8:14:12,108.15,765
+AAXJ,1/2/2011 8:14:13,110.15,670
+AAXJ,1/2/2011 8:14:14,111.15,1088
+AAXJ,1/2/2011 8:14:15,107.15,1129
+AAXJ,1/2/2011 8:14:17,107.15,1299
+AAXJ,1/2/2011 8:14:18,109.15,833
+AAXJ,1/2/2011 8:14:19,110.15,1238
+ABAX,1/2/2011 8:14:4,139.33,596
+ABAX,1/2/2011 8:14:5,138.33,648
+ABAX,1/2/2011 8:14:6,139.33,619
+ABAX,1/2/2011 8:14:7,140.33,556
+ABAX,1/2/2011 8:14:10,134.33,468
+ABAX,1/2/2011 8:14:11,135.33,341
+ABAX,1/2/2011 8:14:12,139.33,502
+ABAX,1/2/2011 8:14:13,140.33,583
+ABAX,1/2/2011 8:14:14,139.33,713
+ABAX,1/2/2011 8:14:15,139.33,275
+ABAX,1/2/2011 8:14:17,131.33,576
+ABAX,1/2/2011 8:14:18,139.33,678
+ABAX,1/2/2011 8:14:19,137.33,307" > /tmp/unbound_array_data.csv
+#
+rm -rf /tmp/load_pipe
+mkfifo /tmp/load_pipe
+cat /tmp/unbound_array_data.csv | csv2scidb -c 1000 -p SSNN > /tmp/load_pipe &
+#
+# Q2.2: Load the 1D Raw Load file ... 
+#
+iquery -naq "
+load ( Raw_Stock_Prices, '/tmp/load_pipe')
+"
+#
+# Q3: Use redimension_store() to load the array. 
+#
+#  NOTE: Could also be, in AFL, 
+#    "redimension_store ( Raw_Stock_Prices, Stock_Prices)"
+#
+iquery -q "
+SELECT * INTO Stock_Prices FROM Raw_Stock_Prices;
+"
+#
+#   Having created the array with the NID, all of the query operands that 
+#  apply with integer dimensions can now be applied to this new array. 
+#
+#  Q4: Show me the trades for the Symbol 'AAON'?
+#
+iquery -o lcsv+ -q "
+SELECT * FROM Stock_Prices WHERE Symbol = 'AAON';
+"
+#
+#  Q6: Show me the trades for 'AAON' between '1/2/2011 8:14:9' and 
+#      '1/2/2011 8:14:12'?
+#
+iquery -o lcsv+ -q "
+SELECT * 
+  FROM Stock_Prices 
+ WHERE Symbol = 'AAON' 
+   AND Time >= datetime('1/2/2011 8:14:9')
+   AND Time <= datetime('1/2/2011 8:14:12');
+"
+#
+#  Q7: Show me the trades for 'AAON' between '1/2/2011 8:14:9' and 
+#      '1/2/2011 8:14:12' where the Qty was more than 500? 
+#
+iquery -o lcsv+ -q "
+SELECT * 
+  FROM Stock_Prices 
+ WHERE Symbol = 'AAON' 
+   AND Time >= datetime('1/2/2011 8:14:9')
+   AND Time <= datetime('1/2/2011 8:14:12')
+   AND Qty > 500;
+"
+#
+#  Q8: For each Symbol, what is the average price, and the number of 
+#      trades? 
+#
+iquery -o lcsv+ -q "
+SELECT count(*), avg ( Price )  
+  FROM Stock_Prices S 
+ GROUP BY S.Symbol;
+"
+#
+#   Now, in addition to the standard looking query operations, arrays with 
+#  NIDs in SciDB can be used in conjunction with mathematical operators. 
+# 
+#  NOTE: AFL examples for now, as we don't have AQL syntax for these features 
+#        (yet). 
+#
+#  Q9: For each stock, for each window of the trades into blocks of 
+#      3, compute the new average. 
+#
+iquery -o csv+ -aq "
+regrid (
+       Stock_Prices,
+       1,
+       3,
+       min ( Price ) as Low,
+       max ( Price ) as High,
+       avg ( Price ) as Avg_Price,
+       sum ( Qty ) as Total_Volume,
+       count ( * ) as Trades
+)
+"
+#
+#
+# Q10: What was the largest and smallest trade weighted volume in any 3 
+#      second window for all stocks?
+#
+time iquery -aq "
+aggregate (
+    window (
+        apply (
+            between (
+                Stock_Prices,
+                null, null, null, null),
+            volume,
+            Price * double(Qty)
+        ),
+        1, 3,
+        avg ( volume ) as sum_volume
+    ),
+    max ( sum_volume ) as max_volume,
+    min ( sum_volume ) as min_volume
+)
+"
+#
+# Q11: Compute the all-pairs pearson co-efficient.
+#
+iquery -aq "
+load_library ( 'liblinear_algebra.so')
+"
+#
+iquery -o lcsv+ -naq "
+pearson (
+    transpose (
+        project (
+            apply (
+                Stock_Prices,
+                volume,
+                Price * Qty),
+        volume)
+    ),
+    project (
+        apply (
+            Stock_Prices,
+            volume,
+            Price * Qty),
+    volume)
+)
+"

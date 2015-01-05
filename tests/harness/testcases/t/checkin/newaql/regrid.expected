@@ -1,0 +1,70 @@
+Query was executed successfully
+
+{x,y} a,b
+{0,0} 1,1
+{0,1} 1,2
+{0,2} 1,3
+{1,0} 2,1
+{1,1} 2,2
+{1,2} 2,3
+{2,0} 3,1
+{2,1} 3,2
+{2,2} 3,3
+{0,3} 1,4
+{1,3} 2,4
+{2,3} 3,4
+{3,0} 4,1
+{3,1} 4,2
+{3,2} 4,3
+{3,3} 4,4
+
+{i} testdim
+{0} 10442220104672876
+
+{i} testdim,val
+{0} 10442220104672876,1
+
+{testdim} val
+{10442220104672876} 1
+
+{x,y} sum
+{0,0} 18
+{0,1} 6
+{1,0} 12
+{1,1} 4
+
+{x,y} sum
+{0,0} 18
+{0,1} 12
+{1,0} 6
+{1,1} 4
+
+{x,y} count
+{0,0} 9
+{0,1} 3
+{1,0} 3
+{1,1} 1
+
+{x,y} sum
+{0,0} 18
+{0,1} 6
+{1,0} 12
+{1,1} 4
+
+{x,y} sum
+{0,0} 18
+{0,1} 6
+{1,0} 12
+{1,1} 4
+
+{testdim} val_sum
+{1044222} 1
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,27 @@
+--setup
+--start-query-logging
+create array A <a:int64> [x=0:2,3,0]
+
+--test
+
+--aql select * from build(A,x)
+
+--aql select * into A from build(A,x+1)
+
+--aql select * into B from build(A,x+1) where x<>1
+
+--aql select * from attributes(B)
+
+--aql select * into C from build(A,x+1)
+
+--aql select * from attributes(C)
+
+--aql select x into D from build(A,x+10)
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+--stop-query-logging

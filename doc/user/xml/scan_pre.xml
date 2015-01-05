@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="scanOperator">
+  <refnamediv>
+    <refname>scan</refname>
+
+    <refpurpose><indexterm>
+        <primary>scan</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>display contents</secondary>
+      </indexterm>Produces a result array that is equivalent to a stored
+    array. That is, <literal>scan</literal> reads a stored array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>scan(<replaceable>stored_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The scan operator reads a stored array from disk. The output of the
+    scan operator is an array the same size as
+    <replaceable>stored_array</replaceable>. The argument
+    <replaceable>stored_array</replaceable> must be an array that was
+    previously created and stored in SciDB.</para>
+
+    <para>The scan operator is most useful for displaying a stored array on
+    <emphasis role="bold">stdout </emphasis>from the AFL language.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example creates, builds, and stores an array, then shows the
+      cell values in that array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 3<symbol role="symbolfont">×</symbol>3 array m3x3:
+          <programlisting language="test">--afl CREATE ARRAY m3x3&lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0]; --show-query=yes --show-output=no
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put values of 0–8 into m3x3: <programlisting language="test">--afl store(build(m3x3,i*3+j),m3x3); --show-query=yes --show-output=no
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use scan in an AFL statement to display m3x3: <programlisting
+          language="test">--afl scan(m3x3); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

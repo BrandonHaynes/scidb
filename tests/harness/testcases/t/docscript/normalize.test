@@ -1,0 +1,14 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(build(<val:double>[i=0:9,10,0],(i+1)),unscaled)  
+normalize(unscaled) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(unscaled)

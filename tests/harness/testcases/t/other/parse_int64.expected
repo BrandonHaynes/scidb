@@ -1,0 +1,11 @@
+Query was executed successfully
+
+{i} city,state_code,zip
+{0} 'Arlington','MA',2476
+{1} 'Cambridge','MA',2139
+{2} 'Castaner','PR',631
+{3} 'Strasburg','PA',17579
+{4} 'Mercer','WI',54547
+
+Query was executed successfully
+

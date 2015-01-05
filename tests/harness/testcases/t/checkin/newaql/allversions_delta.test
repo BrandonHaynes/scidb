@@ -1,0 +1,18 @@
+--setup
+
+CREATE ARRAY deltaArray<x:double>[I=0:5,3,0, J=0:5,3,0]
+store(input(deltaArray, '${TEST_DATA_DIR}/dense.txt'), deltaArray)
+store(input(deltaArray, '${TEST_DATA_DIR}/dense.txt'), deltaArray)
+store(input(deltaArray, '${TEST_DATA_DIR}/dense.txt'), deltaArray)
+store(input(deltaArray, '${TEST_DATA_DIR}/dense.txt'), deltaArray)
+store(input(deltaArray, '${TEST_DATA_DIR}/dense.txt'), deltaArray)
+
+--test
+--aql SELECT * FROM deltaArray@*
+consume(allversions(deltaArray))
+aggregate(sg(allversions(deltaArray),1,-1), count(*))
+slice(allversions(deltaArray), I, 4)
+between(allversions(deltaArray), 1, 4, 1, 2, 5, 3)
+
+--cleanup
+remove(deltaArray)

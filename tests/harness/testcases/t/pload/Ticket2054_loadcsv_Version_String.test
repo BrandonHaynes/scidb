@@ -1,0 +1,14 @@
+#Ticket 2054 - version string for loadcsv.py
+
+--setup
+--start-query-logging
+--test
+--start-igdata
+
+--shell --command  " cat ${TEST_DATA_DIR}/sm10.csv | loadcsv.py -a 'array_sm10' -s  '<a:int64,b:int64,c:int64>[i=0:*,3,0]'  -v -c 3 -l -L -x -V  -d 'localhost' -p ${IQUERY_PORT}" 
+
+--stop-igdata
+sort(array_sm10,a)
+--cleanup
+--stop-query-logging
+

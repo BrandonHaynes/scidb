@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+%myents;
+]>
+<chapter id="JDBC">
+  <title>JDBC Driver for SciDB</title>
+
+  <para><indexterm>
+      <primary>JDBC</primary>
+    </indexterm>This chapter describes how to connect to SciDB by using the
+  SciDB driver for JDBC.</para>
+
+  <para>After you install the SciDB driver for JDBC, you can connect from your
+  program to your database with a connection URL. This way of connecting to a
+  database is by through JDBC Driver Manager by using the getConnection method
+  of the DriverManager class. The simplest manner of using this method takes a
+  string parameter that contains a URL.</para>
+
+  <para>The chapter contains the following sections:</para>
+
+  <itemizedlist>
+    <listitem>
+      <para><link linkend="JDBCDependencies">Installation</link></para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="JDBCPATH">Set the CLASSPATH variable</link></para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="JDBCRegister">Register the driver</link></para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="JDBCConnection">Connection URL</link></para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="JDBCSample">Sample code</link></para>
+    </listitem>
+  </itemizedlist>
+
+  <section id="JDBCDependencies">
+    <title>Installation</title>
+
+    <para>Note the following dependencies for the JDBC driver:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Google Protocol Buffers. For example:<itemizedlist>
+            <listitem>
+              <para>On Ubuntu, the package is named
+              <literal>libprotobuf-java</literal>.</para>
+            </listitem>
+
+            <listitem>
+              <para>On CentOS and RHEL, the package is named
+              <literal>protobuf-java.noarch</literal>. Note that the SciDB
+              repository redistributes this package. Thus, if you want to
+              install the package on a CentOS or RHEL client machine, you
+              should create the <literal>etc/yum.repos.d/scidb.repo</literal>
+              file on your client. For details, see the “Install SciDB on
+              CentOS / RHEL from binary package” section in the Installation
+              Chapter.</para>
+            </listitem>
+          </itemizedlist></para>
+      </listitem>
+
+      <listitem>
+        <para>java1.6 or higher</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Create or choose a directory for the JDBC driver, represented here
+    as $JDBC. Run the following commands to download the SciDB JDBC
+    driver:</para>
+
+    <programlisting>cd $JDBC
+wget https://downloads.paradigm4.com/client/&scidb_version;/jdbc/scidb4j.jar</programlisting>
+  </section>
+
+  <section id="JDBCPATH">
+    <title>Set the CLASSPATH Variable</title>
+
+    <para>The SciDB driver for JDBC jar file and protobuf library dependency
+    must be listed in your CLASSPATH variable. The CLASSPATH variable is the
+    search string that the Java Virtual Machine (JVM) uses to locate the JDBC
+    drivers on your computer.</para>
+
+    <para>Set your system CLASSPATH variable to include the following
+    entries:<itemizedlist>
+        <listitem>
+          <para>On Ubuntu:<programlisting>$JDBC/scidb4j.jar:/usr/share/java/protobuf-java.jar
+</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>On CentOS/RHEL:<programlisting>$JDBC/scidb4j.jar:/usr/share/java/protobuf.jar
+</programlisting></para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>If the drivers are not listed in your CLASSPATH variable, you
+    receive the following error message when you try to load the
+    driver:<screen>java.lang.ClassNotFoundException: org.scidb.jdbc.Driver</screen></para>
+  </section>
+
+  <section id="JDBCRegister">
+    <title>Register the Driver</title>
+
+    <para>Registering the driver instructs the JDBC Driver Manager which
+    driver to load. When you load a driver by using the
+    <command>class.forName</command> function, you must specify the name of
+    the driver. The name for SciDB Driver for JDBC is <emphasis
+    role="bold">org.scidb.jdbc.Driver</emphasis>.</para>
+
+    <para>The following code snippet illustrates how to register the
+    driver:<programlisting>Class.forName("org.scidb.jdbc.Driver");</programlisting></para>
+  </section>
+
+  <section id="JDBCConnection">
+    <title>Connection URL</title>
+
+    <para>You must pass your database connection information in the form of a
+    connection URL.</para>
+
+    <para>The URL is of the form <emphasis
+    role="bold">jdbc:scidb://</emphasis><emphasis><emphasis
+    role="bold">hostname</emphasis></emphasis><emphasis
+    role="bold">[:</emphasis><emphasis><emphasis
+    role="bold">port</emphasis></emphasis><emphasis role="bold">]</emphasis>.
+    Substitute the host name and port for your SciDB database.</para>
+
+    <para>The host value can be an IP address or a host name (assuming that
+    your network resolves host names to IP addresses). You can test this by
+    pinging the host name and verifying that you receive a reply with the
+    correct IP address. The numeric value after the host is the port number on
+    which the database is listening. Make sure to substitute the port number
+    that your database is using. If you do not specify a port, the default
+    value is used.</para>
+
+    <para>The following code snippet demonstrates how to specify a connection
+    URL:<programlisting>Connection conn = DriverManager.getConnection("jdbc:scidb://localhost/");</programlisting></para>
+  </section>
+
+  <section id="JDBCSample">
+    <title>Sample Code</title>
+
+    <para>If you downloaded the SciDB source package, the following code is
+    available in the <literal>JDBCExample.java</literal> file.</para>
+
+    <programlisting>package org.scidb;
+
+import org.scidb.jdbc.IResultSetWrapper;
+
+import java.io.IOException;
+import java.sql.DriverManager;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+class JDBCExample
+{
+  public static void main(String [] args) throws IOException
+  {
+    try
+    {
+      Class.forName("org.scidb.jdbc.Driver");
+    }
+    catch (ClassNotFoundException e)
+    {
+      System.out.println("Driver is not in the CLASSPATH -&gt; " + e);
+    }
+
+    try
+    {
+      Connection conn = DriverManager.getConnection("jdbc:scidb://localhost/");
+      Statement st = conn.createStatement();
+      // create array A&lt;a:string&gt;[x=0:2,3,0, y=0:2,3,0];
+      // select * into A from
+      // array(A, '[["a","b","c"]["d","e","f"]["123","456","789"]]');
+      ResultSet res = st.executeQuery("select * from " +
+         " array(&lt;a:string&gt;[x=0:2,3,0, y=0:2,3,0]," +
+         " '[[\"a\",\"b\",\"c\"][\"d\",\"e\",\"f\"][\"123\",\"456\",\"789\"]]')");
+      ResultSetMetaData meta = res.getMetaData();
+
+      System.out.println("Source array name: " + meta.getTableName(0));
+      System.out.println(meta.getColumnCount() + " columns:");
+
+      IResultSetWrapper resWrapper =
+         res.unwrap(IResultSetWrapper.class);
+      for (int i = 1; i &lt;= meta.getColumnCount(); i++)
+      {
+        System.out.println(meta.getColumnName(i) + " - " + meta.getColumnTypeName(i)
+           + " - is attribute:" + resWrapper.isColumnAttribute(i));
+      }
+      System.out.println("=====");
+
+      System.out.println("x y a");
+      System.out.println("-----");
+      while(!res.isAfterLast())
+      {
+        System.out.println(res.getLong("x") + " " + res.getLong("y") + " "
+           + res.getString("a"));
+        res.next();
+      }
+    }
+    catch (SQLException e)
+    {
+      System.out.println(e);
+    }
+  System.exit(0);
+  }
+}</programlisting>
+
+    <para>To run this example, make sure SciDB is running, then run the
+    following commands:<programlisting>cd $JDBC
+wget https://downloads.paradigm4.com/client/&scidb_version;/jdbc/example.jar
+java -classpath example.jar:$CLASSPATH org.scidb.JDBCExample</programlisting></para>
+
+    <para>If the example runs without error, the output is similar to the
+    following:<screen>Source array name: build
+3 columns:
+x - int64 - is attribute:false
+y - int64 - is attribute:false
+a - string - is attribute:true
+=====
+x y a
+-----
+0 0 a
+0 1 b
+0 2 c
+1 0 d
+1 1 e
+1 2 f
+2 0 123
+2 1 456
+2 2 789</screen></para>
+  </section>
+</chapter>

@@ -1,0 +1,43 @@
+--setup
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+--igdata "store(build(A,iif(x+y=0,1,x+y)),A)"
+
+--test
+aggregate(A,count(*))
+aggregate(filter(A,a<>0),count(*))
+
+--echo verify results for unique seed value
+--igdata --aql="select * into t1 from bernoulli(A,0.001,2011)"
+--sleep 2
+--igdata --aql="select * into t2 from bernoulli(A,0.001,2011)"
+--igdata "store(join(t1,t2),t3)"
+aggregate(filter(t3,a<>a_2),count(*))
+
+
+--echo test if samples actually have different output
+--igdata "store(bernoulli(A,0.001),s1)"
+--sleep 2
+--igdata "store(bernoulli(A,0.001),s2)"
+--igdata "store(join(s1,s2),s3)"
+--igdata "store(join(join(aggregate(filter(s1,a<>0),count(*)),aggregate(filter(s2,a<>0),count(*))),aggregate(filter(project(apply(filter(s3,a<>0 and a_2<>0),a_3,a-a_2),a_3),a_3=0),count(*))),r)"
+
+filter(r,count=count_2 and count=count_3)
+
+
+--echo range should be 1000 +/- 999  (1-1999)
+filter(r,count<1 or count>1999)
+filter(r,count_2<1 or count_2>1999)
+
+--echo size of join should be much smaller
+filter(r,count_3>=count or count_3>=count_2)
+
+
+--cleanup
+remove(A)
+remove(s1)
+remove(s2)
+remove(s3)
+remove(t1)
+remove(t2)
+remove(t3)
+remove(r)

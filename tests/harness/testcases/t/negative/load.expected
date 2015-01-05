@@ -1,0 +1,8 @@
+SCIDB QUERY : <CREATE ARRAY intensityFlat < exposure:string, elapsedTime:int64, measuredIntensity:int64 null > [i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(intensityFlat,'/tmp/tmp.bin',-2, '(string, int64, int64 null)')>
+[An error expected at this place for the query "load(intensityFlat,'/tmp/tmp.bin',-2, '(string, int64, int64 null)')". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_CANT_OPEN_FILE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_CANT_OPEN_FILE.]
+
+Query was executed successfully
+

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="mpi_init">
+  <refnamediv>
+    <refname>mpi_init</refname>
+
+    <refpurpose><indexterm>
+        <primary>mpi_init</primary>
+      </indexterm><indexterm>
+        <primary>MPI</primary>
+      </indexterm>Initializes the MPI infrastructure.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>mpi_init();</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <command>mpi_init()</command> operator takes no arguments, and
+    returns an empty array. It spawns MPI slave processes, gets their
+    handshakes, and tells the slaves to exit in order to initialize (and test)
+    the MPI infrastructure.</para>
+
+    <para>All MPI-based operators (e.g. <command>gemm()</command> and
+    <command>gesvd()</command>, including <code>mpi_init()</code> are
+    serialized with respect to each other. That is, they do not execute
+    concurrently.</para>
+
+    <para><command>mpi_init()</command> also has the side-effect of cleaning
+    any MPI-related OS resources left behind by previous MPI-based queries
+    (such as files, processes, IPC objects, an so on).
+    <command>mpi_init()</command> is not required to be run, but it can be
+    used in case of unexpected failures to return the MPI infrastructure to a
+    clean state.</para>
+  </refsect1>
+</refentry>

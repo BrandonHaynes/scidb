@@ -1,0 +1,33 @@
+--setup
+
+
+--start-query-logging
+
+#--shell --command "loadcsv.py -a 'array_sm10' -s '<a:int64,b:int64,c:int64>[i=0:*,3,0]' -i 'sm10.csv' -e 10 -x -v -c 3 -l -m -n 10" --store
+
+--test
+
+
+--start-igdata
+
+--shell --command " cat ${TEST_DATA_DIR}/sm10.csv | loadcsv.py -a 'array_sm10' -s '<a:int64,b:int64,c:int64>[i=0:*,4,0]' -o 'test1' -v -x -c 4 -l -L -b -d 'localhost' -p ${IQUERY_PORT}  "
+
+--shell --command " cat ${TEST_DATA_DIR}/sm9.csv | loadcsv.py -a 'array_sm9' -s '<a:int64 NULL,b:int64,c:int64>[i=0:*,4,0]' -o 'test1' -v -x -c 4 -l -L -b -d 'localhost' -p ${IQUERY_PORT} "
+
+
+--stop-igdata
+
+
+#scan( array_sm10 )
+#scan( array_sm9 )
+
+sort(array_sm10,a)
+sort(array_sm9,a)
+
+--cleanup
+
+remove(array_sm9)
+remove(array_sm10)
+
+--stop-query-logging
+

@@ -1,0 +1,59 @@
+aql, select * from list('types')
+aql, select * from list('types')
+aql, create array A_bool <a:bool> [x=0:3,2,0]
+afl, load A_bool from 'CWD/null_5.txt'
+afl, remove(A_bool)
+
+aql, create array A_char <a:char> [x=0:0,1,0]
+afl, store( build(A_char,'z'), A_char)
+afl, remove(A_char)
+
+aql, create array A_datetime <a:datetime> [x=0:0,1,0]
+afl, store( build(A_datetime,'05/15/15 05:05:05'), A_datetime)
+afl, remove(A_datetime)
+
+aql, create array A_double <a:double> [x=0:0,1,0]
+afl, store( build(A_double,10.10), A_double)
+afl, remove(A_double)
+
+aql, create array A_float <a:float> [x=0:0,1,0]
+afl, store( build(A_float,20.20), A_float)
+afl, filter( A_float, a > 20 )
+afl, remove(A_float)
+
+aql, create array A_int16 <a:int16> [x=0:0,1,0]
+afl, store( build(A_int16,16), A_int16)
+afl, remove(A_int16)
+
+aql, create array A_int32 <a:int32> [x=0:0,1,0]
+afl, store( build(A_int32,32), A_int32)
+afl, remove(A_int32)
+
+aql, create array A_int64 <a:int64> [x=0:0,1,0]
+afl, store( build(A_int64,64), A_int64)
+afl, remove(A_int64)
+
+aql, create array A_int8 <a:int8> [x=0:0,1,0]
+afl, store( build(A_int8,8), A_int8)
+afl, remove(A_int8)
+
+aql, create array A_string <a:string> [x=0:0,1,0]
+afl, store( build(A_string,'test_string'), A_string)
+afl, remove(A_string)
+
+aql, create array A_uint16 <a:uint16> [x=0:0,1,0]
+afl, store( build(A_uint16,160), A_uint16)
+afl, remove(A_uint16)
+
+aql, create array A_uint32 <a:uint32> [x=0:0,1,0]
+afl, store( build(A_uint32,320), A_uint32)
+afl, remove(A_uint32)
+
+aql, create array A_uint64 <a:uint64> [x=0:0,1,0]
+afl, store( build(A_uint64,640), A_uint64)
+afl, remove(A_uint64)
+
+aql, create array A_uint8 <a:uint8> [x=0:0,1,0]
+afl, store( build(A_uint8,80), A_uint8)
+afl, remove(A_uint8)
+

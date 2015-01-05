@@ -1,0 +1,121 @@
+SCIDB QUERY : <create array A <val:double> [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <val:double> [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <val:double> [x=-4:-1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <sal:double> [x=0:3,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <insert(filter(build(A,(5*x+3.9/x)), x=1 or x=2),A)>
+{x} val
+{1} 8.9
+{2} 11.95
+
+SCIDB QUERY : <insert(filter(build(A,(5*x+3.9/x)), x=0 or x=3),A)>
+{x} val
+{0} inf
+{1} 8.9
+{2} 11.95
+{3} 16.3
+
+SCIDB QUERY : <insert(build(B,2*x),A)>
+{x} val
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+
+SCIDB QUERY : <insert(B,A)>
+{x} val
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+
+SCIDB QUERY : <scan(B)>
+{x} val
+
+SCIDB QUERY : <insert(A,B)>
+{x} val
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+
+SCIDB QUERY : <scan(B)>
+{x} val
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+
+SCIDB QUERY : <insert(C,A)>
+[An error expected at this place for the query "insert(C,A)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH.]
+
+SCIDB QUERY : <insert(A,C)>
+[An error expected at this place for the query "insert(A,C)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH.]
+
+SCIDB QUERY : <insert(A,D)>
+[An error expected at this place for the query "insert(A,D)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH.]
+
+SCIDB QUERY : <insert(repart(D,<val:double> [x=0:3,2,0]),D)>
+[An error expected at this place for the query "insert(repart(D,<val:double> [x=0:3,2,0]),D)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSIONS_DONT_MATCH.]
+
+SCIDB QUERY : <insert(B, repart(D,<sal:double> [x=0:3,2,0]))>
+[An error expected at this place for the query "insert(B, repart(D,<sal:double> [x=0:3,2,0]))". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <insert(B,ZZ)>
+[An error expected at this place for the query "insert(B,ZZ)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+SCIDB QUERY : <insert(repart(D,<val:double> [x=0:3,2,0]),B)>
+{x} val
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+
+SCIDB QUERY : <insert(repart(D,<sal:double> [x=0:3,2,0]),B)>
+{x} val
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+
+SCIDB QUERY : <insert(subarray(A,2,3),B)>
+{x} val
+{0} 4
+{1} 6
+{2} 4
+{3} 6
+
+SCIDB QUERY : <aggregate(versions(A),count(*))>
+{i} count
+{0} 4
+
+SCIDB QUERY : <insert(filter(A,true),B)>
+{x} val
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+
+SCIDB QUERY : <aggregate(versions(B),count(*))>
+{i} count
+{0} 5
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+

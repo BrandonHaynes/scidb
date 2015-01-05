@@ -1,0 +1,3 @@
+--test
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="create array A <a:int64,b:int32>"
+

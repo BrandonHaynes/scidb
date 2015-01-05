@@ -1,0 +1,16 @@
+--setup
+--start-query-logging
+
+--shell  --store --command " csv2scidb -s 1 -p SNSN < $DOC_DATA/olympic_data.csv > $DOC_DATA/olympic_data.scidb"
+
+--test
+--aql CREATE ARRAY winnersFlat < event:string,year:int64,person:string,time:double > [i=0:*,1000000,0]
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load winnersFlat FROM '${TEST_DATA_DIR}/doc/olympic_data.scidb'""
+--aql select * from analyze(winnersFlat)
+
+--cleanup
+--aql drop array winnersFlat
+
+--stop-query-logging
+
+

@@ -1,0 +1,29 @@
+SCIDB QUERY : <create array SortedPrevious <d:int64> [ X=0:*,10000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(SortedPrevious, '${TEST_DATA_DIR}/previous.out', -2, 'opaque')">
+Query was executed successfully
+
+SCIDB QUERY : <aggregate(SortedPrevious, count(d))>
+{i} d_count
+{0} 40001
+
+SCIDB QUERY : <store(subarray(SortedPrevious, 1000, 1100), Slice)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(window(Slice, 0, 1, min(d)), Window)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(filter(join(Slice, Window), d!=d_min), count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <remove(SortedPrevious)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Slice)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Window)>
+Query was executed successfully
+

@@ -1,0 +1,5 @@
+# Trigger all possible errors thrown by the lexer (see Lexer.ll for details).
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_BLOCK_COMMENT       "scan(A /* blah b;ah) "
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_REAL        "scan(9e999999)"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER     "scan(9999999999999999999999999999999999999)"

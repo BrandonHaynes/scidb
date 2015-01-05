@@ -1,0 +1,14 @@
+#Ticket 2363 - Chunk is outside of array boundaries
+
+--setup
+--start-query-logging
+--test
+--start-igdata
+
+--shell --command  " cat ${TEST_DATA_DIR}/three_element.tdl | loadcsv.py -D '\t' -a 'one_chunk' -s '<a:string,b:int64,c:double>[i=0:2,3,0]' -d 'localhost' -p ${IQUERY_PORT} -q"
+
+--stop-igdata
+sort(one_chunk,a)
+--cleanup
+remove(one_chunk)
+--stop-query-logging

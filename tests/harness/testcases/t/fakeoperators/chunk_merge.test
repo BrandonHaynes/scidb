@@ -1,0 +1,11 @@
+--setup
+--test
+
+load_library('misc')
+
+--start-query-logging
+
+test_deep_chunk_merge()
+
+--stop-query-logging
+--cleanup

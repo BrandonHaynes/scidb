@@ -1,0 +1,15 @@
+--setup
+create array source <a: int32> [x=0:1,1,1]
+create array result <a: int32> [x=0:1,1,1]
+
+store(build(source, x+1), source)
+
+--test
+scan(source)
+repart(source, result)
+store(repart(source, result), result)
+scan(result)
+
+--cleanup
+remove(source)
+remove(result)

@@ -1,0 +1,29 @@
+Query was executed successfully
+
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+{x} a
+{0} 1
+{1} 5
+{2} 3
+
+{x} a
+{0} 2
+{1} 5
+{2} 3
+
+{x} a
+{0} 2
+{1} 5
+{2} 9
+
+{x} a
+{0} 7
+{1} 5
+{2} 9
+
+Query was executed successfully
+

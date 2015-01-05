@@ -1,0 +1,45 @@
+--setup
+--start-query-logging
+#Testcases for AFL complex querries on simple sparse 2D arrays.
+
+create array m5x5_sparse < val : double > [ x=0:4,5,0, y=0:4,5,0]
+# Filling up only 1st row ie x=0
+store(filter(build(m5x5_sparse, (3*x*x-4*y)/(3.5)),x=0 ),m5x5_sparse)
+
+
+--test
+scan(m5x5_sparse)
+apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x)
+aggregate(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),count(*))
+aggregate(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),count(*))
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),m5x5_sparse)"
+# The above case is achieved using the repart operator
+join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0]))
+aggregate(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),count(*))
+between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3)
+regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z))
+
+cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse)
+aggregate(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),count(*))
+unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i)
+
+
+--start-igdata
+explain_physical('store(unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i),ZZZ)', 'afl')
+explain_logical('store(unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i),ZZZ)', 'afl')
+--stop-igdata
+
+store(unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i),ZZZ)
+
+show(ZZZ)
+
+--start-igdata
+explain_logical('select * from ZZZ', 'aql')
+explain_physical('select * from ZZZ', 'aql')
+--stop-igdata
+
+--cleanup
+remove(m5x5_sparse)
+remove(ZZZ)
+
+--stop-query-logging

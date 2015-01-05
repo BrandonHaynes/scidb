@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="allversionsOperator">
+  <refnamediv>
+    <refname>allversions</refname>
+
+    <refpurpose><indexterm>
+        <primary>versions</primary>
+
+        <secondary>arrays</secondary>
+      </indexterm><indexterm>
+        <primary>allversions</primary>
+      </indexterm><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>VersionNo</secondary>
+      </indexterm>Returns a result array containing all versions of the stored
+    array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>allversions(<replaceable>named_array</replaceable>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The allversions operator takes all versions of an array and returns
+    a result array that combines all versions of
+    <replaceable>named_arrary</replaceable> into one array.</para>
+
+    <para>The resulting array has a dimension called <emphasis role="bold">VersionNo</emphasis> that has indices
+    1–<replaceable>final_array_version</replaceable> appended to the left-most
+    dimension. The argument <replaceable>named_array</replaceable> must be an
+    array that was previously created and stored in the SciDB
+    namespace.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example creates a 3<symbol role="symbolfont">×</symbol>3
+      array, updates it, and then uses allversions to combine all previous
+      versions of the array.</para>
+
+      <procedure>
+        <step>
+          <para>Create array m3x3 and load zeros into it:<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0],0),m3x3);  </programlisting><screen>[
+[(0),(0),(0)],
+[(0),(0),(0)],
+[(0),(0),(0)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Update m3x3 with 100 in every cell:<para><programlisting>AFL% store(build(m3x3,100),m3x3);  </programlisting><screen>[
+[(100),(100),(100)],
+[(100),(100),(100)],
+[(100),(100),(100)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Update m3x3 with 200 in every cell:<para><programlisting>AFL% store(build(m3x3,200),m3x3);  </programlisting><screen>[
+[(200),(200),(200)],
+[(200),(200),(200)],
+[(200),(200),(200)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use allversions to return all three versions of
+          m3x3:<para><programlisting>AFL% allversions(m3x3);  </programlisting><screen>[
+[
+[(0),(0),(0)],
+[(0),(0),(0)],
+[(0),(0),(0)]
+],
+[
+[(100),(100),(100)],
+[(100),(100),(100)],
+[(100),(100),(100)]
+],
+[
+[(200),(200),(200)],
+[(200),(200),(200)],
+[(200),(200),(200)]
+]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>View the schema for the result array.<para><programlisting>AFL% show('allversions(m3x3)','afl');</programlisting><screen>{i} schema
+{0} 'm3x3&lt;val:double&gt; [VersionNo=1:3,1,0,i=0:2,3,0,j=0:2,3,0]'
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

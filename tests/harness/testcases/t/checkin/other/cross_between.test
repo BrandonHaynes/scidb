@@ -1,0 +1,16 @@
+--setup
+create temp array temparray <a: int64 > [x=0:8,2,0, y=0:9,2,1, z=1000:1001,3,0]
+store(filter(build(temparray,x+y+z), x=y or x=z), temparray)
+--igdata "store(temparray, dbarray)"
+create temp array for_cross_between <v1:int64,v2:int64,v3:int64,v4:int64,v5:int64,v6:int64>[dummy=0:*,5,0]
+load(for_cross_between,'${TEST_DATA_DIR}/for_cross_between.txt')
+
+--test
+cross_between(temparray, for_cross_between)
+cross_between(dbarray, for_cross_between)
+
+
+--cleanup
+remove(temparray)
+remove(dbarray)
+remove(for_cross_between)

@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="cumulateOperator">
+  <refnamediv>
+    <refname>cumulate</refname>
+
+    <refpurpose><indexterm>
+        <primary>cumulate</primary>
+      </indexterm><indexterm>
+        <primary>running aggregate</primary>
+      </indexterm>Produces a result array containing a running aggregate along
+    some flux vector (a single dimension of the input array).</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>cumulate(<replaceable>array</replaceable>, <replaceable>aggregate_call</replaceable>[,<replaceable>aggregate_call2</replaceable>,...] [, <replaceable>dimension</replaceable>]])</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Calculates a running aggregate along some flux vector (a single
+    dimension of the input array). The calculation is always done along one
+    particular axis (dimension) of the array. The aggregate call must be one
+    of the SciDB or P4 aggregates, or a user-defined aggregate
+    function.</para>
+
+    <para>If the dimension is not specified, <code>cumulate</code> uses the
+    first declared dimension of the array.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitation</title>
+
+    <para>For now, cumulate cannot handle an input array that has any non-zero
+    chunk overlaps.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example calculates the cumulative sum along the second
+      dimension of a 2-dimensional, 1 -attribute array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a matrix and store values into it:<para><programlisting>AFL% store(build(&lt;val:double&gt;[row=0:2,3,0,col=0:3,4,0],row*4+col+1),A);  </programlisting><screen>[
+[(1),(2),(3),(4)],
+[(5),(6),(7),(8)],
+[(9),(10),(11),(12)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the cumulative sum along the first
+          dimension:<para><programlisting>AFL% cumulate(A,sum(val),row);  </programlisting><screen>[
+[(1),(2),(3),(4)],
+[(6),(8),(10),(12)],
+[(15),(18),(21),(24)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the cumulative product along the first
+          dimension:<para><programlisting>AFL% cumulate(A,prod(val),row);  </programlisting><screen>[
+[(1),(2),(3),(4)],
+[(5),(12),(21),(32)],
+[(45),(120),(231),(384)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the cumulative average along the second
+          dimension:<para><programlisting>AFL% cumulate(A,avg(val),col);  </programlisting><screen>[
+[(1),(1.5),(2),(2.5)],
+[(5),(5.5),(6),(6.5)],
+[(9),(9.5),(10),(10.5)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the the average, min, and max values along the first
+          dimension:<para><programlisting>AFL% cumulate(A,avg(val),min(val),max(val),row);  </programlisting><screen>[
+[(1,1,1),(2,2,2),(3,3,3),(4,4,4)],
+[(3,1,5),(4,2,6),(5,3,7),(6,4,8)],
+[(5,1,9),(6,2,10),(7,3,11),(8,4,12)]
+]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example uses an array that contains empty cells and null
+      values.</para>
+
+      <procedure>
+        <step>
+          <para>Assume we have the following array, <emphasis role="bold">B</emphasis>.<para><programlisting>AFL% scan(B)  </programlisting><screen>[
+[(1.25,null),(),(-7,-7)],
+[(),(),(4.2,1)],
+[(4.5,null),(11,9),(2.6,null)],
+[(),(1.7,6.5),(6.2,null)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the cumulative average along the second dimension,
+          for both attributes.<para><programlisting>AFL% cumulate(B,avg(val1),avg(val2),j);  </programlisting><screen>[
+[(1.25,null),(),(-2.875,-7)],
+[(),(),(4.2,1)],
+[(4.5,null),(7.75,9),(6.03333,9)],
+[(),(1.7,6.5),(3.95,6.5)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the variance for the first attribute, along the
+          first dimension.<para><programlisting>AFL% cumulate(B,var(val1));  </programlisting><screen>[
+[(null),(),(null)],
+[(),(),(62.72)],
+[(5.28125),(null),(36.6933)],
+[(),(43.245),(34.28)]
+]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

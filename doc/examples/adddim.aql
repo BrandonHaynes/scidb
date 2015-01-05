@@ -1,0 +1,51 @@
+set lang aql;
+
+#################################
+# Selecting a slice of an array
+#################################
+
+* 2-dimensional array of samples and probes as in the redim_store example. 
+iquery -aq "scan(Dsp)" | sed -f pprint.sed 
+[
+[(0.01),(30.36),(111.21),(242.56),(424.41)],
+[(2.04),(42.49),(133.44),(274.89),(466.84)],
+[(6.09),(56.64),(157.69),(309.24),(511.29)],
+[(12.16),(72.81),(183.96),(345.61),(557.76)],
+[(20.25),(91),(212.25),(384),(606.25)]
+]
+
+
+# Select a few slices (corresponding to samples 'sample-0', 'sample-1' and 'sample-2')
+ iquery  -o auto -aq "store(slice(Dsp, s, 'sample-0'), Dsp_slice_0)"
+ iquery  -o auto -aq "store(slice(Dsp, s, 'sample-1'), Dsp_slice_1)"
+ iquery  -o auto -aq "store(slice(Dsp, s, 'sample-2'), Dsp_slice_2)"
+
+# Slice produces an output with fewer dimensions than the input. In this case, each slice is a 1d output. 
+iquery -aq "show(Dsp_slice_0)"
+
+
+##############################################################
+# Recombining array slices into a new multi-dimensional array.
+##############################################################
+
+# Add a new dimension to each slice, producing the same array contents
+# in a different schema, a new dimension of size one is added.
+iquery -aq "adddim(Dsp_slice_0, s)"
+
+# Show the schema of the result array produced by the above command.
+iquery -vaq "adddim(Dsp_slice_0, s)" | egrep Res
+
+# Combine slices 1 and 3 into a new 2-d array.
+SELECT * INTO Dsp_new FROM concat( adddim(Dsp_slice_0, s), adddim(Dsp_slice_2, s) )
+
+# Show the schema of this. 
+SELECT * from show(Dsp_new)
+
+
+
+##############################################################
+# Deleting a dimension
+##############################################################
+# Select slices with deldim and subarray
+deldim(subarray(Dsp,null,'sample-3',null,'sample-3'));
+# Number of dimensions is preserved unlike slice which reduces dimensions

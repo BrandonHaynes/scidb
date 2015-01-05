@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="helpOperator">
+  <refnamediv>
+    <refname>help</refname>
+
+    <refpurpose><indexterm>
+        <primary>help operator</primary>
+      </indexterm><indexterm>
+        <primary>operators</primary>
+
+        <secondary>signature</secondary>
+      </indexterm>Displays the operator signature for the specified
+    operator.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>help('<replaceable>operator_name</replaceable>');</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Accepts an operator name and returns an array containing a
+    human-readable signature for that operator.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example returns the signature of the <literal>show</literal>
+      operator.<programlisting language="test">--afl help('show'); --output-format=auto</programlisting></para>
+    </informalexample>
+  </refsect1>
+</refentry>

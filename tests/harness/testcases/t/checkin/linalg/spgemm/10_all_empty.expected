@@ -1,0 +1,107 @@
+Query was executed successfully
+
+SCIDB QUERY : <create array SAleft <a:double>[x=4:5,2,0, y=4:4,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAright <b:double>[x=4:4,1,0, y=4:5,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store( filter(build(SAleft, 0), x=4), SAleft )>
+{x,y} a
+{4,4} 0
+
+SCIDB QUERY : <store( filter(build(SAright, 5-y), true), SAright )>
+{x,y} b
+{4,4} 1
+{4,5} 0
+
+SCIDB QUERY : <create array spLeft  <v:double>[row=1:4,1,0, col=1:10,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array spRight <v:double>[row=1:10,2,0, col=1:4,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store( filter(build(spLeft,  0),         row=3), spLeft)>
+{row,col} v
+{3,1} 0
+{3,2} 0
+{3,3} 0
+{3,4} 0
+{3,5} 0
+{3,6} 0
+{3,7} 0
+{3,8} 0
+{3,9} 0
+{3,10} 0
+
+SCIDB QUERY : <store( filter(build(spRight, 10*row+col), true), spRight)>
+{row,col} v
+{1,1} 11
+{2,1} 21
+{1,2} 12
+{2,2} 22
+{1,3} 13
+{2,3} 23
+{1,4} 14
+{2,4} 24
+{3,1} 31
+{4,1} 41
+{3,2} 32
+{4,2} 42
+{3,3} 33
+{4,3} 43
+{3,4} 34
+{4,4} 44
+{5,1} 51
+{6,1} 61
+{5,2} 52
+{6,2} 62
+{5,3} 53
+{6,3} 63
+{5,4} 54
+{6,4} 64
+{7,1} 71
+{8,1} 81
+{7,2} 72
+{8,2} 82
+{7,3} 73
+{8,3} 83
+{7,4} 74
+{8,4} 84
+{9,1} 91
+{10,1} 101
+{9,2} 92
+{10,2} 102
+{9,3} 93
+{10,3} 103
+{9,4} 94
+{10,4} 104
+
+SCIDB QUERY : <spgemm(SAleft, SAright)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(SAleft, SAright, 'min.+')>
+{x,y} multiply
+{4,4} 1
+{4,5} 0
+
+SCIDB QUERY : <spgemm(SAleft, SAright, 'max.+')>
+{x,y} multiply
+{4,4} 1
+{4,5} 0
+
+SCIDB QUERY : <spgemm(spLeft, spRight)>
+{row,col} multiply
+
+SCIDB QUERY : <remove(SAleft)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAright)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spLeft)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spRight)>
+Query was executed successfully
+

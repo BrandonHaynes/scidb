@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="loadOperator">
+  <refnamediv>
+    <refname>load</refname>
+
+    <refpurpose>Load data to an array from a file.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>load(<replaceable> output_array</replaceable>, <replaceable>input_file</replaceable>
+             <optional>, <replaceable>instance_id</replaceable>,<replaceable> format</replaceable>, <replaceable>max_errors</replaceable>, <replaceable>shadow_array</replaceable></optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>load operator</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>load from file</secondary>
+      </indexterm>The AFL load operator loads data from
+    <replaceable>input_file</replaceable> into the cells of a SciDB array,
+    <replaceable>output_array</replaceable>.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The load operator takes the following arguments:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>output_array</emphasis>: the name of a SciDB array to
+        hold the data.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>input_file</emphasis>: the complete path to the file
+        that contains the source data for the array.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>instance_id</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> Specifies the instance or instances
+        for performing the load. The default is to load all data from the
+        coordinator instance. The value must be one of the following:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">-2</emphasis>: Load all data using the
+            coordinator instance of the query. This is the default.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">-1</emphasis>: Initiate the load from
+            all instances. That is, the load is distributed to all instances,
+            and the data is loaded concurrently.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">0</emphasis>, <emphasis
+            role="bold">1</emphasis>, ...: Load all data using the specified
+            instance ID.</para>
+          </listitem>
+        </itemizedlist>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>format</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> The default is to load data from a
+        SciDB-formatted text file. The format string depends on the type of
+        file that you are loading.<itemizedlist>
+            <listitem>
+              <para><emphasis role="bold">Binary load:</emphasis> If you are
+              loading binary data, the load <literal>operator</literal> uses
+              the format string as a guide for interpreting the contents of
+              the binary file.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">OPAQUE load:</emphasis> the string
+              must be <command>opaque</command> or <command>OPAQUE</command>;
+              you must have previously saved the array data in the OPAQUE
+              format.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">SciDB-formatted text
+              load:</emphasis> If your text file is in SciDB format, use the
+              string <command>text</command> or <command>TEXT</command>. This
+              is the default.</para>
+            </listitem>
+          </itemizedlist></para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>max_errors</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> Specifies the limit of errors before
+        the operator will fail. The default value is 0, meaning that if any
+        errors are encountered, the operation will fail.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>shadow_array</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> Specifies a "shadow array"—SciDB
+        writes this array into the array name that you provide. This is a
+        mechanism by which you can keep track of errors while still loading
+        the error-free values. The schema of the shadow array is the same as
+        output array, except that each attribute becomes a string data type.
+        The shadow array also contains an additional attribute: <emphasis
+        role="bold">row_offset</emphasis>. The row_offset attribute contains a
+        position in the file where an error was detected.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example loads data from a binary file.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array to hold the array data: <programlisting
+          language="test">--afl CREATE ARRAY intensityFlat
+   &lt; exposure:string, elapsedTime:int64,
+   measuredIntensity:int64 null &gt; [i=0:*,5,0]; --show-query=yes --show-output=no
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Load the data, specifying a maximum of 99 errors, and saving
+          information to a shadow array: <programlisting language="test">--afl load(intensityFlat,'../tests/harness/testcases/data/doc/intensity_data.bin',-2,
+   '(string, int64, int64 null)',99,shadowArray); --output-format=dcsv</programlisting></para>
+        </step>
+
+        <step>
+          <para>Now, let's see what happens if the measuredIntensity attribute
+          does not allow nulls: <programlisting language="test">--afl remove(intensityFlat); --show-query=yes --show-output=no
+--afl CREATE ARRAY intensityFlat
+&lt; exposure:string, elapsedTime:int64, measuredIntensity:int64 &gt;
+[i=0:*,5,0]; --show-query=yes --show-output=no
+--afl load(intensityFlat,'../tests/harness/testcases/data/doc/intensity_data.bin',-2,
+   '(string, int64, int64)',99,shadowArray); --output-format=dcsv</programlisting></para>
+        </step>
+
+        <step>
+          <para>View the data in shadowArray to get details on why the file
+          did not load correctly: <programlisting language="test">--afl scan(shadowArray) --output-format=dcsv --show-output-in-test-file=no
+</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

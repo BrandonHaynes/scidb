@@ -1,0 +1,6 @@
+[An error expected at this place for the query "scan(A /* blah b;ah) ". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_BLOCK_COMMENT. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_BLOCK_COMMENT.]
+
+[An error expected at this place for the query "scan(9e999999)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_REAL. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_REAL.]
+
+[An error expected at this place for the query "scan(9999999999999999999999999999999999999)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER.]
+

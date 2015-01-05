@@ -1,0 +1,1 @@
+count(array) = aggregate(array,count(*)); // sorry - no recursion yet  :-(

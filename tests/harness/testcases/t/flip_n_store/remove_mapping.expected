@@ -1,0 +1,73 @@
+SCIDB QUERY : <create array Foo<x:double>[i=1:10,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(Foo, i + 10), Foo)>
+{i} x
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+{9} 19
+{10} 20
+
+SCIDB QUERY : <create array Foo_Flipped<i:int64>[x(double)=*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(Foo, Foo_Flipped), Foo_Flipped)>
+{x} i
+{11} 1
+{12} 2
+{13} 3
+{14} 4
+{15} 5
+{16} 6
+{17} 7
+{18} 8
+{19} 9
+{20} 10
+
+SCIDB QUERY : <subarray(Foo_Flipped, 11, 12)>
+{x} i
+{11} 1
+{12} 2
+
+SCIDB QUERY : <store(Foo_Flipped, Foo_Copy)>
+{x} i
+{11} 1
+{12} 2
+{13} 3
+{14} 4
+{15} 5
+{16} 6
+{17} 7
+{18} 8
+{19} 9
+{20} 10
+
+SCIDB QUERY : <subarray(Foo_Copy, 11, 12)>
+{x} i
+{11} 1
+{12} 2
+
+SCIDB QUERY : <remove(Foo_Flipped)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(Foo_Copy, 11, 12)>
+{x} i
+{11} 1
+{12} 2
+
+SCIDB QUERY : <remove(Foo_Copy)>
+Query was executed successfully
+
+SCIDB QUERY : <select name,schema from list('arrays')>
+{No} name,schema
+{0} 'Foo','Foo<x:double> [i=1:10,10,0]'
+
+SCIDB QUERY : <remove(Foo)>
+Query was executed successfully
+

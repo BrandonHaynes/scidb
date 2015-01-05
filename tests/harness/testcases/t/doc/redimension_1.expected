@@ -1,0 +1,103 @@
+SCIDB QUERY : <create array z1 <trial:string, ppb:int64> [device(string)=2,2,0, height=60:62,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array zFlat <device:string,height:int64,trial:string,ppb:int64>[i=0:11,12,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array z2 <trial:string,ppb:int64,device:string> [height=60:62,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array z3 <device:string,height:int64,trial:string>[ppb=1:10000,10000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array z4 <trial:string>[device(string)=2,2,0, height=60:62,3,0, ppb=1:10000,10000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load zFlat from '../tests/harness/testcases/data/doc/bug1709.scidb'>
+{i} device,height,trial,ppb
+{0} 'd0',60,'t1',1441
+{1} 'd0',60,'t2',2442
+{2} 'd0',61,'t1',3443
+{3} 'd0',61,'t2',5445
+{4} 'd0',62,'t1',6446
+{5} 'd0',62,'t2',7447
+{6} 'd1',60,'t1',8448
+{7} 'd1',60,'t2',9449
+{8} 'd1',61,'t1',6116
+{9} 'd1',61,'t2',8118
+{10} 'd1',62,'t1',4114
+{11} 'd1',62,'t2',2112
+
+SCIDB QUERY : <store(redimension(zFlat,z1),z1)>
+[An error expected at this place for the query "store(redimension(zFlat,z1),z1)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_SOURCE_ATTRIBUTE_TYPE. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_SOURCE_ATTRIBUTE_TYPE.]
+
+SCIDB QUERY : <store(redimension(zFlat,z1),z1)>
+{device,height} trial,ppb
+{'d0',60} 't1',1441
+{'d0',61} 't1',3443
+{'d0',62} 't1',6446
+{'d1',60} 't1',8448
+{'d1',61} 't1',6116
+{'d1',62} 't1',4114
+
+SCIDB QUERY : <count(store(redimension(zFlat,z2),z2))>
+{i} count
+{0} 3
+
+SCIDB QUERY : <show(z3)>
+{i} schema
+{0} 'z3<device:string,height:int64,trial:string> [ppb=1:10000,10000,0]'
+
+SCIDB QUERY : <store(redimension(z1,z3),z3)>
+[An error expected at this place for the query "store(redimension(z1,z3),z3)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_DESTINATION_ATTRIBUTE_TYPE. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_DESTINATION_ATTRIBUTE_TYPE.]
+
+SCIDB QUERY : <store(redimension(z1,z3),z3)>
+{ppb} device,height,trial
+{1441} 'd0',60,'t1'
+{3443} 'd0',61,'t1'
+{4114} 'd1',62,'t1'
+{6116} 'd1',61,'t1'
+{6446} 'd0',62,'t1'
+{8448} 'd1',60,'t1'
+
+SCIDB QUERY : <show(z1)>
+{i} schema
+{0} 'z1<trial:string,ppb:int64> [device(string)=2,2,0,height=60:62,3,0]'
+
+SCIDB QUERY : <scan(z1)>
+{device,height} trial,ppb
+{'d0',60} 't1',1441
+{'d0',61} 't1',3443
+{'d0',62} 't1',6446
+{'d1',60} 't1',8448
+{'d1',61} 't1',6116
+{'d1',62} 't1',4114
+
+SCIDB QUERY : <show(z4)>
+{i} schema
+{0} 'z4<trial:string> [device(string)=2,2,0,height=60:62,3,0,ppb=1:10000,10000,0]'
+
+SCIDB QUERY : <store(redimension(z1,z4),z4)>
+{device,height,ppb} trial
+{'d0',60,1441} 't1'
+{'d0',61,3443} 't1'
+{'d0',62,6446} 't1'
+{'d1',60,8448} 't1'
+{'d1',61,6116} 't1'
+{'d1',62,4114} 't1'
+
+SCIDB QUERY : <drop array z1>
+Query was executed successfully
+
+SCIDB QUERY : <drop array zFlat>
+Query was executed successfully
+
+SCIDB QUERY : <drop array z2>
+Query was executed successfully
+
+SCIDB QUERY : <drop array z3>
+Query was executed successfully
+
+SCIDB QUERY : <drop array z4>
+Query was executed successfully
+

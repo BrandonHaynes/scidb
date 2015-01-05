@@ -1,0 +1,99 @@
+SCIDB QUERY : <CREATE ARRAY m3x3 <val:double>[i=0:2,3,0,j=0:2,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(m3x3,i*3+j),m3x3)>
+[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]]
+
+SCIDB QUERY : <store(apply(m3x3,val2,val+100),m3x3_2attr)>
+[[(0,100),(1,101),(2,102)],[(3,103),(4,104),(5,105)],[(6,106),(7,107),(8,108)]]
+
+SCIDB QUERY : <unpack(m3x3_2attr, x)>
+{x} i,j,val,val2
+{0} 0,0,0,100
+{1} 0,1,1,101
+{2} 0,2,2,102
+{3} 1,0,3,103
+{4} 1,1,4,104
+{5} 1,2,5,105
+{6} 2,0,6,106
+{7} 2,1,7,107
+{8} 2,2,8,108
+
+SCIDB QUERY : <create array aFlat <row:int64, col:int64, value:string null> [csvRow=0:5,6,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(aFlat,'[(2,1,null),(2,2,null),(2,3,null),(3,1,"a7"),(3,2,"a8"),(3,3,"a9")]',true),aFlat)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <value:string null> [row=1:3,3,0, col=1:3,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(aFlat,A),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(A)>
+[('A<value:string NULL DEFAULT null> [row=1:3,3,0,col=1:3,3,0]')]
+
+SCIDB QUERY : <select * from A>
+[[(),(),()],[(null),(null),(null)],[('a7'),('a8'),('a9')]]
+
+SCIDB QUERY : <unpack(A, x)>
+{x} row,col,value
+{0} 2,1,null
+{1} 2,2,null
+{2} 2,3,null
+{3} 3,1,'a7'
+{4} 3,2,'a8'
+{5} 3,3,'a9'
+
+SCIDB QUERY : <create array A1 <firstnames:string> [i=0:2,3,0, j=0:1,2,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A2 <lastnames:string> [i=0:2,3,0, j=0:1,2,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(A1,'[[("Bill"),("Anne")],[("Joe"),("Steve")],[("Burt"),("Ronald")]]',true),A1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(A2,'[[("Clinton"),("Rice")],[("Pantoliano"),("Jobs")],[("Reynolds"),("Reagan")]]',true),A2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(A1,A2),Names)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(Names)>
+{i} schema
+{0} 'Names<firstnames:string,lastnames:string> [i=0:2,3,0,j=0:1,2,0]'
+
+SCIDB QUERY : <scan(Names)>
+[[('Bill','Clinton'),('Anne','Rice')],[('Joe','Pantoliano'),('Steve','Jobs')],[('Burt','Reynolds'),('Ronald','Reagan')]]
+
+SCIDB QUERY : <store(unpack(Names,x),namesFlat)>
+{x} i,j,firstnames,lastnames
+{0} 0,0,'Bill','Clinton'
+{1} 0,1,'Anne','Rice'
+{2} 1,0,'Joe','Pantoliano'
+{3} 1,1,'Steve','Jobs'
+{4} 2,0,'Burt','Reynolds'
+{5} 2,1,'Ronald','Reagan'
+
+SCIDB QUERY : <show(namesFlat)>
+{i} schema
+{0} 'namesFlat<i:int64,j:int64,firstnames:string,lastnames:string> [x=0:*,6,0]'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

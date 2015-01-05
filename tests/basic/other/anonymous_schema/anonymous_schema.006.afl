@@ -1,0 +1,4 @@
+store(repart(build(<a:int64>[x=0:8,3,0], x), <a:int64>[x=0:8,2,0]), anonymous_schema_006);
+
+show(anonymous_schema_006);
+

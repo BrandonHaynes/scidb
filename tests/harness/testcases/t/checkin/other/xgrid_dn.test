@@ -1,0 +1,11 @@
+--setup
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense,'${TEST_DATA_DIR}/dense.txt')
+
+--test
+store(merge(input(dense, '${TEST_DATA_DIR}/dense2.txt'), dense), dense2)
+xgrid(dense, 2, 2)
+
+--cleanup
+remove (dense)
+remove (dense2)

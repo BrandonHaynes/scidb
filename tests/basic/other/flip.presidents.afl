@@ -1,0 +1,1 @@
+redimension_store(us_presidents, president_stats, true, count(last_name) as count, sum(years_in_office) as total_years_in_office, max(assassinated) as any_assassinated)

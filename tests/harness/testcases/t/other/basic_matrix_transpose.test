@@ -1,0 +1,27 @@
+--setup
+CREATE ARRAY E <x: int32> [ i=0:2,3,0, j=0:2,3,0]
+CREATE ARRAY E1 <x: int32 > [ i=0:1,2,0, j=0:2,3,0]
+CREATE ARRAY E2 <var:string, var1:int32> [i=0:4,2,0]
+CREATE ARRAY E3 <var:string, var1:int32> [ i=0:2,3,0, j=0:2,3,0]
+CREATE ARRAY E4 <var:string, var1:int32> [ i=0:2,3,0, j=0:2,1,0]
+
+--test
+store(build(E, i), E)
+store(build(E1, i+j+1), E1)
+store(join(build(<var:string> [i=0:4,2,0], string(i)+'z'),  build(<var:int32> [i=0:4,2,0], i+1)),E2)
+store(join(build(<var:string> [ i=0:2,3,0, j=0:2,3,0], string(i)+string(j)),  build(<var:int32> [ i=0:2,3,0, j=0:2,3,0], i+j+1)),E3)
+store(join(build(<var:string> [ i=0:2,3,0, j=0:2,1,0], string(i)+string(j)),  build(<var:int32> [ i=0:2,3,0, j=0:2,1,0], i+j+1)),E4)
+
+transpose(E)
+transpose(E1)
+transpose(E2)
+transpose(E3)
+transpose(E4)
+
+
+--cleanup
+remove(E)
+remove(E1)
+remove(E2)
+remove(E3)
+remove(E4)

@@ -1,0 +1,2 @@
+[An error expected at this place for the query "create A <a:int64,b:int64>[x=1:5,5,0,y=0:7,5,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+

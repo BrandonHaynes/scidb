@@ -1,0 +1,39 @@
+--setup
+--start-query-logging
+create array A <a:string null,b:int32 null> [x=-2:8,5,0]
+create array T1 <a:string> [x=-2:8,5,0]
+create array T2 <b:int32> [x=-2:8,5,0]
+store(filter(build(T1,x+10),x<>2 and x<>5),T1)
+store(filter(build(T2,x+12),x<>2 and x<>5),T2)
+store(filter(join(T1,T2),1),A)
+
+--test
+--aql update A set a=null, b=null where x=0
+
+
+store(filter(build(T1,x-10),x<>2 and x<>5),T1)
+store(filter(build(T2,x-12),x<>2 and x<>5),T2)
+store(filter(join(T1,T2),1),A)
+--aql update A set a=null where x=0
+window(A,8,9,sum(a),max(a))
+window(A,1,1,max(a),count(a),sum(a),min(a))
+window(A,1,2,min(a),count(*))
+window(A,0,1,count(a),count(*))
+window(A,1,1,count(*),sum(a))
+
+store(filter(build(T1,x+10),x<>2 and x<>5),T1)
+store(filter(build(T2,x+12),x<>2 and x<>5),T2)
+store(filter(join(T1,T2),1),A)
+--aql update A set b=null where x=0
+window(A,8,9,sum(b),max(b))
+window(A,1,1,max(a),var(b),count(a),sum(b),min(a))
+window(A,1,2,min(a),count(*))
+window(A,0,1,count(b),count(*))
+window(A,1,1,count(*),sum(a))
+window(A,4,4,var(b),max(a))
+
+--cleanup
+remove(A)
+remove(T1)
+remove(T2)
+--stop-query-logging

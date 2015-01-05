@@ -1,0 +1,31 @@
+SCIDB QUERY : <store(build(<val:double>[i=0:4,5,0],0),vector0)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<val:string>[i=0:4,5,0],''),vector1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <list('arrays')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <list('arrays',true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <list('aggregates')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <filter(list('aggregates'),name != 'mad' and name != 'median' and name != 'top_five' and name !='first_value' and name!='last_value')>
+name
+'ApproxDC'
+'avg'
+'count'
+'max'
+'min'
+'prod'
+'stdev'
+'sum'
+'var'
+
+Query was executed successfully
+
+Query was executed successfully
+

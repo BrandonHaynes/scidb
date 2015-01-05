@@ -1,0 +1,62 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+
+# these are unsupported, and will fail
+create array SAint8 <a:int8>[x=0:2,3,0, y=0:2,3,0]
+create array SAint16 <a:int16>[x=0:2,3,0, y=0:2,3,0]
+create array SAint32 <a:int32>[x=0:2,3,0, y=0:2,3,0]
+create array SAint64 <a:int64>[x=0:2,3,0, y=0:2,3,0]
+create array SAuint8 <a:uint8>[x=0:2,3,0, y=0:2,3,0]
+create array SAuint16 <a:uint16>[x=0:2,3,0, y=0:2,3,0]
+create array SAuint32 <a:uint32>[x=0:2,3,0, y=0:2,3,0]
+create array SAuint64 <a:uint64>[x=0:2,3,0, y=0:2,3,0]
+
+# these are supported 
+create array SAfloat <a:float>[x=0:2,3,0, y=0:2,3,0]
+create array SAdouble <a:double>[x=0:2,3,0, y=0:2,3,0]
+
+# but not this again
+create array SAstring <a:string>[x=0:2,3,0, y=0:2,3,0]
+
+
+store( filter(build(SAint8, x+9), true), SAint8 )
+store( filter(build(SAint16, x+y), true), SAint16 )
+store( filter(build(SAint32, x+y), true), SAint32 )
+store( filter(build(SAint64, x+y), true), SAint64 )
+store( filter(build(SAuint8, x+y), true), SAuint8 )
+store( filter(build(SAuint16, x+y), true), SAuint16 )
+store( filter(build(SAuint32, x+y), true), SAuint32 )
+store( filter(build(SAuint64, x+y), true), SAuint64 )
+store( filter(build(SAfloat, x+y), true), SAfloat )
+store( filter(build(SAdouble, x+y), true), SAdouble )
+store( filter(build(SAstring, string(x+y)), true), SAstring )
+
+--test
+--error "spgemm(SAint8, SAint8)"
+--error "spgemm(SAint16, SAint16)"
+--error "spgemm(SAint32, SAint32)"
+--error "spgemm(SAint64, SAint64)"
+--error "spgemm(SAuint8, SAuint8)"
+--error "spgemm(SAuint16, SAuint16)"
+--error "spgemm(SAuint32, SAuint32)"
+--error "spgemm(SAuint64, SAuint64)"
+spgemm(SAfloat, SAfloat)
+spgemm(SAdouble, SAdouble)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_MULTIPLY_ERROR9 "spgemm(SAstring, SAstring)"
+
+--cleanup
+remove(SAint8)
+remove(SAint16)
+remove(SAint32)
+remove(SAint64)
+remove(SAuint8)
+remove(SAuint16)
+remove(SAuint32)
+remove(SAuint64)
+remove(SAfloat)
+remove(SAdouble)
+remove(SAstring)
+
+--stop-query-logging

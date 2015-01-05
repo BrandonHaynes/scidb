@@ -1,0 +1,20 @@
+tax_id|gene_id|go_id|evidence|qualifier|go_term|pubmed_ids|go_category
+9606|54879|GO:0005488|IEA||binding||Function
+9606|268|GO:0007568|IEA||aging||Process
+9606|1|GO:0003674|ND||molecular_function||Function
+9606|1|GO:0005576|IDA||extracellular region|3458201|Component
+9606|1|GO:0008150|ND||biological_process||Process
+9606|2|GO:0001869|IDA||negative regulation of complement activation, lectin pathway|12538697|Process
+9606|2|GO:0002576|TAS||platelet degranulation||Process
+9606|2|GO:0004867|IDA||serine-type endopeptidase inhibitor activity|12538697|Function
+9606|2|GO:0005515|IPI||protein binding|6698368|Function
+9606|2|GO:0005576|NAS||extracellular region|14718574|Component
+9606|2|GO:0005576|TAS||extracellular region||Component
+9606|2|GO:0005615|IEA||extracellular space||Component
+9606|2|GO:0005829|TAS||cytosol||Component
+9606|2|GO:0007264|TAS||small GTPase mediated signal transduction||Process
+9606|2|GO:0007596|TAS||blood coagulation||Process
+9606|2|GO:0007597|TAS||blood coagulation, intrinsic pathway||Process
+9606|2|GO:0019838|IDA||growth factor binding|9398211|Function
+9606|2|GO:0019899|IPI||enzyme binding|11435418|Function
+9606|2|GO:0019959|IPI||interleukin-8 binding|10880251|Function

@@ -1,0 +1,89 @@
+Query was executed successfully
+
+Query was executed successfully
+
+
+LName	FName	Dept	Course	GPA	Remarks
+Squarepants	Spongebob	CS	101	0.5	Dolt.
+Starfish	Patrick	CS	101	2.5	
+Leela	Turanga	CS	101	3.8	Note empty field at EOL on prev line.
+Wong	Amy	CS	101	null	No GPA here.
+Zoidberg	John	?42	101	2.75	Missing dept, code 42.
+Brannigan	Zapp	CS	101	1.1	Near dolt.
+Rodriguez	Bender	null	101	3	Null dept and integer GPA.
+Fry	Philip	'null'	101	2.7	Quoted 'null' dept.
+Crumb	Robert 'Mr. Natural'	CS	101	2.5	Single quotes in FName.
+
+Test plain tsv format, expect diffs due to null
+[Query was executed successfully, ignoring data output by this query.]
+
+5c5
+< Wong	Amy	CS	101		No GPA here.
+---
+> Wong	Amy	CS	101	null	No GPA here.
+
+Test tsv:E format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test tsv:N format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test tsv:? format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test tsv+ format, expect diffs due to null
+[Query was executed successfully, ignoring data output by this query.]
+
+5c5
+< 3	Wong	Amy	CS	101		No GPA here.
+---
+> 3	Wong	Amy	CS	101	null	No GPA here.
+
+Test tsv+:E format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test tsv+:N format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test tsv+:? format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test ltsv+ format, expect diffs due to null
+[Query was executed successfully, ignoring data output by this query.]
+
+5c5
+< 3	Wong	Amy	CS	101		No GPA here.
+---
+> 3	Wong	Amy	CS	101	null	No GPA here.
+
+Test ltsv+:E format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test ltsv+:N format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test ltsv+:? format
+[Query was executed successfully, ignoring data output by this query.]
+
+
+Test TSV string field encoding
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+Last	First	Middle
+Hunter	\t	Q
+Get it? It is a \t joke.	Ha	ha
+
+Query was executed successfully
+
+Query was executed successfully
+

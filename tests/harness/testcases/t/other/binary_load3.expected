@@ -1,0 +1,231 @@
+SCIDB QUERY : <create array Matrix < val : double > [ x=0:3,4,0, y=0:3,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(apply(apply(build(Matrix, x*y+2.5/(1.0)),name,'genome-'+string(x+y)),sal,(x+y*200)/0.25),MAT)>
+{x,y} val,name,sal
+{0,0} 2.5,'genome-0',0
+{0,1} 2.5,'genome-1',800
+{0,2} 2.5,'genome-2',1600
+{0,3} 2.5,'genome-3',2400
+{1,0} 2.5,'genome-1',4
+{1,1} 3.5,'genome-2',804
+{1,2} 4.5,'genome-3',1604
+{1,3} 5.5,'genome-4',2404
+{2,0} 2.5,'genome-2',8
+{2,1} 4.5,'genome-3',808
+{2,2} 6.5,'genome-4',1608
+{2,3} 8.5,'genome-5',2408
+{3,0} 2.5,'genome-3',12
+{3,1} 5.5,'genome-4',812
+{3,2} 8.5,'genome-5',1612
+{3,3} 11.5,'genome-6',2412
+
+SCIDB QUERY : <create array MAT_UB <val:double,name:string,sal:double> [x=0:*,4,0,y=0:*,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Matrix_date <val:double,name:string,sal:double,date:datetime> [x=0:*,4,0,y=0:*,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array MAT_UB1 <val:double,name:string,sal:double> [x=0:*,4,0,y=0:*,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array MAT_UB2 <val:double,name:string,sal:double> [x=0:*,4,0,y=0:*,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <save(MAT, 'matrix.bin', 0, '(double,string,double)')>
+{x,y} val,name,sal
+{0,0} 2.5,'genome-0',0
+{0,1} 2.5,'genome-1',800
+{0,2} 2.5,'genome-2',1600
+{0,3} 2.5,'genome-3',2400
+{1,0} 2.5,'genome-1',4
+{1,1} 3.5,'genome-2',804
+{1,2} 4.5,'genome-3',1604
+{1,3} 5.5,'genome-4',2404
+{2,0} 2.5,'genome-2',8
+{2,1} 4.5,'genome-3',808
+{2,2} 6.5,'genome-4',1608
+{2,3} 8.5,'genome-5',2408
+{3,0} 2.5,'genome-3',12
+{3,1} 5.5,'genome-4',812
+{3,2} 8.5,'genome-5',1612
+{3,3} 11.5,'genome-6',2412
+
+SCIDB QUERY : <load(MAT_UB, 'matrix.bin', 0, '(double,string,double)')>
+{x,y} val,name,sal
+{0,0} 2.5,'genome-0',0
+{0,1} 2.5,'genome-1',800
+{0,2} 2.5,'genome-2',1600
+{0,3} 2.5,'genome-3',2400
+{1,0} 2.5,'genome-1',4
+{1,1} 3.5,'genome-2',804
+{1,2} 4.5,'genome-3',1604
+{1,3} 5.5,'genome-4',2404
+{2,0} 2.5,'genome-2',8
+{2,1} 4.5,'genome-3',808
+{2,2} 6.5,'genome-4',1608
+{2,3} 8.5,'genome-5',2408
+{3,0} 2.5,'genome-3',12
+{3,1} 5.5,'genome-4',812
+{3,2} 8.5,'genome-5',1612
+{3,3} 11.5,'genome-6',2412
+
+SCIDB QUERY : <save(MAT_UB, 'mat.txt', -1)>
+{x,y} val,name,sal
+{0,0} 2.5,'genome-0',0
+{0,1} 2.5,'genome-1',800
+{0,2} 2.5,'genome-2',1600
+{0,3} 2.5,'genome-3',2400
+{1,0} 2.5,'genome-1',4
+{1,1} 3.5,'genome-2',804
+{1,2} 4.5,'genome-3',1604
+{1,3} 5.5,'genome-4',2404
+{2,0} 2.5,'genome-2',8
+{2,1} 4.5,'genome-3',808
+{2,2} 6.5,'genome-4',1608
+{2,3} 8.5,'genome-5',2408
+{3,0} 2.5,'genome-3',12
+{3,1} 5.5,'genome-4',812
+{3,2} 8.5,'genome-5',1612
+{3,3} 11.5,'genome-6',2412
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(Matrix_date, '${TEST_DATA_DIR}/matdate.txt')">
+{x,y} val,name,sal,date
+{0,0} 2.5,'genome-0',0,'2012-05-25 14:13:29'
+{0,1} 2.5,'genome-1',800,'2012-05-25 14:13:29'
+{0,2} 2.5,'genome-2',1600,'2012-05-25 14:13:29'
+{0,3} 2.5,'genome-3',2400,'2012-05-25 14:13:29'
+{1,0} 2.5,'genome-1',4,'2012-05-25 14:13:29'
+{1,1} 3.5,'genome-2',804,'2012-05-25 14:13:29'
+{1,2} 4.5,'genome-3',1604,'2012-05-25 14:13:29'
+{1,3} 5.5,'genome-4',2404,'2012-05-25 14:13:29'
+{2,0} 2.5,'genome-2',8,'2012-05-25 14:13:29'
+{2,1} 4.5,'genome-3',808,'2012-05-25 14:13:29'
+{2,2} 6.5,'genome-4',1608,'2012-05-25 14:13:29'
+{2,3} 8.5,'genome-5',2408,'2012-05-25 14:13:29'
+{3,0} 2.5,'genome-3',12,'2012-05-25 14:13:29'
+{3,1} 5.5,'genome-4',812,'2012-05-25 14:13:29'
+{3,2} 8.5,'genome-5',1612,'2012-05-25 14:13:29'
+{3,3} 11.5,'genome-6',2412,'2012-05-25 14:13:29'
+
+SCIDB QUERY : <save(Matrix_date, 'matdate.out', 0, '(double,string,double,datetime)')>
+{x,y} val,name,sal,date
+{0,0} 2.5,'genome-0',0,'2012-05-25 14:13:29'
+{0,1} 2.5,'genome-1',800,'2012-05-25 14:13:29'
+{0,2} 2.5,'genome-2',1600,'2012-05-25 14:13:29'
+{0,3} 2.5,'genome-3',2400,'2012-05-25 14:13:29'
+{1,0} 2.5,'genome-1',4,'2012-05-25 14:13:29'
+{1,1} 3.5,'genome-2',804,'2012-05-25 14:13:29'
+{1,2} 4.5,'genome-3',1604,'2012-05-25 14:13:29'
+{1,3} 5.5,'genome-4',2404,'2012-05-25 14:13:29'
+{2,0} 2.5,'genome-2',8,'2012-05-25 14:13:29'
+{2,1} 4.5,'genome-3',808,'2012-05-25 14:13:29'
+{2,2} 6.5,'genome-4',1608,'2012-05-25 14:13:29'
+{2,3} 8.5,'genome-5',2408,'2012-05-25 14:13:29'
+{3,0} 2.5,'genome-3',12,'2012-05-25 14:13:29'
+{3,1} 5.5,'genome-4',812,'2012-05-25 14:13:29'
+{3,2} 8.5,'genome-5',1612,'2012-05-25 14:13:29'
+{3,3} 11.5,'genome-6',2412,'2012-05-25 14:13:29'
+
+SCIDB QUERY : <show(Matrix_date)>
+{i} schema
+{0} 'Matrix_date<val:double,name:string,sal:double,date:datetime> [x=0:*,4,0,y=0:*,4,0]'
+
+SCIDB QUERY : <show(MAT_UB)>
+{i} schema
+{0} 'MAT_UB<val:double,name:string,sal:double> [x=0:*,4,0,y=0:*,4,0]'
+
+SCIDB QUERY : <load(MAT_UB, 'mat.txt', 0, 'text')>
+{x,y} val,name,sal
+{0,0} 2.5,'genome-0',0
+{0,1} 2.5,'genome-1',800
+{0,2} 2.5,'genome-2',1600
+{0,3} 2.5,'genome-3',2400
+{1,0} 2.5,'genome-1',4
+{1,1} 3.5,'genome-2',804
+{1,2} 4.5,'genome-3',1604
+{1,3} 5.5,'genome-4',2404
+{2,0} 2.5,'genome-2',8
+{2,1} 4.5,'genome-3',808
+{2,2} 6.5,'genome-4',1608
+{2,3} 8.5,'genome-5',2408
+{3,0} 2.5,'genome-3',12
+{3,1} 5.5,'genome-4',812
+{3,2} 8.5,'genome-5',1612
+{3,3} 11.5,'genome-6',2412
+
+SCIDB QUERY : <load(MAT_UB1, 'matdate.out', 0, '(double,string,double)')>
+[An error expected at this place for the query "load(MAT_UB1, 'matdate.out', 0, '(double,string,double)')". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load(MAT_UB1, 'matdate.out', 0, '(double,string,double,dummy(8))')>
+{x,y} val,name,sal
+{0,0} 2.5,'genome-0',0
+{0,1} 2.5,'genome-1',800
+{0,2} 2.5,'genome-2',1600
+{0,3} 2.5,'genome-3',2400
+{1,0} 2.5,'genome-1',4
+{1,1} 3.5,'genome-2',804
+{1,2} 4.5,'genome-3',1604
+{1,3} 5.5,'genome-4',2404
+{2,0} 2.5,'genome-2',8
+{2,1} 4.5,'genome-3',808
+{2,2} 6.5,'genome-4',1608
+{2,3} 8.5,'genome-5',2408
+{3,0} 2.5,'genome-3',12
+{3,1} 5.5,'genome-4',812
+{3,2} 8.5,'genome-5',1612
+{3,3} 11.5,'genome-6',2412
+
+SCIDB QUERY : <load(Matrix_date, 'matrix.bin', 0, '(double,string,double,datetime)')>
+[An error expected at this place for the query "load(Matrix_date, 'matrix.bin', 0, '(double,string,double,datetime)')". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load(MAT_UB2, 'matrix.bin', 0, '(float,string,float)')>
+[An error expected at this place for the query "load(MAT_UB2, 'matrix.bin', 0, '(float,string,float)')". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load(MAT_UB2, 'matrix.bin', 0, '(float,string,float)',10,UB_shadow)>
+{x,y} val,name,sal
+{0,0} 0,'',0
+
+SCIDB QUERY : <load(MAT_UB2, 'matrix.bin', 0, '(double,string,double)',10,UB_shadow)>
+{x,y} val,name,sal
+{0,0} 2.5,'genome-0',0
+{0,1} 2.5,'genome-1',800
+{0,2} 2.5,'genome-2',1600
+{0,3} 2.5,'genome-3',2400
+{1,0} 2.5,'genome-1',4
+{1,1} 3.5,'genome-2',804
+{1,2} 4.5,'genome-3',1604
+{1,3} 5.5,'genome-4',2404
+{2,0} 2.5,'genome-2',8
+{2,1} 4.5,'genome-3',808
+{2,2} 6.5,'genome-4',1608
+{2,3} 8.5,'genome-5',2408
+{3,0} 2.5,'genome-3',12
+{3,1} 5.5,'genome-4',812
+{3,2} 8.5,'genome-5',1612
+{3,3} 11.5,'genome-6',2412
+
+SCIDB QUERY : <scan(UB_shadow)>
+{x,y} val,name,sal,row_offset
+
+SCIDB QUERY : <remove(Matrix)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(MAT)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(MAT_UB)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(MAT_UB1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(MAT_UB2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Matrix_date)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UB_shadow)>
+Query was executed successfully
+

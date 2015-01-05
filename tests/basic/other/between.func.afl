@@ -1,0 +1,1 @@
+between(dense, first('dense','x') + 1, first('dense','y') + 1, last('dense','x') - 1, last('dense','y') - 1)

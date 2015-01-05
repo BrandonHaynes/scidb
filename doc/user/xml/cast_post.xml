@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="castOperator">
+  <refnamediv>
+    <refname>cast</refname>
+
+    <refpurpose><indexterm>
+        <primary>cast</primary>
+      </indexterm>Produces a result array with the same dimensions,
+    attributes, and cells as a source array—but with other differences, which
+    can include different names for its dimensions or attributes, different
+    nulls-allowed status for an attribute, and different datatypes for its
+    dimensions.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>cast(<replaceable>array</replaceable>,<replaceable>template_array</replaceable>|<replaceable>schema_definition</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The cast operator has three primary uses:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>To change names of attributes or dimensions</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>To change a nulls-disallowed attribute to a nulls-allowed
+        attribute</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>A single cast invocation can be used to make all of these changes at
+    once. The input array and template arrays should have the same numbers and
+    types of attributes.</para>
+
+    <para>The cells of the result array have the same attribute values as the
+    corresponding cells of the source array.</para>
+
+    <para>You can use the cast operator in the FROM clause of an AQL SELECT
+    statement, as a stand-alone operator in a AFL statement, or as an operand
+    within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example shows the schema of an array, combines the recast and
+      store operators to change some characteristics of the array, and shows
+      the schema of the new array.</para>
+
+      <procedure>
+        <step>
+          <para>Show the schema of an existing array:<para><programlisting>AFL% show(winningTime)</programlisting><screen><command>winningTime</command>
+
+&lt; time:double &gt;
+
+[year=1996:2008,1,0]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the cast operator to produce a result array similar to the
+          existing array, but with these changes:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para>The attribute in the new array allows null values.</para>
+            </listitem>
+
+            <listitem>
+              <para>The attribute in the new array is called
+              "time_in_seconds."</para>
+            </listitem>
+          </itemizedlist>
+
+          <para>In this example, the cast operator appears as an operand of
+          the store operator, yielding a named array
+          "winningTimeRecast":<para><programlisting>AFL% store
+   (
+   cast
+      (
+      winningTime,
+         &lt;time_in_seconds:double null&gt; 
+         [year=1996:2008,1,0]
+       ),
+       winningTimeRecast
+   );  </programlisting><screen>{year} time_in_seconds
+{1996} 9.84
+{2000} 9.87
+{2008} 7596
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Show the schema of the new array:<para><programlisting>AFL% show(winningTimeRecast)</programlisting><screen><command>winningTimeRecast</command>
+
+&lt; time_in_seconds:double NULL DEFAULT null &gt;
+
+[year=1996:2008,1,0]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

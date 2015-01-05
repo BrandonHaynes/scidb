@@ -1,0 +1,438 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+<!ENTITY scidb_version "14.8">
+<!ENTITY scidb_revision "7859">
+<!ENTITY scidb_year "2014">
+]>
+<section id="upgradingSciDB">
+  <title>Upgrading SciDB</title>
+
+  <para><indexterm>
+      <primary>SciDB</primary>
+
+      <secondary>upgrading</secondary>
+    </indexterm><indexterm>
+      <primary>upgrade SciDB</primary>
+    </indexterm><indexterm>
+      <primary>versions</primary>
+
+      <secondary>SciDB</secondary>
+    </indexterm>This section describes how to upgrade your version of SciDB.
+  It contains the following information:<itemizedlist>
+      <listitem>
+        <para>The upgrade procedure: <xref linkend="upgradeProcedure"/></para>
+      </listitem>
+
+      <listitem>
+        <para>The details of the backup and restore script (which is the
+        suggested method for backing up and restoring your arrays): <xref linkend="upgradeBackup"/></para>
+      </listitem>
+
+      <listitem>
+        <para>The details of how to manually backup and restore your arrays:
+        <xref linkend="upgradeManual"/></para>
+      </listitem>
+    </itemizedlist></para>
+
+  <section id="upgradeProcedure">
+    <title>Upgrade Procedure</title>
+
+    <para>For the upgrade procedure, we use the following
+    conventions:<itemizedlist>
+        <listitem>
+          <para>To represent your current version: <emphasis role="bold">scidbOldVersion</emphasis>.</para>
+        </listitem>
+
+        <listitem>
+          <para>To represent the new version that you are installing:
+          <emphasis role="bold">scidbNewVersion</emphasis>.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>For example, if you are upgrading from 14.3 to 14.7:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">scidbOldVersion</emphasis> = 14.3</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">scidbNewVersion</emphasis> = 14.7</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <note>
+      <para>The upgrade procedure requires that you update packages on all
+      hosts in the SciDB cluster. If any host accommodates other software
+      besides SciDB, the upgrade to packages might cause version skew.
+      Remember, it is recommended that all nodes in the SciDB cluster be
+      devoted exclusively to SciDB.</para>
+    </note>
+
+    <para>Before upgrading SciDB, you should back up your data using the
+    script, <code>scidb_backup.py</code>. This file is in the
+    /opt/scidb/14.7/bin folder. Perform the following tasks:</para>
+
+    <procedure>
+      <step>
+        <para>Backup your data before upgrading—upgrading to 14.7 cannot be
+        done in-place. First, confirm that you have enough storage space,
+        because the following command will backup all your SciDB arrays. From
+        the <emphasis role="bold">scidb</emphasis> user account, run the
+        backup script. As an example, the following command creates a folder,
+        <emphasis role="bold">./mySavedArrays</emphasis>, and save all of your
+        arrays, using the OPAQUE format, into that folder:<programlisting>$ /opt/scidb/14.7/bin/scidb_backup.py -s opaque mySavedArrays</programlisting>For
+        usage details of the backup script, see <xref linkend="upgradeBackup"/>.</para>
+      </step>
+
+      <step>
+        <para>Stop SciDB.</para>
+      </step>
+
+      <step>
+        <para>If you want to keep your current SciDB configuration file, make
+        a backup copy of it somewhere. By default, the file is in the
+        following location:<screen>opt/scidb/<emphasis role="bold">scidbOldVersion</emphasis>/etc/config.ini</screen></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">OPTIONAL.</emphasis> You can run multiple
+        versions of SciDB, if you would like: for details, see <xref linkend="multipleSciDBs"/>. However, you can remove the previous
+        version of SciDB if you only need to run the latest version of SciDB.
+        If you installed to the default location, run the following command to
+        remove the old version:<programlisting>sudo rm -Rf /opt/scidb/<emphasis role="bold">scidbOldVersion</emphasis>/</programlisting></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Upgrade. </emphasis>Perform the following
+        steps to upgrade to the latest version of SciDB.<orderedlist numeration="loweralpha">
+            <listitem>
+              <para>Set up your configuration file, including setting the
+              <code> enable-catalog-upgrade </code>parameter to
+              <code>true</code>. Make sure to change all occurrences of
+              <emphasis role="bold">scidbOldVersion</emphasis> to <emphasis role="bold">scidbNewVersion</emphasis>. After you edit the file,
+              copy it to the
+              <literal>/opt/scidb/14.7</literal><literal>/etc/</literal>
+              folder.</para>
+
+              <para>Typically, the following settings are
+              affected:<programlisting>install_root=/opt/scidb/14.3
+pluginsdir=/opt/scidb/14.3/lib/scidb/plugins
+logconf=/opt/scidb/14.3/share/scidb/log4cxx.properties</programlisting></para>
+
+              <para>Also, make sure to add the following setting to the
+              configuration file (if it does not already
+              exist):<programlisting>enable-catalog-upgrade=true</programlisting>For
+              more details about the configuration file, see <xref linkend="ConfiguringSciDB"/>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Run the cluster install procedure.</para>
+            </listitem>
+
+            <listitem>
+              <para>Restart SciDB. Initialization is recommended to avoid
+              errors that you would otherwise receive, based on
+              incompatibilities between your "old" database and your "new"
+              SciDB version. Remember, though, that initializing the SciDB
+              database destroys all the data in that database.<note>
+                  <para>If you get an error that says SciDB needs to upgrade
+                  the system catalog, and that the action failed, make sure to
+                  set the <code>enable-catalog-upgrade</code> parameter to
+                  <emphasis role="bold">true</emphasis>, as detailed in the
+                  previous step.</para>
+                </note></para>
+            </listitem>
+          </orderedlist></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Restore. </emphasis>After you have the new
+        version of SciDB running, restore any data that you backed up in step
+        1. For example, if you used the command in step 1 to backup your
+        arrays, you would run the following command to restore
+        them:<programlisting>$ /opt/scidb/14.7/bin/scidb_backup.py -r opaque mySavedArrays</programlisting></para>
+      </step>
+    </procedure>
+  </section>
+
+  <section id="upgradeBackup">
+    <title>SciDB Backup Script</title>
+
+    <para>This section describes the scidb backup and restore script,
+    <code>scidb_backup.py</code>. Note the following:<itemizedlist>
+        <listitem>
+          <para>You must run the script from the <emphasis role="bold">scidb</emphasis> user account on the coordinator
+          host.</para>
+        </listitem>
+
+        <listitem>
+          <para>The script saves or restores SciDB arrays into individual
+          files (one per array), into a folder that you specify.</para>
+        </listitem>
+
+        <listitem>
+          <para>By default, the save is done onto the coordinator only—you can
+          perform a parallel save by specifying the <code>-p</code>
+          option.</para>
+        </listitem>
+
+        <listitem>
+          <para>If you use the <code>--parallel</code> option, the script
+          saves arrays into multiple sub-folders, one per SciDB instance. For
+          example, if you have a 2-server, 4-instance cluster, and you specify
+          the backup folder, the following folders are created:<itemizedlist>
+              <listitem>
+                <para>On the coordinator: <emphasis role="bold">backup.0</emphasis> and <emphasis role="bold">backup.1</emphasis></para>
+              </listitem>
+
+              <listitem>
+                <para>On the second server: <emphasis role="bold">backup.2</emphasis> and <emphasis role="bold">backup.3</emphasis></para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+
+        <listitem>
+          <para>You must use the same options when restoring as backup up. For
+          example, if you backup using the text format, and the parallel
+          option, then you must use the text format and parallel option when
+          you restore your arrays.</para>
+        </listitem>
+
+        <listitem>
+          <para>By default, all arrays are saved. Use the <code>-f</code>
+          option to filter the arrays to save. You specify a Python regex
+          pattern against which to match the array names to save.</para>
+        </listitem>
+
+        <listitem>
+          <para>Use the <code>-h</code> option to display usage details for
+          the script.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>The script takes the following arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">-h</emphasis>: Displays the usage
+          details.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-s
+          </emphasis><emphasis>format</emphasis>: The save format. The value
+          must be one of the following: <emphasis role="bold">opaque</emphasis>, <emphasis role="bold">binary</emphasis>, <emphasis role="bold">text</emphasis>.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-r
+          </emphasis><emphasis>format</emphasis>: The restore format. The
+          value must match the format used to save the arrays.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-d</emphasis>: Deletes all of the array
+          data, on all hosts, for the base folder specified.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">--port
+          </emphasis><emphasis>port</emphasis>: The port that the SciDB
+          cluster is running on. The default is 1239, so this parameter is
+          optional if you are running your cluster on the default port.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-a</emphasis>: Saves all versions of the
+          arrays. By default, only the latest version of each array is
+          saved.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-f
+          </emphasis><emphasis>pattern</emphasis>: A regular expression
+          pattern. The pattern is matched against, and only array names that
+          match are saved.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-p</emphasis>: Specifies a parallel save
+          or restore. If you use this option when saving, you must also use it
+          when restoring.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-z</emphasis>: Compresses data files
+          (using gzip) when saving array data, and then uncompresses the data
+          when restoring.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>For example, to perform a parallel, binary save of all versions of
+    arrays that start with 'A', and also compress the data, you could run the
+    following command:<programlisting>$ scidb_backup.py -s binary -p -a -f "A.*" -z myBackup_A</programlisting></para>
+  </section>
+
+  <section id="upgradeManual">
+    <title>(OPTIONAL) Manually Backup and Restore Your Arrays</title>
+
+    <para>If you choose not to use the backup/restore script, this section
+    describes the manual ways you can backup and restore your arrays. Note the
+    following:<itemizedlist>
+        <listitem>
+          <para>The OPAQUE save/load format is the most efficient way to back
+          up your array data. It is guaranteed to work between consecutive
+          versions. For example, if you save your arrays (in Opaque format)
+          from version 14.3, you can use Opaque load to load them directly
+          into version 14.7, without needing to perform a redimension. Make
+          sure to reload the saved array into the a SciDB installation with
+          identical database configuration parameters.</para>
+        </listitem>
+
+        <listitem>
+          <para>Next best is to use binary save/load. This is faster than
+          using text files, but has some intermediate steps (you need to
+          unpack before saving, and redimension after restoring). There is a
+          script that automates this process for all of your arrays.</para>
+        </listitem>
+
+        <listitem>
+          <para>You can use the SciDB text format to save and restore arrays
+          between versions. It is the slowest method, but on the other hand,
+          you can backup and restore multidimensional arrays without needing
+          to perform any intermediate steps.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <section id="manualbackup">
+      <title>Manually Backup Your Arrays</title>
+
+      <para>If you are upgrading to 14.7 from an earlier version than 14.3
+      (e.g. 13.12 or 13.9), and backing up manually, then we recommend that
+      you use binary save/load. The following steps walk through saving and
+      then restoring a small example array.</para>
+
+      <procedure>
+        <step>
+          <para>Assume you have the following array in SciDB, in version
+          14.3.<programlisting>AFL% show(notFlat)
+ 
+notFlat
+
+&lt; exposure:string,
+measuredIntensity:int64 NULL DEFAULT null &gt;
+
+[elevation=0:999,100,0,
+elapsedTime=0:15,16,0]
+</programlisting><programlisting>{elevation,elapsedTime} exposure,measuredIntensity
+{21,6} 'Low',35
+{29,2} 'Medium',89
+{51,4} 'Medium',null
+{89,1} 'Medium',95
+{191,3} 'High',99
+{222,5} 'Low',41
+{238,5} 'High',97
+{288,3} 'Medium',null
+{320,1} 'High',100
+{378,0} 'Low',100
+{390,7} 'Low',29
+{490,3} 'Low',60
+{549,2} 'Low',71
+{583,0} 'Medium',100
+{629,0} 'High',100
+{632,7} 'High',null
+{670,5} 'Medium',80
+{787,7} 'Medium',77
+{800,4} 'Low',50
+{834,6} 'High',null
+{838,1} 'Low',85
+{850,6} 'Medium',78
+{890,2} 'High',99
+{999,4} 'High',98
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>We need to unpack this data into a 1-dimensional array, and
+          then save it.<programlisting>AFL% save(unpack(notFlat,myDim), 
+'notFlat_saved.bin', -2, 
+'(int64,int64,string, int64 null)');
+</programlisting>This saves the array data into a 1-D binary array on the
+          coordinator instance.</para>
+        </step>
+
+        <step>
+          <para>To restore, you will need to recreate the 1-D intermediate
+          array. The following query returns the schema we
+          need.<programlisting>AFL% show('unpack(notFlat,myDim)','afl');:</programlisting><programlisting>&lt; elevation:int64,
+elapsedTime:int64,
+exposure:string,
+measuredIntensity:int64 NULL DEFAULT null &gt;
+
+[myDim=0:*,16000,0]</programlisting></para>
+        </step>
+      </procedure>
+    </section>
+
+    <section id="upgradeRestore">
+      <title>Manually Restore Your Arrays</title>
+
+      <para>This section provides guidelines on restoring your array data. It
+      continues the example begun in the previous section, <xref linkend="upgradeBackup"/>.</para>
+
+      <para>After you upgrade, perform the following steps to reload the array
+      that you saved in the previous section.</para>
+
+      <procedure>
+        <step>
+          <para>Create the intermediate 1-D array, using the schema we
+          displayed earlier.<para><programlisting>AFL% CREATE ARRAY restored_1D_Array &lt;elevation:int64,
+      elapsedTime:int64,exposure:string,measuredIntensity:int64 NULL DEFAULT null&gt;
+     [myDim=0:*,16000,0]  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Now, we can load the saved data into our new 1-D
+          array.<programlisting>AFL% load(restored_1D_Array, 'notFlat_saved.bin', -2,
+      '(int64, int64, string, int64 null)'); </programlisting></para>
+        </step>
+
+        <step>
+          <para>Next, recreate the target array, making sure to match the
+          schema of the original.<para><programlisting>AFL% create array restoredFinal&lt;exposure:string,measuredIntensity:int64
+      NULL DEFAULT null&gt; [elevation=0:999,100,0,elapsedTime=0:15,16,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Finally, redimension the 1-D array into the target
+          array.<programlisting>AFL% store(redimension(restored_1D_Array, restoredFinal),
+           restoredFinal);
+
+{elevation,elapsedTime} exposure,measuredIntensity
+{21,6} 'Low',35
+{29,2} 'Medium',89
+{51,4} 'Medium',null
+{89,1} 'Medium',95
+{191,3} 'High',99
+{222,5} 'Low',41
+{238,5} 'High',97
+{288,3} 'Medium',null
+{320,1} 'High',100
+{378,0} 'Low',100
+{390,7} 'Low',29
+{490,3} 'Low',60
+{549,2} 'Low',71
+{583,0} 'Medium',100
+{629,0} 'High',100
+{632,7} 'High',null
+{670,5} 'Medium',80
+{787,7} 'Medium',77
+{800,4} 'Low',50
+{834,6} 'High',null
+{838,1} 'Low',85
+{850,6} 'Medium',78
+{890,2} 'High',99
+{999,4} 'High',98</programlisting></para>
+        </step>
+      </procedure>
+    </section>
+  </section>
+</section>

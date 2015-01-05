@@ -1,0 +1,63 @@
+SCIDB QUERY : <create temp array ABRTEST1 <v:int64> [I=1:2000,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array ABRTEST2 <v:int64> [I=1:2000,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create      array ABRTEST3 <v:int64> [I=1:2000,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(ABRTEST1, I),ABRTEST1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(ABRTEST2,-I),ABRTEST2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(ABRTEST3,-I),ABRTEST3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'store (build (ABRTEST1, 0), ABRTEST1)' 1> /tmp/${HPID}_1.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 15 2 'store (build (ABRTEST1, 0), ABRTEST1)' 1> /tmp/${HPID}_2.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 9  2 'store (build (ABRTEST1, 0), ABRTEST1)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 9  2 'store (ABRTEST3, ABRTEST1)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 15  2 'store (ABRTEST3, ABRTEST1)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'store (ABRTEST3, ABRTEST1)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+SCIDB QUERY : <aggregate(filter(apply(join(ABRTEST1,ABRTEST2),attrSum,ABRTEST1.v + ABRTEST2.v), attrSum<>0),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <remove(ABRTEST1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ABRTEST2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ABRTEST3)>
+Query was executed successfully
+

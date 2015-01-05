@@ -1,0 +1,109 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:double> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:double> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <a:double null> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array E <a:double null> [x=0:2,3,0,y=-1:2,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array F <a:double null> [x=0:2,3,0,y=-1:2,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <store(build(B,x+10.5),B)>
+{x} a
+{0} 10.5
+{1} 11.5
+{2} 12.5
+
+SCIDB QUERY : <store(filter(build(C,x+10.5),x<>1),C)>
+{x} a
+{0} 10.5
+{2} 12.5
+
+SCIDB QUERY : <store(build(D,iif(x=2,null,x+10.5)),D)>
+{x} a
+{0} 10.5
+{1} 11.5
+{2} null
+
+SCIDB QUERY : <store(build(E,iif(x=2,null,x+10.5)),E)>
+{x,y} a
+{0,-1} 10.5
+{0,0} 10.5
+{1,-1} 11.5
+{1,0} 11.5
+{2,-1} null
+{2,0} null
+{0,1} 10.5
+{0,2} 10.5
+{1,1} 11.5
+{1,2} 11.5
+{2,1} null
+{2,2} null
+
+SCIDB QUERY : <store(filter(build(F,iif(x=2,null,x+10.5)),x<>0 and y<>0),F)>
+{x,y} a
+{1,-1} 11.5
+{2,-1} null
+{1,1} 11.5
+{1,2} 11.5
+{2,1} null
+{2,2} null
+
+SCIDB QUERY : <normalize(A)>
+[An error expected at this place for the query "normalize(A)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR3.]
+
+SCIDB QUERY : <normalize(B)>
+{x} a
+{0} 0.525822
+{1} 0.575901
+{2} 0.625979
+
+SCIDB QUERY : <normalize(C)>
+{x} a
+{0} 0.643192
+{2} 0.765705
+
+SCIDB QUERY : <normalize(D)>
+{x} a
+{0} 0.674269
+{1} 0.738485
+{2} null
+
+SCIDB QUERY : <normalize(E)>
+[An error expected at this place for the query "normalize(E)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR2.]
+
+SCIDB QUERY : <normalize(F)>
+[An error expected at this place for the query "normalize(F)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR2.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F)>
+Query was executed successfully
+

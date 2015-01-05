@@ -1,0 +1,47 @@
+--setup
+--start-query-logging
+# Ticket number: 1646 
+# Tests cover 1D arrays with different data-types, use of default value and empty cells.
+# Tests cover build literals with single and multiple attributes
+
+
+--test
+build(<a:int32> [x=-200:-198,1,0], '[(1),(2),(3)]', true)
+build(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]', true)
+build(<a:int64> [x=0:2,3,0], '[(1),(2),(3)]', true)
+build(<a:int64, b:int64> [x=0:2,3,0], '[(1,2),(2,3),(3,5)]', true)
+--error --code scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING "build(<a:int64> [x=0:2,3,0], '[(1),(2),(3)]')"
+
+build(<a:float> [x=0:2,3,0], '[(1.2),(0.2),(3)]', true)
+build(<a:float> [x=100:103,4,0], '[(1.2),(0.2),(3),()]', true)
+build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]', true)
+build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]', 1)
+build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]', -100)
+--error --code scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING "build(<a:double> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]',0)"
+
+build(<a:float, b:int32 default 3> [x=100:103,4,0], '[(1.2,),(0.2,),(3,),(,9)]', true)
+build(<a:float, b:int32> [x=100:103,4,0], '[(1.2,),(0.2,),(3,),(,9)]', true)
+build(<a:float, b:double default 3.1427, c:string> [x=100:103,4,0], '[(1.2,),(0.2,),(3,),(,9)]', true)
+build(<a:float, b:double default 3.1427, c:string> [x=100:103,4,0], '[(1.2,,x),(0.2,,y),(3,,z),(,9,j)]', true)
+build(<a:float, b:double default 3.1427, c:string null> [x=100:103,4,0], '[(1.2,,x),(0.2,,y),(3,,z),(,9,)]', true)
+
+build(<a:string> [x=0:2,3,0], '[(2.124),(1.045),(4.98)]', true)
+build(<a:string> [x=0:2,3,0], '[(allegory),(repetition),(Onomatopoeia)]', true)
+
+### Size specified in string_* shall be actual length of string plus 1
+build(<a:string> [x=0:2,3,0], '[(allegory),(repetition),(Onomatopoe)]', true)
+
+
+build(<a:datetime> [x=0:2,3,0], '[("2012-07-13 18:41:14"),("2011-12-13 18:41:14"),("2012-12-13 18:41:14")]', true)
+build(<a:datetime> [x=0:2,3,0], '[("2012-07-13 00:00:00"),("2011-12-13 18:41:14"),("2012-12-13 18:00:00")]', 1)
+build(<a:datetime, days: string> [x=0:2,3,0], '[("2012-07-13 18:41:14",Sunday),("2011-12-13 18:41:14",Monday),("2012-12-13 18:41:14",Friday)]', true)
+
+build(<a:datetimetz> [x=0:2,3,0], '[("2012-07-25 10:00:00 +01:00"),("2011-07-28 19:10:10 +04:00"),("2012-12-13 18:41:14 +02:30")]', true)
+store( build(<a:datetimetz> [x=0:2,3,0], '[("2012-07-25 10:00:00 +01:00"),("2011-07-28 19:10:10 +04:00"),("2012-12-13 18:41:14 +02:30")]',1),A)
+show(A)
+
+
+--cleanup
+remove(A)
+
+--stop-query-logging

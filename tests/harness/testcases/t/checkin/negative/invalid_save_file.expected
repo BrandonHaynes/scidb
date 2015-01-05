@@ -1,0 +1,6 @@
+Query was executed successfully
+
+[An error expected at this place for the query "save C into '/tmp'". And it failed with error code = scidb::SCIDB_SE_ARRAY_WRITER::SCIDB_LE_CANT_OPEN_FILE. Expected error code = scidb::SCIDB_SE_ARRAY_WRITER::SCIDB_LE_CANT_OPEN_FILE.]
+
+Query was executed successfully
+

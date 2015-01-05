@@ -1,0 +1,25 @@
+--setup
+CREATE ARRAY M4x4 <a:int32, b:int32> [x=0:3,3,0, y=0:3,3,0]
+load(M4x4,'${TEST_DATA_DIR}/M4x4.txt')
+
+# for ticket 3819 --- check for overflow on grid param
+store(build(<testdim:int64> [i=0:0,1,0],10442220104672876), A)
+store(apply(A, val, int32(1)), B)
+store(redimension(B, <val:int32> [testdim=0:4611686018427387902,1440000000000,0]), C)
+
+
+--test
+--aql select sum(a) from M4x4 regrid as (partition by x 3, y 3)
+--aql select sum(b) from M4x4 regrid as (partition by x 3, y 3)
+--aql select count(*) from M4x4 regrid as (partition by x 3, y 3)
+--aql select sum(a) from M4x4 regrid as (partition by x 3, y 3)
+--aql select sum(a) from project(M4x4, a) regrid as (partition by x 3, y 3)
+
+# for ticket 3819
+regrid(C, 10000000000, sum(val))
+
+--cleanup
+remove(M4x4)
+remove(A)
+remove(B)
+remove(C)

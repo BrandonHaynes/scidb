@@ -1,0 +1,67 @@
+--setup
+--start-query-logging
+
+##Ticket number: 1602
+##Testcases for different data-types.
+## Dense Array-type 1D with null,inf and empty cells,dimensions with same/different chunk and start cordinates 
+
+create array a1 <p:int64 NULL>[x=0:7,4,0]
+create array a2 <q:int32 NULL>[x=0:7,4,0]
+create array a3 <r:double NULL>[x=0:7,2,0]
+create array a4 <r:string NULL>[x=10:17,2,0]
+store(build(a1,3*x+1),a1)
+--aql update a1 set p=NULL where x>5
+ store(build(a2,x+2),a2)
+--aql update a2 set q=NULL where x>2 and x<5
+store(build(a3,3*x*x/(5.0-x)),a3)                      
+store(build(a4,20*x+1),a4)
+--aql select * into a5 from  a4 where x<13 or x>15
+
+
+--test
+join(a1,a2)
+join(a2,a1)
+--aql select * into a6 from a1 where x<>2
+join(a6,a1)
+join(a1,a6)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(a1,a3)"
+##by using repart chunk is made compatible so now a1 is joined to a3
+join(a1,repart(a3,<p:int64>[x=0:7,4,0]))            
+join(a2,repart(a3,<p:int64>[x=0:7,4,0]))
+join(repart(a2,<q:int32>[x=0:7,2,0]),a3)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(a3,a4)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3 "join(a3,repart(a4,<r:string>[x=0:7,2,0]))" 
+## As repart changes only chunk not cordinates but goal can be achieved using subarray.
+## As subarray result always have 0 as start cordinate
+join(a3,subarray(a4,10,17)) 
+cross_join(a1,a2)
+cross_join(a2,a1)
+cross_join(a1,a3)
+cross_join(a3,a1)
+cross_join(a6,a1)
+cross_join(a1,a5)
+cross_join(a1,a6)
+merge(a6,reverse(a1))
+merge(reverse(a1),a6)
+cross_join(a3,a4)
+merge(a5,a4)
+merge(a5,reverse(a4))
+merge(subarray(a5,10,17),subarray(a4,10,13))
+--aql select * into a7 from a3 where x<2
+merge(a3,a7)
+merge(a7,a3)
+merge(a7,sort(a3,r,2))
+join(a3,sort(a7,r,2))                        
+
+
+--cleanup
+remove(a1)
+remove(a2)
+remove(a3)
+remove(a4)
+remove(a5)
+remove(a6)
+remove(a7)
+
+--stop-query-logging
+

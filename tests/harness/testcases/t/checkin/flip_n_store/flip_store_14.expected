@@ -1,0 +1,52 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{x,y} a,b
+{0,1} 'a_0-1','b_0-1'
+{4,0} 'a_4-0','b_4-0'
+
+{b} a
+{'b_0-1'} 'a_0-1'
+{'b_4-0'} 'a_4-0'
+
+{b} a,z
+{'b_0-1'} 'a_0-1','b_0-1'
+{'b_4-0'} 'a_4-0','b_4-0'
+
+{b} a
+{'b_0-1'} 'a_0-1'
+{'b_4-0'} 'a_4-0'
+
+{b} a,z
+{'b_0-1'} 'a_0-1','b_0-1'
+{'b_4-0'} 'a_4-0','b_4-0'
+
+{x,y} a,b
+{0,1} 'a_0-1v2','b_0-1_v2'
+{4,0} 'a_4-0v2','b_4-0_v2'
+
+{b} a
+{'b_0-1_v2'} 'a_0-1v2'
+{'b_4-0_v2'} 'a_4-0v2'
+
+{b} a,z
+{'b_0-1_v2'} 'a_0-1v2','b_0-1_v2'
+{'b_4-0_v2'} 'a_4-0v2','b_4-0_v2'
+
+{b} a
+{'b_0-1_v2'} 'a_0-1v2'
+{'b_4-0_v2'} 'a_4-0v2'
+
+{b} a,z
+{'b_0-1_v2'} 'a_0-1v2','b_0-1_v2'
+{'b_4-0_v2'} 'a_4-0v2','b_4-0_v2'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

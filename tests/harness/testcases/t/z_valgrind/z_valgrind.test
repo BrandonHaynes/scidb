@@ -1,0 +1,12 @@
+--test
+
+
+--echo Killing Valgrind process..
+
+--shell --command="ps aux | grep valgrind.log | grep -v 'grep' | awk '{print $2}'|xargs kill"
+
+--sleep 5
+
+--echo Filtering Valgrind log..
+
+--shell --command="sed '/memcheck GC:/d; s/[Tt]hread [0-9]*//g; s/0x[0-9, a-f, A-F]*//g; /embedded gdbserver/d; /--pid=/d; s/==[0-9]*==//g; s/--[0-9]*--//g;' /tmp/valgrind.log" --store

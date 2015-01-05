@@ -1,0 +1,61 @@
+SCIDB QUERY : <create array a1<x:int64>[i=1:10,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array a2<x:int64 null>[i=1:10,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(a1, i), a1)>
+{i} x
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+
+SCIDB QUERY : <store(build(a2, iif(i%2 = 0, i+10, missing(i+10))), a2)>
+{i} x
+{1} ?11
+{2} 12
+{3} ?13
+{4} 14
+{5} ?15
+{6} 16
+{7} ?17
+{8} 18
+{9} ?19
+{10} 20
+
+SCIDB QUERY : <concat(a1, a2)>
+{i} x
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+{11} ?11
+{12} 12
+{13} ?13
+{14} 14
+{15} ?15
+{16} 16
+{17} ?17
+{18} 18
+{19} ?19
+{20} 20
+
+SCIDB QUERY : <remove(a1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(a2)>
+Query was executed successfully
+

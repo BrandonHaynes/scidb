@@ -1,0 +1,31 @@
+SCIDB QUERY : <store(build(<val:double>[row=0:2,3,0,col=0:3,4,0],row*4+col+1),A)>
+[[(1),(2),(3),(4)],[(5),(6),(7),(8)],[(9),(10),(11),(12)]]
+
+SCIDB QUERY : <cumulate(A,sum(val),row)>
+[[(1),(2),(3),(4)],[(6),(8),(10),(12)],[(15),(18),(21),(24)]]
+
+SCIDB QUERY : <cumulate(A,prod(val),row)>
+[[(1),(2),(3),(4)],[(5),(12),(21),(32)],[(45),(120),(231),(384)]]
+
+SCIDB QUERY : <cumulate(A,avg(val),col)>
+[[(1),(1.5),(2),(2.5)],[(5),(5.5),(6),(6.5)],[(9),(9.5),(10),(10.5)]]
+
+SCIDB QUERY : <cumulate(A,avg(val),min(val),max(val),row)>
+[[(1,1,1),(2,2,2),(3,3,3),(4,4,4)],[(3,1,5),(4,2,6),(5,3,7),(6,4,8)],[(5,1,9),(6,2,10),(7,3,11),(8,4,12)]]
+
+SCIDB QUERY : <store(build(<val1:double, val2:double NULL> [i=0:3,4,0, j=0:2,3,0], '[ [(1.25,null),(),(-7.0,-7.0)], [(),(),(4.2,1)], [(4.5,null),(11.0,9.0),(2.6,null)], [(),(1.7,6.5),(6.2,null)] ]',true),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(B)>
+[[(1.25,null),(),(-7,-7)],[(),(),(4.2,1)],[(4.5,null),(11,9),(2.6,null)],[(),(1.7,6.5),(6.2,null)]]
+
+SCIDB QUERY : <cumulate(B,avg(val1),avg(val2),j)>
+[[(1.25,null),(),(-2.875,-7)],[(),(),(4.2,1)],[(4.5,null),(7.75,9),(6.03333,9)],[(),(1.7,6.5),(3.95,6.5)]]
+
+SCIDB QUERY : <cumulate(B,var(val1))>
+[[(null),(),(null)],[(),(),(62.72)],[(5.28125),(null),(36.6933)],[(),(43.245),(34.28)]]
+
+Query was executed successfully
+
+Query was executed successfully
+

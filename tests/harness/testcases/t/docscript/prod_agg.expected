@@ -1,0 +1,11 @@
+SCIDB QUERY : <store(build(<val:double>[row=0:2,3,0,col=0:2,3,0],row*3+col+1),m3x3)>
+[[(1),(2),(3)],[(4),(5),(6)],[(7),(8),(9)]]
+
+SCIDB QUERY : <aggregate(m3x3,prod(val),col)>
+[(28),(80),(162)]
+
+SCIDB QUERY : <aggregate(m3x3,prod(val))>
+[(362880)]
+
+Query was executed successfully
+

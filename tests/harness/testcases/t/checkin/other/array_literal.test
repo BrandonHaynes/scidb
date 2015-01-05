@@ -1,0 +1,32 @@
+--setup
+--start-query-logging
+
+--test
+build(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]', true)
+
+build(<a:int32, b:string> [x=0:2,3,0], '[(1, "a"),(2, "b"),(3, "c")]', true)
+
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "build(<a:int32> [x=0:2,3,0], 'blah', true)"
+
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_INVALID_ARRAY_LITERAL "build(<a:int32> [x=0:2,3,0], 1, true)"
+
+--error --code=scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING "build(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]', false)"
+
+--aql select * from array(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]')
+
+--aql select * from array(<a:int32, b:string> [x=0:2,3,0], '[(1, "a"),(2, "b"),(3, "c")]')
+
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql "select * from array(<a:int32> [x=0:2,3,0], 'blah')"
+
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql "select * from array(<a:int32> [x=0:2,3,0], 1)"
+
+store(build(<val:int64> [x=1:10,5,0], '[(1),(2),(3),(4),(5),(6),(7),(8),(9),(10)]', true), foo)
+
+store(merge(build(<val:int64> [x,y], '[[{1000,1000}(1)]]', true), build(<val:int64> [x,y], '[[{10000,10000}(2)]]', true)), bar)
+show(bar)
+
+--cleanup
+remove(foo)
+remove(bar)
+
+--stop-query-logging

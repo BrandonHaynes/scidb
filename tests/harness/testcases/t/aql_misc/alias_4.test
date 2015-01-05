@@ -1,0 +1,52 @@
+--setup
+create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+10),A)
+store(build(A,x+100),A1)
+store(cross_join(A,A1),A2)
+
+--test
+--aql select * into C from A2
+--aql update A2 set a = x+x_2 + 20, a_2 = x+x_2 + 200
+--aql select * from A2 as B cross join C where A2.a = 21
+--aql select * from A2 as B cross join C where A2.a_2 = 200
+--aql select * from A2 as B cross join C where B.a = 21
+--aql select B.x from A2 as B cross join C where B.x = 2
+--aql select A2.x_2 from A2 as B cross join C where B.x_2 = 0
+--aql select C.x from A2 as B cross join C where B.x = 2
+--aql select C.x_2 from A2 as B cross join C
+--aql select * from A2 as B cross join C where A2.a = 20 or B.a_2 = 200
+--aql select * from A2 as B cross join C where B.a_2 = 200 and A2.a = 20
+--aql select * from A2 cross join C cross join A2 cross join C as B where B.x = 0
+--aql select a + a_2 + 50 into E from A2
+--aql select * from A2 as B cross join C as D cross join E where C.x = 2
+--aql select * from A2 as B cross join C as D cross join E where D.x = 2
+--aql select * from A2 as B cross join C as D cross join E where A2.x = 1
+--aql select * from A2 as B cross join C as D cross join E where B.x = 1
+--aql select * from A2 as B cross join C as D cross join E where A2.a = 20
+--aql select * from A2 as B cross join C as D cross join E where B.a = 20
+--aql select * from A2 as B cross join C as D cross join E where C.a = 11
+--aql select * from A2 as B cross join C as D cross join E where D.a = 11
+--aql select D.a_2 from A2 as B cross join C as D cross join E where D.a = 11
+--aql select * from A2 as B cross join C as D cross join E where E.expr = 270
+--aql select * from A2 as B cross join C as D cross join E as F where F.expr = 70
+--aql select A2.x from A2 as B cross join C as D cross join E where C.x = 2
+--aql select B.x from A2 as B cross join C as D cross join E 
+--aql select C.x from A2 as B cross join C as D cross join E where C.x = 2
+--aql select D.x from A2 as B cross join C as D cross join E where E.x = 1
+--aql select E.x from A2 as B cross join C as D cross join E 
+--aql select A2.x_2 from A2 as B cross join C as D cross join E where C.x = 2
+--aql select B.x_2 from A2 as B cross join C as D cross join E where B.x = 2
+--aql select C.x_2 from A2 as B cross join C as D cross join E where C.x = 1
+--aql select D.x_2 from A2 as B cross join C as D cross join E
+--aql select E.x_2 from A2 as B cross join C as D cross join E where C.x = 2
+--aql select F.x from A2 as B cross join C as D cross join E as F where F.expr = 70
+--aql select F.x_2 from A2 as B cross join C as D cross join E as F where F.expr <> 70
+
+
+--cleanup
+remove(A)
+remove(A1)
+remove(A2)
+remove(C)
+remove(E)
+

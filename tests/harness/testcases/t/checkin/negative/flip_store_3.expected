@@ -1,0 +1,23 @@
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a
+{0} 1
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+
+[An error expected at this place for the query "redimension(D,C)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_DESTINATION_DIMENSION_TYPE. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_DESTINATION_DIMENSION_TYPE.]
+
+[An error expected at this place for the query "store(redimension(D,C),C)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REDIMENSION_STORE_ERROR5. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REDIMENSION_STORE_ERROR5.]
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,37 @@
+SCIDB QUERY : <load_library('misc')>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array ARRAY1 <v : int64> [I=0:200,25,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(ARRAY1,I),ARRAY1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=0),count(*))>
+{i} count
+{0} 51
+
+SCIDB QUERY : <aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=1),count(*))>
+{i} count
+{0} 50
+
+SCIDB QUERY : <aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=2),count(*))>
+{i} count
+{0} 50
+
+SCIDB QUERY : <aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=3),count(*))>
+{i} count
+{0} 50
+
+SCIDB QUERY : <apply(ARRAY1,zz,injectError(2, 4))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <insert(attribute_rename(project(apply(filter(ARRAY1, I <> 0), v1, v*2), v1), v1, v), ARRAY1)>
+[An error expected at this place for the query "insert(attribute_rename(project(apply(filter(ARRAY1, I <> 0), v1, v*2), v1), v1, v), ARRAY1)". And it failed with error code = scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR. Expected error code = scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR.]
+
+SCIDB QUERY : <scan(ARRAY1)>
+[An error expected at this place for the query "scan(ARRAY1)". And it failed with error code = scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY. Expected error code = scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY.]
+
+SCIDB QUERY : <remove(ARRAY1)>
+Query was executed successfully
+

@@ -1,0 +1,18 @@
+--setup
+CREATE ARRAY vector<x:int64, y:int64>[i=1:4,2,0]
+create array matrix<i:int64>[x=0:9,5,0, y=0:9,5,0]
+load(vector, '${TEST_DATA_DIR}/vector.txt')
+create array A < val:int64> [x=1:10000,1000,0, y=1:10000,1000,0]
+aggregate(store(between(build(A, x+y), 1234, 5678, 2345, 6789), A), count(*), sum(val), avg(val))
+
+--test
+redimension(vector, matrix)
+store(redimension(vector, matrix), matrix)
+
+aggregate(redimension(A, <val:int64> [x=1234:2345,500,25,y=5678:6789,650,50]), count(*), sum(val), avg(val))
+between(redimension(A, <val:int64> [x=1000:2500,1000,100,y=5000:7000,700,50]), 1284,5678,1294,5678)
+
+--cleanup
+remove(vector)
+remove(matrix)
+remove(A)

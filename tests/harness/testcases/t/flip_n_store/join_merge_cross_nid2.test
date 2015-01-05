@@ -1,0 +1,37 @@
+--setup
+--start-query-logging
+#Ticket number : 1602
+#Testcases for non-integer dimension arrays.
+
+create  array NID  <a:string NULL ,b:string NULL> [x=0:*,2,0,y=0:*,2,0]
+load(NID,'../tests/harness/testcases/data/join_nid.txt')
+create  array A <a:string NULL> [b(string)=*,6,0]
+create  array A1 <a:string NULL> [b(string)=6,6,0]
+create  array B <b:string NULL> [a(string)=6,6,0]
+
+
+--test
+join(NID,NID)
+join(NID,reverse(NID))
+store(subarray(NID),AAA)
+store(redimension(NID,A),A)
+store(redimension(NID,B),B)
+store(redimension(NID,A1),A1)
+join(A,A1)
+cross_Join(NID,A)
+cross_Join(NID,B)
+merge(NID,reverse(NID))
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED "merge(A,reverse(A1))"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED "merge(A,B)"
+
+merge(cast(A,<a:string NULL> [b=0:*,6,0]), cast(B,<a:string NULL> [b=0:5,6,0]))
+merge(cast(A,<a:string NULL> [b=0:*,6,0]),reverse( cast(B,<a:string NULL> [b=0:5,6,0])))
+
+--cleanup
+remove(NID)
+remove(A)
+remove(A1)
+remove(B)
+remove(AAA)
+
+--stop-query-logging

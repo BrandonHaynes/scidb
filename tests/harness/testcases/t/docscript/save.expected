@@ -1,0 +1,55 @@
+SCIDB QUERY : <store(build(<val:double>[i=0:2,3,0,j=0:2,3,0],i*3+j+100),array1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<val:double>[i=0:2,3,0,j=0:2,3,0],i*3+j+200),array2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(array1,array2),storage_array)>
+[[(100,200),(101,201),(102,202)],[(103,203),(104,204),(105,205)],[(106,206),(107,207),(108,208)]]
+
+SCIDB QUERY : <save(storage_array,'/tmp/storage_array.txt',-2,'dense')>
+{i,j} val,val_2
+{0,0} 100,200
+{0,1} 101,201
+{0,2} 102,202
+{1,0} 103,203
+{1,1} 104,204
+{1,2} 105,205
+{2,0} 106,206
+{2,1} 107,207
+{2,2} 108,208
+
+SCIDB QUERY : <CREATE ARRAY intensityFlat < exposure:string, elapsedTime:int64, measuredIntensity:int64 null > [i=0:24,5,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -naq "load(intensityFlat,'${TEST_DATA_DIR}/doc/intensity_data.bin',-2, '(string, int64, int64 null)')">
+Query was executed successfully
+
+SCIDB QUERY : <store(build(<elevation:int64>[i=0:24,5,0],random()%1000),plus)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(intensityFlat,plus),saveExample)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(saveExample)>
+{i} schema
+{0} 'saveExample<exposure:string,elapsedTime:int64,measuredIntensity:int64 NULL DEFAULT null,elevation:int64> [i=0:24,5,0]'
+
+SCIDB QUERY : <scan(saveExample)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <save(saveExample,'example.bin',-1,'(string, int64, int64 null, int64)')>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

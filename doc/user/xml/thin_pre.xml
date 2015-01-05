@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="thinOperator">
+  <refnamediv>
+    <refname>thin</refname>
+
+    <refpurpose><indexterm>
+        <primary>array reductions</primary>
+
+        <secondary>thin</secondary>
+      </indexterm><indexterm>
+        <primary>thin</primary>
+      </indexterm>Produces a result array by selecting data from an array
+    dimension at fixed intervals.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>thin(<replaceable>array</replaceable>,<replaceable>start_1</replaceable>,<replaceable>step_1</replaceable>,<replaceable>start_2</replaceable>,<replaceable>step_2</replaceable>,...);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The thin operator selects regularly spaced elements of the array in
+    each dimension. The selection criteria are specified by the starting
+    dimension value <replaceable>start_<emphasis
+    role="bold">n</emphasis></replaceable> and the number of cells to skip
+    using <replaceable>step_<emphasis role="bold">n</emphasis></replaceable>
+    for each dimension of the input array. Note that a step of 1 means to
+    select everything.</para>
+
+    <para>Note the following limitations:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The starting offsets must be smaller than the step size, that is
+        <replaceable>start_1</replaceable> &lt;
+        <replaceable>step_1</replaceable>, <replaceable>start_2</replaceable>
+        &lt; <replaceable>step_2</replaceable>, and so on.</para>
+      </listitem>
+
+      <listitem>
+        <para>The dimension chunk size must be evenly divisible by the step
+        size.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example selects values from a 6<symbol
+      role="symbolfont">×</symbol>6 array.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array m6x6:<programlisting language="test">--afl CREATE ARRAY m6x6 &lt;val:double&gt;[i=0:5,6,0,j=0:5,6,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put values of 1–35 into m6x6:<programlisting language="test">--afl store(build(m6x6,i*6+j),m6x6); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Select every other column of m6x6, starting at the first
+          column;<programlisting language="test">--afl thin(m6x6,0,1,0,2); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Select every other row from m6x6, starting at the first
+          row;<programlisting language="test">--afl thin(m6x6,0,2,0,1); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Select every other value from m6x6, starting at the second
+          column;<programlisting language="test">--afl thin(m6x6,1,2,1,2); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

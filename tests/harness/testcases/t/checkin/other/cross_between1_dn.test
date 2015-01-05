@@ -1,0 +1,9 @@
+--setup
+create array dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense,'${TEST_DATA_DIR}/dense.txt')
+
+--test
+cross_between(dense, apply(build(<l1:int64>[i=1:1,1,0], 2), l2, 2, h1, 3, h2, 3))
+
+--cleanup
+remove (dense)

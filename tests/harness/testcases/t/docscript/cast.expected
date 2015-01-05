@@ -1,0 +1,59 @@
+SCIDB QUERY : <store(build(<event:string>[i=0:*,12,0],'["dash","dash","steeplechase","marathon","marathon", "marathon"]',true),event)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<year:int64>[i=0:*,12,0],'[1996,2000,2000,1996,2000,2008]',true),year)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<person:string>[i=0:*,12,0],'["Bailey","Greene","Kosgei","Thugwane","Abera", "Wanjiru"]',true),person)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<country:string>[i=0:*,12,0],'["Canada","USA","Kenya","USA","Ethiopia", "Kenya"]',true),country)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<time:double>[i=0:*,12,0],'[9.84,9.87,503.17,7956,7811,7596]',true),time)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(event,join(year,(join(person,join(country,time))))),winnersFewFlat)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array champions <person:string,country:string,time:double, event:string> [year=1996:2008,1,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(winnersFewFlat,champions),champions)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(project(champions,time),winningTime)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(winningTime)>
+{i} schema
+{0} 'winningTime<time:double> [year=1996:2008,1,0]'
+
+SCIDB QUERY : <store ( cast ( winningTime, <time_in_seconds:double null> [year=1996:2008,1,0] ), winningTimeRecast )>
+{year} time_in_seconds
+{1996} 9.84
+{2000} 9.87
+{2008} 7596
+
+SCIDB QUERY : <show(winningTimeRecast)>
+{i} schema
+{0} 'winningTimeRecast<time_in_seconds:double NULL DEFAULT null> [year=1996:2008,1,0]'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,198 @@
+SCIDB QUERY : <create  array A <a:datetime>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,datetime('2010-10-10 01:12:21')),A)>
+{x} a
+{0} '2010-10-10 01:12:21'
+{1} '2010-10-10 01:12:21'
+{2} '2010-10-10 01:12:21'
+
+accepted values
+SCIDB QUERY : <build(A,'2011-11-31')>
+{x} a
+{0} '2011-12-01 00:00:00'
+{1} '2011-12-01 00:00:00'
+{2} '2011-12-01 00:00:00'
+
+SCIDB QUERY : <build(A,'2011-10-10 12:5:5.2')>
+{x} a
+{0} '2011-10-10 12:05:05'
+{1} '2011-10-10 12:05:05'
+{2} '2011-10-10 12:05:05'
+
+SCIDB QUERY : <build(A,'2011-11-30 3:1')>
+{x} a
+{0} '2011-11-30 03:01:00'
+{1} '2011-11-30 03:01:00'
+{2} '2011-11-30 03:01:00'
+
+SCIDB QUERY : <build(A,datetime('2011-11-30 3:1:8'))>
+{x} a
+{0} '2011-11-30 03:01:08'
+{1} '2011-11-30 03:01:08'
+{2} '2011-11-30 03:01:08'
+
+SCIDB QUERY : <build(A,'2011-11-30 23:0')>
+{x} a
+{0} '2011-11-30 23:00:00'
+{1} '2011-11-30 23:00:00'
+{2} '2011-11-30 23:00:00'
+
+SCIDB QUERY : <build(A,'2011-11-30 23:0:000020')>
+{x} a
+{0} '2011-11-30 23:00:20'
+{1} '2011-11-30 23:00:20'
+{2} '2011-11-30 23:00:20'
+
+SCIDB QUERY : <build(A,'2011-10-10 12:5:0.2')>
+{x} a
+{0} '2011-10-10 12:05:00'
+{1} '2011-10-10 12:05:00'
+{2} '2011-10-10 12:05:00'
+
+SCIDB QUERY : <build(A,'10-Oct-2011')>
+{x} a
+{0} '2011-10-10 00:00:00'
+{1} '2011-10-10 00:00:00'
+{2} '2011-10-10 00:00:00'
+
+SCIDB QUERY : <build(A,'10-OcT-2011')>
+{x} a
+{0} '2011-10-10 00:00:00'
+{1} '2011-10-10 00:00:00'
+{2} '2011-10-10 00:00:00'
+
+SCIDB QUERY : <build(A,'10-jun-2011 01.23.45')>
+{x} a
+{0} '2011-06-10 01:23:45'
+{1} '2011-06-10 01:23:45'
+{2} '2011-06-10 01:23:45'
+
+SCIDB QUERY : <build(A,'10-jen-2011 01.23.45')>
+[An error expected at this place for the query "build(A,'10-jen-2011 01.23.45')". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_MONTH_REPRESENTATION. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_MONTH_REPRESENTATION.]
+
+SCIDB QUERY : <build(A,'12-xxx-2011 06.54.32')>
+[An error expected at this place for the query "build(A,'12-xxx-2011 06.54.32')". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_MONTH_REPRESENTATION. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_MONTH_REPRESENTATION.]
+
+SCIDB QUERY : <update A set a='2015-05-15 05:05:05' where x=0>
+{x} a
+{0} '2015-05-15 05:05:05'
+{1} '2010-10-10 01:12:21'
+{2} '2010-10-10 01:12:21'
+
+SCIDB QUERY : <update A set a='2020-10-20 20:20:20' where x=2>
+{x} a
+{0} '2015-05-15 05:05:05'
+{1} '2010-10-10 01:12:21'
+{2} '2020-10-20 20:20:20'
+
+comparisons
+SCIDB QUERY : <select * from A where a = datetime('2010-10-10 01:12:21')>
+{x} a
+{1} '2010-10-10 01:12:21'
+
+SCIDB QUERY : <select * from A where a = datetime('2010-10-10')>
+{x} a
+
+SCIDB QUERY : <select * from A where a < datetime('2010-10-10')>
+{x} a
+
+SCIDB QUERY : <select * from A where a < datetime('2010-10-10')>
+{x} a
+
+SCIDB QUERY : <select * from A where a <= datetime('2010-10-10')>
+{x} a
+
+SCIDB QUERY : <select * from A where a > datetime('2010-10-10')>
+{x} a
+{0} '2015-05-15 05:05:05'
+{1} '2010-10-10 01:12:21'
+{2} '2020-10-20 20:20:20'
+
+SCIDB QUERY : <select * from A where a >= datetime('2010-10-10 01:12:21')>
+{x} a
+{0} '2015-05-15 05:05:05'
+{1} '2010-10-10 01:12:21'
+{2} '2020-10-20 20:20:20'
+
+SCIDB QUERY : <select * from A where a <> datetime('2010-10-10')>
+{x} a
+{0} '2015-05-15 05:05:05'
+{1} '2010-10-10 01:12:21'
+{2} '2020-10-20 20:20:20'
+
+max,min
+SCIDB QUERY : <select max(a) from A>
+{i} max
+{0} '2020-10-20 20:20:20'
+
+SCIDB QUERY : <select min(a) from A>
+{i} min
+{0} '2010-10-10 01:12:21'
+
++/- date and integer
+SCIDB QUERY : <select a from A>
+{x} a
+{0} '2015-05-15 05:05:05'
+{1} '2010-10-10 01:12:21'
+{2} '2020-10-20 20:20:20'
+
+SCIDB QUERY : <select a - datetime('2015-05-15 05:05:05') from A>
+{x} expr
+{0} 0
+{1} -144993164
+{2} 171558915
+
+SCIDB QUERY : <select a + 40 from A>
+{x} expr
+{0} '2015-05-15 05:05:45'
+{1} '2010-10-10 01:13:01'
+{2} '2020-10-20 20:21:00'
+
+SCIDB QUERY : <select a - 10 from A>
+{x} expr
+{0} '2015-05-15 05:04:55'
+{1} '2010-10-10 01:12:11'
+{2} '2020-10-20 20:20:10'
+
+SCIDB QUERY : <select ('2001-01-01 00:00:01') from A>
+{x} expr
+{0} '2001-01-01 00:00:01'
+{1} '2001-01-01 00:00:01'
+{2} '2001-01-01 00:00:01'
+
+update
+SCIDB QUERY : <update A set a='2001-01-01 00:00:00' where x=0>
+{x} a
+{0} '2001-01-01 00:00:00'
+{1} '2010-10-10 01:12:21'
+{2} '2020-10-20 20:20:20'
+
+SCIDB QUERY : <update A set a='0001-01-01 01:01:01' where x=1>
+{x} a
+{0} '2001-01-01 00:00:00'
+{1} '2001-01-01 01:01:01'
+{2} '2020-10-20 20:20:20'
+
+versions
+SCIDB QUERY : <select * from A@1>
+{x} a
+{0} '2010-10-10 01:12:21'
+{1} '2010-10-10 01:12:21'
+{2} '2010-10-10 01:12:21'
+
+SCIDB QUERY : <select * from A@3>
+{x} a
+{0} '2015-05-15 05:05:05'
+{1} '2010-10-10 01:12:21'
+{2} '2020-10-20 20:20:20'
+
+SCIDB QUERY : <select * from A>
+{x} a
+{0} '2001-01-01 00:00:00'
+{1} '2001-01-01 01:01:01'
+{2} '2020-10-20 20:20:20'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

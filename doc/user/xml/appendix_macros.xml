@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<appendix id="appendixMacros">
+  <title>Sample Macros</title>
+
+  <para>This appendix contains the listing for macros that are discussed in
+  the User Guide.</para>
+
+  <programlisting>/** Analyze your chunk sizes  **/
+chunk_skew() =
+    project(
+     cross_join(
+
+      redimension(
+       apply(
+        filter(
+         list('chunk map'),
+         inst=instn and attid=0),
+        iid, int64(inst),
+        aid, int64(arrid)),
+       &lt;nchunks   : uint64 null,
+        min_ccnt  : uint32 null,
+        avg_ccnt  : double null,
+        max_ccnt  : uint32 null,
+        total_cnt : uint64 null&gt;
+        [iid = 0:*,1000,0,aid= 0:*,1000,0],
+       count(*)   as nchunks,
+       min(nelem) as min_ccnt,
+       avg(nelem) as avg_ccnt,
+       max(nelem) as max_ccnt,
+       sum(nelem) as total_cnt
+      ) as A,
+
+      redimension(
+       apply( list('arrays', true), aid, int64(id)),
+       &lt;name: string null&gt;
+       [aid = 0:*,1000,0]
+      ) as B,
+      A.aid, B.aid
+     ),
+     name, nchunks, min_ccnt, avg_ccnt, max_ccnt, total_cnt
+    );
+
+/** Return the Euclidean distance between the two points (x1,y1) and (x2,y2). **/
+distance(x1,y1,x2,y2) = sqrt(sq(x2-x1) + sq(y2-y1)) where
+{
+    sq(x) = x * x;   -- the square of the scalar "x"
+};
+
+/**
+ *  Return the number of non empty cells in the array 'A'. A simple alias for 
+ *  the now deprecated count() aggregate.
+*/
+cnt(A) = aggregate(A,count(*));
+
+/** Apply 'expression' to each element of the 'array'. **/
+map(array,expression,name) = project(apply(array,name,expression),name);
+
+
+/** Return the number of cells in which 'A.a' and 'B.b' differ. **/
+difference(A,B,a,b) = cnt(nonzero(map(join(A,B),a - b,_diff)))
+where
+{
+    cnt(A)       = aggregate(A,count(*));
+    nonzero(A)   = filter(A, _diff &lt;&gt; 0);
+    map(A,e,n)   = project(apply(A,n,e),n);
+};
+
+/** Centers the columns 'c' of the real valued 'a'  matrix 'M'. **/
+center(M,a,c) = zero(map(cj(M,a,c),centered,value - mean)) where
+{
+    cj(M,a,c) = cross_join(cast(M,            &lt;value:double null&gt;[i,j]) as input,
+                  cast(aggregate(M,avg(a),c), &lt;mean :double null&gt;[j])   as means,
+                  input.j,
+                  means.j);
+    zero(A) = substitute(A,build(&lt;a:double&gt;[i=0:0,1,0],0));
+};</programlisting>
+</appendix>

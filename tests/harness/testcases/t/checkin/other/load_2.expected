@@ -1,0 +1,6 @@
+Query was executed successfully
+
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+Query was executed successfully
+

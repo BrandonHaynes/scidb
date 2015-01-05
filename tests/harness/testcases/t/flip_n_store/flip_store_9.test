@@ -1,0 +1,33 @@
+--setup
+--start-query-logging
+create array A <a:int64> [x=0:2,3,0]
+create array B <x:int64> [a=-9:9,3,0]
+store(build(A,x-5),A)
+
+--test
+redimension(A,B)
+store(redimension(A,B),C)
+store(redimension(A,B),B)
+
+aggregate(B,max(x))
+aggregate(B,min(x))
+aggregate(B,avg(x))
+rename(B,B1)
+rename(B1,B)
+subarray(B,-4,7)
+between(B,-4,7)
+filter(B,x>1)
+project(B,x)
+join(B,B)
+cross_join(B,B)
+apply(B,z,x-a)
+aggregate(B,count(*))
+aggregate(B,sum(x))
+sort(B,x)
+sort(B,x desc)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+--stop-query-logging

@@ -1,0 +1,28 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+store(build(<symbol:string>[i=0:9,10,0],'[(BAC),(BAC),(AAPL),(C), (BAC),(ZNGA),(C),(MSFT),(FB),(JPM)]',true),symbols)  
+store(build(<ms:int64>[i=0:9,10,0],'[34665774,36774769,56512800,55403661, 56395968,30741156,56377439,40979647,40515039,39816561]',true),ms)  
+store(build(<volume:uint64>[i=0:9,10,0],'[900,11300,100,100,100,500, 200,100,100,100]',true),volume)  
+store(build(<price:double>[i=0:9,10,0],'[12.7,19.7,438.7,46.5,18.6,7.1 44.85,36.65,27.9,55.5]',true),price)  
+store(join(join(join(symbols,ms),volume),price),trades)  
+--stop-igdata
+show(trades)
+scan(trades)  
+store(uniq(sort(project(trades,symbol))),stock_symbols)  
+index_lookup(trades, stock_symbols, trades.symbol, index)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(symbols)
+remove(ms)
+remove(volume)
+remove(price)
+remove(trades)
+remove(stock_symbols)

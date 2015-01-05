@@ -1,0 +1,168 @@
+SCIDB QUERY : <create array aFlat <row:int64, col:int64, value:string null> [csvRow=0:5,6,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -nq "load aFlat from '${TEST_DATA_DIR}/doc/aInsert.scidb'">
+Query was executed successfully
+
+SCIDB QUERY : <create array A <value:string null> [row=1:3,3,0, col=1:3,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(aFlat,A),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array bFlat <row:int64, col:int64, value:string null> [csvRow=0:5,6,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -nq "load bFlat from '${TEST_DATA_DIR}/doc/bInsert.scidb'">
+Query was executed successfully
+
+SCIDB QUERY : <create array B <value:string null> [row=1:3,3,0, col=1:3,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(bFlat,B),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <insert into B select * from A>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(bFlat,B),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(A)>
+{i} schema
+{0} 'A<value:string NULL DEFAULT null> [row=1:3,3,0,col=1:3,3,0]'
+
+SCIDB QUERY : <show(B)>
+{i} schema
+{0} 'B<value:string NULL DEFAULT null> [row=1:3,3,0,col=1:3,3,0]'
+
+SCIDB QUERY : <store(redimension(aFlat,A),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <select * from A>
+[[(),(),()],[(null),(null),(null)],[('a7'),('a8'),('a9')]]
+
+SCIDB QUERY : <store(redimension(bFlat,B),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <select * from B>
+[[(),(null),('b3')],[(),(null),('b6')],[(),(null),('b9')]]
+
+SCIDB QUERY : <insert into B select * from A>
+[[(),(null),('b3')],[(null),(null),(null)],[('a7'),('a8'),('a9')]]
+
+SCIDB QUERY : <create array cFlat <row:int64, col:int64, value:string null, value2:string null> [csvRow=0:8,9,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -nq "load cFlat from '${TEST_DATA_DIR}/doc/cInsert.scidb'">
+Query was executed successfully
+
+SCIDB QUERY : <create array C <value:string null, value2:string null> [row=1:3,3,0, col=1:3,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(cFlat,C),C)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(C)>
+{i} schema
+{0} 'C<value:string NULL DEFAULT null,value2:string NULL DEFAULT null> [row=1:3,3,0,col=1:3,3,0]'
+
+SCIDB QUERY : <select * from C>
+[[('c1','c111'),(),('c3','c333')],[(),('c5','c555'),()],[('c7','c777'),(),('c9','c999')]]
+
+SCIDB QUERY : <store(redimension(bFlat,B),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <insert into B select value from C>
+[[('c1'),(null),('c3')],[(),('c5'),('b6')],[('c7'),(null),('c9')]]
+
+SCIDB QUERY : <store(redimension(bFlat,B),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <insert into B select value2 from C>
+[[('c111'),(null),('c333')],[(),('c555'),('b6')],[('c777'),(null),('c999')]]
+
+SCIDB QUERY : <store(redimension(bFlat,B),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <insert into B '[ [()()(333333333)] [()(555555555)()] [(777777777)()()] ]'>
+[[(),(null),('333333333')],[(),('555555555'),('b6')],[('777777777'),(null),('b9')]]
+
+SCIDB QUERY : <store(build(<val:double>[i=0:3,4,0,j=0:3,4,0],i*4+j),m4x4)>
+[[(0),(1),(2),(3)],[(4),(5),(6),(7)],[(8),(9),(10),(11)],[(12),(13),(14),(15)]]
+
+SCIDB QUERY : <UPDATE m4x4 SET val=-val>
+[[(0),(-1),(-2),(-3)],[(-4),(-5),(-6),(-7)],[(-8),(-9),(-10),(-11)],[(-12),(-13),(-14),(-15)]]
+
+SCIDB QUERY : <UPDATE m4x4 SET val=-pow(val,-1) WHERE abs(val) > 5>
+[[(0),(-1),(-2),(-3)],[(-4),(-5),(0.166667),(0.142857)],[(0.125),(0.111111),(0.1),(0.0909091)],[(0.0833333),(0.0769231),(0.0714286),(0.0666667)]]
+
+SCIDB QUERY : <versions(m4x4)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(m4x4@1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],1),stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],2),stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],3),stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],4),stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],5),stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <project(versions(stocks), version_id)>
+{VersionNo} version_id
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+
+SCIDB QUERY : <store(stocks,stocks_tmp)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <rename(stocks_tmp,stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <project(versions(stocks), version_id)>
+{VersionNo} version_id
+{1} 1
+
+SCIDB QUERY : <store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],2),stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<price:double>[index=0:99,20,0, day_offset=0:30,31,0],3),stocks)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(stocks@2,stocks_tmp)>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

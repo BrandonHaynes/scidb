@@ -1,0 +1,11 @@
+--setup
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense, '${TEST_DATA_DIR}/dense.txt')
+
+--test
+aggregate(dense,stdev(a))
+aggregate(dense,stdev(a),y)
+aggregate(dense,stdev(a),x)
+
+--cleanup
+remove(dense)

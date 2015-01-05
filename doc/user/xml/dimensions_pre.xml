@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="dimensionsOperator">
+  <refnamediv>
+    <refname>dimensions</refname>
+
+    <refpurpose><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>details</secondary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>dimensions</secondary>
+      </indexterm>List array dimensions.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>dimensions(<replaceable>named_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The argument to the dimensions operator is the name of an array. It
+    returns an array with one row per dimension, and the following attributes
+    for each dimension:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>name</para>
+      </listitem>
+
+      <listitem>
+        <para>start index</para>
+      </listitem>
+
+      <listitem>
+        <para>length</para>
+      </listitem>
+
+      <listitem>
+        <para>chunk size</para>
+      </listitem>
+
+      <listitem>
+        <para>chunk overlap</para>
+      </listitem>
+
+      <listitem>
+        <para>low boundary index</para>
+      </listitem>
+
+      <listitem>
+        <para>high boundary index</para>
+      </listitem>
+
+      <listitem>
+        <para>data type</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The argument <replaceable>named_array</replaceable> must be an array
+    that was previously created and stored in the SciDB namespace.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example creates an array with one integer dimension and one
+      string-type dimension:<programlisting language="test" width="5 in">--afl CREATE ARRAY array1 &lt;val:double&gt;[row=0:2000,10,0,column=1:10,10,0]; --show-output=no
+--afl dimensions(array1); --output-format=dcsv</programlisting></para>
+    </informalexample>
+  </refsect1>
+</refentry>

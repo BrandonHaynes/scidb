@@ -1,0 +1,46 @@
+SCIDB QUERY : <create array ABR1 <a:int32,b:int32>[x=0:10000,30,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ABR2 <a:int32>[x=0:10000,30,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ABR3 <x:int64>[a=0:*,30,0, b=0:*,30,0]>
+Query was executed successfully
+
+"issuing redim"
+SCIDB QUERY : <store(join(filter(build(ABR2, x+2 ),1),filter(build(ABR2, x+1), 1)),ABR1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 2 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_1.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 15 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_2.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 9 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+"should be empty..."
+SCIDB QUERY : <scan(ABR3)>
+{a,b} x
+
+SCIDB QUERY : <scan(ABR3:a)>
+[An error expected at this place for the query "scan(ABR3:a)". And it failed.]
+
+SCIDB QUERY : <store(redimension(ABR1, ABR3), ABR3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <count(ABR3:a)>
+{i} count
+{0} 10001
+
+"should be no mapping arrays..."
+SCIDB QUERY : <project(sort(filter(list('arrays'), regex(name,'ABR.*'))),name,schema)>
+{n} name,schema
+{0} 'ABR1','ABR1<a:int32,b:int32> [x=0:10000,30,0]'
+{1} 'ABR2','ABR2<a:int32> [x=0:10000,30,0]'
+{2} 'ABR3','ABR3<x:int64> [a(int32)=*,30,0,b(int32)=*,30,0]'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

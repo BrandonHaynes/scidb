@@ -1,0 +1,9 @@
+SCIDB QUERY : <unload_library('')>
+[An error expected at this place for the query "unload_library('')". And it failed with error code = scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE. Expected error code = scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE.]
+
+SCIDB QUERY : <unload_library('librational')>
+[An error expected at this place for the query "unload_library('librational')". And it failed with error code = scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE. Expected error code = scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE.]
+
+SCIDB QUERY : <unload_library('abcxyz')>
+[An error expected at this place for the query "unload_library('abcxyz')". And it failed with error code = scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE. Expected error code = scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE.]
+

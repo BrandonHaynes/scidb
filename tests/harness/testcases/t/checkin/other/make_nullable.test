@@ -1,0 +1,18 @@
+--setup
+create array foo <val:int64> [x=1:12,3,0]
+create array bar<val:int64 null> [x=1:12,3,0]
+store(filter(build(foo, x), x%2<>0),foo)
+store(filter(build(bar, iif(x%3=0,null,x)), x%2<>1),bar)
+
+--test
+cast(foo, <val:int64 null> [x=1:12,3,0])
+cast(foo, <a:int64> [x=1:12,3,0])
+cast(bar, <a:int64 null> [x=1:12,3,0])
+
+aggregate(cast(foo, <a:int64 null> [x=1:12,3,0]),sum(a))
+
+merge(cast(foo, <val:int64 null> [x=1:12,3,0]),bar)
+
+--cleanup
+remove (foo)
+remove (bar)

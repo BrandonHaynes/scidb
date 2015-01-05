@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="mergeOperator">
+  <refnamediv>
+    <refname>merge</refname>
+
+    <refpurpose><indexterm>
+        <primary>merge</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>merging</secondary>
+      </indexterm><indexterm>
+        <primary>binary operators</primary>
+
+        <secondary>merge</secondary>
+      </indexterm>Produces a result array by merging the data from two other
+    arrays.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>merge(<replaceable>left_array</replaceable>,<replaceable>right_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The following table shows the relationship between input and output
+    cells.</para>
+
+    <mediaobject>
+      <imageobject>
+        <imagedata align="left" contentwidth="400"
+                   fileref="../graphics/merge.png"/>
+      </imageobject>
+    </mediaobject>
+
+    <para>The <replaceable>left_array</replaceable> and
+    <replaceable>right_array </replaceable>must be compatible. For the merge
+    operator, compatible means the following:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The arrays must have the same number of attributes.</para>
+
+        <para><emphasis role="bold">Note: </emphasis>To the merge operator,
+        attribute names are immaterial; the attribute names in the
+        <replaceable>left_array</replaceable> and
+        <replaceable>right_array</replaceable> need not match. Rather, the
+        first attribute of the <replaceable>left_array</replaceable>
+        corresponds to the first attribute of the
+        <replaceable>right_array</replaceable>; the second to the second, and
+        so on.</para>
+      </listitem>
+
+      <listitem>
+        <para>In the ordering of attributes in each array, each pair of
+        corresponding attributes must have the same datatype and the same
+        null/not null setting.</para>
+      </listitem>
+
+      <listitem>
+        <para>The <replaceable>left_array</replaceable> and
+        <replaceable>right_array</replaceable> must have the same number of
+        dimensions.</para>
+
+        <para><emphasis role="bold">Note: </emphasis>Here too, the names are
+        immaterial. Dimensions of the operand arrays correspond based on the
+        left-to-right order of dimensions.</para>
+      </listitem>
+
+      <listitem>
+        <para>In the ordering of dimensions in each array, each pair of
+        corresponding dimensions must have the same chunk size, chunk overlap,
+        and dimension starting index.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>For each cell, <literal>merge</literal> combines elements from the
+    input arrays the following way:<itemizedlist>
+        <listitem>
+          <para>If the cell of the first array is not empty, then the
+          attributes from that cell are selected and placed in the
+          output.</para>
+        </listitem>
+
+        <listitem>
+          <para>If the cell in the first array is empty, then the attributes
+          of the corresponding cell in the second array are taken.</para>
+        </listitem>
+
+        <listitem>
+          <para>If the cell is empty in both input arrays, the output cell is
+          set to empty.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>If the dimensions are not the same size, merge will return an output
+    array the same size as the larger input array.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <para>In both <replaceable>left_array</replaceable> and
+    <replaceable>right_array</replaceable>, each dimension must have datatype
+    int64 (this is the default datatype for SciDB dimensions).</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example merges two sparse arrays.</para>
+
+      <procedure>
+        <step>
+          <para>We have an array, <emphasis role="bold">left_array</emphasis>
+          as follows:<programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:2,3,0, j=0:5,6,0],
+      '[[1.1,1.2,1.3,1.4,1.5,1.6],[],[]]',true), left_array); --show-query=no --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>We have a sparse identity array called <emphasis
+          role="bold">right_array</emphasis>.<programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:2,3,0, j=0:2,6,0],
+      '[[1,(),()],[(),1,()],[(),(),1]]',true), right_array); --show-query=no --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Merge left_array and right_array:<programlisting
+          language="test">--afl merge(left_array,right_array); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

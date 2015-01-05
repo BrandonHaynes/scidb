@@ -1,0 +1,9 @@
+--setup
+--test
+CREATE ARRAY test_A <name: string, price: float default 100.0, sold:datetime>[i=0:*,10,0]
+CREATE ARRAY test_B <name: string, price: float default 100.0, sold:datetime>[i=0:*,10,0]
+
+--cleanup
+remove(test_A)
+remove(test_B)
+

@@ -1,0 +1,75 @@
+SCIDB QUERY : <create array A <a:int32, b:string, c:string> [x=0:2,3,0,y=4:5,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A2 <a:int32, b:string> [c(string)=6,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A3 <c:string, a:int32> [b(string)=6,2,0,x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(A,'../tests/basic/data/iquery_5.txt')>
+[[(10,'b_04','c_04')],[(11,'b_14','c_14')],[(12,'b_24','c_24')]];[[(10,'b_05','c_05')],[(11,'b_15','c_15')],[(12,'b_25','c_25')]]
+
+SCIDB QUERY : <store(redimension(A,A2),A2)>
+[(10,'b_04'),(10,'b_05'),(11,'b_14'),(11,'b_15'),(12,'b_24'),(12,'b_25')]
+
+SCIDB QUERY : <store(redimension(A,A3),A3)>
+[[('c_04',10),(),()],[('c_05',10),(),()],[(),('c_14',11),()],[(),('c_15',11),()],[(),(),('c_24',12)],[(),(),('c_25',12)]]
+
+SCIDB QUERY : <echo ('iquery -p 8888 -o lcsv+ -aq \'scan ( A )\'')>
+[('iquery -p 8888 -o lcsv+ -aq 'scan ( A )'')]
+
+x,y,a,b,c
+0,4,10,'b_04','c_04'
+1,4,11,'b_14','c_14'
+2,4,12,'b_24','c_24'
+0,5,10,'b_05','c_05'
+1,5,11,'b_15','c_15'
+2,5,12,'b_25','c_25'
+
+SCIDB QUERY : <echo ('iquery -p 8888 -o lsparse -aq \'scan ( A )\'')>
+[('iquery -p 8888 -o lsparse -aq 'scan ( A )'')]
+
+{0,4}[[{0,4}(10,'b_04','c_04')],[{1,4}(11,'b_14','c_14')],[{2,4}(12,'b_24','c_24')]];{0,5}[[{0,5}(10,'b_05','c_05')],[{1,5}(11,'b_15','c_15')],[{2,5}(12,'b_25','c_25')]]
+
+SCIDB QUERY : <echo ('iquery -p 8888 -o lcsv+ -aq \'scan ( A2 )\'')>
+[('iquery -p 8888 -o lcsv+ -aq 'scan ( A2 )'')]
+
+c,a,b,empty_indicator
+'c_04',10,'b_04',true
+'c_05',10,'b_05',true
+'c_14',11,'b_14',true
+'c_15',11,'b_15',true
+'c_24',12,'b_24',true
+'c_25',12,'b_25',true
+
+SCIDB QUERY : <echo ('iquery -p 8888 -o lsparse -aq \'scan ( A2 )\'')>
+[('iquery -p 8888 -o lsparse -aq 'scan ( A2 )'')]
+
+{'c_04'}[{'c_04'}(10,'b_04',true),{'c_05'}(10,'b_05',true),{'c_14'}{'c_14'}(11,'b_14',true),{'c_15'}(11,'b_15',true),{'c_24'}{'c_24'}(12,'b_24',true),{'c_25'}(12,'b_25',true)]
+
+SCIDB QUERY : <echo ('iquery -p 8888 -o lcsv+ -aq \'scan ( A3 )\'')>
+[('iquery -p 8888 -o lcsv+ -aq 'scan ( A3 )'')]
+
+b,x,c,a,empty_indicator
+'b_04',0,'c_04',10,true
+'b_05',0,'c_05',10,true
+'b_14',1,'c_14',11,true
+'b_15',1,'c_15',11,true
+'b_24',2,'c_24',12,true
+'b_25',2,'c_25',12,true
+
+SCIDB QUERY : <echo ('iquery -p 8888 -o lsparse -aq \'scan ( A3 )\'')>
+[('iquery -p 8888 -o lsparse -aq 'scan ( A3 )'')]
+
+{'b_04',0}[[{'b_04',0}('c_04',10,true)],[{'b_05',0}('c_05',10,true),{'b_14',1}{'b_14',1}('c_14',11,true)],[{'b_15',1}('c_15',11,true),{'b_24',2}{'b_24',2}('c_24',12,true)],[{'b_25',2}('c_25',12,true)]]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A3)>
+Query was executed successfully
+

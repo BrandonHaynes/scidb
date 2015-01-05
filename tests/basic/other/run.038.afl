@@ -1,0 +1,1 @@
+apply(vec, x, a > b and not (b = 1))

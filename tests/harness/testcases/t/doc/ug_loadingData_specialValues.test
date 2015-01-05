@@ -1,0 +1,20 @@
+--setup
+--start-query-logging
+
+--test
+--aql CREATE ARRAY v4 <val1:int8,val2:int8>[i=0:3,4,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD v4 FROM '${TEST_DATA_DIR}/doc/v4.scidb'""
+
+--aql CREATE ARRAY v4_dflt <val1:int8,val2:int8 default 111>[i=0:3,4,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD v4_dflt FROM '${TEST_DATA_DIR}/doc/v4.scidb'""
+
+--aql CREATE ARRAY v4_null <val1:int8,val2:int8 NULL> [i=0:3,4,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD v4_null FROM '${TEST_DATA_DIR}/doc/v4_null.scidb'""
+
+--cleanup
+--aql drop array v4
+--aql drop array v4_dflt
+--aql drop array v4_null
+
+--stop-query-logging
+

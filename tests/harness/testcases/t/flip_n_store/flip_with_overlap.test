@@ -1,0 +1,14 @@
+--setup
+--start-query-logging
+create array Dst<i:int64, j:int64>[x(double)=9,3,1, y(double)=9,3,1]
+create array Src<x:double, y:double>[i=1:9,3,0, j=1:9,3,0]
+store(join(build(<x:double>[i=1:9,3,0, j=1:9,3,0], j), build(<y:double>[i=1:9,3,0, j=1:9,3,0], i)), Src)
+
+--test
+store(redimension(Src, Dst), Dst)
+--shell --command "iquery -o store -aq 'scan(Dst)' " --store
+
+--cleanup
+remove(Src)
+remove(Dst)
+--stop-query-logging

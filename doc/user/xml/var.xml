@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd" []>
+<refentry>
+  <refnamediv>
+    <refname>var</refname>
+    <refpurpose>Variance</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <synopsis><command>SELECT</command> * <command>FROM</command> var(<replaceable>array</replaceable>,<replaceable>attribute</replaceable><optional>,<replaceable>dimension1</replaceable>,<replaceable>dimension2</replaceable>,...</optional>)</synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>Summary</title>
+    <para>The var operator returns the variance of a set of values taken from an array attribute.</para>
+    <note>
+      <para>The var operator provides the same functionality as the var aggregate.
+See the var aggregate reference page for more information.</para>
+    </note>
+  </refsect1>
+  <refsect1>
+    <title>Example</title>
+    <informalexample>
+      <para>This example finds the variance  of each row of a 2-dimensional array.</para>
+      <procedure>
+        <step>
+          <para>Create a 1-attribute, 2-dimensional array called m3x3:<programlisting>CREATE ARRAY m3x3 &lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0];</programlisting></para>
+        </step>
+        <step>
+          <para>Store values of random values between 0 and 1 in m3x3:<programlisting>store(build(m3x3,random()%9/10.0),m3x3);</programlisting><screen>[
+[(0.5),(0.6),(0)],
+[(0.8),(0.8),(0.4)],
+[(0.1),(0.8),(0.6)]
+]</screen></para>
+        </step>
+        <step>
+          <para>Select the variance  of each row of m3x3:<programlisting>var(m3x3,val,i);</programlisting>This query returns:<screen>[(0.103333),(0.0533333),(0.13)]</screen></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

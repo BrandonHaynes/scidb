@@ -1,0 +1,39 @@
+--setup
+--start-query-logging
+--start-igdata
+create temp array ABRTEST1<v : int64> [I=0:2000,1,0]
+create temp array ABRTEST2<v : int64> [I=0:2000,1,0]
+create temp array ABRTEST3<v : int64> [I=0:2000,1,0]
+store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST1)
+store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST2)
+store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST3)
+--stop-igdata
+--test
+
+# clean abort for insert
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'insert(attribute_rename(project(apply(filter(ABRTEST1, I <> 0), v1, v*5 + 13), v1), v1, v), ABRTEST1)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+# check that the array is invalid at this point
+--error --code=scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY "aggregate(ABRTEST1,sum(v))"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 15  2 'insert(attribute_rename(project(apply(filter(ABRTEST2, I <> 0), v1, v*2), v1), v1, v), ABRTEST2)' 1> /tmp/${HPID}_2.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_2.stdout"
+# check that the array is invalid at this point
+--error --code=scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY "aggregate(ABRTEST2,sum(v))"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  2 'insert(attribute_rename(project(apply(filter(ABRTEST3, I <> 0), v1, v*v), v1), v1, v), ABRTEST3)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+# check that the array is invalid at this point
+--error --code=scidb::SCIDB_SE_STORAGE::SCIDB_LE_BAD_TEMP_ARRAY "aggregate(ABRTEST3,sum(v))"
+
+--cleanup
+--stop-query-logging
+remove(ABRTEST1)
+remove(ABRTEST2)
+remove(ABRTEST3)
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_3.stdout 2>/dev/null"

@@ -1,0 +1,26 @@
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:2,3,0]
+create array B <a:int32> [y=0:2,3,0]
+create array C <a:int32> [y=0:2,1,0]
+create array D <a:int32> [y=0:2,3,1]
+create array E <a:int32> [y=0:2,2,1]
+
+--test
+--aql select * into A from build(A,x+10)
+--aql select * into B from A
+--aql select * into B from A where x<=1
+--aql select * into C from A
+--aql select * into C from A where x>1
+--aql select * into D from A
+--aql select * into D from A where x<1
+--aql select * into E from A
+--aql select * into E from A where x<>1
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+--stop-query-logging

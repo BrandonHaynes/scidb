@@ -1,0 +1,38 @@
+--setup
+--start-query-logging
+create array empty_1 <a:int32> [x=0:10,1,0]
+create array empty_2 <b:string null> [x=0:10,11,0]
+create array invalid_1 <a:uint8> [x=5:10000,1000,0]
+create array invalid_2 <b:char, c:double> [x=0:999,100,0]
+create array identity <a:int64> [x=0:99,12,0]
+store(build(identity, x), identity)
+create array nulls <b:string null> [x=0:3999999,1000000,0]
+--igdata "store(build(nulls, missing(random()%100)),nulls)"
+create array various <val:double null> [x=1:5000000,1000000,0]
+--igdata "store(build(various, iif(x%10 = 0, null, (x%100)*1.0/20)), various)"
+
+--test
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_UNRECOGNIZED_PARAMETER "uniq(empty_2, 'foobar')"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_CANNOT_PARSE_INTEGER_PARAMETER "uniq(empty_2, 'chunk_size=alex')"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_PARAMETER_NOT_POSITIVE_INTEGER "uniq(empty_2, 'chunk_size=0')"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "uniq(empty_1, empty_2)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNIQ_SINGLE_DIMENSION_AT_ZERO "uniq(invalid_1)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNIQ_SINGLE_ATTRIBUTE_ONLY "uniq(invalid_2)"
+uniq(empty_1)
+uniq(empty_2, 'chunk_size=1')
+uniq(empty_2, 'chunk_size=10')
+uniq(identity)
+uniq(identity, 'chunk_size=1')
+uniq(project(invalid_2, b))
+uniq(nulls)
+uniq(sort(various), 'chunk_size=17')
+
+--cleanup
+remove(empty_1)
+remove(empty_2)
+remove(invalid_1)
+remove(invalid_2)
+remove(identity)
+remove(nulls)
+remove(various)
+--stop-query-logging

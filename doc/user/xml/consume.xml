@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="consume">
+  <refnamediv>
+    <refname>consume</refname>
+
+    <refpurpose><indexterm>
+        <primary>consume</primary>
+      </indexterm><indexterm>
+        <primary>benchmarking</primary>
+      </indexterm>Ensures that all data in the input array has been
+    scanned.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>consume(<replaceable>array</replaceable>[,<replaceable>numAttributesToScan</replaceable>]);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Causes all data to be scanned. The optional parameter,
+    <replaceable>numAttributesToScan</replaceable>, determines the number of
+    attributes to scan as a group.<itemizedlist>
+        <listitem>
+          <para>Setting <replaceable>numAttributesToScan</replaceable> to 1
+          results in a "vertical" scan; that is, all chunks of the current
+          attribute are scanned before moving onto the next attribute. This is
+          the default behavior.</para>
+        </listitem>
+
+        <listitem>
+          <para>Setting <replaceable>numAttributesToScan</replaceable> to the
+          maximum (the number of attributes in the input array) results in a
+          "horizontal" scan; that is, chunk <replaceable>i </replaceable>of
+          each attribute is scanned before moving onto chunk
+          <replaceable>i</replaceable>+1.</para>
+        </listitem>
+
+        <listitem>
+          <para>Setting <replaceable>numAttributesToScan</replaceable> to a
+          value between 1 and the maximum results in a hybrid behavior: the
+          number of attributes specified are scanned completely, and then the
+          next group is scanned completely, and so on. For example, if your
+          input array has 10 attributes, and you set
+          <replaceable>numAttributesToScan</replaceable> to 2, the first 2
+          attributes are scanned completely, then the next 2, and so on until
+          the final 2 are scanned.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>The <code>consume()</code> operator does not return any
+    information.</para>
+
+    <para>The purpose of this operator is to allow accurate timing of queries.
+    For example, some queries set up a "delegate array," and instantly return
+    a handle to it; the actual code that generates the data in the delegate
+    array is not executed until the client pulls the data. If you are timing
+    such a query, your results may be misleading.</para>
+
+    <para>Using the <code>consume()</code> operator ensures that all data is
+    pulled, thus more accurately representing the amount of time it takes to
+    execute your query.</para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,14 @@
+<fop version="1.0">
+    <fonts>
+      <substitutions>
+         <substitution>
+            <from font-family="Symbol" font-weight="700..900"/>
+            <to font-family="Symbol" font-weight="400"/>
+         </substitution>
+         <substitution>
+            <from font-family="ZapfDingbats" font-weight="700..900"/>
+            <to font-family="ZapfDingbats" font-weight="400"/>
+         </substitution>
+      </substitutions>
+   </fonts>
+</fop>

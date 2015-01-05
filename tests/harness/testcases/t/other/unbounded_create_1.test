@@ -1,0 +1,15 @@
+--setup
+
+--test
+
+create array imtest <a:int64>[x=0:*,10,0, y=0:*,10,0]
+
+aggregate(imtest,count(*))
+
+dimensions(imtest)
+
+attributes(imtest)
+
+--cleanup
+
+remove(imtest)

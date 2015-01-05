@@ -1,0 +1,58 @@
+--setup
+--start-query-logging
+# Ticket number : 1613
+# Tests for ApproxDC on 1D , 2D dense arrays
+# Tests covers arrays with non-zero starting co-ordinates and has overlaps
+
+
+create array A <a:double> [x=-3:8,4,2]
+store(build(A,3.567/(3.0+x)),A)
+
+create array M4x4 <val:double>[a=-2:1,4,0, b=1:4,4,0]
+store(build(M4x4, a*a+b/(3.0-a-4)), M4x4)
+
+
+
+--test
+aggregate(A,approxdc(a))
+aggregate(subarray(A,0,3),approxdc(a))
+aggregate(A,ApproxDC(a))
+aggregate(A,ApproxDC(a), sum(a),min(a),count(a),max(a))
+
+
+aggregate(M4x4,approxdc(val))
+aggregate(M4x4,ApproxDC(val))
+aggregate(M4x4,ApproxDC(val), sum(val),min(val),count(val),max(val))
+aggregate(xgrid(M4x4,2,2),approxdc(val))
+
+--aql select ApproxDC(a) from A
+--aql select ApproxDC(a) from A regrid as (partition by x 5)
+--aql select ApproxDC(a) from A regrid as (partition by x 3)
+--aql select ApproxDC(a) from A where a >10
+--aql select x,sum(a), ApproxDC(a) from A group by x
+--aql select ApproxDC(a) from A  where a<0
+--aql select  ApproxDC(val) from M4x4 where a=0
+
+# Equivalent select  ApproxDC(a) from A whereto a< inf
+--aql select ApproxDC(a) from A where a<(5/(5.0-5.0))
+--aql select  ApproxDC(a) from A where x = -3
+--aql select  ApproxDC(a) from A  where x = -2
+--aql select count(a) from A  where x = -1
+--aql select ApproxDC(a) from A  where x = -1
+
+
+--aql select ApproxDC(val) from M4x4
+--aql select ApproxDC(val) from M4x4 where val<(5/(5.0-5.0))
+--aql select a,sum(val), ApproxDC(val) from M4x4 group by a
+--aql select b,sum(val), ApproxDC(val),stdev(val) from M4x4 group by b
+--aql select ApproxDC(val) from M4x4 where a=-1
+--aql select ApproxDC(val) from M4x4 where a>-1 and a<1
+--aql select ApproxDC(val) from M4x4 where a>-2 and a<1
+--aql select ApproxDC(val) from M4x4 where a>-2 and a<2
+
+
+--cleanup
+remove(A)
+remove(M4x4)
+
+--stop-query-logging

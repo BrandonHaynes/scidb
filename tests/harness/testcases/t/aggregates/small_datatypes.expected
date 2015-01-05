@@ -1,0 +1,19 @@
+Query was executed successfully
+
+{i} a,b
+{1} 1,5
+{2} 3,2
+{3} 2,8
+{4} 9,4
+{5} 2,1
+{6} 5,7
+{7} 3,5
+{8} 7,6
+{9} 2,1
+{10} 5,5
+
+{i} i32_sum,i16_sum,i8_sum,f_sum,i32_avg,i16_avg,i8_avg,f_avg,i32_stdev,i16_stdev,i8_stdev,f_stdev
+{0} -261,-61,-161,8.8,-26.1,-6.1,-16.1,0.88,2.55821,2.55821,2.55821,0.482586
+
+Query was executed successfully
+

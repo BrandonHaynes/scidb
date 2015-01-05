@@ -1,0 +1,15 @@
+--setup
+
+--test
+
+create array unbounded <a:int64>[x=0:*,5,0]
+load(unbounded,'${TEST_DATA_DIR}/unbounded_empty.txt')
+
+
+ 
+scan(unbounded)  
+
+
+--cleanup
+
+remove(unbounded) 

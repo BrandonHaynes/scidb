@@ -1,0 +1,19 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY m4x4 <val:double>[i=0:3,4,0,j=0:3,4,0]  
+--set-format dense
+--stop-igdata
+store(build(m4x4,i*4+j),m4x4)  
+variable_window(m4x4,i,1,1,sum(val))  
+variable_window(m4x4,j,1,1,sum(val))  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m4x4)

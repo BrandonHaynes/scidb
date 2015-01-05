@@ -1,0 +1,41 @@
+SCIDB QUERY : <create temp array A <a:int32, b:string> [x=0:3,3,0,y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array T <a:int32> [x=0:3,3,0,y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array TS <a:string> [x=0:3,3,0,y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <rename array A to B>
+Query was executed successfully
+
+SCIDB QUERY : <select * into B from build(T,x+5),build(TS,string(x+1))>
+{x,y} a,b
+{0,0} 5,'1'
+{0,1} 5,'1'
+{0,2} 5,'1'
+{1,0} 6,'2'
+{1,1} 6,'2'
+{1,2} 6,'2'
+{2,0} 7,'3'
+{2,1} 7,'3'
+{2,2} 7,'3'
+{3,0} 8,'4'
+{3,1} 8,'4'
+{3,2} 8,'4'
+
+SCIDB QUERY : <select * from dimensions(B)>
+{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
+{0} 'x',0,4,3,0,0,3,'int64'
+{1} 'y',0,3,3,0,0,2,'int64'
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TS)>
+Query was executed successfully
+

@@ -1,0 +1,81 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+First simple test
+{i} s1,s2
+{0} 'one',null
+{1} 'two',null
+
+Second simple test
+{i} s1,s2
+{0} 'three
+',null
+{1} 'four
+and five',null
+
+Save and reload simple2
+{i} s1,s2
+{0} 'three
+',null
+{1} 'four
+and five',null
+
+{i} s1,s2
+{0} 'three
+',null
+{1} 'four
+and five',null
+
+{i} s1,s2
+{0} 'three
+',null
+{1} 'four
+and five',null
+
+Save and reload simple2 via csv:E
+Query was executed successfully
+
+Query was executed successfully
+
+{i} s1,s2
+{0} 'three
+',null
+{1} 'four
+and five',null
+
+{i} s1,s2
+{0} 'three
+',null
+{1} 'four
+and five',null
+
+{i} s1,s2
+{0} 'three
+',null
+{1} 'four
+and five',null
+
+Diff output should be empty...
+Was it?
+Tricky embedded newlines
+{i} count
+{0} 3
+
+{i} name,grade,remarks
+{0} 'Starfish, Patrick',2.7,'Could try harder.'
+{1} 'Squarepants, SpongeBob',1.8,'Sponge Bob has difficulty
+staying focused.  Counseling
+is recommended.'
+{2} 'Frakes, Jonathan',4,'Made it so.'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

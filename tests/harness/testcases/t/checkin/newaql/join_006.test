@@ -1,0 +1,12 @@
+--setup
+
+create array vector3 <a:int64, b:int64> [i=0:8,9,0]
+
+load(vector3, '${TEST_DATA_DIR}/vector3.txt')
+
+--test
+
+--aql select * from vector3 as A join vector3 as B on A.a = B.a and A.b = B.b
+
+--cleanup
+remove(vector3)

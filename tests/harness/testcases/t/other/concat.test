@@ -1,0 +1,15 @@
+--setup 
+--start-query-logging
+
+create array a1<x:int64>[i=1:10,3,0]
+create array a2<x:int64 null>[i=1:10,3,0]
+store(build(a1, i), a1)
+store(build(a2, iif(i%2 = 0, i+10, missing(i+10))), a2)
+
+--test
+
+concat(a1, a2)
+
+--cleanup
+remove(a1)
+remove(a2)

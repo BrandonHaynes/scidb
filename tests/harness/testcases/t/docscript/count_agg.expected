@@ -1,0 +1,22 @@
+SCIDB QUERY : <store(redimension (apply (build(<v:double>[i1=1:3,3,0,j1=1:3,3,0],1),i,iif(i1=j1,i1,null), j,iif(i1=j1,j1,null)), <v:double>[i=1:3,3,0,j=1:3,3,0]), m3x3)>
+[[(1),(),()],[(),(1),()],[(),(),(1)]]
+
+SCIDB QUERY : <aggregate(m3x3,count(v))>
+[(3)]
+
+SCIDB QUERY : <store(build(<value:string null> [row=0:2,3,0, col=0:2,3,0], '[[(),(),()],[(null),(null), (null)],[(a7),(a8),(a9)]]', true),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(A)>
+[[(),(),()],[(null),(null),(null)],[('a7'),('a8'),('a9')]]
+
+SCIDB QUERY : <select count(*) from A>
+[(6)]
+
+SCIDB QUERY : <select count(value) from A group by row>
+[(),(0),(3)]
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,158 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+
+# csize 3x3 - easiest, single node
+create array sp0_c3_3  <a:double>[x=0:2,3,0, y=0:2,3,0]
+create array sp1_c3_3  <a:double>[x=0:2,3,0, y=0:2,3,0]
+create array spI_c3_3   <a:double>[x=0:2,3,0, y=0:2,3,0]
+
+# csize 2x2 - distribute rows and cols
+create array sp0_c2_2  <a:double>[x=0:2,2,0, y=0:2,2,0]
+create array sp1_c2_2  <a:double>[x=0:2,2,0, y=0:2,2,0]
+create array spI_c2_2   <a:double>[x=0:2,2,0, y=0:2,2,0]
+
+# csize 1x1 - distribute rows and cols even more
+create array sp0_c1_1  <a:double>[x=0:2,1,0, y=0:2,1,0]
+create array sp1_c1_1  <a:double>[x=0:2,1,0, y=0:2,1,0]
+create array spI_c1_1   <a:double>[x=0:2,1,0, y=0:2,1,0]
+
+--test
+store( filter(build(sp0_c3_3,   1), false),  sp0_c3_3 )
+store( filter(build(sp0_c2_2,   1), false),  sp0_c2_2 )
+store( filter(build(sp0_c1_1,   1), false),  sp0_c1_1 )
+
+store( filter(build(sp1_c3_3,   1), true),  sp1_c3_3 )
+store( filter(build(sp1_c2_2,   1), true),  sp1_c2_2 )
+store( filter(build(sp1_c1_1,   1), true),  sp1_c1_1 )
+
+store( filter(build(spI_c3_3,   1), x=y),  spI_c3_3 )
+store( filter(build(spI_c2_2,   1), x=y),  spI_c2_2 )
+store( filter(build(spI_c1_1,   1), x=y),  spI_c1_1 )
+
+# csize 3x3
+spgemm(sp0_c3_3, sp0_c3_3)
+spgemm(sp0_c3_3, sp1_c3_3)
+spgemm(sp1_c3_3, sp0_c3_3)
+spgemm(sp1_c3_3, sp1_c3_3)
+
+spgemm(sp0_c3_3, spI_c3_3)
+spgemm(sp1_c3_3, spI_c3_3)
+spgemm(spI_c3_3, sp0_c3_3)
+spgemm(spI_c3_3, sp1_c3_3)
+
+# csize 2x2
+spgemm(sp0_c2_2, sp0_c2_2)
+spgemm(sp0_c2_2, sp1_c2_2)
+spgemm(sp1_c2_2, sp0_c2_2)
+spgemm(sp1_c2_2, sp1_c2_2)
+
+spgemm(sp0_c2_2, spI_c2_2)
+spgemm(sp1_c2_2, spI_c2_2)
+spgemm(spI_c2_2, sp0_c2_2)
+spgemm(spI_c2_2, sp1_c2_2)
+
+# csize 1x1
+spgemm(sp0_c1_1, sp0_c1_1)
+spgemm(sp0_c1_1, sp1_c1_1)
+spgemm(sp1_c1_1, sp0_c1_1)
+spgemm(sp1_c1_1, sp1_c1_1)
+
+spgemm(sp0_c1_1, spI_c1_1)
+spgemm(sp1_c1_1, spI_c1_1)
+spgemm(spI_c1_1, sp0_c1_1)
+spgemm(spI_c1_1, sp1_c1_1)
+
+#
+# now repeat 3 csizes for 'min.+'
+#
+
+# csize 3x3
+spgemm(sp0_c3_3, sp0_c3_3, 'min.+')
+spgemm(sp0_c3_3, sp1_c3_3, 'min.+')
+spgemm(sp1_c3_3, sp0_c3_3, 'min.+')
+spgemm(sp1_c3_3, sp1_c3_3, 'min.+')
+
+spgemm(sp0_c3_3, spI_c3_3, 'min.+')
+spgemm(sp1_c3_3, spI_c3_3, 'min.+')
+spgemm(spI_c3_3, sp0_c3_3, 'min.+')
+spgemm(spI_c3_3, sp1_c3_3, 'min.+')
+
+# csize 2x2
+spgemm(sp0_c2_2, sp0_c2_2, 'min.+')
+spgemm(sp0_c2_2, sp1_c2_2, 'min.+')
+spgemm(sp1_c2_2, sp0_c2_2, 'min.+')
+spgemm(sp1_c2_2, sp1_c2_2, 'min.+')
+
+spgemm(sp0_c2_2, spI_c2_2, 'min.+')
+spgemm(sp1_c2_2, spI_c2_2, 'min.+')
+spgemm(spI_c2_2, sp0_c2_2, 'min.+')
+spgemm(spI_c2_2, sp1_c2_2, 'min.+')
+
+# csize 1x1
+spgemm(sp0_c1_1, sp0_c1_1, 'min.+')
+spgemm(sp0_c1_1, sp1_c1_1, 'min.+')
+spgemm(sp1_c1_1, sp0_c1_1, 'min.+')
+spgemm(sp1_c1_1, sp1_c1_1, 'min.+')
+
+spgemm(sp0_c1_1, spI_c1_1, 'min.+')
+spgemm(sp1_c1_1, spI_c1_1, 'min.+')
+spgemm(spI_c1_1, sp0_c1_1, 'min.+')
+spgemm(spI_c1_1, sp1_c1_1, 'min.+')
+
+#
+# now repeat 3 csizes for 'max.+'
+#
+# csize 3x3
+spgemm(sp0_c3_3, sp0_c3_3, 'max.+')
+spgemm(sp0_c3_3, sp1_c3_3, 'max.+')
+spgemm(sp1_c3_3, sp0_c3_3, 'max.+')
+spgemm(sp1_c3_3, sp1_c3_3, 'max.+')
+
+spgemm(sp0_c3_3, spI_c3_3, 'max.+')
+spgemm(sp1_c3_3, spI_c3_3, 'max.+')
+spgemm(spI_c3_3, sp0_c3_3, 'max.+')
+spgemm(spI_c3_3, sp1_c3_3, 'max.+')
+
+# csize 2x2
+spgemm(sp0_c2_2, sp0_c2_2, 'max.+')
+spgemm(sp0_c2_2, sp1_c2_2, 'max.+')
+spgemm(sp1_c2_2, sp0_c2_2, 'max.+')
+spgemm(sp1_c2_2, sp1_c2_2, 'max.+')
+
+spgemm(sp0_c2_2, spI_c2_2, 'max.+')
+spgemm(sp1_c2_2, spI_c2_2, 'max.+')
+spgemm(spI_c2_2, sp0_c2_2, 'max.+')
+spgemm(spI_c2_2, sp1_c2_2, 'max.+')
+
+# csize 1x1
+spgemm(sp0_c1_1, sp0_c1_1, 'max.+')
+spgemm(sp0_c1_1, sp1_c1_1, 'max.+')
+spgemm(sp1_c1_1, sp0_c1_1, 'max.+')
+spgemm(sp1_c1_1, sp1_c1_1, 'max.+')
+
+spgemm(sp0_c1_1, spI_c1_1, 'max.+')
+spgemm(sp1_c1_1, spI_c1_1, 'max.+')
+spgemm(spI_c1_1, sp0_c1_1, 'max.+')
+spgemm(spI_c1_1, sp1_c1_1, 'max.+')
+
+
+--cleanup
+
+# csize 3x3
+remove(sp0_c3_3)
+remove(sp1_c3_3)
+remove(spI_c3_3)
+
+# csize 2x2
+remove(sp0_c2_2)
+remove(sp1_c2_2)
+remove(spI_c2_2)
+
+# csize 1x1
+remove(sp0_c1_1)
+remove(sp1_c1_1)
+remove(spI_c1_1)
+
+--stop-query-logging

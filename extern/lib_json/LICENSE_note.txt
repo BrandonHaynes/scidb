@@ -1,0 +1,3 @@
+Notes:
+
+(1) The file LICENSE contains a copy of  http://jsoncpp.sourceforge.net/LICENSE retrieved on 3/27/2013, so that we may show what the original terms of the license from Baptiste Lepilleur were at that time.

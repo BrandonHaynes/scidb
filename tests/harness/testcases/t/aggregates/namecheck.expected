@@ -1,0 +1,268 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from build(A,x+1)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <select * into Tcount from aggregate(A,count(*))>
+{i} count
+{0} 3
+
+SCIDB QUERY : <show(Tcount)>
+{i} schema
+{0} 'not empty Tcount<count:uint64 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select count(*) into Tcount_s from A>
+{i} count
+{0} 3
+
+SCIDB QUERY : <show(Tcount_s)>
+{i} schema
+{0} 'not empty Tcount_s<count:uint64 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select count(a) into Tcount_a from A>
+{i} count
+{0} 3
+
+SCIDB QUERY : <show(Tcount_a)>
+{i} schema
+{0} 'not empty Tcount_a<count:uint64 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select * into Tsum from aggregate(A,sum(a))>
+{i} a_sum
+{0} 6
+
+SCIDB QUERY : <show(Tsum)>
+{i} schema
+{0} 'not empty Tsum<a_sum:int64 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select sum(a) into Tsum_a from A>
+{i} sum
+{0} 6
+
+SCIDB QUERY : <show(Tsum_a)>
+{i} schema
+{0} 'not empty Tsum_a<sum:int64 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select * into Tmax from aggregate(A,max(a))>
+{i} a_max
+{0} 3
+
+SCIDB QUERY : <show(Tmax)>
+{i} schema
+{0} 'not empty Tmax<a_max:int32 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select max(a) into Tmax_a from A>
+{i} max
+{0} 3
+
+SCIDB QUERY : <show(Tmax_a)>
+{i} schema
+{0} 'not empty Tmax_a<max:int32 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select * into Tmin from aggregate(A,min(a))>
+{i} a_min
+{0} 1
+
+SCIDB QUERY : <show(Tmin)>
+{i} schema
+{0} 'not empty Tmin<a_min:int32 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select min(a) into Tmin_a from A>
+{i} min
+{0} 1
+
+SCIDB QUERY : <show(Tmin_a)>
+{i} schema
+{0} 'not empty Tmin_a<min:int32 NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select * into Tavg from aggregate(A,avg(a))>
+{i} a_avg
+{0} 2
+
+SCIDB QUERY : <show(Tavg)>
+{i} schema
+{0} 'not empty Tavg<a_avg:double NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select avg(a) into Tavg_a from A>
+{i} avg
+{0} 2
+
+SCIDB QUERY : <show(Tavg_a)>
+{i} schema
+{0} 'not empty Tavg_a<avg:double NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select * into Tvar from aggregate(A,var(a))>
+{i} a_var
+{0} 1
+
+SCIDB QUERY : <show(Tvar)>
+{i} schema
+{0} 'not empty Tvar<a_var:double NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select var(a) into Tvar_a from A>
+{i} var
+{0} 1
+
+SCIDB QUERY : <show(Tvar_a)>
+{i} schema
+{0} 'not empty Tvar_a<var:double NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select * into Tstdev from aggregate(A,stdev(a))>
+{i} a_stdev
+{0} 1
+
+SCIDB QUERY : <show(Tstdev)>
+{i} schema
+{0} 'not empty Tstdev<a_stdev:double NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <select stdev(a) into Tstdev_a from A>
+{i} stdev
+{0} 1
+
+SCIDB QUERY : <show(Tstdev_a)>
+{i} schema
+{0} 'not empty Tstdev_a<stdev:double NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <store(window(A,1,0,count(*),count(a)),Wcount)>
+{x} count,a_count
+{0} 1,1
+{1} 2,2
+{2} 2,2
+
+SCIDB QUERY : <show(Wcount)>
+{i} schema
+{0} 'Wcount<count:uint64 NULL DEFAULT null,a_count:uint64 NULL DEFAULT null> [x=0:2,3,0]'
+
+SCIDB QUERY : <store(window(A,1,0,sum(a)),Wsum)>
+{x} a_sum
+{0} 1
+{1} 3
+{2} 5
+
+SCIDB QUERY : <show(Wsum)>
+{i} schema
+{0} 'Wsum<a_sum:int64 NULL DEFAULT null> [x=0:2,3,0]'
+
+SCIDB QUERY : <store(window(A,1,0,max(a)),Wmax)>
+{x} a_max
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <show(Wmax)>
+{i} schema
+{0} 'Wmax<a_max:int32 NULL DEFAULT null> [x=0:2,3,0]'
+
+SCIDB QUERY : <store(window(A,1,0,min(a)),Wmin)>
+{x} a_min
+{0} 1
+{1} 1
+{2} 2
+
+SCIDB QUERY : <show(Wmin)>
+{i} schema
+{0} 'Wmin<a_min:int32 NULL DEFAULT null> [x=0:2,3,0]'
+
+SCIDB QUERY : <store(window(A,1,0,avg(a)),Wavg)>
+{x} a_avg
+{0} 1
+{1} 1.5
+{2} 2.5
+
+SCIDB QUERY : <show(Wavg)>
+{i} schema
+{0} 'Wavg<a_avg:double NULL DEFAULT null> [x=0:2,3,0]'
+
+SCIDB QUERY : <store(window(A,1,0,var(a)),Wvar)>
+{x} a_var
+{0} null
+{1} 0.5
+{2} 0.5
+
+SCIDB QUERY : <show(Wvar)>
+{i} schema
+{0} 'Wvar<a_var:double NULL DEFAULT null> [x=0:2,3,0]'
+
+SCIDB QUERY : <store(window(A,1,0,stdev(a)),Wstdev)>
+{x} a_stdev
+{0} null
+{1} 0.707107
+{2} 0.707107
+
+SCIDB QUERY : <show(Wstdev)>
+{i} schema
+{0} 'Wstdev<a_stdev:double NULL DEFAULT null> [x=0:2,3,0]'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tcount)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tcount_s)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tcount_a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tsum)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tsum_a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tmax)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tmax_a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tmin)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tmin_a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tavg)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tavg_a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tvar)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tvar_a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tstdev)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Tstdev_a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Wcount)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Wsum)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Wmax)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Wmin)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Wavg)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Wvar)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Wstdev)>
+Query was executed successfully
+

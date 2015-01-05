@@ -1,0 +1,41 @@
+--setup
+--start-query-logging
+# Ticket number : 1688
+# Tests for the binary load-save on Arrays with UDT as rational
+# Tests cover AQL syntax
+
+load_library('rational')
+ 
+--aql create array A <a:int32>[x=0:2,3,0]         
+--aql create array B <b:rational>[x=0:2,3,0]
+--aql create array AB <a:int32, b:rational> [x=0:2,3,0]
+
+store(build(A,x+1),A)
+store(apply(A,b,str(rational(a,3))),C)
+
+--test
+
+--aql save C into current instance 'spook.txt' as 'text'
+--aql load AB from current instance 'spook.txt' as 'text'
+--aql save C into current instance 'spook1.bin' as '(int32,dummy)'
+--aql save C into current instance 'spook2.bin' as '(int32,rational)'
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNSUPPORTED_FORMAT --aql="save A into current instance 'space.fin' as 'rational'"
+--error --code scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER --aql="save A into current instance 'space.fin' as '(rational)'"
+
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql="load B from current instance 'spook1.bin' as '(rational,dummy)' errors 100" 
+--error --code scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER --aql="load B from current instance 'spook1.bin' as '(int32,dummy)' errors 100" 
+
+--aql load B from current instance 'spook2.bin' as '(dummy(4),rational)'
+--aql load AB from current instance 'spook2.bin' as '(int32,rational)'
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql="load AB from current instance 'spook2.bin' as '(string,rational)'"
+--aql load AB from current instance 'spook2.bin' as '(string,rational)' errors 100 shadow array Shad_AB
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(AB)
+remove(Shad_AB)
+
+--stop-query-logging

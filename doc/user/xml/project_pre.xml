@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="projectOperator">
+  <refnamediv>
+    <refname>project</refname>
+
+    <refpurpose><indexterm>
+        <primary>project</primary>
+      </indexterm><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>selecting</secondary>
+      </indexterm>Produces a result array with the same dimensions as—but a
+    subset of the attributes of—a source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>project(<replaceable>source_array</replaceable>,<replaceable>attribute</replaceable><optional>,<replaceable>attribute</replaceable></optional>...);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The project operator produces a result array that includes some
+    attributes of a source array but excludes others. You indicate which
+    attributes to include by supplying their names with the attribute
+    parameters. In the result array, the attributes will appear in the order
+    you name them as parameters.</para>
+
+    <para>You can use the project operator in the FROM clause of an AQL SELECT
+    statement, as a stand-alone operator in an AFL statement, or as an operand
+    within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example takes a 1-dimensional array with 5 attributes,
+      excludes one of the attributes, and reorders the remaining four.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array:<programlisting language="test">--afl store(build(&lt;event:string&gt;[i=0:*,12,0],'["dash","dash","steeplechase","marathon","marathon",
+      "marathon"]',true),event); --show-query=no --show-output=no
+--afl store(build(&lt;year:int64&gt;[i=0:*,12,0],'[1996,2000,2000,1996,2000,2008]',true),year);
+      --show-query=no --show-output=no
+--afl store(build(&lt;person:string&gt;[i=0:*,12,0],'["Bailey","Greene","Kosgei","Thugwane","Abera",
+      "Wanjiru"]',true),person); --show-query=no --show-output=no
+--afl store(build(&lt;country:string&gt;[i=0:*,12,0],'["Canada","USA","Kenya","USA","Ethiopia",
+      "Kenya"]',true),country); --show-query=no --show-output=no
+--afl store(build(&lt;time:double&gt;[i=0:*,12,0],'[9.84,9.87,503.17,7956,7811,7596]',true),time);
+      --show-query=no --show-output=no
+--afl store(join(event,join(year,(join(person,join(country,time))))),winnersFlat);
+      --show-query=no --show-output=no
+
+--afl store(sort(winnersFlat,year),champions) --show-query=no --show-output=no
+--afl scan(champions) --output-format=csv</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use the project operator to exclude the
+          <literal>person</literal> attribute, and to reorder the remaining
+          attributes so that <literal>year</literal> is first:<programlisting
+          language="test">--afl project(champions,year,event,country,time) --output-format=csv</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,34 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+store(build(<event:string>[i=0:*,12,0],'["dash","dash","steeplechase","marathon","marathon", "marathon"]',true),event)  
+store(build(<year:int64>[i=0:*,12,0],'[1996,2000,2000,1996,2000,2008]',true),year)  
+store(build(<person:string>[i=0:*,12,0],'["Bailey","Greene","Kosgei","Thugwane","Abera", "Wanjiru"]',true),person)  
+store(build(<country:string>[i=0:*,12,0],'["Canada","USA","Kenya","USA","Ethiopia", "Kenya"]',true),country)  
+store(build(<time:double>[i=0:*,12,0],'[9.84,9.87,503.17,7956,7811,7596]',true),time)  
+store(join(event,join(year,(join(person,join(country,time))))),winnersFewFlat)  
+create array champions <person:string,country:string,time:double, event:string> [year=1996:2008,1,0]  
+store(redimension(winnersFewFlat,champions),champions)  
+store(project(champions,time),winningTime)  
+--stop-igdata
+show(winningTime)
+store ( cast ( winningTime, <time_in_seconds:double null> [year=1996:2008,1,0] ), winningTimeRecast )  
+show(winningTimeRecast)
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(event)
+remove(year)
+remove(person)
+remove(country)
+remove(time)
+remove(winnersFewFlat)
+remove(champions)
+remove(winningTime)
+remove(winningTimeRecast)

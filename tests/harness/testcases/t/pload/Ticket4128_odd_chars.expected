@@ -1,0 +1,48 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Load the odd characters.
+{i} count
+{0} 6
+
+{i} id,s1,s2,code,s3,s4
+{0} 1,'Brian','Griffin',1,'5 Spooner St., Quahog RI','[dog]'
+{1} 2,'Lois','Griffin*',1,'Quahog','{Utterly charming}'
+{2} 4,'Peter','Griffin',2,'Quahog','[less charming]'
+{3} 8,'Meg','Griffin',2,'(Remulax ®)','[It\'s terrible what they do to Meg...]'
+{4} 16,'Stewie','Griffin',7,'Evil Genius ®','[unbound]'
+{5} 32,'Chris','Griffin',2,'Quahog','[usually not inhumane]'
+
+Save and reload those odd chars.
+{i} id,s1,s2,code,s3,s4
+{0} 1,'Brian','Griffin',1,'5 Spooner St., Quahog RI','[dog]'
+{1} 2,'Lois','Griffin*',1,'Quahog','{Utterly charming}'
+{2} 4,'Peter','Griffin',2,'Quahog','[less charming]'
+{3} 8,'Meg','Griffin',2,'(Remulax ®)','[It\'s terrible what they do to Meg...]'
+{4} 16,'Stewie','Griffin',7,'Evil Genius ®','[unbound]'
+{5} 32,'Chris','Griffin',2,'Quahog','[usually not inhumane]'
+
+{i} id,s1,s2,code,s3,s4
+{0} 1,'Brian','Griffin',1,'5 Spooner St., Quahog RI','[dog]'
+{1} 2,'Lois','Griffin*',1,'Quahog','{Utterly charming}'
+{2} 4,'Peter','Griffin',2,'Quahog','[less charming]'
+{3} 8,'Meg','Griffin',2,'(Remulax ®)','[It\'s terrible what they do to Meg...]'
+{4} 16,'Stewie','Griffin',7,'Evil Genius ®','[unbound]'
+{5} 32,'Chris','Griffin',2,'Quahog','[usually not inhumane]'
+
+Re-save...
+{i} id,s1,s2,code,s3,s4
+{0} 1,'Brian','Griffin',1,'5 Spooner St., Quahog RI','[dog]'
+{1} 2,'Lois','Griffin*',1,'Quahog','{Utterly charming}'
+{2} 4,'Peter','Griffin',2,'Quahog','[less charming]'
+{3} 8,'Meg','Griffin',2,'(Remulax ®)','[It\'s terrible what they do to Meg...]'
+{4} 16,'Stewie','Griffin',7,'Evil Genius ®','[unbound]'
+{5} 32,'Chris','Griffin',2,'Quahog','[usually not inhumane]'
+
+...and diff.  Still the same?
+I hope so.
+Query was executed successfully
+
+Query was executed successfully
+

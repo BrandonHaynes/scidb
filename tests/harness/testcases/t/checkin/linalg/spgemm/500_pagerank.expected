@@ -1,0 +1,68 @@
+SCIDB QUERY : <load_library('linear_algebra')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(GRAPH_TRIPLETS_6_9)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <create array GRAPH_TRIPLETS_6_9 <v0:int64, v1:int64, w:float>[dummy=0:*,1000*1000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(GRAPH_TRIPLETS_6_9, '${TEST_DATA_DIR}/graph_triplets6_9.scidb.txt')">
+Query was executed successfully
+
+SCIDB QUERY : <remove(TRANSPOSE_GRAPH_WEIGHTS_6_9)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <create array TRANSPOSE_GRAPH_WEIGHTS_6_9 <w:float>[v1=0:5,10,0, v0=0:5,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(TRANSPOSE_GRAPH_EDGES)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <store(project(apply(redimension(GRAPH_TRIPLETS_6_9,TRANSPOSE_GRAPH_WEIGHTS_6_9),e,int8(1)),e),TRANSPOSE_GRAPH_EDGES)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(TRANSITION_PROBABILITY_COLS)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <store(substitute(project(apply(cross_join(TRANSPOSE_GRAPH_EDGES as E, aggregate(TRANSPOSE_GRAPH_EDGES, sum(e), v0) as SUM, E.v0, SUM.v0), prob, float(float(E.e)/SUM.e_sum)), prob), build(<v:float>[dc=0:0,1,0],NaN)), TRANSITION_PROBABILITY_COLS)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(RANK_VEC)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+"pagerank, as scanned by the .test script"
+SCIDB QUERY : <scan(RANK_VEC)>
+{vtx,vectorDummy} q
+{0,0} 0.0710455
+{1,0} 0.129747
+{2,0} 0.101068
+{3,0} 0.210599
+{4,0} 0.32632
+{5,0} 0.161221
+
+"pagerank, sorted by the .test script"
+SCIDB QUERY : <sort(apply(RANK_VEC, vtx, vtx), q desc, vtx asc)>
+{n} q,vtx
+{0} 0.32632,4
+{1} 0.210599,3
+{2} 0.161221,5
+{3} 0.129747,1
+{4} 0.101068,2
+{5} 0.0710455,0
+
+SCIDB QUERY : <remove(GRAPH_TRIPLETS_6_9)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TRANSPOSE_GRAPH_WEIGHTS_6_9)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TRANSPOSE_GRAPH_EDGES)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TRANSITION_PROBABILITY_COLS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(RANK_VEC)>
+Query was executed successfully
+

@@ -1,0 +1,90 @@
+--setup
+create array gesvd_10x10 <x:double>[i=0:9,2,0, j=0:9,5,0]
+CREATE ARRAY gesvd_test10_10  <a:double> [x=0:9,2,0, y=0:9,5,0]
+CREATE ARRAY gesvd_test8_12 <a:double> [x=0:7,2,0, y=0:11,4,0]
+CREATE ARRAY gesvd_test12_8 <a:double> [x=0:11,4,0, y=0:7,2,0]
+create array gesvd_test8_8 <x:double>[i=0:7,4,0, j=0:7,2,0]
+
+load( gesvd_10x10, '${TEST_DATA_DIR}/svd_10x10.txt', 0)
+load( gesvd_test10_10, '${TEST_DATA_DIR}/svd_test1.txt', 0)
+load( gesvd_test8_12, '${TEST_DATA_DIR}/svd_test2.txt', 0)
+load( gesvd_test12_8, '${TEST_DATA_DIR}/svd_test3.txt', 0)
+store(build(gesvd_test8_8,iif(j-i<2,iif(i<=j,pow(10,j-i),0),0)),gesvd_test8_8)
+
+CREATE ARRAY gesvd_test10_10bsq <a:double> [x=0:9,1,0, y=0:9,1,0]
+CREATE ARRAY gesvd_test8_12bsq <a:double> [x=0:7,1,0, y=0:11,1,0]
+CREATE ARRAY gesvd_test12_8bsq <a:double> [x=0:11,1,0, y=0:7,1,0]
+CREATE ARRAY gesvd_test8_8bsq <a:double> [x=0:7,1,0, y=0:7,1,0]
+
+store(repart(gesvd_test10_10, gesvd_test10_10bsq), gesvd_test10_10bsq)
+store(repart(gesvd_test8_12, gesvd_test8_12bsq), gesvd_test8_12bsq)
+store(repart(gesvd_test12_8, gesvd_test12_8bsq), gesvd_test12_8bsq)
+store(repart(gesvd_test8_8, gesvd_test8_8bsq), gesvd_test8_8bsq)
+
+CREATE ARRAY gesvd_out10x10 <a:double> [x=0:9,10,0, y=0:9,10,0]
+CREATE ARRAY gesvd_out8x12 <a:double> [x=0:7,8,0, y=0:11,12,0]
+CREATE ARRAY gesvd_out12x8 <a:double> [x=0:11,12,0, y=0:7,8,0]
+create array gesvd_out8x8 <x:double>[i=0:7,8,0, j=0:7,8,0]
+
+--test
+load_library('dense_linear_algebra')
+
+--set-format csv+
+# using csv+ makes it easier to spot where the mistakes are... our output formatting is too hard for a human to validate
+# note that all 'VT' matrices have a transpose because this file proves our output matches the first 7 significant
+# digits of these "load" files above, which are from an older p4 library.  This proves the new functionality is
+# backward-compatible with the old to a small extent, except that svd outputs V-transpose, where the svdold
+# output soemthing called right but it was V, not V-tranpose.
+# This was very odd, probably an accident, because the right-most matrix of an SVD is the one with the form of VT, not V
+
+--echo test 1, driven with deprecated parameter names
+repart(gesvd(gesvd_test10_10bsq,'left'), gesvd_out10x10)
+# don't remember why next one does not need a transpose.  did I alter the expected data order instead?  was it symmetric?
+repart(gesvd(gesvd_test10_10bsq,'right'), gesvd_out10x10)
+gesvd(gesvd_test10_10bsq,'values')
+
+--echo test 1
+repart(gesvd(gesvd_test10_10bsq,'U'), gesvd_out10x10)
+repart(gesvd(gesvd_test10_10bsq,'VT'), gesvd_out10x10)
+gesvd(gesvd_test10_10bsq,'S')
+
+--echo test 2
+repart(gesvd(gesvd_test8_12bsq,'U'), gesvd_out8x8)
+repart(transpose(gesvd(gesvd_test8_12bsq,'VT')), gesvd_out12x8)
+gesvd(gesvd_test8_12bsq,'S')
+
+--echo tests 3,4
+repart(gesvd(gesvd_test12_8bsq,'U'), gesvd_out12x8)
+repart(transpose(gesvd(gesvd_test12_8bsq,'VT')), gesvd_out8x8)
+gesvd(gesvd_test12_8bsq,'S')
+
+--echo test 5
+gesvd(gesvd_test8_8bsq,'S')
+repart(transpose(gesvd(gesvd_test8_8bsq,'VT')), gesvd_out8x8)
+repart(gesvd(gesvd_test8_8bsq,'U'), gesvd_out8x8)
+
+# make sure we can cascade gesvd operators
+# (when we can handle this)
+# join(join(gesvd(gesvd_test12_8bsq,'U'), gesvd(gesvd_test12_8bsq,'U')), join(gesvd(gesvd_test12_8bsq,'U'), gesvd(gesvd_test12_8bsq,'U')))
+
+--cleanup
+
+# inputs
+remove(gesvd_10x10)
+remove(gesvd_test10_10)
+remove(gesvd_test8_12)
+remove(gesvd_test12_8)
+remove(gesvd_test8_8)
+
+# square-blocked for scalapack
+remove(gesvd_test10_10bsq)
+remove(gesvd_test8_12bsq)
+remove(gesvd_test12_8bsq)
+remove(gesvd_test8_8bsq)
+
+# full-size matrices to make output comparisons more readable
+remove(gesvd_out10x10)
+remove(gesvd_out8x12)
+remove(gesvd_out12x8)
+remove(gesvd_out8x8)
+

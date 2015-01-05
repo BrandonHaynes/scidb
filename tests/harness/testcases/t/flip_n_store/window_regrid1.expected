@@ -1,0 +1,245 @@
+SCIDB QUERY : <create array A <a1: double > [x=10:14,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array NID <x:int64> [a1(double)=5,5,0, a2(double)=5,5,0 ,a3(double)=5,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(apply(apply(build(A,13.5*6/x),a2,a1*5.72),a3,a2*0.5),AA)>
+{x} a1,a2,a3
+{10} 8.1,46.332,23.166
+{11} 7.36364,42.12,21.06
+{12} 6.75,38.61,19.305
+{13} 6.23077,35.64,17.82
+{14} 5.78571,33.0943,16.5471
+
+SCIDB QUERY : <create array A1 <a1: double null > [x=10:14,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A1,x/1.7),A1)>
+{x} a1
+{10} 5.88235
+{11} 6.47059
+{12} 7.05882
+{13} 7.64706
+{14} 8.23529
+
+SCIDB QUERY : <select * from A>
+{x} a1
+
+SCIDB QUERY : <select * from AA>
+{x} a1,a2,a3
+{10} 8.1,46.332,23.166
+{11} 7.36364,42.12,21.06
+{12} 6.75,38.61,19.305
+{13} 6.23077,35.64,17.82
+{14} 5.78571,33.0943,16.5471
+
+SCIDB QUERY : <store(redimension(AA,NID),NID)>
+{a1,a2,a3} x
+{5.78571,33.0943,16.5471} 14
+{6.23077,35.64,17.82} 13
+{6.75,38.61,19.305} 12
+{7.36364,42.12,21.06} 11
+{8.1,46.332,23.166} 10
+
+SCIDB QUERY : <select * from NID>
+{a1,a2,a3} x
+{5.78571,33.0943,16.5471} 14
+{6.23077,35.64,17.82} 13
+{6.75,38.61,19.305} 12
+{7.36364,42.12,21.06} 11
+{8.1,46.332,23.166} 10
+
+SCIDB QUERY : <select count(a1),avg(a1) from A>
+{i} count,avg_1
+{0} 0,null
+
+SCIDB QUERY : <select avg(a1),sum(a1) into B from A regrid as (partition by x 5)>
+{x} avg,sum_1
+
+SCIDB QUERY : <select avg(a1),sum(a1) from A fixed window as (partition by x 5 preceding and 5 following)>
+{x} avg,sum_1
+
+SCIDB QUERY : <select * from store(build(A,x),A)>
+{x} a1
+{10} 10
+{11} 11
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <update A set a1=5.0/(2.0-2.0) where x=12>
+{x} a1
+{10} 10
+{11} 11
+{12} inf
+{13} 13
+{14} 14
+
+SCIDB QUERY : <select avg(a1),sum(a1) from A regrid as (partition by x 5)>
+{x} avg,sum_1
+{10} inf,inf
+
+SCIDB QUERY : <select avg(a1),sum(a1) from A fixed window as (partition by x 1 preceding and 1 following)>
+{x} avg,sum_1
+{10} 10.5,21
+{11} inf,inf
+{12} inf,inf
+{13} inf,inf
+{14} 13.5,27
+
+SCIDB QUERY : <select sum(x),ApproxDC(x) from NID>
+{i} sum,ApproxDC_1
+{0} 60,5
+
+SCIDB QUERY : <select sum(x),ApproxDC(x) from NID regrid as (partition by a1 1, a2 1, a3 1)>
+{a1,a2,a3} sum,ApproxDC_1
+{0,0,0} 14,1
+{1,1,1} 13,1
+{2,2,2} 12,1
+{3,3,3} 11,1
+{4,4,4} 10,1
+
+SCIDB QUERY : <select sum(x),ApproxDC(x) from NID regrid as (partition by a1 3, a2 3, a3 3)>
+{a1,a2,a3} sum,ApproxDC_1
+{0,0,0} 39,3
+{1,1,1} 21,2
+
+SCIDB QUERY : <select sum(x),ApproxDC(x) from NID regrid as (partition by a1 5, a2 5, a3 5)>
+{a1,a2,a3} sum,ApproxDC_1
+{0,0,0} 60,5
+
+SCIDB QUERY : <select sum(x),ApproxDC(x) from NID regrid as (partition by a1 1, a2 5, a3 5)>
+{a1,a2,a3} sum,ApproxDC_1
+{0,0,0} 14,1
+{1,0,0} 13,1
+{2,0,0} 12,1
+{3,0,0} 11,1
+{4,0,0} 10,1
+
+SCIDB QUERY : <select sum(x),ApproxDC(x) from NID regrid as (partition by a1 5, a2 5, a3 1)>
+{a1,a2,a3} sum,ApproxDC_1
+{0,0,0} 14,1
+{0,0,1} 13,1
+{0,0,2} 12,1
+{0,0,3} 11,1
+{0,0,4} 10,1
+
+SCIDB QUERY : <select sum(x),avg(x),count(x) from NID regrid as (partition by a1 5, a2 3, a3 1)>
+{a1,a2,a3} sum,avg_1,count_2
+{0,0,0} 14,14,1
+{0,0,1} 13,13,1
+{0,0,2} 12,12,1
+{0,1,3} 11,11,1
+{0,1,4} 10,10,1
+
+SCIDB QUERY : <select sum(x),avg(x),count(x) from NID regrid as (partition by a1 3, a2 3, a3 5)>
+{a1,a2,a3} sum,avg_1,count_2
+{0,0,0} 39,13,3
+{1,1,0} 21,10.5,2
+
+SCIDB QUERY : <update A1 set a1=null where x=12>
+{x} a1
+{10} 5.88235
+{11} 6.47059
+{12} null
+{13} 7.64706
+{14} 8.23529
+
+SCIDB QUERY : <update A1 set a1=5.0/(0.0) where x=14>
+{x} a1
+{10} 5.88235
+{11} 6.47059
+{12} null
+{13} 7.64706
+{14} inf
+
+SCIDB QUERY : <select avg(a1),sum(a1) from A1 regrid as (partition by x 5)>
+{x} avg,sum_1
+{10} inf,inf
+
+SCIDB QUERY : <select sum(a1) from A1 fixed window as (partition by x 5 preceding and 0 following)>
+{x} sum
+{10} 5.88235
+{11} 12.3529
+{12} 12.3529
+{13} 20
+{14} inf
+
+SCIDB QUERY : <select sum(a1) from A1 fixed window as (partition by x 0 preceding and 5 following)>
+{x} sum
+{10} inf
+{11} inf
+{12} inf
+{13} inf
+{14} inf
+
+SCIDB QUERY : <select count(x) from NID fixed window as (partition by a1 1 preceding and 1 following, a2 1 preceding and 1 following, a3 1 preceding and 1 following)>
+{a1,a2,a3} count
+{5.78571,33.0943,16.5471} 2
+{6.23077,35.64,17.82} 3
+{6.75,38.61,19.305} 3
+{7.36364,42.12,21.06} 3
+{8.1,46.332,23.166} 2
+
+SCIDB QUERY : <select count(x) from NID fixed window as (partition by a1 1 preceding and 1 following, a2 1 preceding and 1 following, a3 1 preceding and 1 following)>
+{a1,a2,a3} count
+{5.78571,33.0943,16.5471} 2
+{6.23077,35.64,17.82} 3
+{6.75,38.61,19.305} 3
+{7.36364,42.12,21.06} 3
+{8.1,46.332,23.166} 2
+
+SCIDB QUERY : <select count(x),avg(x) from NID fixed window as (partition by a1 1 preceding and 2 following, a2 1  preceding and 2 following, a3 1 preceding and 1 following)>
+{a1,a2,a3} count,avg_1
+{5.78571,33.0943,16.5471} 2,13.5
+{6.23077,35.64,17.82} 3,13
+{6.75,38.61,19.305} 3,12
+{7.36364,42.12,21.06} 3,11
+{8.1,46.332,23.166} 2,10.5
+
+SCIDB QUERY : <select count(x),avg(x) from NID fixed window as (partition by a1 2 preceding and 2 following, a2 1  preceding and 1 following, a3 5 preceding and 5 following)>
+{a1,a2,a3} count,avg_1
+{5.78571,33.0943,16.5471} 2,13.5
+{6.23077,35.64,17.82} 3,13
+{6.75,38.61,19.305} 3,12
+{7.36364,42.12,21.06} 3,11
+{8.1,46.332,23.166} 2,10.5
+
+SCIDB QUERY : <select count(x),avg(x) from NID fixed window as (partition by a1 5  preceding and 5 following, a2 5  preceding and 5 following, a3 5 preceding and 5 following)>
+{a1,a2,a3} count,avg_1
+{5.78571,33.0943,16.5471} 5,12
+{6.23077,35.64,17.82} 5,12
+{6.75,38.61,19.305} 5,12
+{7.36364,42.12,21.06} 5,12
+{8.1,46.332,23.166} 5,12
+
+SCIDB QUERY : <select count(x),avg(x) from NID fixed window as (partition by a1 100  preceding and 100 following, a2 100  preceding and 100 following, a3 100 preceding and 100 following)>
+{a1,a2,a3} count,avg_1
+{5.78571,33.0943,16.5471} 5,12
+{6.23077,35.64,17.82} 5,12
+{6.75,38.61,19.305} 5,12
+{7.36364,42.12,21.06} 5,12
+{8.1,46.332,23.166} 5,12
+
+SCIDB QUERY : <select count(x),avg(x) from NID fixed window as (partition by a1 -1  preceding and 5 following, a2 5  preceding and 5 following, a3 5 preceding and 5 following)>
+[An error expected at this place for the query "select count(x),avg(x) from NID fixed window as (partition by a1 -1  preceding and 5 following, a2 5  preceding and 5 following, a3 5 preceding and 5 following)". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <select sum(x),avg(x),count(x) from NID regrid as (partition by a1 3, a2 3, a3 4.5)>
+[An error expected at this place for the query "select sum(x),avg(x),count(x) from NID regrid as (partition by a1 3, a2 3, a3 4.5)". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(NID)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AA)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

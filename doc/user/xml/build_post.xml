@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="build">
+  <refnamediv>
+    <refname>build</refname>
+
+    <refpurpose>Produces a result set that is a new single-attribute array
+    populated with values.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>build(<replaceable>template_array</replaceable>|<replaceable>schema_definition</replaceable>,<replaceable>expression </replaceable><optional>, true</optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>build</secondary>
+      </indexterm><indexterm>
+        <primary>build</primary>
+      </indexterm>The <code>build()</code> operator produces a result array
+    with the same shape as the template array, but with attribute values equal
+    to the value of <replaceable>expression</replaceable>. The expression
+    argument can be any combination of SciDB functions applied to constants or
+    SciDB attributes. The template array or schema definition must have
+    exactly one attribute.</para>
+
+    <para><indexterm>
+        <primary>build literal</primary>
+      </indexterm>You can also supply a SciDB-text-formatted string as a
+    literal to the <code>build()</code> operator. In this case, you can build
+    an array with an arbitrary set of attribute values. An example is provided
+    below.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <itemizedlist>
+      <listitem>
+        <para>The build operator can only take arrays with one
+        attribute.</para>
+      </listitem>
+
+      <listitem>
+        <para>The build operator can only take arrays with bounded
+        dimensions.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This query creates a 4<symbol role="symbolfont">×</symbol>4 array
+      of ones from a schema definition:<para><programlisting>AFL% build(&lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0],1);  </programlisting><screen>[
+[(1),(1),(1),(1)],
+[(1),(1),(1),(1)],
+[(1),(1),(1),(1)],
+[(1),(1),(1),(1)]
+]</screen></para></para>
+    </informalexample>
+
+    <informalexample>
+      <para>This query creates a 4<symbol role="symbolfont">×</symbol>4
+      identity array from a schema definition:<para><programlisting>AFL% build(&lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0],iif(i=j,1,0));  </programlisting><screen>[
+[(1),(0),(0),(0)],
+[(0),(1),(0),(0)],
+[(0),(0),(1),(0)],
+[(0),(0),(0),(1)]
+]</screen></para></para>
+    </informalexample>
+
+    <informalexample>
+      <para>This query creates a 4<symbol role="symbolfont">×</symbol>4 array
+      of monotonically increasing values:<para><programlisting>AFL% build(&lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0],i*4+j);  </programlisting><screen>[
+[(0),(1),(2),(3)],
+[(4),(5),(6),(7)],
+[(8),(9),(10),(11)],
+[(12),(13),(14),(15)]
+]</screen></para></para>
+    </informalexample>
+
+    <informalexample>
+      <para>Remember, the build operator produces a result array and does not
+      modify the template array. To store the result from a build operator,
+      create an array and use the store operator with the build operator. This
+      query creates an array called <emphasis role="bold">identity_matrix</emphasis> and then stores the result of the
+      build operator:<para><programlisting>AFL% CREATE ARRAY identity_matrix &lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0];  </programlisting><programlisting>AFL% store(build(identity_matrix,iif(i=j,1,0)),identity_matrix);  </programlisting><programlisting>AFL% scan(identity_matrix);  </programlisting><screen>[
+[(1),(0),(0),(0)],
+[(0),(1),(0),(0)],
+[(0),(0),(1),(0)],
+[(0),(0),(0),(1)]
+]</screen></para></para>
+    </informalexample>
+
+    <informalexample>
+      <para>In this example, we supply a SciDB-text-formatted string as an
+      input to the <code>build()</code> operator.<para><programlisting>AFL% create array A &lt;v:double NULL&gt; [r=0:2,3,0, c=0:3,4,0];  </programlisting><programlisting>AFL% build(A, '[[(null),(), 1.25, -.45],[(?45), 6, 11.12, 7], [9,8,8, 4.1]]',true);
+      </programlisting><screen>[
+[(null),(),(1.25),(-0.45)],
+[(?45),(6),(11.12),(7)],
+[(9),(8),(8),(4.1)]
+]</screen></para></para>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,90 @@
+SCIDB QUERY : <create array TS <timestamp:datetime, userID:int64, resourceID:int64>[i=1:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array TS_1 <userID:int64, resourceID:int64>[timestamp(datetime)=*,5,0, eventID=1:1000,1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array TS_2 <userID:int64 null, resourceID:int64 null>[timestamp(datetime)=*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array TS_3 <i:int64>[timestamp(datetime)=*,5,0, userID=1:*,5,0, resourceID=1:*,5,0, eventID=1:1000,1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array TS_4 <i:int64>[timestamp(datetime)=*,5,0, userID=1:*,5,0, resourceID=1:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(TS,'../tests/harness/testcases/data/redimension_ts.txt')>
+{i} timestamp,userID,resourceID
+{1} '2010-10-10 10:00:01',1,3
+{2} '2010-10-10 10:00:01',13,17
+{3} '2010-10-10 10:00:02',4,8
+{4} '2010-10-10 10:00:03',5,15
+{5} '2010-10-10 10:00:03',9,7
+{6} '2010-10-10 10:00:03',8,9
+{7} '2010-10-10 10:00:04',9,19
+{8} '2010-10-10 10:00:04',10,17
+{9} '2010-10-10 10:00:05',6,7
+{10} '2010-10-10 10:00:06',7,11
+{11} '2010-10-10 10:00:06',18,4
+{12} '2010-10-10 10:00:06',4,5
+{13} '2010-10-10 10:00:07',15,13
+{14} '2010-10-10 10:00:08',16,15
+{15} '2010-10-10 10:00:08',12,13
+{16} '2010-10-10 10:00:09',10,9
+{17} '2010-10-10 10:00:10',2,3
+{18} '2010-10-10 10:00:10',6,6
+{19} '2010-10-10 10:00:11',2,12
+{20} '2010-10-10 10:00:12',3,9
+{21} '2010-10-10 10:00:12',19,9
+{22} '2010-10-10 10:00:12',8,7
+{23} '2010-10-10 10:00:13',9,1
+{24} '2010-10-10 10:00:14',1,16
+{25} '2010-10-10 10:00:14',15,3
+
+SCIDB QUERY : <store(redimension(TS, TS_1), TS_1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(TS, TS_2, max(userID) as userID, max(resourceID) as resourceID), TS_2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(TS, TS_3), TS_3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(TS, TS_4), TS_4)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <count(TS)>
+{i} count
+{0} 25
+
+SCIDB QUERY : <count(TS_1)>
+{i} count
+{0} 25
+
+SCIDB QUERY : <count(TS_2)>
+{i} count
+{0} 14
+
+SCIDB QUERY : <count(TS_3)>
+{i} count
+{0} 25
+
+SCIDB QUERY : <count(TS_4)>
+{i} count
+{0} 25
+
+SCIDB QUERY : <remove(TS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TS_1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TS_2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TS_3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TS_4)>
+Query was executed successfully
+

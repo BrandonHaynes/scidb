@@ -1,0 +1,4 @@
+store(reshape(build(<a:int64>[x=0:8,3,0], x), <a:int64>[x=10:18,2,0]), anonymous_schema_007);
+
+show(anonymous_schema_007);
+

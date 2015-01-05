@@ -1,0 +1,33 @@
+--setup
+--start-query-logging
+create array z1 <trial:string, ppb:int64> [device(string)=2,2,0, height=60:62,3,0]
+create array zFlat <device:string,height:int64,trial:string,ppb:int64>[i=0:11,12,0]
+create array z2 <trial:string,ppb:int64,device:string> [height=60:62,3,0]
+create array z3 <device:string,height:int64,trial:string>[ppb=1:10000,10000,0]
+create array z4 <trial:string>[device(string)=2,2,0, height=60:62,3,0, ppb=1:10000,10000,0]
+
+--shell --command "csv2scidb -s 1 -p SNSN < testcases/data/doc/bug1709.csv > testcases/data/doc/bug1709.scidb"
+--aql load zFlat from '${TEST_DATA_DIR}/doc/bug1709.scidb'
+
+--test
+
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_SOURCE_ATTRIBUTE_TYPE "store(redimension(zFlat,z1),z1)"
+store(redimension(zFlat,z1),z1)
+aggregate(store(redimension(zFlat,z2),z2),count(*))
+show(z3)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_DESTINATION_ATTRIBUTE_TYPE "store(redimension(z1,z3),z3)"
+store(redimension(z1,z3),z3)
+show(z1)
+scan(z1)
+show(z4)
+store(redimension(z1,z4),z4)
+
+
+--cleanup
+--aql drop array z1
+--aql drop array zFlat
+--aql drop array z2
+--aql drop array z3
+--aql drop array z4
+--stop-query-logging
+

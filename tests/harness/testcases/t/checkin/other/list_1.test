@@ -1,0 +1,28 @@
+--setup
+--start-query-logging
+load_library('point')
+load_library('more_math')
+
+--test
+--set-format csv
+sort(filter(list('operators'),library='scidb'),name)
+sort(filter(list('functions'),library='scidb'),name)
+--igdata "store(list('queries'),query_array)"
+attributes(query_array)
+list('aggregates')
+
+--start-igdata
+--aql select name,schema from list()
+--aql select name,schema from list('arrays')
+sort(filter(list('types'),library='scidb'),name)
+sort(filter(list('libraries'),regex(name,'libmore_math.so|libpoint.so')),name)
+--aql select name,schema from list()
+--aql select name,schema from list('arrays')
+--stop-igdata
+
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LIST_ERROR1 "list('error_test')"
+
+--cleanup
+remove(query_array)
+
+--stop-query-logging

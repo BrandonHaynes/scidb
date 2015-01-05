@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="sliceOperator">
+  <refnamediv>
+    <refname>slice</refname>
+
+    <refpurpose><indexterm>
+        <primary>slice</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>slicing</secondary>
+      </indexterm><indexterm>
+        <primary>subarray</primary>
+      </indexterm><indexterm>
+        <primary>array reductions</primary>
+
+        <secondary>slice</secondary>
+      </indexterm>Produces a result array that is a subset of the source array
+    derived by holding one or more dimension values constant.</refpurpose>
+
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>slice(<replaceable>array</replaceable>,<replaceable>dimension1</replaceable>,<replaceable>value1</replaceable><optional><replaceable>dimension2</replaceable>,<replaceable>value2</replaceable>,...</optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The slice operator produces an m-dimensional result array from an
+    n-dimensional source array where n is greater than m. If m is 3 and n is
+    2, the operation can be visualized as "slicing" a specific plane of a 3-D
+    array. The number of dimensions of the result array equals the number of
+    dimensions of the source array minus the number of (dimension, value)
+    pairs you provide as parameters. For each (dimension, value) pair you
+    supply, the value must appear in that dimension in the source
+    array.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example selects the middle column from a 3<symbol role="symbolfont">×</symbol>3 array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 3<symbol role="symbolfont">×</symbol>3 array and fill
+          it with values of 0–8: <para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0],i*3+j),m3x3);  </programlisting><screen>[
+[(0),(1),(2)],
+[(3),(4),(5)],
+[(6),(7),(8)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Select the middle column of m3x3: <para><programlisting>AFL% slice(m3x3,j,1);  </programlisting><screen>{i} val
+{0} 1
+{1} 4
+{2} 7
+</screen></para></para>
+
+          <para>You can accomplish the same task using the between operator, as shown in the
+          following query:<para><programlisting>AFL% redimension(between(m3x3,0,1,2,1),&lt;val:double&gt;[i=0:2,3,0]);  </programlisting><screen>{i} val
+{0} 1
+{1} 4
+{2} 7
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,11 @@
+--setup
+create array M10x10x10 <a:double> [x=1:10,2,0, y=1:10,2,0, z=1:10,2,0]
+store(build(M10x10x10, (x*10+y)*10+z), M10x10x10)
+
+--test
+slice(M10x10x10, y, 5)
+apply(join(slice(M10x10x10, x, 1) as M1, slice(M10x10x10, y, 1) as M2), delta, M2.a - M1.a)
+
+--cleanup
+remove (M10x10x10)
+

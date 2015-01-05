@@ -1,0 +1,24 @@
+# ticket no. 752
+
+--setup
+--start-query-logging
+create array A <a:int32, b:string> [x=0:2,3,0]
+create array B <b:string, x:int64> [a(int32)=3,3,0]
+create array T <a:int32> [x=0:2,3,0]
+create array TS <a:string> [x=0:2,3,0]
+store(join(filter(build(T,x),1),filter(build(TS,string(x+10)),1)),A)
+
+--test
+store(redimension(A,B),B)
+--aql select name,schema from list()
+--aql update B set b = b + '_new' where x=1
+--aql select name,schema from list()
+store(redimension(B,A),A)
+scan(A)
+
+--cleanup
+remove(A)
+remove(B)
+remove(T)
+remove(TS)
+--stop-query-logging

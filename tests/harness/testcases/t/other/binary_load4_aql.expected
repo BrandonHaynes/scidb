@@ -1,0 +1,265 @@
+SCIDB QUERY : <create array A <num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(apply(build(A,x+y*y/1),sum,200+x*y*z+num),A11)>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <create array A22 <num:double, sum:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A33 <num:float, sum:int32> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Unbounded <num:float, sum:int32> [x=1:*,2,0,y=1:*,2,0,z=1:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A44 <sum:int32> [x=1:*,20,0,y=1:*,2,0,z=1:*,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A55 <num:double> [x=1:2,2,0,y=1:*,2,0,z=1:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A66 <num:double> [x=1:2,2,0,y=1:*,2,0,z=1:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * from show(A11)>
+{i} schema
+{0} 'A11<num:int64,sum:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]'
+
+SCIDB QUERY : <save A11 into '/tmp/a11.txt'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <load A22 from '/tmp/a11.txt'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <save A11 into current instance  '/tmp/a11.bin' as '(int64,int64)'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <load  A33 from current instance  '/tmp/a11.bin' as '(int64,int64)'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <load  A33 from current instance  '/tmp/a11.bin' as '(double,int64)'>
+{x,y,z} num,sum
+{1,1,1} 0,203
+{1,1,2} 0,204
+{1,2,1} 0,207
+{1,2,2} 0,209
+{2,1,1} 0,205
+{2,1,2} 0,207
+{2,2,1} 0,210
+{2,2,2} 0,214
+
+SCIDB QUERY : <load  A33 from  '/tmp/a11.bin' as '(int64,int64)'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <save A11 into 0  '/tmp/a11.bin_a' as '(int64,int64)'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <save  A33 into  '/tmp/a33.txt' as 'text'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <load  A33 from  '/tmp/a33.txt' as 'text'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <load Unbounded from  '/tmp/a33.txt' as 'text'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <save Unbounded into current instance '/tmp/unbound.bin' as '(float,int32)'>
+{x,y,z} num,sum
+{1,1,1} 2,203
+{1,1,2} 2,204
+{1,2,1} 5,207
+{1,2,2} 5,209
+{2,1,1} 3,205
+{2,1,2} 3,207
+{2,2,1} 6,210
+{2,2,2} 6,214
+
+SCIDB QUERY : <load  A44 from current instance '/tmp/unbound.bin' as '(dummy(4),int32)'>
+{x,y,z} sum
+{1,1,1} 203
+{1,1,2} 204
+{1,1,3} 207
+{1,1,4} 209
+{1,1,5} 205
+{1,1,6} 207
+{1,1,7} 210
+{1,1,8} 214
+
+SCIDB QUERY : <load  A55 from  '/tmp/unbound.bin' as '(dummy(4),int32)'>
+{x,y,z} num
+{1,1,1} 203
+{1,1,2} 204
+{1,2,1} 207
+{1,2,2} 209
+{2,1,1} 205
+{2,1,2} 207
+{2,2,1} 210
+{2,2,2} 214
+
+SCIDB QUERY : <load  A55 from  '/tmp/unbound.bin' as '(float,dummy(4))'>
+{x,y,z} num
+{1,1,1} 2
+{1,1,2} 2
+{1,2,1} 5
+{1,2,2} 5
+{2,1,1} 3
+{2,1,2} 3
+{2,2,1} 6
+{2,2,2} 6
+
+SCIDB QUERY : <load A55 from '/tmp/unbound.bin' as 'text'>
+[An error expected at this place for the query "load A55 from '/tmp/unbound.bin' as 'text'". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load A55 from '/tmp/a33.txt' as '(dummy(4),int32)'>
+[An error expected at this place for the query "load A55 from '/tmp/a33.txt' as '(dummy(4),int32)'". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load A55 from '/tmp/a33.txt' as '(dummy(4),int32)' errors 100 shadow array A55_shad>
+{x,y,z} num
+{1,1,1} 8.08594e+08
+{1,1,2} 8.08594e+08
+{1,2,1} 7.41681e+08
+{1,2,2} 7.41681e+08
+{2,1,1} 1.52963e+09
+{2,1,2} 6.91352e+08
+{2,2,1} 6.91483e+08
+{2,2,2} 8.25372e+08
+{1,3,1} 8.25372e+08
+{1,3,2} 0
+
+SCIDB QUERY : <select count(*) from A55_shad>
+{i} count
+{0} 1
+
+SCIDB QUERY : <join(load(A22,'/tmp/a11.txt'),A11)>
+{x,y,z} num,sum,num,sum
+{1,1,1} 2,203,2,203
+{1,1,2} 2,204,2,204
+{1,2,1} 5,207,5,207
+{1,2,2} 5,209,5,209
+{2,1,1} 3,205,3,205
+{2,1,2} 3,207,3,207
+{2,2,1} 6,210,6,210
+{2,2,2} 6,214,6,214
+
+SCIDB QUERY : <join(load(A22,'/tmp/a11.txt'),A66)>
+{x,y,z} num,sum,num
+
+SCIDB QUERY : <join(load(A33,'/tmp/a33.txt',0, 'text'),load(A55,'/tmp/unbound.bin',0,'(dummy(4),int32)'))>
+{x,y,z} num,sum,num
+{1,1,1} 2,203,203
+{1,1,2} 2,204,204
+{1,2,1} 5,207,207
+{1,2,2} 5,209,209
+{2,1,1} 3,205,205
+{2,1,2} 3,207,207
+{2,2,1} 6,210,210
+{2,2,2} 6,214,214
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A11)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A22)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A33)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A44)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Unbounded)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A55)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A66)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A55_shad)>
+Query was executed successfully
+

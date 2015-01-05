@@ -1,0 +1,174 @@
+SCIDB QUERY : <build(<a:double> [x=0:3,4,0],   '[(nan),(NaN),(nan),()]', true)>
+{x} a
+{0} nan
+{1} nan
+{2} nan
+
+SCIDB QUERY : <build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1)>
+{x} a
+{10} nan
+{11} inf
+{12} inf
+
+SCIDB QUERY : <build(<a:double> [x=10:13,4,0], '[(nan),(-inf),(inf),(2.5)]', 1)>
+{x} a
+{10} nan
+{11} -inf
+{12} inf
+{13} 2.5
+
+SCIDB QUERY : <build(<a:double, b:float> [x=110:112,1,0], '[(nan,inf),(-inf,inf),(inf,nan)]', 1)>
+{x} a,b
+{110} nan,inf
+{111} -inf,inf
+{112} inf,nan
+
+SCIDB QUERY : <build(<a:double, b:float, c:string> [x=110:112,1,0], '[(nan,inf,Bio),(-inf,inf,Phy),(inf,nan,Math)]', 1)>
+{x} a,b,c
+{110} nan,inf,'Bio'
+{111} -inf,inf,'Phy'
+{112} inf,nan,'Math'
+
+SCIDB QUERY : <aggregate(build(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),()]', 1),min(a))>
+{i} a_min
+{0} nan
+
+SCIDB QUERY : <aggregate(build(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),()]', 1),max(a))>
+{i} a_max
+{0} nan
+
+SCIDB QUERY : <aggregate(build(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),()]', 1),avg(a))>
+{i} a_avg
+{0} nan
+
+SCIDB QUERY : <select * from array(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),(234.56)]')>
+{x} a
+{0} nan
+{1} nan
+{2} nan
+{3} 234.56
+
+SCIDB QUERY : <select * from array(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),()]')>
+{x} a
+{0} nan
+{1} nan
+{2} nan
+
+SCIDB QUERY : <select * from array(<a:double, b:float, c:string> [x=110:112,1,0], '[(nan,inf,Bio),(-inf,inf,Phy),(inf,nan,Math)]')>
+{x} a,b,c
+{110} nan,inf,'Bio'
+{111} -inf,inf,'Phy'
+{112} inf,nan,'Math'
+
+SCIDB QUERY : <select max(a),min(a),avg(a) from array(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),(234.56)]')>
+{i} max,min_1,avg_2
+{0} nan,nan,nan
+
+SCIDB QUERY : <select max(a),max(b),min(a),min(b) from array(<a:double, b:float, c:string> [x=110:112,2,0], '[(nan,inf,Bio),(-inf,inf,Phy),(inf,nan,Math)]')>
+{i} max,max_1,min_2,min_3
+{0} nan,nan,nan,nan
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "save(build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1), '${TEST_DATA_DIR}/literal.txt')">
+{x} a
+{10} nan
+{11} inf
+{12} inf
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "save(build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1), '${TEST_DATA_DIR}/literal.txt')">
+{x} a
+{10} nan
+{11} inf
+{12} inf
+
+SCIDB QUERY : <store(build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1),Test1)>
+{x} a
+{10} nan
+{11} inf
+{12} inf
+
+SCIDB QUERY : <sort(Test1)>
+{n} a
+{0} nan
+{1} inf
+{2} inf
+
+SCIDB QUERY : <sort(build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1))>
+{n} a
+{0} nan
+{1} inf
+{2} inf
+
+SCIDB QUERY : <sort(build(<a:double> [x=10:12,3,0], '[(4),(3.5),(7.9)]', 1))>
+{n} a
+{0} 3.5
+{1} 4
+{2} 7.9
+
+SCIDB QUERY : <build(<a:datetime, days: string default 'Thursday'> [x=0:2,3,0], '[("2012-07-13 18:41:14",Sunday),("2011-12-13 18:41:14",),("2012-12-13 18:41:14",)]', true)>
+{x} a,days
+{0} '2012-07-13 18:41:14','Sunday'
+{1} '2011-12-13 18:41:14','Thursday'
+{2} '2012-12-13 18:41:14','Thursday'
+
+SCIDB QUERY : <build(<a:datetime , days: string default 'Thursday'> [x=0:2,3,0], '[(),("2011-12-13 18:41:14",),("2012-12-13 18:41:14",)]', true)>
+{x} a,days
+{1} '2011-12-13 18:41:14','Thursday'
+{2} '2012-12-13 18:41:14','Thursday'
+
+SCIDB QUERY : <create array bad<x:double default NAN>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default NAN>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default nAN>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default nAN>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default NAn>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default NAn>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default nAN>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default nAN>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default Nan>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default Nan>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default naN>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default naN>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default Inf>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default Inf>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default iNf>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default iNf>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default inF>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default inF>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default iNf>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default iNf>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default INF>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default INF>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default InF>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default InF>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default iNF>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default iNF>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default INf>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default INf>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default nanabc>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default nanabc>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default NaNabc>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default NaNabc>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <create array bad<x:double default infabc>[i=1:1,1,0]>
+[An error expected at this place for the query "create array bad<x:double default infabc>[i=1:1,1,0]". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <build(<a:datetime default now() , days: string default 'Thursday'> [x=0:2,3,0], '[(),("2011-12-13 18:41:14",),("2012-12-13 18:41:14",)]', true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(Test1)>
+Query was executed successfully
+

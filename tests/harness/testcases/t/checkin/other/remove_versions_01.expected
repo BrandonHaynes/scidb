@@ -1,0 +1,27 @@
+Query was executed successfully
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+{i} a_count
+{0} 50001
+
+{i} a_count
+{0} 0
+
+{i} a_count
+{0} 50001
+
+[An error expected at this place for the query "aggregate(filter(foo@2, a = 2), count(a))". And it failed with error code = scidb::SCIDB_SE_SYSCAT::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_SYSCAT::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "aggregate(filter(foo@1, a = 1), count(a))". And it failed with error code = scidb::SCIDB_SE_SYSCAT::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_SYSCAT::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+Query was executed successfully
+

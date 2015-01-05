@@ -1,0 +1,28 @@
+--setup
+--start-query-logging
+create array foo <val:double> [x=1:100,10,0,y=1:100,10,0]
+
+--test
+
+insert( filter(build( foo, 1), x=10 and y=10), foo)
+scan(foo)
+insert( filter(build( foo, 2), x=25 and y=16), foo)
+scan(foo)
+insert( filter(build( foo, 3), x=1 and y=36), foo)
+
+##this will first write some chunks and then generate a "divide by zero" error
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_DIVISION_BY_ZERO "insert( filter(build( foo, x / (y-99)), true), foo)"
+
+##make sure data is not changed
+scan(foo)
+
+##used to make sure the rollback is finished - adds only 4 chunks: attribute, empty tag and replicas
+insert( filter(build( foo, 4), x=12 and y=13), foo)
+
+insert( filter(build( foo, x+y), x<10 and y<10), foo)
+insert( filter(build( foo, x+y), x>80 and y>90), foo)
+scan(foo)
+
+--cleanup
+remove(foo)
+--stop-query-logging

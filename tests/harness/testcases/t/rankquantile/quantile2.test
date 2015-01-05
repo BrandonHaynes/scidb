@@ -1,0 +1,64 @@
+--setup
+--start-query-logging
+# Tests on 3D arrays with different chunk schemas
+# Tests for sort-rank and quantile
+
+create array A <num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]
+
+
+--test
+--set-format dense
+store(apply(build(A,x+y*y/1),sum,200+x*y*z+num),A11)
+store(repart(A11,<num:int64,sum:int64> [x=1:2,1,0,y=1:2,2,0,z=1:2,1,0]),R11)
+
+sort(A11)
+sort(A11,12)
+sort(A11,num)
+sort(A11,num desc)
+sort(reverse(A11),num)
+project(sort(R11,num desc),num)
+sort(R11,sum)
+filter(A11,x<>2 and z=1)
+sort(filter(A11,x<>2 and z=1),num desc)
+sort(filter(R11,x<>2 and z=1),num desc)
+sort(filter(A11,x<>2 and z=1),sum desc)
+sort(filter(R11,x<>2 and z=1),sum desc)
+sort(unpack(A11,i),z, 10)
+sort(unpack(A11,i),sum desc, 10)
+project(sort(unpack(R11,i),z desc, 10),z)
+
+##In such cases, the second attribute is ignored ie sum
+sort(A11,num,sum)
+
+rank(A11)
+rank(A11,sum)
+rank(R11)
+rank(R11,sum)
+rank(filter(A11,x<>2 and z=1))
+rank(filter(A11,x<>2 and z=1),sum)
+
+quantile(A11,2,num)
+quantile(R11,2,sum)
+quantile(A11,4)
+quantile(R11,4)
+quantile(A11,10,sum)
+quantile(R11,10)
+quantile(A11,99,num)
+quantile(R11,99)
+quantile(A11,100)
+quantile(R11,100,sum)
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2 "quantile(R11)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DLA_ERROR17 "quantile(R11,0)"
+quantile(filter(A11,x<>2),2)
+quantile(filter(R11,x<>2),2)
+quantile(filter(A11,x<>2),20)
+quantile(filter(R11,x<>2),20)
+
+
+--reset-format
+--cleanup
+remove(A)
+remove(A11)
+remove(R11)
+--stop-query-logging
+

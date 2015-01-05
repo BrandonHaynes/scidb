@@ -1,0 +1,11 @@
+# Ticket 1592
+# A bounded array is created and then is cast to an unbounded array.
+# Both the contents and the metadata are shown.
+
+--setup
+
+--test
+cast(build(<a:int32>[i=0:2,3,0], i), <a:int32>[i=0:*,3,0])
+show('cast(build(<a:int32>[i=0:2,3,0], i), <a:int32>[i=0:*,3,0])', 'afl')
+
+--cleanup

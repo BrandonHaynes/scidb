@@ -1,0 +1,124 @@
+SCIDB QUERY : <create array source < a : double NULL > [ b=0:10,2,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(source, iif(b%2=0, null, 10000 - b*3.2)), source)>
+{b} a
+{0} null
+{1} 9996.8
+{2} null
+{3} 9990.4
+{4} null
+{5} 9984
+{6} null
+{7} 9977.6
+{8} null
+{9} 9971.2
+{10} null
+
+SCIDB QUERY : <create array dest < b: int64 > [a(double) = 11,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array dest1 < b: int64 > [a(double) = 11,11,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array dest2 < b: int64 > [a(double) = 11,11,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array AA <a1: double null > [x=0:1,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(apply(build(AA, iif(x%2=0, null, 10000)), a2,iif(x%2=1, null, 1000.45)),ZZ)>
+{x} a1,a2
+{0} null,1000.45
+{1} 10000,null
+
+SCIDB QUERY : <create array NN <x:int64> [a1(double)=2,2,0, a2(double)=2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(source,dest),dest)>
+{a} b
+{9971.2} 9
+{9977.6} 7
+{9984} 5
+{9990.4} 3
+{9996.8} 1
+
+SCIDB QUERY : <store(redimension(repart(source,< a : double NULL > [ b=0:10,11,0 ]),dest1),dest1)>
+{a} b
+{9971.2} 9
+{9977.6} 7
+{9984} 5
+{9990.4} 3
+{9996.8} 1
+
+SCIDB QUERY : <update source set a=NULL>
+{b} a
+{0} null
+{1} null
+{2} null
+{3} null
+{4} null
+{5} null
+{6} null
+{7} null
+{8} null
+{9} null
+{10} null
+
+SCIDB QUERY : <select * from source>
+{b} a
+{0} null
+{1} null
+{2} null
+{3} null
+{4} null
+{5} null
+{6} null
+{7} null
+{8} null
+{9} null
+{10} null
+
+SCIDB QUERY : <store(redimension(source,dest2),dest2)>
+{a} b
+
+SCIDB QUERY : <store(redimension(ZZ,NN),NN)>
+{a1,a2} x
+
+SCIDB QUERY : <update ZZ  set a2=NULL>
+{x} a1,a2
+{0} null,null
+{1} 10000,null
+
+SCIDB QUERY : <store(redimension(ZZ,NN),NN)>
+{a1,a2} x
+
+SCIDB QUERY : <update ZZ  set a1=NULL>
+{x} a1,a2
+{0} null,null
+{1} null,null
+
+SCIDB QUERY : <store(redimension(ZZ,NN),NN)>
+{a1,a2} x
+
+SCIDB QUERY : <remove(source)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dest)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dest1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(dest2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AA)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ZZ)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(NN)>
+Query was executed successfully
+

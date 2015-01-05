@@ -1,0 +1,321 @@
+SCIDB QUERY : <create array A <val:double> [x=1:*,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A, '${TEST_DATA_DIR}/unbound_ins.txt')">
+{x} val
+{1} 10.05
+{2} 0.025
+{3} -3.31667
+{4} -4.9875
+{5} -5.99
+{6} -6.65833
+{7} -7.13571
+{8} -7.49375
+{9} -7.77222
+{10} -7.995
+{11} -8.17727
+{12} -8.32917
+{13} -8.45769
+{14} -8.56786
+{15} -8.66333
+
+SCIDB QUERY : <create array B <val:double> [x=1:20,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(B,101.5*x+100),B)>
+{x} val
+{1} 201.5
+{2} 303
+{3} 404.5
+{4} 506
+{5} 607.5
+{6} 709
+{7} 810.5
+{8} 912
+{9} 1013.5
+{10} 1115
+{11} 1216.5
+{12} 1318
+{13} 1419.5
+{14} 1521
+{15} 1622.5
+{16} 1724
+{17} 1825.5
+{18} 1927
+{19} 2028.5
+{20} 2130
+
+SCIDB QUERY : <create array AA <a:string> [x=0:*,4,0, y=0:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(AA, '${TEST_DATA_DIR}/unbound_string')">
+{x,y} a
+{0,2} ''
+{0,3} ''
+{1,2} ''
+{1,3} ''
+{2,2} '5amigos'
+{2,3} '6amigos'
+{3,2} ''
+{3,3} ''
+
+SCIDB QUERY : <create array ZZ <a:string> [x=0:3,4,0, y=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array BB <a:string, b:string> [x=0:*,4,0, y=0:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array TT <a:string> [x=0:2,4,0,y=0:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <insert(B,A)>
+{x} val
+{1} 201.5
+{2} 303
+{3} 404.5
+{4} 506
+{5} 607.5
+{6} 709
+{7} 810.5
+{8} 912
+{9} 1013.5
+{10} 1115
+{11} 1216.5
+{12} 1318
+{13} 1419.5
+{14} 1521
+{15} 1622.5
+{16} 1724
+{17} 1825.5
+{18} 1927
+{19} 2028.5
+{20} 2130
+
+SCIDB QUERY : <insert(A@1,B)>
+{x} val
+{1} 10.05
+{2} 0.025
+{3} -3.31667
+{4} -4.9875
+{5} -5.99
+{6} -6.65833
+{7} -7.13571
+{8} -7.49375
+{9} -7.77222
+{10} -7.995
+{11} -8.17727
+{12} -8.32917
+{13} -8.45769
+{14} -8.56786
+{15} -8.66333
+{16} 1724
+{17} 1825.5
+{18} 1927
+{19} 2028.5
+{20} 2130
+
+SCIDB QUERY : <insert(A,B)>
+{x} val
+{1} 201.5
+{2} 303
+{3} 404.5
+{4} 506
+{5} 607.5
+{6} 709
+{7} 810.5
+{8} 912
+{9} 1013.5
+{10} 1115
+{11} 1216.5
+{12} 1318
+{13} 1419.5
+{14} 1521
+{15} 1622.5
+{16} 1724
+{17} 1825.5
+{18} 1927
+{19} 2028.5
+{20} 2130
+
+SCIDB QUERY : <insert(B@1,B)>
+{x} val
+{1} 201.5
+{2} 303
+{3} 404.5
+{4} 506
+{5} 607.5
+{6} 709
+{7} 810.5
+{8} 912
+{9} 1013.5
+{10} 1115
+{11} 1216.5
+{12} 1318
+{13} 1419.5
+{14} 1521
+{15} 1622.5
+{16} 1724
+{17} 1825.5
+{18} 1927
+{19} 2028.5
+{20} 2130
+
+SCIDB QUERY : <insert(B@2,A)>
+{x} val
+{1} 10.05
+{2} 0.025
+{3} -3.31667
+{4} -4.9875
+{5} -5.99
+{6} -6.65833
+{7} -7.13571
+{8} -7.49375
+{9} -7.77222
+{10} -7.995
+{11} -8.17727
+{12} -8.32917
+{13} -8.45769
+{14} -8.56786
+{15} -8.66333
+{16} 1724
+{17} 1825.5
+{18} 1927
+{19} 2028.5
+{20} 2130
+
+SCIDB QUERY : <insert(B@1,B@2)>
+[An error expected at this place for the query "insert(B@1,B@2)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_CANT_ACCESS_ARRAY_VERSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_CANT_ACCESS_ARRAY_VERSION.]
+
+SCIDB QUERY : <insert(filter(build(ZZ, string(3+y)+'amigos!1-insert '), x=0 and y=0),AA)>
+{x,y} a
+{0,0} '3amigos!1-insert '
+{0,2} ''
+{0,3} ''
+{1,2} ''
+{1,3} ''
+{2,2} '5amigos'
+{2,3} '6amigos'
+{3,2} ''
+{3,3} ''
+
+SCIDB QUERY : <insert(store(filter(build(ZZ, string(3+y)+'amigos!2-insert '), x=0 and y=2),ZZ),AA)>
+{x,y} a
+{0,0} '3amigos!1-insert '
+{0,2} '5amigos!2-insert '
+{0,3} ''
+{1,2} ''
+{1,3} ''
+{2,2} '5amigos'
+{2,3} '6amigos'
+{3,2} ''
+{3,3} ''
+
+SCIDB QUERY : <scan(ZZ)>
+{x,y} a
+{0,2} '5amigos!2-insert '
+
+SCIDB QUERY : <insert(ZZ,ZZ)>
+{x,y} a
+{0,2} '5amigos!2-insert '
+
+SCIDB QUERY : <insert(join(ZZ,AA),BB)>
+{x,y} a,b
+{0,2} '5amigos!2-insert ','5amigos!2-insert '
+
+SCIDB QUERY : <scan(BB)>
+{x,y} a,b
+{0,2} '5amigos!2-insert ','5amigos!2-insert '
+
+SCIDB QUERY : <insert(apply(build(ZZ,x*y+10),b, x),BB)>
+[An error expected at this place for the query "insert(apply(build(ZZ,x*y+10),b, x),BB)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE.]
+
+SCIDB QUERY : <insert(build(ZZ,x*y+10),BB)>
+[An error expected at this place for the query "insert(build(ZZ,x*y+10),BB)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ILLEGAL_OPERATION. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ILLEGAL_OPERATION.]
+
+SCIDB QUERY : <insert(apply(build(ZZ,x*y+10),b,'SciDB'+a),BB)>
+{x,y} a,b
+{0,0} '10','SciDB10'
+{0,1} '10','SciDB10'
+{1,0} '10','SciDB10'
+{1,1} '11','SciDB11'
+{2,0} '10','SciDB10'
+{2,1} '12','SciDB12'
+{3,0} '10','SciDB10'
+{3,1} '13','SciDB13'
+{0,2} '10','SciDB10'
+{0,3} '10','SciDB10'
+{1,2} '12','SciDB12'
+{1,3} '13','SciDB13'
+{2,2} '14','SciDB14'
+{2,3} '16','SciDB16'
+{3,2} '16','SciDB16'
+{3,3} '19','SciDB19'
+
+SCIDB QUERY : <insert(concat(ZZ,ZZ),AA)>
+{x,y} a
+{0,0} '3amigos!1-insert '
+{0,2} '5amigos!2-insert '
+{0,3} ''
+{1,2} ''
+{1,3} ''
+{2,2} '5amigos'
+{2,3} '6amigos'
+{3,2} ''
+{3,3} ''
+{4,2} '5amigos!2-insert '
+
+SCIDB QUERY : <insert(between(concat(ZZ,ZZ),1,1,2,2),AA)>
+{x,y} a
+{0,0} '3amigos!1-insert '
+{0,2} '5amigos!2-insert '
+{0,3} ''
+{1,2} ''
+{1,3} ''
+{2,2} '5amigos'
+{2,3} '6amigos'
+{3,2} ''
+{3,3} ''
+{4,2} '5amigos!2-insert '
+
+SCIDB QUERY : <insert(subarray(insert(between(concat(ZZ,ZZ),1,1,2,2),AA),2,2,4,4),TT)>
+{x,y} a
+{0,0} '5amigos'
+{0,1} '6amigos'
+{1,0} ''
+{1,1} ''
+{2,0} '5amigos!2-insert '
+
+SCIDB QUERY : <aggregate(versions(AA),count(*))>
+{i} count
+{0} 6
+
+SCIDB QUERY : <aggregate(versions(BB),count(*))>
+{i} count
+{0} 2
+
+SCIDB QUERY : <aggregate(versions(ZZ),count(*))>
+{i} count
+{0} 2
+
+SCIDB QUERY : <aggregate(versions(TT),count(*))>
+{i} count
+{0} 1
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AA)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ZZ)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(BB)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TT)>
+Query was executed successfully
+

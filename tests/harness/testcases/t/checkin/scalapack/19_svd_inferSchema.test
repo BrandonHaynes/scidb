@@ -1,0 +1,88 @@
+--setup
+--start-query-logging
+
+#minimal matrices
+# 1c32
+create array A_1c32 <x:double>[r=0:0,32,0, c=0:0,32,0]
+store(build(A_1c32, 1), A_1c32)
+# 12c32 - rectangular slab (wide)
+create array A_12c32 <x:double>[r=0:0,32,0, c=0:1,32,0]
+store(build(A_12c32, 1 + r*2+c), A_12c32)
+# 21c32 - rectangular pane (tall)
+create array A_21c32 <x:double>[r=0:1,32,0, c=0:0,32,0]
+store(build(A_21c32, 1 + r*2+c), A_21c32)
+
+--test
+# make it easier for a human to see the matrix location of differing values
+--set-format csv+
+
+load_library('dense_linear_algebra')
+
+# three output choices, deprecated names
+gesvd(A_1c32, 'left')
+gesvd(A_1c32, 'values')
+gesvd(A_1c32, 'right')
+
+# three output choices
+gesvd(A_1c32, 'U')
+gesvd(A_1c32, 'S')
+gesvd(A_1c32, 'VT')
+
+# other names for S
+gesvd(A_1c32, 'SIGMA')
+
+# invalid output type, e.g. 'foo'
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR33 "gesvd(A_1c32, 'foo')"
+
+# also demonstrate result has a fully-defined schema (by storing into un-created array),
+# that it does not have the "not emptyable" attribute, and that it can be scanned.
+--justrun "remove(tmp)"
+store(gesvd(A_1c32, 'U'),  tmp)
+show(tmp)
+scan(tmp)
+remove(tmp)
+store(gesvd(A_1c32, 'S'),  tmp)
+show(tmp)
+scan(tmp)
+remove(tmp)
+store(gesvd(A_1c32, 'VT'), tmp)
+show(tmp)
+scan(tmp)
+remove(tmp)
+
+# if firt axis name of M is 'i', it will collide with gesvd(M,'U')
+# which inherits first axis of output from M, and wants 'i' for second output axis name
+# _1 & _2 should be appended in this case
+
+create array M_first_i <x:double>[i=0:0,32,0, j=0:0,32,0]
+store(build(M_first_i, 1), M_first_i)
+
+store(gesvd(M_first_i, 'U'), tmp)
+remove(M_first_i)
+
+create array M_second_i <x:double>[h=0:0,32,0, i=0:0,32,0]
+store(build(M_second_i, 1), M_second_i)
+
+store(gesvd(M_second_i, 'VT'), tmp)
+remove(tmp)
+remove(M_second_i)
+
+# TEMPORARY all non-square and non-zero starting index cases are
+#           temporarily errors ... ScaLAPACK DLA_ERROR43 and 44, respectively
+#           will be fixed by #2200 and/or #2202
+#
+# so far matrices have been 1x1.
+# demonstrate rectangular matrices are accepted
+#store(gesvd(A_12c32, 'U'),  tmp)
+#remove(tmp)
+#store(gesvd(A_21c32, 'U'),  tmp)
+#remove(tmp)
+
+
+--cleanup
+
+# inputs
+remove(A_1c32)
+remove(A_12c32)
+remove(A_21c32)
+

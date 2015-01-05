@@ -1,0 +1,51 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+load_library('dense_linear_algebra')  
+create array event <event:string> [i=0:11,12,0]  
+create array year <year:int64>[i=0:11,12,0]  
+create array person <person:string>[i=0:11,12,0]  
+create array country <country:string>[i=0:11,12,0]  
+create array time <time:double>[i=0:11,12,0]  
+store(build(event,iif(i<4,'dash',iif(i<8,'steeplechase','marathon'))),event)  
+store(build(year,1996+(i%4 * 4)),year)  
+store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei, Kemboi,Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person)  
+store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya, Kenya,Kenya,USA,Ethiopia,Italy,Kenya]',true),country)  
+store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12), (503.17),(485.81),(490.34),(7956),(7811),(7855),(7596)]',true),time)  
+store(join(event,join(person,join(year,join(country,time)))),winnersFlat)  
+create array event_index<event:string>[event_id=0:*,5,0]  
+store(uniq(sort(project(winnersFlat,event)),'chunk_size=5'),event_index)  
+create_array(champions,<person:string,country:string,time:double> [year=1996:2008,13,0,event_id=0:3,3,0])  
+store(redimension (project(index_lookup(winnersFlat,event_index, winnersFlat.event, event_id),person,year,country,time,event_id) ,champions),champions)  
+--stop-igdata
+show(champions) 
+--aql select * into championsAbridged from project(champions,person)  
+--aql select * from show(championsAbridged)  
+--set-format dense
+store(build(<val1:double> [i=0:4,32,0, j=0:0,32,0], i),A)  
+store(build(<val2:double> [i=0:0,32,0, j=0:4,32,0], 10-j),B)  
+store(build(<val3:double> [i=0:4,32,0, j=0:4,32,0], 0),C)  
+show('gemm(A,B,C)','afl')  
+show('select sum(val1) from A')  
+show('select stdev(val1) from A')  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(event)
+remove(year)
+remove(person)
+remove(country)
+remove(time)
+remove(winnersFlat)
+remove(event_index)
+remove(champions)
+remove(championsAbridged)
+remove(A)
+remove(B)
+remove(C)

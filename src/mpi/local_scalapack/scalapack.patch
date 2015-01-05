@@ -1,0 +1,71 @@
+diff -ruN a/script/framework.py b/script/framework.py
+--- a/script/framework.py	2012-05-02 01:44:38.000000000 -0400
++++ b/script/framework.py	2013-01-29 03:15:58.380238199 -0500
+@@ -420,12 +420,12 @@
+         print 'Checking if mpirun works...',
+         sys.stdout.flush()
+         # run
+-        comm = self.config.mpirun + ' ./tmpc'
+-        (output, error, retz) = runShellCommand(comm)
+-        if retz:
+-            print '\n\nCOMMON: mpirun not working! aborting...'
+-            print 'error is:\n','*'*40,'\n',error,'\n','*'*40
+-            sys.exit()
++        #comm = self.config.mpirun + ' ./tmpc'
++        #(output, error, retz) = runShellCommand(comm)
++        #if retz:
++        #    print '\n\nCOMMON: mpirun not working! aborting...'
++        #    print 'error is:\n','*'*40,'\n',error,'\n','*'*40
++        #    sys.exit()
+ 
+         # cleanup
+         killfiles(['tmpc.c','tmpc'])
+@@ -456,21 +456,21 @@
+       end\n""")
+ 
+         # compile
+-        fcomm = self.config.mpif90+' '+self.config.fcflags+' -o tmpf '+'tmpf.f'
+-        (output, error, retz) = runShellCommand(fcomm)
++        #fcomm = self.config.mpif90+' '+self.config.fcflags+' -o tmpf '+'tmpf.f'
++        #(output, error, retz) = runShellCommand(fcomm)
+ 
+-        if retz:
+-            print '\n\nCOMMON: mpif90 not working! aborting...'
+-            print 'error is:\n','*'*40,'\n',error,'\n','*'*40
+-            sys.exit()
++        #if retz:
++        #    print '\n\nCOMMON: mpif90 not working! aborting...'
++        #    print 'error is:\n','*'*40,'\n',error,'\n','*'*40
++        #    sys.exit()
+         
+         # run
+-        comm = self.config.mpirun + ' ./tmpf'
+-        (output, error, retz) = runShellCommand(comm)
+-        if retz:
+-            print '\n\nCOMMON: mpif90 not working! aborting...'
+-            print 'error is:\n','*'*40,'\n',error,'\n','*'*40
+-            sys.exit()
++        #comm = self.config.mpirun + ' ./tmpf'
++        #(output, error, retz) = runShellCommand(comm)
++        #if retz:
++        #    print '\n\nCOMMON: mpif90 not working! aborting...'
++        #    print 'error is:\n','*'*40,'\n',error,'\n','*'*40
++        #    sys.exit()
+ 
+         # cleanup        
+         killfiles(['tmpf.f','tmpf','tmpf.o'])
+diff -ruN a/script/utils.py b/script/utils.py
+--- a/script/utils.py	2012-05-02 01:44:38.000000000 -0400
++++ b/script/utils.py	2013-01-29 03:16:35.370162963 -0500
+@@ -19,7 +19,10 @@
+ import re
+ import shutil
+ 
+-import popen2
++import warnings
++with warnings.catch_warnings():
++    warnings.filterwarnings("ignore",category=DeprecationWarning)
++    import popen2
+ 
+ import select
+ 

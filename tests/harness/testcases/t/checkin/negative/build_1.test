@@ -1,0 +1,11 @@
+# ticket no. 739
+
+--setup
+--start-query-logging
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_BUILD_ERROR2 "build ( < a : double, b: int64> [ I=0:2,3,0, J=0:2,3,0 ], 1.0 * I + 10.0 * J)"
+build ( <a : double> [ I=0:2,3,0, J=0:2,3,0 ], 1.0 * I + 10.0 * J)
+
+--cleanup
+--stop-query-logging

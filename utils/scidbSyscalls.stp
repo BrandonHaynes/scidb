@@ -1,0 +1,532 @@
+# original vars
+global pids
+
+# added vars
+# for syncs
+global     fsyncstarts,     fsyncnames,              fsyncns, fsyncany
+global fdatasyncstarts, fdatasyncnames,          fdatasyncns, fdatasyncany
+# for read-write system calls
+global    readstarts,    readnames,    readcounts,    readns, readany
+global   preadstarts,   preadnames,   preadcounts,   preadns, preadany
+global  preadvstarts,  preadvnames,  preadvcounts,  preadvns, preadvany
+global   writestarts,   writenames,   writecounts,   writens, writeany
+global  pwritestarts,  pwritenames,  pwritecounts,  pwritens, pwriteany
+global pwritevstarts, pwritevnames, pwritevcounts, pwritevns, pwritevany
+# for send-recv system calls
+global     recvstarts,     recvnames,     recvcounts,     recvns, recvany
+global recvfromstarts, recvfromnames, recvfromcounts, recvfromns, recvfromany
+global  recvmsgstarts,  recvmsgnames,  recvmsgcounts,  recvmsgns, recvmsgany
+global     sendstarts,     sendnames,     sendcounts,     sendns, sendany
+global   sendtostarts,   sendtonames,   sendtocounts,   sendtons, sendtoany
+global  sendmsgstarts,  sendmsgnames,  sendmsgcounts,  sendmsgns, sendmsgany
+
+global breakdownByTid, headersPrinted
+
+function outHeader(label, count) {
+    if (count > 0) {
+        if (breakdownByTid || headersPrinted == 0) {
+            printf("%20s %6s %6s %8s %10s %10s %6s %10s %10s %7s %10s\n",
+                   "process", "pid", "tid", "count", "tot(B)", "tot(us)", "min(B)", "max(B)", "avg(B)", "avg(us)", "B/s")
+            headersPrinted += 1
+        }
+        printf("%s\n", label)
+    }
+}
+
+function outLine(name, pid, tid, count, totB, totUs, minB, maxB, avgB, avgUs, Bps) {
+
+    printf("%20s %6d %6d %8d %10d %10d %6d %10d %10d %7d %10d\n",
+           name, pid, tid, count, totB, totUs, minB, maxB, avgB, avgUs, Bps)
+}
+
+function goodName() {
+    return substr(execname(), 0, 6) == "SciDB-"
+}
+
+function tidSlot() {
+    if (breakdownByTid) {
+        return tid()
+    } else {
+        return pid()  # merge all tids in same process together
+    }
+}
+
+probe begin {
+    breakdownByTid = 0 # change to non-zero to get a breakdown by tid
+    headersPrinted=0
+    fsyncany = 0
+    fdatasyncany = 0
+    readany = 0
+    preadany = 0
+    preadvany = 0
+    preadvany = 0
+    writeany = 0
+    pwriteany = 0
+    pwritevany = 0
+    recvany = 0
+    recvfromany = 0
+    recvmsgany = 0
+    sendany = 0
+    sendtoany = 0
+    sendmsgany = 0
+}
+
+probe syscall.fsync {
+    fsyncstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.fdatasync {
+    fdatasyncstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.read {
+    readstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.pread {
+    preadstarts[tid()] = gettimeofday_ns()
+}
+
+probe kernel.function("sys_preadv") {
+    preadvstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.write {
+    writestarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.pwrite {
+    pwritestarts[tid()] = gettimeofday_ns()
+}
+
+probe kernel.function("sys_pwritev") {
+    pwritevstarts[tid()] = gettimeofday_ns()
+}
+
+# send-recv starts
+
+probe syscall.send {
+    sendstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.sendto {
+    sendtostarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.sendmsg {
+    sendmsgstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.recv {
+    recvstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.recvfrom {
+    recvfromstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.recvmsg {
+    recvmsgstarts[tid()] = gettimeofday_ns()
+}
+
+probe syscall.fsync.return {
+    ret = $return             # return value of the syscall (fsync)
+    if (ret == 0) {
+        amount = gettimeofday_ns() - fsyncstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            fsyncns[tidSlot()] <<< amount
+            fsyncnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            fsyncany = 1
+        }
+    }
+}
+
+probe syscall.fdatasync.return {
+    ret = $return             # return value of the syscall (fdatasync)
+    if (ret == 0) {
+        amount = gettimeofday_ns() - fdatasyncstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            fdatasyncns[tidSlot()] <<< amount
+            fdatasyncnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            fdatasyncany = 1
+        }
+    }
+}
+
+probe syscall.read.return {
+    count = $return             # return value of the syscall (bytes read)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - readstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            readcounts[tidSlot()] <<< count
+            readns[tidSlot()] <<< amount
+            readnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            readany = 1
+        }
+    }
+}
+
+probe syscall.pread.return {
+    count = $return             # return value of the syscall (bytes pread)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - preadstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            preadcounts[tidSlot()] <<< count
+            preadns[tidSlot()] <<< amount
+            preadnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            preadany = 1
+        }
+    }
+}
+
+probe kernel.function("sys_preadv").return {
+    count = $return             # return value of the syscall (bytes preadv)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - preadvstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            preadvcounts[tidSlot()] <<< count
+            preadvns[tidSlot()] <<< amount
+            preadvnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            preadvany = 1
+        }
+    }
+}
+
+
+probe syscall.write.return {
+    count = $return             # return value of the syscall (bytes written)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - writestarts[tid()]
+        if (amount >= 0 && goodName()) {
+            writecounts[tidSlot()] <<< count
+            writens[tidSlot()] <<< amount
+            writenames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            writeany = 1
+        }
+    }
+}
+
+probe syscall.pwrite.return {
+    count = $return             # return value of the syscall (bytes pwrite)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - pwritestarts[tid()]
+        if (amount >= 0 && goodName()) {
+            pwritecounts[tidSlot()] <<< count
+            pwritens[tidSlot()] <<< amount
+            pwritenames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            pwriteany = 1
+        }
+    }
+}
+
+probe kernel.function("sys_pwritev").return {
+    count = $return             # return value of the syscall (bytes pwritev)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - pwritevstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            pwritevcounts[tidSlot()] <<< count
+            pwritevns[tidSlot()] <<< amount
+            pwritevnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            pwritevany = 1
+        }
+    }
+}
+
+probe syscall.send.return {
+    count = $return             # return value of the syscall (bytes send)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - sendstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            sendcounts[tidSlot()] <<< count
+            sendns[tidSlot()] <<< amount
+            sendnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            sendany = 1
+        }
+    }
+}
+
+probe syscall.sendto.return {
+    count = $return             # return value of the syscall (bytes sendto)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - sendtostarts[tid()]
+        if (amount >= 0 && goodName()) {
+            sendtocounts[tidSlot()] <<< count
+            sendtons[tidSlot()] <<< amount
+            sendtonames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            sendtoany = 1
+        }
+    }
+}
+
+probe syscall.sendmsg.return {
+    count = $return             # return value of the syscall (bytes sendmsg)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - sendmsgstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            sendmsgcounts[tidSlot()] <<< count
+            sendmsgns[tidSlot()] <<< amount
+            sendmsgnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            sendmsgany = 1
+        }
+    }
+}
+
+probe syscall.recv.return {
+    count = $return             # return value of the syscall (bytes recv)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - recvstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            recvcounts[tidSlot()] <<< count
+            recvns[tidSlot()] <<< amount
+            recvnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            recvany = 1
+        }
+    }
+}
+
+probe syscall.recvfrom.return {
+    count = $return             # return value of the syscall (bytes recvfrom)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - recvfromstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            recvfromcounts[tidSlot()] <<< count
+            recvfromns[tidSlot()] <<< amount
+            recvfromnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            recvfromany = 1
+        }
+    }
+}
+
+probe syscall.recvmsg.return {
+    count = $return             # return value of the syscall (bytes recvmsg)
+    if (count >= 0) {
+        amount = gettimeofday_ns() - recvmsgstarts[tid()]
+        if (amount >= 0 && goodName()) {
+            recvmsgcounts[tidSlot()] <<< count
+            recvmsgns[tidSlot()] <<< amount
+            recvmsgnames[tidSlot()] = execname()
+            pids[tidSlot()] = pid()
+            recvmsgany = 1
+        }
+    }
+}
+
+probe end {
+
+    printf("\n") # to get to a line without a ^C echo offsetting the header
+    printf("typical syscall usage:\n")
+    printf("\tpread: SciDB DataStore metadata, ChunkDescriptors, and log records\n")
+    printf("\tpreadv: SciDB DataStore data\n")
+    printf("\twrite: SciDB logging?\n")
+    printf("\tpwrite: SciDB DataStore metadata, ChunkDescriptors, and log records\n")
+    printf("\tpwritev: SciDB DataStore data\n")
+    printf("\n")
+
+    outHeader("fsync:", fsyncany)
+    foreach (tid in fsyncns - limit 20) {
+        outLine( fsyncnames[tid], pids[tid], tid,
+                 @count(fsyncns[tid]),
+                 0,
+                 @sum(fsyncns[tid])/(1000),
+                 0,
+                 0,
+                 0,
+                 @avg(fsyncns[tid])/(1000),
+                 0)
+    }
+
+    outHeader("fdatasync:", fdatasyncany)
+    foreach (tid in fdatasyncns - limit 20) {
+        outLine( fdatasyncnames[tid], pids[tid], tid,
+                 @count(fdatasyncns[tid]),
+                 0,
+                 @sum(fdatasyncns[tid])/(1000),
+                 0,
+                 0,
+                 0,
+                 @avg(fdatasyncns[tid])/(1000),
+                 0)
+    }
+
+    outHeader("read:", readany)
+    foreach (tid in readns - limit 20) {
+        outLine( readnames[tid], pids[tid], tid,
+                 @count(readns[tid]),
+                 @sum(readcounts[tid]),
+                 @sum(readns[tid])/(1000),
+                 @min(readcounts[tid]),
+                 @max(readcounts[tid]),
+                 @avg(readcounts[tid]),
+                 @avg(readns[tid])/(1000),
+                 @sum(readcounts[tid])*1000*1000*1000/@sum(readns[tid]))
+    }
+
+    outHeader("pread:", preadany)
+    foreach (tid in preadns - limit 20) {
+        outLine( preadnames[tid], pids[tid], tid,
+                 @count(preadns[tid]),
+                 @sum(preadcounts[tid]),
+                 @sum(preadns[tid])/(1000),
+                 @min(preadcounts[tid]),
+                 @max(preadcounts[tid]),
+                 @avg(preadcounts[tid]),
+                 @avg(preadns[tid])/(1000),
+                 @sum(preadcounts[tid])*1000*1000*1000/@sum(preadns[tid]))
+    }
+
+    outHeader("preadv:", preadvany)
+    foreach (tid in preadvns - limit 20) {
+        outLine( preadvnames[tid], pids[tid], tid,
+                 @count(preadvns[tid]),
+                 @sum(preadvcounts[tid]),
+                 @sum(preadvns[tid])/(1000),
+                 @min(preadvcounts[tid]),
+                 @max(preadvcounts[tid]),
+                 @avg(preadvcounts[tid]),
+                 @avg(preadvns[tid])/(1000),
+                 @sum(preadvcounts[tid])*1000*1000*1000/@sum(preadvns[tid]))
+    }
+
+    outHeader("write:", writeany)
+    foreach (tid in writens - limit 20) {
+        outLine( writenames[tid], pids[tid], tid,
+                 @count(writens[tid]),
+                 @sum(writecounts[tid]),
+                 @sum(writens[tid])/(1000),
+                 @min(writecounts[tid]),
+                 @max(writecounts[tid]),
+                 @avg(writecounts[tid]),
+                 @avg(writens[tid])/(1000),
+                 @sum(writecounts[tid])*1000*1000*1000/@sum(writens[tid]))
+    }
+
+    outHeader("pwrite:", pwriteany)
+    foreach (tid in pwritens - limit 20) {
+        outLine( pwritenames[tid], pids[tid], tid,
+                 @count(pwritens[tid]),
+                 @sum(pwritecounts[tid]),
+                 @sum(pwritens[tid])/(1000),
+                 @min(pwritecounts[tid]),
+                 @max(pwritecounts[tid]),
+                 @avg(pwritecounts[tid]),
+                 @avg(pwritens[tid])/(1000),
+                 @sum(pwritecounts[tid])*1000*1000*1000/@sum(pwritens[tid]))
+    }
+
+    outHeader("pwritev:", pwritevany)
+    foreach (tid in pwritevns - limit 20) {
+        outLine( pwritevnames[tid], pids[tid], tid,
+                 @count(pwritevns[tid]),
+                 @sum(pwritevcounts[tid]),
+                 @sum(pwritevns[tid])/(1000),
+                 @min(pwritevcounts[tid]),
+                 @max(pwritevcounts[tid]),
+                 @avg(pwritevcounts[tid]),
+                 @avg(pwritevns[tid])/(1000),
+                 @sum(pwritevcounts[tid])*1000*1000*1000/@sum(pwritevns[tid]))
+    
+                 if(0) {
+                     foo= @max(pwritevcounts[tid])
+                     if (foo > 4096) {
+                         print(@hist_linear(pwritevcounts[tid], 0, 300000, 4000))
+                     } 
+                 }
+    }
+
+    # and now the send-recvs
+
+    outHeader("send:", sendany)
+    foreach (tid in sendns - limit 20) {
+        outLine( sendnames[tid], pids[tid], tid,
+                 @count(sendns[tid]),
+                 @sum(sendcounts[tid]),
+                 @sum(sendns[tid])/(1000),
+                 @min(sendcounts[tid]),
+                 @max(sendcounts[tid]),
+                 @avg(sendcounts[tid]),
+                 @avg(sendns[tid])/(1000),
+                 @sum(sendcounts[tid])*1000*1000*1000/@sum(sendns[tid]))
+    }
+
+    outHeader("sendto:", sendtoany)
+    foreach (tid in sendtons - limit 20) {
+        outLine( sendtonames[tid], pids[tid], tid,
+                 @count(sendtons[tid]),
+                 @sum(sendtocounts[tid]),
+                 @sum(sendtons[tid])/(1000),
+                 @min(sendtocounts[tid]),
+                 @max(sendtocounts[tid]),
+                 @avg(sendtocounts[tid]),
+                 @avg(sendtons[tid])/(1000),
+                 @sum(sendtocounts[tid])*1000*1000*1000/@sum(sendtons[tid]))
+    }
+
+    outHeader("sendmsg:", sendmsgany)
+    foreach (tid in sendmsgns - limit 20) {
+        outLine( sendmsgnames[tid], pids[tid], tid,
+                 @count(sendmsgns[tid]),
+                 @sum(sendmsgcounts[tid]),
+                 @sum(sendmsgns[tid])/(1000),
+                 @min(sendmsgcounts[tid]),
+                 @max(sendmsgcounts[tid]),
+                 @avg(sendmsgcounts[tid]),
+                 @avg(sendmsgns[tid])/(1000),
+                 @sum(sendmsgcounts[tid])*1000*1000*1000/@sum(sendmsgns[tid]))
+    }
+
+    outHeader("recv:", recvany)
+    foreach (tid in recvns - limit 20) {
+        outLine( recvnames[tid], pids[tid], tid,
+                 @count(recvns[tid]),
+                 @sum(recvcounts[tid]),
+                 @sum(recvns[tid])/(1000),
+                 @min(recvcounts[tid]),
+                 @max(recvcounts[tid]),
+                 @avg(recvcounts[tid]),
+                 @avg(recvns[tid])/(1000),
+                 @sum(recvcounts[tid])*1000*1000*1000/@sum(recvns[tid]))
+    }
+
+    outHeader("recvfrom:", recvfromany)
+    foreach (tid in recvfromns - limit 20) {
+        outLine( recvfromnames[tid], pids[tid], tid,
+                 @count(recvfromns[tid]),
+                 @sum(recvfromcounts[tid]),
+                 @sum(recvfromns[tid])/(1000),
+                 @min(recvfromcounts[tid]),
+                 @max(recvfromcounts[tid]),
+                 @avg(recvfromcounts[tid]),
+                 @avg(recvfromns[tid])/(1000),
+                 @sum(recvfromcounts[tid])*1000*1000*1000/@sum(recvfromns[tid]))
+    }
+
+    outHeader("recvmsg:", recvmsgany)
+    foreach (tid in recvmsgns - limit 20) {
+        outLine( recvmsgnames[tid], pids[tid], tid,
+                 @count(recvmsgns[tid]),
+                 @sum(recvmsgcounts[tid]),
+                 @sum(recvmsgns[tid])/(1000),
+                 @min(recvmsgcounts[tid]),
+                 @max(recvmsgcounts[tid]),
+                 @avg(recvmsgcounts[tid]),
+                 @avg(recvmsgns[tid])/(1000),
+                 @sum(recvmsgcounts[tid])*1000*1000*1000/@sum(recvmsgns[tid]))
+    }
+}
+
+
+
+

@@ -1,0 +1,24 @@
+--setup
+create array source <a: int32> [z=0:19,2,0,i=0:4999,1000,0,j=0:4999,1000,0]
+create array result <a: int32> [z=0:19,2,1,i=0:4999,1000,0,j=0:4999,1000,0]
+--start-igdata
+--start-timer store
+store(build(source, z*z+i*i+j*j), source)
+--stop-timer store
+--stop-igdata
+--test
+--start-igdata
+store(repart(source, result), result)
+--start-timer repart_0
+store(repart(source, result), result)
+--stop-timer repart_0
+--start-timer repart_1
+store(repart(source, result), result)
+--stop-timer repart_1
+--start-timer repart_2
+store(repart(source, result), result)
+--stop-timer repart_2
+--stop-igdata
+--cleanup
+remove(source)
+remove(result)

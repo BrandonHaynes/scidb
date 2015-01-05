@@ -1,0 +1,170 @@
+--setup
+--shell --command "echo This test requires at least two instances on IQUERY_HOST because it is using IQUERY_PORT and IQUERY_PORT+1"
+
+CREATE ARRAY SCHEMA < price : double > [ equity=1:300,10,0, time=1:300,10,0 ]
+--igdata "store(build(SCHEMA, equity*time*7.0), ORIG)"
+# The removal of the array at the end is actually part of the test to make sure
+# that the async read query rollback does not interfere with the remove.
+# In case there is an internal relationship between the disk chunks of ORIG & COPY (aka COW clones),
+# we remove ORIG before COPY to make sure there are no unexpected side-effects.
+--igdata "store(ORIG,COPY)"
+
+load_library('dense_linear_algebra')
+create array M1024x1024 <x:double>[i=0:1024-1,32,0, j=0:1024-1,32,0]
+--igdata "store(build(M1024x1024, iif(i=j,1,0)), M1024x1024)"
+
+--test
+--start-query-logging
+
+# These queries should abort becuase iquery's stdout is not fully consumed and iquery should error out.
+
+# read only one chunk
+--shell  --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'aggregate(COPY, count(*), equity)' | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'filter(COPY, equity=1)' | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, null,null,null,null)' | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, 1,0,null,null)'  | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, 0,0,null,null)'  | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'join(COPY,COPY)'  | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'gemm(M1024x1024, build(M1024x1024, 0), build(M1024x1024, 1))'  | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq $'gesvd(M1024x1024, \'values\')'  | head -n 2"
+
+# read only one chunk via different coordinator
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'aggregate(COPY, count(*), equity)' | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'filter(COPY, equity=1)' | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, null,null,null,null)' | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, 1,0,null,null)'  | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, 0,0,null,null)'  | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'join(COPY,COPY)'  | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'gemm(M1024x1024, build(M1024x1024, 0), build(M1024x1024, 1))'  | head -n 2"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq $'gesvd(M1024x1024, \'values\')'  | head -n 2"
+
+# read 2 chunks
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'aggregate(COPY, count(*), equity)' | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'filter(COPY, equity=1)' | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, null,null,null,null)' | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, 1,0,null,null)'  | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, 0,0,null,null)'  | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'join(COPY,COPY)'  | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'gemm(M1024x1024, build(M1024x1024, 0), build(M1024x1024, 1))'  | head -n 1026"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq $'gesvd(M1024x1024, \'left\')'  | head -n 1026"
+
+# read 2 chunks via different coordinator
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'aggregate(COPY, count(*), equity)' | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'filter(COPY, equity=1)' | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, null,null,null,null)' | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, 1,0,null,null)'  | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, 0,0,null,null)'  | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'join(COPY,COPY)'  | head -n 102"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'gemm(M1024x1024, build(M1024x1024, 0), build(M1024x1024, 1))'  | head -n 1026"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq $'gesvd(M1024x1024, \'left\')'  | head -n 1026"
+
+# The following queries must all abort becuase iquery's stdout is not consumed at all.
+# They are useful to run because our abort logic is asynchronous, and we should verify it does not get in the way of the subsequent remove()'s
+
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'aggregate(COPY, count(*), equity)' | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'filter(COPY, equity=1)' | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, null,null,null,null)' | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, 1,0,null,null)'  | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'between(COPY, 0,0,null,null)'  | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'join(COPY,COPY)'  | true"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq 'gemm(M1024x1024, build(M1024x1024, 0), build(M1024x1024, 1))'  | true"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -o csv+ -aq $'gesvd(M1024x1024, \'right\')'  | true"
+
+
+# The following queries must all abort becuase iquery's stdout is not consumed at all. Use a different coordinator.
+# They are useful to run because our abort logic is asynchronous, and we should verify it does not get in the way of the subsequent remove()'s
+
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'aggregate(COPY, count(*), equity)' | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'filter(COPY, equity=1)' | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, null,null,null,null)' | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, 1,0,null,null)'  | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'between(COPY, 0,0,null,null)'  | true"
+--shell --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'join(COPY,COPY)'  | true"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq 'gemm(M1024x1024, build(M1024x1024, 0), build(M1024x1024, 1))'  | true"
+--shell --store --command "iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -o csv+ -aq $'gesvd(M1024x1024, \'right\')'  | true"
+
+# Try killing the iquery
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  0 'aggregate(COPY, count(*), equity)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  0 'filter(COPY, equity=1)' 1> /tmp/${HPID}_2.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_2.stdout"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'between(COPY, null,null,null,null)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'between(COPY, 1,0,null,null)' 1> /tmp/${HPID}_4.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_4.stdout"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'between(COPY, 0,0,null,null)' 1> /tmp/${HPID}_5.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_5.stdout"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'join(COPY, COPY)' 1> /tmp/${HPID}_6.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_6.stdout"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'gemm(M1024x1024, build(M1024x1024, 0), build(M1024x1024, 1))' 1> /tmp/${HPID}_7.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_7.stdout"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  1 $'gesvd(M1024x1024, \'values\')' 1> /tmp/${HPID}_8.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_8.stdout"
+
+
+
+# Try killing the iquery
+
+--shell --store --command "export IQUERY_PORT=$((${IQUERY_PORT:=1239}+1)) ; ${TEST_UTILS_DIR}/killquery.sh -afl 9  0 'aggregate(COPY, count(*), equity)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+
+--shell --store --command "export IQUERY_PORT=$((${IQUERY_PORT:=1239}+1)) ; ${TEST_UTILS_DIR}/killquery.sh -afl 9  0 'filter(COPY, equity=1)' 1> /tmp/${HPID}_2.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_2.stdout"
+
+--shell --store --command "export IQUERY_PORT=$((${IQUERY_PORT:=1239}+1)) ; ${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'between(COPY, null,null,null,null)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+
+--shell --store --command "export IQUERY_PORT=$((${IQUERY_PORT:=1239}+1)) ; ${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'between(COPY, 1,0,null,null)' 1> /tmp/${HPID}_4.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_4.stdout"
+
+--shell --store --command "export IQUERY_PORT=$((${IQUERY_PORT:=1239}+1)) ; ${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'between(COPY, 0,0,null,null)' 1> /tmp/${HPID}_5.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_5.stdout"
+
+--shell --store --command "export IQUERY_PORT=$((${IQUERY_PORT:=1239}+1)) ; ${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'join(COPY, COPY)' 1> /tmp/${HPID}_6.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_6.stdout"
+
+--shell --store --command "export IQUERY_PORT=$((${IQUERY_PORT:=1239}+1)) ; ${TEST_UTILS_DIR}/killquery.sh -afl 9  1 'gemm(M1024x1024, build(M1024x1024, 0), build(M1024x1024, 1))' 1> /tmp/${HPID}_7.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_7.stdout"
+
+--shell --store --command "export IQUERY_PORT=$((${IQUERY_PORT:=1239}+1)) ; ${TEST_UTILS_DIR}/killquery.sh -afl 9  1 $'gesvd(M1024x1024, \'values\')' 1> /tmp/${HPID}_8.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_8.stdout"
+
+--stop-query-logging
+--cleanup
+
+remove(SCHEMA)
+remove(ORIG)
+remove(COPY)
+remove(M1024x1024)
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_3.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_4.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_5.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_6.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_7.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_8.stdout 2>/dev/null"

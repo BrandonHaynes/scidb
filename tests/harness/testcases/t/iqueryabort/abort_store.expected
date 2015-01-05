@@ -1,0 +1,8 @@
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST)' 1> /tmp/${HPID}_1.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 15 2 'store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST)' 1> /tmp/${HPID}_2.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 9  2 'store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+[An error expected at this place for the query "remove(ABRTEST)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST long code = 20. Expected long code = 20.]
+

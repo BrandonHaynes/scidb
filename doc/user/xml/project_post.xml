@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="projectOperator">
+  <refnamediv>
+    <refname>project</refname>
+
+    <refpurpose><indexterm>
+        <primary>project</primary>
+      </indexterm><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>selecting</secondary>
+      </indexterm>Produces a result array with the same dimensions as—but a
+    subset of the attributes of—a source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>project(<replaceable>source_array</replaceable>,<replaceable>attribute</replaceable><optional>,<replaceable>attribute</replaceable></optional>...);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The project operator produces a result array that includes some
+    attributes of a source array but excludes others. You indicate which
+    attributes to include by supplying their names with the attribute
+    parameters. In the result array, the attributes will appear in the order
+    you name them as parameters.</para>
+
+    <para>You can use the project operator in the FROM clause of an AQL SELECT
+    statement, as a stand-alone operator in an AFL statement, or as an operand
+    within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example takes a 1-dimensional array with 5 attributes,
+      excludes one of the attributes, and reorders the remaining four.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array:<para><programlisting>AFL% scan(champions)  </programlisting><screen>event,year,person,country,time
+'dash',1996,'Bailey','Canada',9.84
+'marathon',1996,'Thugwane','USA',7956
+'dash',2000,'Greene','USA',9.87
+'steeplechase',2000,'Kosgei','Kenya',503.17
+'marathon',2000,'Abera','Ethiopia',7811
+'marathon',2008,'Wanjiru','Kenya',7596
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the project operator to exclude the
+          <literal>person</literal> attribute, and to reorder the remaining
+          attributes so that <literal>year</literal> is first:<para><programlisting>AFL% project(champions,year,event,country,time)  </programlisting><screen>year,event,country,time
+1996,'dash','Canada',9.84
+1996,'marathon','USA',7956
+2000,'dash','USA',9.87
+2000,'steeplechase','Kenya',503.17
+2000,'marathon','Ethiopia',7811
+2008,'marathon','Kenya',7596
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,11 @@
+# ticket no. 605
+
+--setup
+create array A <a:double>[i=0:9,1,0,j=0:9,1,0]
+store(build(A,i+j),A)
+
+--test
+--error --code=scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_IMPLICIT_CONVERTER "subarray(A, 7.9,8,9,9)"
+
+--cleanup
+remove(A)

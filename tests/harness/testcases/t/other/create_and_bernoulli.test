@@ -1,0 +1,26 @@
+--setup
+--start-query-logging
+
+CREATE ARRAY Data1 < A: int32 > [ X=0:4,5,0]
+CREATE array TEST2 <a:int16,b:int16>[X=0:3,4,0 , Y=0:3,4,0]
+
+--test
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(Data1,'${TEST_DATA_DIR}/data.txt')""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(TEST2,'${TEST_DATA_DIR}/test2.txt')""
+--igdata "bernoulli (Data1,0.25)"
+--igdata "bernoulli (Data1,.2)"
+--igdata "bernoulli (Data1,.2)"
+--igdata "bernoulli (Data1,.2)"
+--igdata "bernoulli (Data1,.2)"
+--igdata "bernoulli (Data1,.8)"
+--igdata "bernoulli(TEST2,0.25)"
+#bernoulli with seed value: 
+--igdata "bernoulli (Data1,.8,24)"
+--igdata "bernoulli(TEST2,0.7,25)"
+
+
+--cleanup
+remove(Data1)
+remove(TEST2)
+
+--stop-query-logging

@@ -1,0 +1,31 @@
+# ticket no. 704
+
+--setup
+create array A <a:float,b:float>[x=0:2,3,0]
+create array T <a:float>[x=0:2,3,0]
+create array B <b:float>[a(float)=3,3,0]
+create array C <a:float>[b(float)=3,3,0]
+store(join(build(T,x+1+0.05),build(T,x+5+0.08)),A)
+
+--test
+store(redimension(A,B),B)
+store(redimension(B,C),C)
+remove(A)
+remove(T)
+remove(B)
+remove(C)
+
+create array A <a:char,b:char>[x=0:2,3,0]
+create array T <a:char>[x=0:2,3,0]
+create array B <b:char>[a(char)=3,3,0]
+create array C <a:char>[b(char)=3,3,0]
+store(join(build(T,string(x+1)),build(T,string(x+5))),A)
+
+store(redimension(A,B),B)
+store(redimension(B,C),C)
+
+--cleanup
+remove(A)
+remove(T)
+remove(B)
+remove(C)

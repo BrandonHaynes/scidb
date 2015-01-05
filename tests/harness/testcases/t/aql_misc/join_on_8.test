@@ -1,0 +1,34 @@
+--setup
+create  array A <a:int32>[x=-3:4,3,0,y=3:5,1,0,z=5:9,2,0]
+create  array C <c:int32>[q=-3:4,3,0,r=3:5,1,0,p=5:9,2,0]
+store(build(A,x+y+z),A)
+store(build(A,x+y+z),B)
+store(build(C,p-q+r),C)
+
+--test
+--aql update A set a = a + 20
+
+--aql update C set c = c + 50
+
+--aql select * from A join B on A.x = B.x
+--aql select * from A join B on A.y = B.y
+--aql select * from A join B on A.z = B.z
+--aql select * from A join B on A.x = B.x and A.y = B.y
+--aql select * from A join B on A.y = B.y and A.z = B.z
+--aql select * from A join B on A.z = B.z and A.x = B.x
+--aql select * from A join B on A.x = B.x and A.y = B.y and A.z = B.z
+
+--aql select * from C join B on C.q = B.x
+--aql select * from C join B on C.r = B.y
+--aql select * from C join B on C.p = B.z
+--aql select * from C join B on C.q = B.x and C.r = B.y
+--aql select * from C join B on C.r = B.y and C.p = B.z
+--aql select * from C join B on C.p = B.z and C.q = B.x
+--aql select * from C join B on C.q = B.x and C.r = B.y and C.p = B.z
+
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

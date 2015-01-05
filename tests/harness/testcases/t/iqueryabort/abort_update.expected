@@ -1,0 +1,39 @@
+SCIDB QUERY : <store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -aql 2  2 'update ABRTEST set v=3' 1> /tmp/${HPID}_1.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -aql 15 2 'update ABRTEST set v=3' 1> /tmp/${HPID}_2.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -aql 9  2 'update ABRTEST set v=3' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'insert(attribute_rename(project(apply(filter(ABRTEST, I <> 0), v1, v*5 + 13), v1), v1, v), ABRTEST)' 1> /tmp/${HPID}_4.stdout || echo FAILURE>
+
+SCIDB QUERY : <${TEST_UTILS_DIR}/killquery.sh -afl 9  2 'insert(attribute_rename(project(apply(filter(ABRTEST, I <> 0), v1, v*v), v1), v1, v), ABRTEST)' 1> /tmp/${HPID}_5.stdout || echo FAILURE>
+
+SCIDB QUERY : <subarray(ABRTEST, 0, 10)>
+{I} v
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+
+SCIDB QUERY : <insert(attribute_rename(project(apply(filter(ABRTEST, I/2 <> 0), v1, v*v), v1), v1, v), ABRTEST)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <update ABRTEST set v=3>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(versions(ABRTEST),count(*))>
+{i} count
+{0} 3
+
+Query was executed successfully
+

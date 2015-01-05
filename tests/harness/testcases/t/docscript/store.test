@@ -1,0 +1,41 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+--start-igdata
+store(build(<val: double>[i=0:2,3,0,j=0:2,3,0],0),zeros_array)  
+store(build(zeros_array,1),ones_array)  
+--set-format dcsv
+CREATE ARRAY random_array <val:double null>[i=0:3,4,0,j=0:3,4,0]  
+--set-format dense
+--stop-igdata
+--start-igdata
+store(build(random_array,random()%10),random_array)  
+--stop-igdata
+--start-igdata
+store(build(random_array,random()%10),random_array)  
+--set-format dcsv
+store(build(<v:int64>[i=0:19,10,0],i),A)  
+store(build(<v:int64>[i=0:19,10,0],i),A)  
+store(build(<v:int64>[i=0:19,10,0],i),A)  
+store(build(<v:int64>[i=0:19,10,0],i),A)  
+store(build(<v:int64>[i=0:19,10,0],i),A)  
+--stop-igdata
+aggregate(versions(A),count(*)) 
+--start-igdata
+store(A,B)  
+remove(A)  
+rename(B,A)  
+--stop-igdata
+aggregate(versions(A),count(*)) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(zeros_array)
+remove(ones_array)
+remove(random_array)
+remove(A)

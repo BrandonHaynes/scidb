@@ -1,0 +1,26 @@
+--setup
+--start-query-logging
+create array A <a:int32,b:string> [x=0:2,3,0,y=0:9,2,0]
+create array B <c:int32,d:string> [x=0:2,3,0,y=0:9,2,0]
+create array C <c:int32,d:string> [x=0:2,1,0,y=0:9,2,0]
+create array D <c:int32,d:string> [x=0:2,3,1,y=0:9,3,1]
+create array E <c:int32,d:string> [x=0:2,2,1,y=0:9,3,1]
+
+--test
+--aql select * into A from build(<a:int32>[x=0:2,3,0,y=0:9,2,0],x+y+1),build(<a:string>[x=0:2,3,0,y=0:9,2,0],'b_'+string(x+y+1))
+--aql select * into B from A
+--aql select * into C from A where x=1
+--aql select * into C from A where y=1
+--aql select * into D from A where a=4
+--aql select * into D from A where b<>'b_1'
+--aql select * into D from A where x=1 and y<>1
+--aql select * into E from A where x=0 and y<3
+--aql select * into E from A where a=10 and b='b_10'
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+--stop-query-logging

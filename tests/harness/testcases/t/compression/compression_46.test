@@ -1,0 +1,30 @@
+# ticket no.978
+
+--setup
+--start-query-logging
+create array rle <a:int32 compression 'rle'>[x=0:2,3,0]
+create array d <a:int32 compression 'dictionary'>[x=0:2,3,0]
+create array ns <a:int32 compression 'null suppression'>[x=0:2,3,0]
+create array be <a:int32 compression 'bitmap encoding'>[x=0:2,3,0]
+create array z <a:int32 compression 'zlib'>[x=0:2,3,0]
+create array bz <a:int32 compression 'bzlib'>[x=0:2,3,0]
+create array nf <a:int32 compression 'null filter'>[x=0:2,3,0]
+
+--test
+--aql select * into rle from filter(build(rle,x+10),x<>x)
+--aql select * into d from filter(build(d,x+10),x<>x)
+--aql select * into ns from filter(build(ns,x+10),x<>x)
+--aql select * into be from filter(build(be,x+10),x<>x)
+--aql select * into z from filter(build(z,x+10),x<>x)
+--aql select * into bz from filter(build(bz,x+10),x<>x)
+--aql select * into nf from filter(build(nf,x+10),x<>x)
+
+--cleanup
+remove(rle)
+remove(d)
+remove(ns)
+remove(be)
+remove(z)
+remove(bz)
+remove(nf)
+--stop-query-logging

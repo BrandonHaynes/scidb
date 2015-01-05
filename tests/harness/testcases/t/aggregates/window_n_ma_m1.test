@@ -1,0 +1,44 @@
+--setup
+--start-query-logging
+create array A <a:int32 null,b:int64 null> [x=0:8,3,0,y=0:2,3,0]
+create array T1 <a:int32> [x=0:8,3,0,y=0:2,3,0]
+create array T2 <b:int64> [x=0:8,3,0,y=0:2,3,0]
+store(filter(build(T1,x+10+y),x<>2 and x<>5),T1)
+store(filter(build(T2,x+12+y),x<>2 and x<>5),T2)
+store(join(T1,T2),A)
+
+--test
+--aql update A set a=null, b=null where x=0 and y=0
+
+store(filter(build(T1,x-10),x<>2 and x<>5),T1)
+store(filter(build(T2,x-12),x<>2 and x<>5),T2)
+store(join(T1,T2),A)
+--aql update A set a=null where x=0
+window(A,9,8,2,1,sum(a),max(a))
+window(A,1,1,1,0,max(a),var(a),stdev(a),count(a),sum(a),min(a))
+window(A,2,1,0,0,min(a),count(*))
+window(A,0,0,2,2,avg(a),count(a))
+window(A,1,0,3,2,count(a),count(*))
+window(A,1,1,5,4,count(*),sum(a))
+window(A,2,2,2,2,stdev(a),avg(a))
+window(A,4,4,3,3,var(a),stdev(a))
+
+
+store(filter(build(T1,x+10),x<>2 and x<>5),T1)
+store(filter(build(T2,x+12),x<>2 and x<>5),T2)
+store(join(T1,T2),A)
+--aql update A set b=null where y=0
+window(A,9,8,9,8,sum(b),max(b))
+window(A,1,1,5,4,max(a),var(b),stdev(a),count(a),sum(b),min(a))
+window(A,2,1,2,1,min(a),count(*))
+window(A,0,0,3,3,avg(a),count(b))
+window(A,1,0,5,4,count(b),count(*))
+window(A,1,1,4,3,count(*),sum(a))
+window(A,2,2,2,1,stdev(a),avg(b))
+window(A,4,4,3,2,var(b),stdev(a))
+
+--cleanup
+remove(A)
+remove(T1)
+remove(T2)
+--stop-query-logging

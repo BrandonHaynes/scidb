@@ -1,0 +1,239 @@
+SCIDB QUERY : <create array Ds<av:double NULL>[s(string)=5,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Dp<av:double NULL>[p(string)=5,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Dsp<val:double>[s(string)=5,5,0, p(string)=5,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Dsp2<val:double>[s(string)=5,5,0, p(string)=5,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <count(join(join(build(<s: string>[i=1:25,5,0], 'sample-'+string((i-1)%5)), build(<p: string>[i=1:25,5,0], 'probe-'+string(i/5))), build(<val: double>[i=1:25,5,0], 1.01*i*i-i)))>
+{i} count
+{0} 25
+
+SCIDB QUERY : <store(join(join(build(<s: string>[i=1:25,5,0], 'sample-'+string((i-1)%5)), build(<p: string>[i=1:25,5,0], 'probe-'+string((i-1)/5))), build(<val: double>[i=1:25,5,0], 1.01*i*i-i)), expo)>
+{i} s,p,val
+{1} 'sample-0','probe-0',0.01
+{2} 'sample-1','probe-0',2.04
+{3} 'sample-2','probe-0',6.09
+{4} 'sample-3','probe-0',12.16
+{5} 'sample-4','probe-0',20.25
+{6} 'sample-0','probe-1',30.36
+{7} 'sample-1','probe-1',42.49
+{8} 'sample-2','probe-1',56.64
+{9} 'sample-3','probe-1',72.81
+{10} 'sample-4','probe-1',91
+{11} 'sample-0','probe-2',111.21
+{12} 'sample-1','probe-2',133.44
+{13} 'sample-2','probe-2',157.69
+{14} 'sample-3','probe-2',183.96
+{15} 'sample-4','probe-2',212.25
+{16} 'sample-0','probe-3',242.56
+{17} 'sample-1','probe-3',274.89
+{18} 'sample-2','probe-3',309.24
+{19} 'sample-3','probe-3',345.61
+{20} 'sample-4','probe-3',384
+{21} 'sample-0','probe-4',424.41
+{22} 'sample-1','probe-4',466.84
+{23} 'sample-2','probe-4',511.29
+{24} 'sample-3','probe-4',557.76
+{25} 'sample-4','probe-4',606.25
+
+SCIDB QUERY : <show(expo)>
+{i} schema
+{0} 'expo<s:string,p:string,val:double> [i=1:25,5,0]'
+
+SCIDB QUERY : <save(expo, 'expo.bin', -2, 'opaque')>
+{i} s,p,val
+{1} 'sample-0','probe-0',0.01
+{2} 'sample-1','probe-0',2.04
+{3} 'sample-2','probe-0',6.09
+{4} 'sample-3','probe-0',12.16
+{5} 'sample-4','probe-0',20.25
+{6} 'sample-0','probe-1',30.36
+{7} 'sample-1','probe-1',42.49
+{8} 'sample-2','probe-1',56.64
+{9} 'sample-3','probe-1',72.81
+{10} 'sample-4','probe-1',91
+{11} 'sample-0','probe-2',111.21
+{12} 'sample-1','probe-2',133.44
+{13} 'sample-2','probe-2',157.69
+{14} 'sample-3','probe-2',183.96
+{15} 'sample-4','probe-2',212.25
+{16} 'sample-0','probe-3',242.56
+{17} 'sample-1','probe-3',274.89
+{18} 'sample-2','probe-3',309.24
+{19} 'sample-3','probe-3',345.61
+{20} 'sample-4','probe-3',384
+{21} 'sample-0','probe-4',424.41
+{22} 'sample-1','probe-4',466.84
+{23} 'sample-2','probe-4',511.29
+{24} 'sample-3','probe-4',557.76
+{25} 'sample-4','probe-4',606.25
+
+SCIDB QUERY : <store(redimension(expo, Ds, avg(val) as av), Ds)>
+{s} av
+{'sample-0'} 161.71
+{'sample-1'} 183.94
+{'sample-2'} 208.19
+{'sample-3'} 234.46
+{'sample-4'} 262.75
+
+SCIDB QUERY : <store(redimension(expo, Dp, avg(val) as av), Dp)>
+{p} av
+{'probe-0'} 8.11
+{'probe-1'} 58.66
+{'probe-2'} 159.71
+{'probe-3'} 311.26
+{'probe-4'} 513.31
+
+SCIDB QUERY : <store(redimension(expo, Dsp), Dsp)>
+{s,p} val
+{'sample-0','probe-0'} 0.01
+{'sample-0','probe-1'} 30.36
+{'sample-0','probe-2'} 111.21
+{'sample-0','probe-3'} 242.56
+{'sample-0','probe-4'} 424.41
+{'sample-1','probe-0'} 2.04
+{'sample-1','probe-1'} 42.49
+{'sample-1','probe-2'} 133.44
+{'sample-1','probe-3'} 274.89
+{'sample-1','probe-4'} 466.84
+{'sample-2','probe-0'} 6.09
+{'sample-2','probe-1'} 56.64
+{'sample-2','probe-2'} 157.69
+{'sample-2','probe-3'} 309.24
+{'sample-2','probe-4'} 511.29
+{'sample-3','probe-0'} 12.16
+{'sample-3','probe-1'} 72.81
+{'sample-3','probe-2'} 183.96
+{'sample-3','probe-3'} 345.61
+{'sample-3','probe-4'} 557.76
+{'sample-4','probe-0'} 20.25
+{'sample-4','probe-1'} 91
+{'sample-4','probe-2'} 212.25
+{'sample-4','probe-3'} 384
+{'sample-4','probe-4'} 606.25
+
+SCIDB QUERY : <store(redimension(expo, Dsp), Dsp)>
+{s,p} val
+{'sample-0','probe-0'} 0.01
+{'sample-0','probe-1'} 30.36
+{'sample-0','probe-2'} 111.21
+{'sample-0','probe-3'} 242.56
+{'sample-0','probe-4'} 424.41
+{'sample-1','probe-0'} 2.04
+{'sample-1','probe-1'} 42.49
+{'sample-1','probe-2'} 133.44
+{'sample-1','probe-3'} 274.89
+{'sample-1','probe-4'} 466.84
+{'sample-2','probe-0'} 6.09
+{'sample-2','probe-1'} 56.64
+{'sample-2','probe-2'} 157.69
+{'sample-2','probe-3'} 309.24
+{'sample-2','probe-4'} 511.29
+{'sample-3','probe-0'} 12.16
+{'sample-3','probe-1'} 72.81
+{'sample-3','probe-2'} 183.96
+{'sample-3','probe-3'} 345.61
+{'sample-3','probe-4'} 557.76
+{'sample-4','probe-0'} 20.25
+{'sample-4','probe-1'} 91
+{'sample-4','probe-2'} 212.25
+{'sample-4','probe-3'} 384
+{'sample-4','probe-4'} 606.25
+
+SCIDB QUERY : <save(filter(Dsp, s = 'sample-0' or p = 'probe-0'), 'Dsp.bin', -2, 'opaque')>
+{s,p} val
+{'sample-0','probe-0'} 0.01
+{'sample-0','probe-1'} 30.36
+{'sample-0','probe-2'} 111.21
+{'sample-0','probe-3'} 242.56
+{'sample-0','probe-4'} 424.41
+{'sample-1','probe-0'} 2.04
+{'sample-2','probe-0'} 6.09
+{'sample-3','probe-0'} 12.16
+{'sample-4','probe-0'} 20.25
+
+SCIDB QUERY : <load(Dsp, 'Dsp.bin', -2, 'opaque')>
+{s,p} val
+{'sample-0','probe-0'} 0.01
+{'sample-0','probe-1'} 30.36
+{'sample-0','probe-2'} 111.21
+{'sample-0','probe-3'} 242.56
+{'sample-0','probe-4'} 424.41
+{'sample-1','probe-0'} 2.04
+{'sample-2','probe-0'} 6.09
+{'sample-3','probe-0'} 12.16
+{'sample-4','probe-0'} 20.25
+
+SCIDB QUERY : <load(Dsp2, 'Dsp.bin', -2, 'opaque')>
+{s,p} val
+{'sample-0','probe-0'} 0.01
+{'sample-0','probe-1'} 30.36
+{'sample-0','probe-2'} 111.21
+{'sample-0','probe-3'} 242.56
+{'sample-0','probe-4'} 424.41
+{'sample-1','probe-0'} 2.04
+{'sample-2','probe-0'} 6.09
+{'sample-3','probe-0'} 12.16
+{'sample-4','probe-0'} 20.25
+
+SCIDB QUERY : <scan(Dsp:s)>
+{no} value
+{0} 'sample-0'
+{1} 'sample-1'
+{2} 'sample-2'
+{3} 'sample-3'
+{4} 'sample-4'
+
+SCIDB QUERY : <scan(Dsp:s)>
+{no} value
+{0} 'sample-0'
+{1} 'sample-1'
+{2} 'sample-2'
+{3} 'sample-3'
+{4} 'sample-4'
+
+SCIDB QUERY : <scan(Dsp2)>
+{s,p} val
+{'sample-0','probe-0'} 0.01
+{'sample-0','probe-1'} 30.36
+{'sample-0','probe-2'} 111.21
+{'sample-0','probe-3'} 242.56
+{'sample-0','probe-4'} 424.41
+{'sample-1','probe-0'} 2.04
+{'sample-2','probe-0'} 6.09
+{'sample-3','probe-0'} 12.16
+{'sample-4','probe-0'} 20.25
+
+SCIDB QUERY : <scan(Dsp)>
+s,p,val
+'sample-0','probe-0',0.01
+'sample-0','probe-1',30.36
+'sample-0','probe-2',111.21
+'sample-0','probe-3',242.56
+'sample-0','probe-4',424.41
+'sample-1','probe-0',2.04
+'sample-2','probe-0',6.09
+'sample-3','probe-0',12.16
+'sample-4','probe-0',20.25
+
+SCIDB QUERY : <remove(Ds)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Dp)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Dsp)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Dsp2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(expo)>
+Query was executed successfully
+

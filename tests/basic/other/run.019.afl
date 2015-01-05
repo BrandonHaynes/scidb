@@ -1,0 +1,1 @@
+regrid( apply(M4x4, s, a*b), 3, 3, sum(s),count(s))

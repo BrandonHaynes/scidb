@@ -1,0 +1,20 @@
+--setup
+
+--shell --command "echo [dense_linear_algebra]                > /tmp/$HPID.cfg"
+--shell --command "echo base-port=${IQUERY_PORT:=1239}        >> /tmp/$HPID.cfg"
+--shell --command "echo target-host=${IQUERY_HOST:=localhost} >> /tmp/$HPID.cfg"
+--shell --command "echo tests=SVD                             >> /tmp/$HPID.cfg"
+--shell --command "echo error-limit=50                        >> /tmp/$HPID.cfg"
+--shell --command "echo matrix-types=random                   >> /tmp/$HPID.cfg"
+
+--test
+--shell --command "echo size-list=+:1:1024:11                 >> /tmp/$HPID.cfg"
+
+--shell --command "python {TEST_BIN_DIR}/dla_driver.py /tmp/$HPID.cfg 1> /tmp/$HPID.stdout 2> /tmp/$HPID.stderr"
+
+--cleanup
+--shell --command "cat /tmp/$HPID.stderr"
+--shell --command "cat /tmp/$HPID.stdout" --store
+--shell --command "rm /tmp/$HPID.cfg"
+--shell --command "rm /tmp/$HPID.stdout"
+--shell --command "rm /tmp/$HPID.stderr" 

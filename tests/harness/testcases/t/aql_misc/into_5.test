@@ -1,0 +1,10 @@
+--setup
+create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+load(mult_1,'${TEST_DATA_DIR}/mult1.txt')
+
+--test
+--aql select * into a_arr from mult_1 where y<2 and x=y
+
+--cleanup
+remove(mult_1)
+remove(a_arr)

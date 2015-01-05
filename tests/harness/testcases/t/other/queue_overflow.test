@@ -1,0 +1,59 @@
+# ticket # 1564
+#
+#   Check for queue overflow issue
+#
+
+--setup
+
+--test
+--start-query-logging
+--start-igdata
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]
+store(filter(build(A,iif(x+y=0,1,x+y)),1),A)
+remove(A)
+
+--cleanup
+--stop-igdata
+--stop-query-logging
+

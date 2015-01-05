@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="transposeOperator">
+  <refnamediv>
+    <refname>transpose</refname>
+
+    <refpurpose><indexterm>
+        <primary>transpose</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>transpose</secondary>
+      </indexterm><indexterm>
+        <primary>matrix</primary>
+
+        <secondary>transpose</secondary>
+      </indexterm>Array transpose.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>transpose(<replaceable>array</replaceable>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The transpose operator accepts an array which may contain any number
+    of attributes and dimensions. Attributes may be of any type. If the array
+    contains dimensions d<subscript>1</subscript>, d<subscript>2</subscript>,
+    d<subscript>3</subscript>, ...,
+    d<subscript><replaceable>n</replaceable></subscript> the result contains
+    the dimensions in reverse order
+    d<subscript><replaceable>n</replaceable></subscript>, ...,
+    d<subscript>3</subscript>, d<subscript>2</subscript>,
+    d<subscript>1</subscript>.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example transposes a 3<symbol>×</symbol>3 array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-attribute, 2-dimensional array called
+          m3x3:<para><programlisting>AFL% CREATE ARRAY m3x3 &lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Store values of 0–8 in m3x3:<para><programlisting>AFL% store(build(m3x3,i*3+j),m3x3);  </programlisting><screen>[
+[(0),(1),(2)],
+[(3),(4),(5)],
+[(6),(7),(8)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Transpose m3x3:<para><programlisting>AFL% transpose(m3x3);  </programlisting><screen>[
+[(0),(3),(6)],
+[(1),(4),(7)],
+[(2),(5),(8)]
+]</screen>Compare
+          the <literal>reverse</literal> operator to transpose:<para><programlisting>AFL% reverse(m3x3);  </programlisting><screen>[
+[(8),(7),(6)],
+[(5),(4),(3)],
+[(2),(1),(0)]
+]</screen></para></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,12 @@
+--setup
+--start-query-logging
+--test
+
+--igdata "mstat()"
+--igdata "diskinfo()"
+
+--igdata --aql "select count(*) from (select 1.*fordblks/(uordblks+fordblks) as hl from mstat()) where hl > .15 "
+
+--cleanup
+--stop-query-logging
+

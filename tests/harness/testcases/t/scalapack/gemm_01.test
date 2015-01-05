@@ -1,0 +1,56 @@
+--setup
+--start-query-logging
+# Tests for gemm with 1xN and Nx1 arrays
+
+load_library('dense_linear_algebra')
+create array ROWS <x:double>[i=0:3,32,0, j=0:0,32,0]
+store(build(ROWS,pow(i,4)), ROWS)
+
+create array COLUMNS <x:double>[i=0:0,32,0, j=0:3,32,0]
+store(build(COLUMNS, iif(i+j>1,pow(10,j-i), 25)), COLUMNS)
+
+create array M1x1C4 <mul:double> [i=0:0,32,0,j=0:0,32,0]
+create array M4x4C4 <mul:double> [i=0:3,32,0,j=0:3,32,0]
+
+#chunk size changed to 32 for all arrays as per the latest implementation
+
+
+
+--test
+gemm(COLUMNS, ROWS, build(M1x1C4, 0))
+gemm(COLUMNS, ROWS, build(M1x1C4, 2))
+gemm(COLUMNS, ROWS, build(M1x1C4, 10))
+
+gemm(ROWS, COLUMNS, build(M4x4C4, 0))
+gemm(ROWS, COLUMNS, build(M4x4C4, iif(i=j, 1,0 )))
+gemm(ROWS, COLUMNS, build(M4x4C4, 1))
+
+--echo test to check the output when one or more arrays are empty
+gemm(ROWS, COLUMNS, M4x4C4)
+gemm(filter(ROWS, 0), COLUMNS, M4x4C4)
+gemm(ROWS, filter(COLUMNS, 0) , M4x4C4)
+gemm(filter(ROWS, 0), filter(COLUMNS, 0) , M4x4C4)
+gemm(filter(ROWS, 0), filter(COLUMNS, 0) , build(M4x4C4, 1))
+gemm(filter(ROWS, 0), COLUMNS , build(M4x4C4, pow(2,i)))
+gemm(ROWS, filter(COLUMNS, 0) , build(M4x4C4, pow(2,i)))
+gemm(filter(ROWS, 0), filter(COLUMNS, 0) , build(M4x4C4, pow(2,i)))
+
+
+--echo test to check the output for adding +inf,-inf, and nan
+gemm(ROWS, COLUMNS, build(M4x4C4, inf))
+gemm(ROWS, COLUMNS, build(M4x4C4,-inf))
+gemm(ROWS, COLUMNS, build(M4x4C4, nan))
+gemm(ROWS, COLUMNS, build(M4x4C4, log10(-1)))
+
+
+
+
+--cleanup
+remove(ROWS)
+remove(COLUMNS)
+remove(M1x1C4)
+remove(M4x4C4)
+
+--stop-query-logging
+
+

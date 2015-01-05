@@ -1,0 +1,264 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<chapter>
+  <title>SciDB Linear Algebra Library</title>
+
+  <para>The SciDB linear algebra operators accept SciDB matrices as inputs.
+  Linear algebra operators interpret the first declared dimension as rows, and
+  the second dimension as columns.</para>
+
+  <para>The Linear Algebra Library provides functionality for matrix
+  operations including:<itemizedlist>
+      <listitem>
+        <para>Matrix inverse</para>
+      </listitem>
+
+      <listitem>
+        <para>Matrix multiply</para>
+      </listitem>
+
+      <listitem>
+        <para>Matrix transpose</para>
+      </listitem>
+
+      <listitem>
+        <para>Singular Value Decomposition</para>
+      </listitem>
+    </itemizedlist></para>
+
+  <section id="matrixInverse">
+    <title>Matrix Inverse</title>
+
+    <para><indexterm>
+        <primary>inverse of matrix</primary>
+      </indexterm>The matrix inverse for a square matrix
+    <emphasis>A</emphasis> is a matrix
+    <emphasis>A</emphasis><superscript>–1</superscript> such that
+    <emphasis>AA</emphasis><superscript>–1</superscript> = <emphasis>I</emphasis>,
+    where <emphasis>I</emphasis> is the identity matrix. In SciDB, you can
+    calculate the matrix inverse by using the <code>gemm()</code> and
+    <code>gesvd()</code> operators.</para>
+
+    <para>For example, assume we have the following SciDB array,
+    A:<para><screen>[
+[(1),(2),(3),(4)],
+[(0),(1),(2),(1)],
+[(0),(0),(-1),(-5)],
+[(1),(0),(0),(6)]
+]</screen></para></para>
+
+    <para>Note that A is a real-valued, square, invertible matrix, which is
+    useful in regard to the following discussion.</para>
+
+    <para>The SVD of A is:<screen>A*V = U*S</screen>where
+    <emphasis>U</emphasis> and <emphasis>V</emphasis> are orthonormal
+    matrices, <emphasis>S</emphasis> is a diagonal matrix, and * represents
+    matrix multiplication. And, since <emphasis>A</emphasis> is invertible, we
+    know from the definition of the SVD that the diagonal entries of
+    <emphasis>S</emphasis> are all positive numbers.</para>
+
+    <para>Let <emphasis>S<superscript>-1</superscript></emphasis> represent
+    the inverse of S. <emphasis>S<superscript>-1</superscript></emphasis> is
+    the diagonal matrix whose entries are the reciprocals of the diagonal
+    entries of <emphasis>S</emphasis>. We then multiply each side of the above
+    equation by <emphasis>S<superscript>-1</superscript></emphasis>.<screen>A * V * S<superscript>-1</superscript> = U * S * S<superscript>-1</superscript>
+            = U * I (the identity matrix)
+            = U</screen></para>
+
+    <para>Let <emphasis>U<superscript>T</superscript></emphasis> be the
+    transpose of <emphasis>U</emphasis>. Since <emphasis>A</emphasis> is
+    square, <emphasis>U</emphasis> is square, and because it is orthonormal,
+    <emphasis>U<superscript>T</superscript></emphasis> *
+    <emphasis>U</emphasis> = <emphasis>I</emphasis> = <emphasis>U</emphasis> *
+    <emphasis>U<superscript>T</superscript></emphasis>. Now we multiply each
+    side of the above equation by
+    <emphasis>U<superscript>T</superscript></emphasis>.<screen>A * V * S<superscript>-1</superscript> * U<superscript>T</superscript> = U * U<superscript>T</superscript>
+                 = I </screen></para>
+
+    <para>Thus, <emphasis>A * V * S<superscript>-1</superscript> *
+    U<superscript>T</superscript></emphasis> = <emphasis>I</emphasis>, and
+    therefore the inverse of A is given by <emphasis>V *
+    S<superscript>-1</superscript> * U<superscript>T</superscript></emphasis>.
+    The following query computes this:</para>
+
+    <para><para><programlisting>AFL% transpose(
+       gemm(
+         project(apply(
+            cross_join(
+               gesvd(A,'left') as X,
+               gesvd(A, 'values') as Y, X.i_2, Y.i),
+         val, u / sigma),val),
+         gesvd(A,'right'),build(A,0))
+      );  </programlisting><screen>[
+[(-6),(12),(6),(7)],
+[(9),(-17),(-7),(-9)],
+[(-5),(10),(4),(5)],
+[(1),(-2),(-1),(-1)]
+]</screen></para></para>
+  </section>
+
+  <section id="matrixMultiply">
+    <title>Matrix Multiply</title>
+
+    <para><indexterm>
+        <primary>multiply</primary>
+      </indexterm><indexterm>
+        <primary>matrix</primary>
+
+        <secondary>multiplication</secondary>
+
+        <seealso>gemm</seealso>
+      </indexterm><indexterm>
+        <primary>linear algebra</primary>
+
+        <secondary>multiplication</secondary>
+
+        <seealso>gemm</seealso>
+      </indexterm>We want to compute the standard linear algebra matrix
+    product. For two matrices <emphasis role="">A</emphasis> and
+    <emphasis>B</emphasis> where <emphasis>A</emphasis> is
+    <emphasis>m</emphasis>-by-<emphasis>n</emphasis> and
+    <emphasis>B</emphasis> is
+    <emphasis>n</emphasis>-by-<emphasis>p</emphasis>, the product
+    <emphasis>AB</emphasis> is an
+    <emphasis>m</emphasis>-by-<emphasis>p</emphasis> matrix given
+    by:<informalequation>
+        <alt>AB(i,k) = \sum_{j=1}^{n} A(i,j)B(j,k)</alt>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="../equations/matrix_multiply.png" scale="50"/>
+          </imageobject>
+        </mediaobject>
+      </informalequation></para>
+
+    <para>In SciDB, we use the operator <code>gemm()</code> to multiply
+    matrices. Note that <code>gemm()</code> takes three arguments; for the
+    third argument, we construct a matrix with all of its values as
+    zeros.</para>
+
+    <para>Assume we have the following matrices:<para><programlisting>AFL% show(m2x3)</programlisting><screen><command>m2x3</command>
+
+&lt; val:double &gt;
+
+[row=0:1,32,0,
+col=0:2,32,0]</screen><programlisting>AFL% scan(m2x3);  </programlisting><screen>[
+[(0.5),(1.5),(2.5)],
+[(1),(2),(3)]
+]</screen><programlisting>AFL% show(m3x2)</programlisting><screen><command>m3x2</command>
+
+&lt; val:double &gt;
+
+[row=0:2,32,0,
+col=0:1,32,0]</screen><programlisting>AFL% scan(m3x2);  </programlisting><screen>[
+[(0),(2)],
+[(1),(3)],
+[(2),(4)]
+]</screen></para></para>
+
+    <para>The matrix multiplication will produce a 2-by-2 matrix, so we need a
+    2x2 matrix that has all zeros:<para><programlisting>AFL% store(build(&lt;val:double&gt;[row=0:1,32,0, col=0:1,32,0],0),Zeros);  </programlisting><screen>[
+[(0),(0)],
+[(0),(0)]
+]</screen></para></para>
+
+    <para>The following query performs the matrix
+    multiplication:<para><programlisting>AFL% gemm(m2x3,m3x2,Zeros);  </programlisting><screen>[
+[(6.5),(15.5)],
+[(8),(20)]
+]</screen></para></para>
+  </section>
+
+  <section id="matrixTranspose">
+    <title>Matrix Transpose</title>
+
+    <para><indexterm>
+        <primary>transpose</primary>
+      </indexterm><indexterm>
+        <primary>matrix</primary>
+
+        <secondary>transpose</secondary>
+      </indexterm><indexterm>
+        <primary>linear algebra</primary>
+
+        <secondary>transpose</secondary>
+      </indexterm>The transpose of matrix <emphasis>A</emphasis>, denoted
+    <emphasis>A</emphasis><superscript> <emphasis>T</emphasis> </superscript>,
+    is the matrix <emphasis>A</emphasis><superscript> <emphasis>T</emphasis>
+    </superscript>(<emphasis>j</emphasis>,<emphasis>i</emphasis>) = 
+    <emphasis>A</emphasis>(<emphasis>i</emphasis>,<emphasis>j</emphasis>) for
+    all <emphasis>j</emphasis> and <emphasis>i</emphasis> where 1 <symbol role="symbolfont">≤</symbol> <emphasis>i</emphasis> <symbol role="symbolfont">≤</symbol> <emphasis>n</emphasis> and 1 <symbol role="symbolfont">≤</symbol> <emphasis>j</emphasis> <symbol role="symbolfont">≤</symbol> <emphasis>m.</emphasis> The
+    <code>transpose</code> operator performs matrix transpose:</para>
+
+    <para><para><programlisting>AFL% scan(m3x3);  </programlisting><screen>[
+[(0),(1),(2)],
+[(3),(4),(5)],
+[(6),(7),(8)]
+]</screen><programlisting>AFL% transpose(m3x3);   </programlisting><screen>[
+[(0),(3),(6)],
+[(1),(4),(7)],
+[(2),(5),(8)]
+]</screen></para></para>
+  </section>
+
+  <section id="SciDBSVD">
+    <title>Singular Value Decomposition</title>
+
+    <para><indexterm>
+        <primary>gesvd</primary>
+      </indexterm><indexterm>
+        <primary>matrix</primary>
+
+        <secondary>svd</secondary>
+      </indexterm><indexterm>
+        <primary>linear algebra</primary>
+
+        <secondary>transpose</secondary>
+      </indexterm>For a singular matrix <emphasis>M</emphasis>, that is, a
+    matrix not invertible either because it is rectangular or because it has a
+    determinant of 0, singular-value decomposition returns the matrix
+    factorization:<informalequation>
+        <alt>M = U\Sigma V^*</alt>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="../equations/svd.png" scale="60"/>
+          </imageobject>
+        </mediaobject>
+      </informalequation>For <emphasis>m</emphasis><symbol role="symbolfont">×</symbol><emphasis>n</emphasis> matrix
+    <emphasis>M</emphasis>, the left matrix <emphasis>U</emphasis> is
+    <emphasis>m</emphasis><symbol role="symbolfont">×</symbol><emphasis>m</emphasis> and the right matrix
+    <emphasis>V*</emphasis> is <emphasis>n</emphasis><symbol role="symbolfont">×</symbol><emphasis>n</emphasis>. <emphasis>U</emphasis>
+    is orthogonal in the row space (<emphasis>U</emphasis><superscript>
+    <emphasis>T</emphasis>
+    </superscript><emphasis>U</emphasis> = <emphasis>I</emphasis>(<emphasis>m</emphasis><symbol role="symbolfont">×</symbol><emphasis>m</emphasis>)) and
+    <emphasis>V*</emphasis> is orthogonal in the column space
+    (<emphasis>V*</emphasis><superscript> <emphasis>T</emphasis>
+    </superscript><emphasis>V</emphasis> = <emphasis>I</emphasis>(<emphasis>n</emphasis><symbol role="symbolfont">×</symbol><emphasis>n</emphasis>)).</para>
+
+    <para>The matrix <symbol role="symbolfont">∑</symbol> is a diagonal matrix
+    containing the singular values of <emphasis>M</emphasis>.</para>
+
+    <para>For example, consider the 3<symbol role="symbolfont">×</symbol>2
+    matrix <code>m3x2</code>:<para><programlisting>AFL% show(m3x2)</programlisting><screen><command>m3x2</command>
+
+&lt; val:double &gt;
+
+[row=0:2,32,0,
+col=0:3,32,0]</screen><programlisting>AFL% scan(m3x2);   </programlisting><screen>[
+[(0),(2),(),()],
+[(1),(3),(),()],
+[(2),(4),(),()]
+]</screen> You can return the left matrix, the right matrix, or a
+    vector containing the singular values: <para><programlisting>AQL% <command>SELECT</command> * <command>FROM</command> gesvd(m3x2, 'right');   </programlisting><screen>[
+[(-0.362523),(-0.931975),(0),(0)],
+[(0.931975),(-0.362523),(0),(0)],
+[(0),(0),(1),(0)]
+]</screen><para><programlisting>AQL% <command>SELECT</command> * <command>FROM</command> gesvd(m3x2, 'left');   </programlisting><screen>[
+[(-0.32311),(-0.853776),(0.408248)],
+[(-0.547507),(-0.18322),(-0.816497)],
+[(-0.771904),(0.487337),(0.408248)]
+]</screen><para><programlisting>AQL% <command>SELECT</command> * <command>FROM</command> gesvd(m3x2, 'values');   </programlisting><screen>[(5.76878),(0.849223),(0)]
+</screen></para></para></para></para></para>
+  </section>
+</chapter>

@@ -1,0 +1,10 @@
+
+--test
+--start-query-logging
+
+
+--stop-query-logging
+
+
+--cleanup
+

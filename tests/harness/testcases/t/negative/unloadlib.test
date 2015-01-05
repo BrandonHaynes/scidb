@@ -1,0 +1,15 @@
+# ticket no. 1403
+
+--setup
+--start-query-logging
+
+--test
+--error --code=scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE "unload_library('')"
+
+--error --code=scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE "unload_library('librational')"
+
+--error --code=scidb::SCIDB_SE_PLUGIN_MGR::SCIDB_LE_CANT_UNLOAD_MODULE "unload_library('abcxyz')"
+
+--cleanup
+--stop-query-logging
+

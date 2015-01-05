@@ -1,0 +1,33 @@
+--setup
+--start-query-logging
+CREATE ARRAY a1 <a:int64>[x=0:*,10,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(a1,'${TEST_DATA_DIR}/ub.txt')""
+CREATE ARRAY a2 <a:double> [x=0:1999,100,0,y=0:1999,100,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(a2,'${TEST_DATA_DIR}/xyz_sparse.txt')""
+CREATE ARRAY a3 <a:int64>[x=0:20,10,0]
+store(build(a3,x+5),a3)
+CREATE ARRAY a4 <a:int64>[x=0:1,1,0,y=0:5,4,0]
+store(build(a4,x+y+1),a4)
+CREATE ARRAY a5 <a:int64>[x=0:1,1,0,y=0:1,1,0,z=0:2,3,0]
+store(build(a5,x+y+z+1),a5)
+CREATE ARRAY a6 <a:String>[x=0:2,1,0,y=0:2,3,0]
+store(build(a6,x+y+1),a6)
+
+--test
+
+analyze(a1)
+analyze(a2)
+analyze(a3)
+analyze(a4)
+analyze(a5)
+analyze(a6)
+
+--cleanup
+
+remove(a1)
+remove(a2)
+remove(a3)
+remove(a4)
+remove(a5)
+remove(a6)
+--stop-query-logging

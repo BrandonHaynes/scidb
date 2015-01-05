@@ -1,0 +1,154 @@
+SCIDB QUERY : <create  array A <a:char,b:char>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:char>[a(char)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:char>[b(char)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <a:char>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(join(filter(build(T,string(x+1)),1),filter(build(T,string(x+5)),1)),A)>
+{x} a,b
+{0} '1','5'
+{1} '2','6'
+{2} '3','7'
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+{a} b
+{'1'} '5'
+{'2'} '6'
+{'3'} '7'
+
+SCIDB QUERY : <store(redimension(B,C),C)>
+{b} a
+{'5'} '1'
+{'6'} '2'
+{'7'} '3'
+
+SCIDB QUERY : <store(redimension(B,T),T)>
+{x} a
+{0} '1'
+{1} '2'
+{2} '3'
+
+SCIDB QUERY : <join(A,A)>
+{x} a,b,a,b
+{0} '1','5','1','5'
+{1} '2','6','2','6'
+{2} '3','7','3','7'
+
+SCIDB QUERY : <join(B,B)>
+{a} b,b
+{'1'} '5','5'
+{'2'} '6','6'
+{'3'} '7','7'
+
+SCIDB QUERY : <join(C,C)>
+{b} a,a
+{'5'} '1','1'
+{'6'} '2','2'
+{'7'} '3','3'
+
+SCIDB QUERY : <cross_join(B,C)>
+{a,b} b,a
+{'1','5'} '5','1'
+{'1','6'} '5','2'
+{'1','7'} '5','3'
+{'2','5'} '6','1'
+{'2','6'} '6','2'
+{'2','7'} '6','3'
+{'3','5'} '7','1'
+{'3','6'} '7','2'
+{'3','7'} '7','3'
+
+SCIDB QUERY : <cross_join(A,C)>
+{x,b} a,b,a
+{0,'5'} '1','5','1'
+{0,'6'} '1','5','2'
+{0,'7'} '1','5','3'
+{1,'5'} '2','6','1'
+{1,'6'} '2','6','2'
+{1,'7'} '2','6','3'
+{2,'5'} '3','7','1'
+{2,'6'} '3','7','2'
+{2,'7'} '3','7','3'
+
+SCIDB QUERY : <cross_join(A,B)>
+{x,a} a,b,b
+{0,'1'} '1','5','5'
+{0,'2'} '1','5','6'
+{0,'3'} '1','5','7'
+{1,'1'} '2','6','5'
+{1,'2'} '2','6','6'
+{1,'3'} '2','6','7'
+{2,'1'} '3','7','5'
+{2,'2'} '3','7','6'
+{2,'3'} '3','7','7'
+
+SCIDB QUERY : <cross_join(C,A)>
+{b,x} a,a,b
+{'5',0} '1','1','5'
+{'5',1} '1','2','6'
+{'5',2} '1','3','7'
+{'6',0} '2','1','5'
+{'6',1} '2','2','6'
+{'6',2} '2','3','7'
+{'7',0} '3','1','5'
+{'7',1} '3','2','6'
+{'7',2} '3','3','7'
+
+SCIDB QUERY : <cross_join(C,B)>
+{b,a} a,b
+{'5','1'} '1','5'
+{'5','2'} '1','6'
+{'5','3'} '1','7'
+{'6','1'} '2','5'
+{'6','2'} '2','6'
+{'6','3'} '2','7'
+{'7','1'} '3','5'
+{'7','2'} '3','6'
+{'7','3'} '3','7'
+
+SCIDB QUERY : <join(C,T)>
+[An error expected at this place for the query "join(C,T)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2.]
+
+SCIDB QUERY : <join(B,C)>
+{a} b,a
+
+SCIDB QUERY : <select * into Z from B where a='2'>
+{a} b
+{'2'} '6'
+
+SCIDB QUERY : <select * into W from B where b='7'>
+{a} b
+{'3'} '7'
+
+SCIDB QUERY : <merge(W,Z)>
+[An error expected at this place for the query "merge(W,Z)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED.]
+
+SCIDB QUERY : <merge(cast(W,<b:char> [a=0:2,3,0]), cast(Z,<b:char> [a=0:2,3,0]))>
+{a} b
+{1} '6'
+{2} '7'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(W)>
+Query was executed successfully
+

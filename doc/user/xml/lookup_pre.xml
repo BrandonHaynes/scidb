@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="lookupOperator">
+  <refnamediv>
+    <refname>lookup</refname>
+
+    <refpurpose><indexterm>
+        <primary>lookup</primary>
+      </indexterm><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>selecting cells</secondary>
+      </indexterm>Produces a result array, selecting array cells by supplied
+    dimension index.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>lookup(<replaceable>pattern_array</replaceable>,<replaceable>source_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Lookup maps elements from the second array using the attributes of
+    the first array as coordinates into the second array. The result array has
+    the same shape as <replaceable>pattern_array</replaceable> and the same
+    attributes as <replaceable>source_array</replaceable>.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example selects a row from a 2-dimensional array.</para>
+
+      <procedure>
+        <step>
+          <para>Create an vector of ones called indices1:<programlisting
+          language="test">--afl store(build(&lt;val1:double&gt;[i=0:3,4,0],1),indices1); --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Create a vector with values between 0 and 3 called
+          indices2:<programlisting language="test">--afl store(build(&lt;val1:double&gt;[i=0:3,4,0],i),indices2); --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Join indices1 and indices2 into a two-attribute array called
+          pattern_array:<programlisting language="test">--afl store(join(indices1,indices2),pattern_array); </programlisting></para>
+        </step>
+
+        <step>
+          <para>Create a 2-dimensional array called source_array with values
+          between 100 and 115:<programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0],i*4+j+100),source_array);
+   --output-format=dense --chunkify=yes
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Run <literal>lookup</literal>, using the dimension coordinates
+          array <emphasis role="bold">pattern_array</emphasis> to return the
+          second row of source_array:<programlisting language="test">--afl lookup(pattern_array,source_array); --output-format=dense</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

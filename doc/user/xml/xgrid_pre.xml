@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="xgridOperator">
+  <refnamediv>
+    <refname>xgrid</refname>
+
+    <refpurpose><indexterm>
+        <primary>xgrid</primary>
+      </indexterm><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>increasing size</secondary>
+      </indexterm><indexterm>
+        <primary>scaling dimension size</primary>
+      </indexterm>Produces a result array with the same dimensions and
+    attributes as a source array, but with the size of each dimension
+    multiplied by an integer scale you supply.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>AFL%  xgrid(<replaceable>source_array</replaceable>,<replaceable>scale_1</replaceable><optional>,<replaceable>scale_2</replaceable>,..., <replaceable>scale_N</replaceable></optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The xgrid operator produces a result array by scaling an input
+    array. Within each dimension, the operator duplicates each cell a
+    specified number of times before moving to the next cell. The xgrid
+    operator takes one <replaceable>scale</replaceable> argument for every
+    dimension in <replaceable>source_array</replaceable>. The result array has
+    the same number of dimensions and attributes as the input array.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example scales each cell of a 2-dimensional array into a
+      2<symbol role="symbolfont">×</symbol>2 subarray.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called m3x3:<programlisting language="test">--afl CREATE ARRAY m3x3 &lt;val:double&gt; [i=0:2,3,0,j=0:2,3,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put values of 0–8 into m3x3:<programlisting language="test">--afl store(build(m3x3,i*3+j),m3x3);</programlisting></para>
+        </step>
+
+        <step>
+          <para>Expand each cell of m3x3 into a 2<symbol
+          role="symbolfont">×</symbol>2 sub-grid. Store the resulting array as
+          m6x6:<programlisting language="test">--afl store(xgrid(m3x3,2,2),m6x6); --output-format=auto --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

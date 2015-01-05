@@ -1,0 +1,11 @@
+--setup
+CREATE ARRAY vector2_R2<x:double, y:double>[i=1:8,4,0]
+create array matrix2_R2<i:int64>[x=0:8,2,0, y=0:8,2,0]
+load(vector2_R2, '${TEST_DATA_DIR}/vector2_R2.txt')
+
+--test
+store(redimension(vector2_R2, matrix2_R2), matrix2_R2)
+
+--cleanup
+remove(vector2_R2)
+remove(matrix2_R2)

@@ -1,0 +1,12 @@
+# ticket no. 1756
+
+--setup
+
+create array foo < a : int32 > [ I=0:9,10,0 ]
+
+--test
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_DDL_CANT_BE_NESTED "join(remove(foo),remove(foo))"
+
+--cleanup
+
+remove ( foo )

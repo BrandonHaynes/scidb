@@ -1,0 +1,27 @@
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE ARRAY A <val:double> [i=0:1,32,0,j=0:1,32,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build (A, i*2 + j + 1), A)>
+[[(1),(2)],[(3),(4)]]
+
+SCIDB QUERY : <store(build(<val:double>[i=0:1,32,0,j=0:1,32,0],iif(i=j,1,0)),B)>
+[[(1),(0)],[(0),(1)]]
+
+SCIDB QUERY : <CREATE ARRAY C <val:double> [i=0:1,32,0,j=0:1,32,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build (C, 1), C)>
+[[(1),(1)],[(1),(1)]]
+
+SCIDB QUERY : <gemm(A,B,C)>
+[[(2),(3)],[(4),(5)]]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

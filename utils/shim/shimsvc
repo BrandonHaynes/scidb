@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+### BEGIN INIT INFO
+# Provides:          shimsvc
+# Required-Start:    $syslog $local_fs
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: shim
+# Description:       A simple SciDB web service.
+### END INIT INFO
+
+# NOTE: In development environments, you can invoke this script
+# directly.  There is no need to integrate it into your local
+# /etc/init.d script hierarchy.
+
+# Locate scidb heuristics
+if test -z "${SCIDB_DIR}"; then
+  SCIDB_DIR=$(dirname $(dirname $(which scidb 2>/dev/null) 2>/dev/null) 2>/dev/null)
+  if test -z "${SCIDB_DIR}"; then
+    if test -d /opt/scidb; then
+      SCIDB_DIR=$(dirname $(dirname $(find /opt/scidb/ -name shim 2>/dev/null | tail -n 1) 2>/dev/null) 2>/dev/null)
+#      SCIDB_DIR=$(ls -t /opt/scidb | head -n 1)
+#      if test -n "${SCIDB_DIR}"; then SCIDB_DIR="/opt/scidb/${SCIDB_DIR}";fi
+    fi
+    if test -z "${SCIDB_DIR}"; then
+      echo "Error, can't find SciDB, is it in the PATH?" 2>&1
+      exit 1
+    fi
+  fi
+elif test ! -f "${SCIDB_DIR}/bin/scidb"; then
+    echo "Error, can not find scidb." 2>&1
+    echo "  SCIDB_DIR is set but 'scidb' is not in that directory." 2>&1
+    exit 1
+fi
+# Get version
+SCIDB_VER=`${SCIDB_DIR}/bin/scidb --version|awk 'NR == 1 {print $3}'|awk -F. '{print $1 "." $2}'`
+if test -z "${SCIDB_VER}"; then
+    echo "Error, can not find SciDB version." 2>&1
+    echo "  SCIDB_VER is not set." 2>&1
+    exit 1
+fi
+# Locate boost library
+if test ! -d "/opt/scidb/${SCIDB_VER}/3rdparty/boost/lib"; then
+    echo "Error, can not find boost libraries." 2>&1
+    echo "  Can not find /opt/scidb/\${SCIDB_VER}/3rdparty/boost/lib." 2>&1
+    exit 1
+fi
+
+case $1 in
+        start)
+            echo "Starting shim"
+            ${SCIDB_DIR}/bin/shim
+            ;;
+        restart)
+            $0 stop
+            $0 start
+            ;;
+        status)
+            Q=$(ps aux | egrep -v 'grep|shimsvc' | grep shim 2>/dev/null)
+            if test -z "${Q}"; then 
+              echo "Shim process not found"; 
+              exit 1; 
+            fi
+            echo "Shim process ${Q}"; exit 0
+            ;;
+        stop)
+            P=$(cat /var/run/shim.pid 2>/dev/null)
+            killall shim 2>/dev/null || echo >/dev/null
+            ;;
+esac

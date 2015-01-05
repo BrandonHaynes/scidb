@@ -1,0 +1,19 @@
+SCIDB QUERY : <create array counting <val:int32> [i=0:999,1000,0, j=0:999,1000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(counting, (i * 1000) + j),counting)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(counting,approxdc(val))>
+{i} val_ApproxDC
+{0} 997498
+
+SCIDB QUERY : <store(build(counting, ((i * 1000) + j) % 2000),counting)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(counting,approxdc(val))>
+{i} val_ApproxDC
+{0} 2000
+
+Query was executed successfully
+

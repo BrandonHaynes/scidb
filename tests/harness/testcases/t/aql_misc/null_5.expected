@@ -1,0 +1,143 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+datatype = bool
+{x} a
+
+{x} a
+
+{x} a
+{0} false
+
+{x} a
+{0} false
+
+datatype = string
+{x} a
+
+{x} a
+
+{x} a
+{0} 'a'
+{1} 'b'
+
+{x} a
+{0} 'a'
+{1} 'b'
+
+{x} a
+{0} '1'
+
+{x} a
+{0} '1'
+
+datatype = int32
+{x} a
+
+{x} a
+
+{x} a
+{0} 1
+
+{x} a
+{0} 1
+
+datatype = int8
+{x} a
+
+{x} a
+
+{x} a
+{0} 1
+
+{x} a
+{0} 1
+
+datatype = int16
+{x} a
+
+{x} a
+
+{x} a
+{0} 1
+
+{x} a
+{0} 1
+
+datatype = char
+{x} a
+
+{x} a
+
+{x} a
+{0} 'a'
+{1} 'b'
+
+{x} a
+{0} 'a'
+{1} 'b'
+
+datatype = datetime
+{x} a
+
+{x} a
+
+{x} a
+{0} '2011-12-01 00:00:00'
+
+{x} a
+{0} '2011-12-01 00:00:00'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

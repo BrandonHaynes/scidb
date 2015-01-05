@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="bernoulliOperator">
+  <refnamediv>
+    <refname>bernoulli</refname>
+
+    <refpurpose><indexterm>
+        <primary>bernoulli</primary>
+      </indexterm>Select random array cells.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>bernoulli(<replaceable>array</replaceable>,<replaceable>probability</replaceable><optional>, <replaceable>seed</replaceable></optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <literal>bernoulli</literal> operator evaluates each cell by
+    generating a random number and seeing if it lies in the range (0,
+    <replaceable>probability</replaceable>). If it does, the cell is included.
+    Use the optional, integer <replaceable>seed</replaceable> parameter to
+    reproduce results; each run using the same seed returns identical
+    results.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example select cells at random from a 5<symbol
+      role="symbolfont">×</symbol>5 array, and uses a seed value to select the
+      same cells in successive trials.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called bernoulli_array:<programlisting
+          language="test">--afl CREATE ARRAY bernoulli_array&lt;val:double&gt;[i=0:4,5,0,j=0:4,5,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Store values of 1–25 in bernoulli_array:<programlisting
+          language="test">--afl store(build(bernoulli_array,i*5+1+j),bernoulli_array); --output-format=dense --chunkify=yes
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Select cells at random with a probability of .5 that a cell
+          will be included. Each successive call to bernoulli will return
+          different results.<programlisting language="test">--afl bernoulli(bernoulli_array,0.5); --output-format=dense --chunkify=yes --show-output-in-test-file=no</programlisting><programlisting
+          language="test">## Need to keep the processor busy long enough so that the random seed changes and the subsequent
+## run of bernoulli does actually return a different set of values.
+
+--afl CREATE ARRAY busywork&lt;val:double&gt;[i=0:500,501,0,j=0:500,501,0]; --show-query=no --show-output=no
+--afl build(busywork,i+j) --show-query=no --show-output=no
+</programlisting><programlisting language="test">--afl bernoulli(bernoulli_array,0.5); --output-format=dense --chunkify=yes --show-output-in-test-file=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>To reproduce earlier results, use a seed value. Seeds must be
+          an integer on the interval [0, INT_MAX].<programlisting
+          language="test">--afl bernoulli(bernoulli_array,0.5,15); --output-format=dense --chunkify=yes</programlisting><programlisting
+          language="test">--afl bernoulli(bernoulli_array,0.5,15); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

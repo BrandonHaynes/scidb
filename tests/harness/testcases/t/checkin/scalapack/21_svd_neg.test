@@ -1,0 +1,97 @@
+--setup
+
+--start-query-logging
+
+load_library('dense_linear_algebra')
+
+create array Valid<a: double> [r=0:1,2,0, c=0:1,2,0]
+
+--test
+# arg count must be 1
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT "gesvd('S')"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT "gesvd(Valid, Valid, 'S')"
+
+# only one attribute allowed
+create array TooManyAttrs <a: double, b: double >               [r=0:1,2,0, c=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2 "gesvd(TooManyAttrs, 'S')"
+remove(TooManyAttrs)
+
+# the attribute must be a double
+create array Int<a: int32>  [r=0:1,2,0, c=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5 "gesvd(Int, 'S')"
+remove(Int)
+
+#invalid dims -- less than 2
+create array DimsTooFew<a: double>  [r=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3 "gesvd(DimsTooFew, 'S')"
+remove(DimsTooFew)
+
+#invalid dims -- more than 2 aka "too much dimensions" ;)
+create array DimsTooMany<a: double>  [r=0:1,2,0, c=0:1,2,0, d=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3 "gesvd(DimsTooMany, 'S')"
+remove(DimsTooMany)
+
+# unbounded rows
+create array RowInf<a: double>  [r=0:*,2,0, c=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gesvd(RowInf, 'S')"
+remove(RowInf)
+
+# unbounded columns
+create array ColInf<a: double>  [r=0:1,2,0, c=0:*,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gesvd(ColInf, 'S')"
+remove(ColInf)
+
+# restriction that matrix must be square has been removed
+
+# dimensions must start at 0, temporarily
+create array StartOne<a: double>  [r=1:1,2,0, c=1:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR44 "gesvd(StartOne, 'S')"
+remove(StartOne)
+
+# dimensions must be int or uint types, temporarily
+create array NonInt<a: double>  [r(float)=1,2,0, c=0:0,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gesvd(NonInt, 'S')"
+remove(NonInt)
+create array NonInt<a: double>  [r(double)=1,2,0, c=0:0,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gesvd(NonInt, 'S')"
+remove(NonInt)
+create array NonInt<a: double>  [r(char)=1,2,0, c=0:0,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gesvd(NonInt, 'S')"
+remove(NonInt)
+create array NonInt<a: double>  [r(string)=1,2,0, c=0:0,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gesvd(NonInt, 'S')"
+remove(NonInt)
+
+# chunksize too small
+create array chunkTooSmall  <a: double> [r=0:1,31,0, c=0:1,31,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(chunkTooSmall, 'S')"
+remove(chunkTooSmall)
+
+# chunksize too large
+create array chunkTooLarge  <a: double> [r=0:1,1025,0, c=0:1,33,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR42 "gesvd(chunkTooLarge, 'S')"
+remove(chunkTooLarge)
+
+# NOTE: cannot test non-square chunk size when min and max are already set to same value...
+#       the min/max check happens first
+#       keeping this for a later release where a range of chunk sizes will be permitted
+#
+## chunkSize not square
+#create array chunkNotSquare <a: double> [r=0:1,32,0,   c=0:1,33,0]
+#--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR10 "gesvd(chunkNotSquare, 'S')"
+#remove(chunkNotSquare)
+
+# overlap not allowed - rows
+create array RowOverlap<a: double>  [r=0:1,32,1, c=0:1,32,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40 "gesvd(RowOverlap, 'S')"
+remove(RowOverlap)
+
+# overlap not allowed - cols
+create array ColOverlap<a: double>  [r=0:1,32,0, c=0:1,32,1]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40 "gesvd(ColOverlap, 'S')"
+remove(ColOverlap)
+
+--stop-query-logging
+
+--cleanup
+remove(Valid)

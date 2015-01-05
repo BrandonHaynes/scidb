@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="apply">
+    <refname>apply</refname>
+
+    <refpurpose>Produces a result array similar to a source array, but with
+    additional attributes whose values are calculated from parameters you
+    supply.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>
+      apply(<replaceable>source_array</replaceable>,<replaceable>new_attribute1</replaceable>,<replaceable>expression1
+                     </replaceable><optional>,<replaceable>new_attribute2</replaceable>,<replaceable>expression2</replaceable></optional>...);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>apply</primary>
+      </indexterm><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>adding</secondary>
+      </indexterm>Use the apply operator to produce a result array with new
+    attributes and to compute values for them. The new array includes all
+    attributes present in the source array, plus the newly created attributes.
+    The newly created attribute(s) must not have the same name as any of the
+    existing attributes of the source array.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example produces a result array similar to an existing array
+      (called distance), but with an additional attribute (called
+      kilometers).</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called distance with an attribute called
+          miles:<programlisting language="test">--afl CREATE ARRAY distance &lt;miles:double&gt; [i=0:9,10,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Store values of 100–1000 into the array:<programlisting
+          language="test">--afl store(build(distance,i*100.0),distance); --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Apply the expression 1.6 * miles to distance and name the
+          result kilometers:<programlisting language="test">--afl apply(distance,kilometers,1.6*miles);</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example combines the array operator and the xgrid operator to
+      produce a result array that is an enlarged version of an existing array.
+      The enlargement includes more cells (via xgrid) and an additional
+      attribute called val_2 (via apply).</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-dimensional array called vector:<programlisting
+          language="test">--afl CREATE ARRAY vector &lt;val:double&gt;[i=0:9,10,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put values of 1–10 into vector and store the
+          result:<programlisting language="test">--afl store(build(vector,i+1),vector); --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use the xgrid operator to expand <code>vector</code> and the
+          apply operator to add an attribute whose values contain the additive
+          inverse of the dimension index:<programlisting language="test">--afl apply(xgrid(vector,2),val_2,-i);</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example uses the apply operator and a data type function to
+      produce a result array whose attribute values have been cast to a new
+      datatype.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called integer with an int64
+          attribute:<programlisting language="test">--afl store(build(&lt;val:int64&gt;[i=0:9,10,0],i+1),A); --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use apply to apply the data conversion function
+          <code>double</code> to the attribute val.<programlisting
+          language="test">--afl apply(A,val_2,double(val));</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,32 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array A1 <firstnames:string> [i=0:2,3,0, j=0:1,2,0]  
+create array A2 <lastnames:string> [i=0:2,3,0, j=0:1,2,0]  
+store(build(A1,'[[("Bill"),("Anne")],[("Joe"),("Steve")],[("Burt"),("Ronald")]]',true),A1)  
+store(build(A2,'[[("Clinton"),("Rice")],[("Pantoliano"),("Jobs")],[("Reynolds"),("Reagan")]]',true),A2)  
+store(join(A1,A2),Names)  
+--stop-igdata
+show(Names)
+--set-format dense
+scan(Names)  
+--set-format dcsv
+filter(apply(Names,first,strlen(firstnames), last,strlen(lastnames)),first=last)  
+--start-igdata
+store(list('functions'),SciDB_functions)  
+--set-format csv
+--stop-igdata
+filter(project(SciDB_functions,name,profile), regex(profile,'(.*)datetimetz(.*)'))  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(A1)
+remove(A2)
+remove(Names)
+remove(SciDB_functions)

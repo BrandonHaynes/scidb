@@ -1,0 +1,492 @@
+Query was executed successfully
+
+{president_number} first_name,middle_name,last_name,years_in_office,died_in_office,assassinated
+{1} 'george',null,'washington',8,false,false
+{2} 'john',null,'adams',4,false,false
+{3} 'thomas',null,'jefferson',8,false,false
+{4} 'james',null,'madison',8,false,false
+{5} 'james',null,'monroe',8,false,false
+{6} 'john','quincy','adams',4,false,false
+{7} 'andrew',null,'jackson',8,false,false
+{8} 'martin',null,'van buren',4,false,false
+{9} 'william','henry','harrison',0,true,false
+{10} 'john',null,'tyler',4,false,false
+{11} 'james','knox','polk',4,false,false
+{12} 'zachary',null,'taylor',1,false,false
+{13} 'millard',null,'fillmore',3,false,false
+{14} 'franklin',null,'pierce',4,false,false
+{15} 'james',null,'buchanan',4,false,false
+{16} 'abraham',null,'lincoln',4,true,true
+{17} 'andrew',null,'johnson',4,false,false
+{18} 'ulysses','simpson','grant',8,false,false
+{19} 'rutherford','birchard','hayes',4,false,false
+{20} 'james','abram','garfield',0,true,true
+{21} 'chester','alan','arthrur',4,false,false
+{22} 'grover',null,'cleveland',4,false,false
+{23} 'benjamin',null,'harrison',4,false,false
+{24} 'grover',null,'cleveland',4,false,false
+{25} 'william',null,'mckinley',4,true,true
+{26} 'theodore',null,'roosevelt',8,false,false
+{27} 'william','howard','taft',4,false,false
+{28} 'woodrow',null,'wilson',8,false,false
+{29} 'warren','gamaliel','harding',2,true,false
+{30} 'calvin',null,'coolidge',6,false,false
+{31} 'herbert','clark','hoover',4,false,false
+{32} 'franklin','delano','roosevelt',12,true,false
+{33} 'harry','s','truman',8,false,false
+{34} 'dwight','david','eisenhower',8,false,false
+{35} 'john','fitzgerald','kennedy',2,true,true
+{36} 'lyndon','baines','johnson',6,false,false
+{37} 'richard','milhous','nixon',5,false,false
+{38} 'gerald','rudolph','ford',3,false,false
+{39} 'james','earl','carter',4,false,false
+{40} 'ronald','wilson','reagan',8,false,false
+{41} 'george','herbert walker','bush',4,false,false
+{42} 'william','jefferson','clinton',8,false,false
+{43} 'george','walker','bush',8,false,false
+{44} 'barack','hussein','obama',null,null,false
+
+Query was executed successfully
+
+{first_name} count,total_years_in_office,any_assassinated
+{'abraham'} 1,4,true
+{'andrew'} 2,12,false
+{'barack'} 1,0,false
+{'benjamin'} 1,4,false
+{'calvin'} 1,6,false
+{'chester'} 1,4,false
+{'dwight'} 1,8,false
+{'franklin'} 2,16,false
+{'george'} 3,20,false
+{'gerald'} 1,3,false
+{'grover'} 2,8,false
+{'harry'} 1,8,false
+{'herbert'} 1,4,false
+{'james'} 6,28,true
+{'john'} 4,14,true
+{'lyndon'} 1,6,false
+{'martin'} 1,4,false
+{'millard'} 1,3,false
+{'richard'} 1,5,false
+{'ronald'} 1,8,false
+{'rutherford'} 1,4,false
+{'theodore'} 1,8,false
+{'thomas'} 1,8,false
+{'ulysses'} 1,8,false
+{'warren'} 1,2,false
+{'william'} 4,16,true
+{'woodrow'} 1,8,false
+{'zachary'} 1,1,false
+
+{first_name} count,total_years_in_office,any_assassinated
+{'abraham'} 1,4,true
+{'andrew'} 2,12,false
+{'barack'} 1,0,false
+{'benjamin'} 1,4,false
+{'calvin'} 1,6,false
+{'chester'} 1,4,false
+{'dwight'} 1,8,false
+{'franklin'} 2,16,false
+{'george'} 3,20,false
+{'gerald'} 1,3,false
+{'grover'} 2,8,false
+{'harry'} 1,8,false
+{'herbert'} 1,4,false
+{'james'} 6,28,true
+{'john'} 4,14,true
+{'lyndon'} 1,6,false
+{'martin'} 1,4,false
+{'millard'} 1,3,false
+{'richard'} 1,5,false
+{'ronald'} 1,8,false
+{'rutherford'} 1,4,false
+{'theodore'} 1,8,false
+{'thomas'} 1,8,false
+{'ulysses'} 1,8,false
+{'warren'} 1,2,false
+{'william'} 4,16,true
+{'woodrow'} 1,8,false
+{'zachary'} 1,1,false
+
+{first_name} count,total_years_in_office,any_assassinated
+{'abraham'} 1,4,true
+{'andrew'} 2,12,false
+{'barack'} 1,0,false
+{'benjamin'} 1,4,false
+{'calvin'} 1,6,false
+{'chester'} 1,4,false
+{'dwight'} 1,8,false
+{'franklin'} 2,16,false
+{'george'} 3,20,false
+{'gerald'} 1,3,false
+{'grover'} 2,8,false
+{'harry'} 1,8,false
+{'herbert'} 1,4,false
+{'james'} 6,28,true
+{'john'} 4,14,true
+{'lyndon'} 1,6,false
+{'martin'} 1,4,false
+{'millard'} 1,3,false
+{'richard'} 1,5,false
+{'ronald'} 1,8,false
+{'rutherford'} 1,4,false
+{'theodore'} 1,8,false
+{'thomas'} 1,8,false
+{'ulysses'} 1,8,false
+{'warren'} 1,2,false
+{'william'} 4,16,true
+{'woodrow'} 1,8,false
+{'zachary'} 1,1,false
+
+{first_name} count,total_years_in_office,any_assassinated
+{'abraham'} 1,4,true
+{'andrew'} 2,12,false
+{'barack'} 1,0,false
+{'benjamin'} 1,4,false
+{'calvin'} 1,6,false
+{'chester'} 1,4,false
+{'dwight'} 1,8,false
+{'franklin'} 2,16,false
+{'george'} 3,20,false
+{'gerald'} 1,3,false
+{'grover'} 2,8,false
+{'harry'} 1,8,false
+{'herbert'} 1,4,false
+{'james'} 6,28,true
+{'john'} 4,14,true
+{'lyndon'} 1,6,false
+{'martin'} 1,4,false
+{'millard'} 1,3,false
+{'richard'} 1,5,false
+{'ronald'} 1,8,false
+{'rutherford'} 1,4,false
+{'theodore'} 1,8,false
+{'thomas'} 1,8,false
+{'ulysses'} 1,8,false
+{'warren'} 1,2,false
+{'william'} 4,16,true
+{'woodrow'} 1,8,false
+{'zachary'} 1,1,false
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+Query was executed successfully
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+Query was executed successfully
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+Query was executed successfully
+
+first_name,count,total_years_in_office,any_assassinated
+'abraham',1,4,true
+'andrew',2,12,false
+'barack',1,0,false
+'benjamin',1,4,false
+'calvin',1,6,false
+'chester',1,4,false
+'dwight',1,8,false
+'franklin',2,16,false
+'george',3,20,false
+'gerald',1,3,false
+'grover',2,8,false
+'harry',1,8,false
+'herbert',1,4,false
+'james',6,28,true
+'john',4,14,true
+'lyndon',1,6,false
+'martin',1,4,false
+'millard',1,3,false
+'richard',1,5,false
+'ronald',1,8,false
+'rutherford',1,4,false
+'theodore',1,8,false
+'thomas',1,8,false
+'ulysses',1,8,false
+'warren',1,2,false
+'william',4,16,true
+'woodrow',1,8,false
+'zachary',1,1,false
+
+[An error expected at this place for the query "scan(president_stats@1:first_name)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+Query was executed successfully
+
+[An error expected at this place for the query "scan(president_stats@1:first_name)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+Query was executed successfully
+
+[An error expected at this place for the query "remove(president_stats)". And it failed.]
+
+[An error expected at this place for the query "remove(A)". And it failed.]
+
+[An error expected at this place for the query "remove(B)". And it failed.]
+
+[An error expected at this place for the query "remove(C)". And it failed.]
+

@@ -1,0 +1,126 @@
+SCIDB QUERY : <create array m5x5_sparse < val : double > [ x=0:4,5,0, y=0:4,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(m5x5_sparse, (3*x*x-4*y)/(3.5)),x=0 ),m5x5_sparse)>
+{x,y} val
+{0,0} 0
+{0,1} -1.14286
+{0,2} -2.28571
+{0,3} -3.42857
+{0,4} -4.57143
+
+SCIDB QUERY : <scan(m5x5_sparse)>
+{x,y} val
+{0,0} 0
+{0,1} -1.14286
+{0,2} -2.28571
+{0,3} -3.42857
+{0,4} -4.57143
+
+SCIDB QUERY : <apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x)>
+{x,y} val,z
+{0,0} 0,0
+{0,1} -1.14286,0
+{0,2} -1.14286,0
+{0,3} -2.28571,0
+{0,4} -2.28571,0
+{0,5} -3.42857,0
+{0,6} -3.42857,0
+{0,7} -4.57143,0
+{1,0} 0,1
+{1,1} -1.14286,1
+{1,2} -1.14286,1
+{1,3} -2.28571,1
+{1,4} -2.28571,1
+{1,5} -3.42857,1
+{1,6} -3.42857,1
+{1,7} -4.57143,1
+
+SCIDB QUERY : <aggregate(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),count(*))>
+{i} count
+{0} 16
+
+SCIDB QUERY : <aggregate(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),count(*))>
+{i} count
+{0} 16
+
+SCIDB QUERY : <join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),m5x5_sparse)>
+[An error expected at this place for the query "join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),m5x5_sparse)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2.]
+
+SCIDB QUERY : <join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0]))>
+{x,y} val,z,val
+{0,0} 0,0,0
+{0,1} -1.14286,0,-1.14286
+{0,2} -1.14286,0,-2.28571
+{0,3} -2.28571,0,-3.42857
+{0,4} -2.28571,0,-4.57143
+
+SCIDB QUERY : <aggregate(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),count(*))>
+{i} count
+{0} 5
+
+SCIDB QUERY : <between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3)>
+{x,y} val,z,val
+{0,0} 0,0,0
+{0,1} -1.14286,0,-1.14286
+{0,2} -1.14286,0,-2.28571
+{0,3} -2.28571,0,-3.42857
+
+SCIDB QUERY : <regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z))>
+{x,y} z_sum
+{0,0} 0
+{0,1} 0
+
+SCIDB QUERY : <cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse)>
+{x,y,x,y} z_sum,val
+{0,0,0,0} 0,0
+{0,0,0,1} 0,-1.14286
+{0,0,0,2} 0,-2.28571
+{0,0,0,3} 0,-3.42857
+{0,0,0,4} 0,-4.57143
+{0,1,0,0} 0,0
+{0,1,0,1} 0,-1.14286
+{0,1,0,2} 0,-2.28571
+{0,1,0,3} 0,-3.42857
+{0,1,0,4} 0,-4.57143
+
+SCIDB QUERY : <aggregate(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),count(*))>
+{i} count
+{0} 10
+
+SCIDB QUERY : <unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i)>
+{i} x,y,x,y,val
+{0} 0,0,0,0,0
+{1} 0,0,0,1,-1.14286
+{2} 0,1,0,0,0
+{3} 0,1,0,1,-1.14286
+
+SCIDB QUERY : <explain_physical('store(unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i),ZZZ)', 'afl')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <explain_logical('store(unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i),ZZZ)', 'afl')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i),ZZZ)>
+{i} x,y,x_2,y_2,val
+{0} 0,0,0,0,0
+{1} 0,0,0,1,-1.14286
+{2} 0,1,0,0,0
+{3} 0,1,0,1,-1.14286
+
+SCIDB QUERY : <show(ZZZ)>
+{i} schema
+{0} 'ZZZ<x:int64,y:int64,x_2:int64,y_2:int64,val:double> [i=0:*,16,0]'
+
+SCIDB QUERY : <explain_logical('select * from ZZZ', 'aql')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <explain_physical('select * from ZZZ', 'aql')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(m5x5_sparse)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ZZZ)>
+Query was executed successfully
+

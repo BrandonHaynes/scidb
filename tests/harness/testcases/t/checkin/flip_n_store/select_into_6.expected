@@ -1,0 +1,51 @@
+SCIDB QUERY : <create array A <a:int32, b:int32, c:string> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array TS <a:string> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:int32, c:string> [b(int32)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from build(T,x+1),build(T,x+10),build(TS,'c_'+string(x))>
+{x} a,b,c
+{0} 1,10,'c_0'
+{1} 2,11,'c_1'
+{2} 3,12,'c_2'
+
+SCIDB QUERY : <select * into B from A>
+{b} a,c
+{10} 1,'c_0'
+{11} 2,'c_1'
+{12} 3,'c_2'
+
+SCIDB QUERY : <select * into A from build(T,x+50),build(T,x+70),build(TS,'c_'+string(x+9))>
+{x} a,b,c
+{0} 50,70,'c_9'
+{1} 51,71,'c_10'
+{2} 52,72,'c_11'
+
+SCIDB QUERY : <select * into B from A where a=50>
+{b} a,c
+{70} 50,'c_9'
+
+SCIDB QUERY : <select * into B from A where a<>50>
+{b} a,c
+{71} 51,'c_10'
+{72} 52,'c_11'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

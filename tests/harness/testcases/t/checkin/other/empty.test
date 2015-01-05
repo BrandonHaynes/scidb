@@ -1,0 +1,11 @@
+--setup
+create array C<val:char>[i=0:1,2,0]
+store(filter(build(C,'d'),i=1), C)
+create array D<val:char>[i=0:1,2,0]
+
+--test
+store(C,D)
+
+--cleanup
+remove(C)
+remove(D)

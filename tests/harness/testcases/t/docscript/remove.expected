@@ -1,0 +1,6 @@
+SCIDB QUERY : <store(build(<val:double>[i=0:9,10,0],1),source)>
+[(1),(1),(1),(1),(1),(1),(1),(1),(1),(1)]
+
+SCIDB QUERY : <remove(source)>
+Query was executed successfully
+

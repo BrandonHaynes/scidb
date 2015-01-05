@@ -1,0 +1,7 @@
+--setup
+CREATE ARRAY D_Foo_2_1 <  ATTR_1 : int32 null  , ATTR_2 : int32  default 1 > [  DIM_1=0:*,20000,0 ]
+--igdata "store ( join ( build ( < ATTR_1 : int32 null  > [  DIM_1=0:199999,20000,0 ], int32(random()%10)), build ( < ATTR_2 : int32  default 1 > [  DIM_1=0:199999,20000,0 ], int32(random()%10))), D_Foo_2_1)"
+--test
+aggregate ( project ( apply ( join ( project ( apply( join ( aggregate ( filter ( repart ( D_Foo_2_1, <  ATTR_1 : int32 null  , ATTR_2 : int32  default 1 > [DIM_1=0:*,10000,0 ]), int64(ATTR_1) - int64(ATTR_2) > 0), count(*), DIM_1, DIM_1) AS A, aggregate ( filter ( repart ( D_Foo_2_1, <  ATTR_1 : int32 null  , ATTR_2 : int32  default 1 > [DIM_1=0:*,10000,0 ]), int64(ATTR_2) - int64(ATTR_1) >= 0), count(*), DIM_1, DIM_1) AS B), T, A.count + B.count), T) AS C, aggregate ( repart ( D_Foo_2_1, <  ATTR_1 : int32 null  , ATTR_2 : int32  default 1 > [DIM_1=0:*,10000,0 ]), count(*), DIM_1, DIM_1) AS D), ZERO, D.count - C.T), ZERO), sum(ZERO))
+--cleanup
+remove(D_Foo_2_1)

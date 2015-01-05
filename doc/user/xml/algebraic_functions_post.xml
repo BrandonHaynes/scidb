@@ -1,0 +1,237 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="algebraicFunctions">
+  <refnamediv>
+    <refname>Algebraic functions</refname>
+
+    <refpurpose>Perform basic arithmetic in a query expression.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis><command>SELECT</command> <replaceable>expression1</replaceable> <command>FROM</command> <replaceable>array</replaceable> <command>WHERE</command> <replaceable>expression2</replaceable>;</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>These functions perform basic arithmetic.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="4">
+        <colspec colname="c1" colwidth="10*"/>
+
+        <colspec align="left" colname="c2" colwidth="20*"/>
+
+        <colspec colname="c3" colwidth="20*"/>
+
+        <colspec colname="cgen1" colwidth="30*"/>
+
+        <thead>
+          <row>
+            <entry>Function Name</entry>
+
+            <entry>Description</entry>
+
+            <entry>Syntax</entry>
+
+            <entry>Datatypes</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>%</entry>
+
+            <entry><indexterm>
+                <primary>modulo</primary>
+              </indexterm><indexterm>
+                <primary>remainder function</primary>
+              </indexterm><indexterm>
+                <primary>functions</primary>
+
+                <secondary>modulo</secondary>
+              </indexterm><indexterm>
+                <primary>functions</primary>
+
+                <secondary>remainder</secondary>
+              </indexterm>Remainder</entry>
+
+            <entry>scalar % scalar</entry>
+
+            <entry>int8, int16, int32, int64, uint8, uint16, uint32,
+            uint64</entry>
+          </row>
+
+          <row>
+            <entry>*</entry>
+
+            <entry>Multiplication</entry>
+
+            <entry>scalar * scalar</entry>
+
+            <entry>double, float, int8, int16, int32, int64, uint8, uint16,
+            uint32, uint64</entry>
+          </row>
+
+          <row>
+            <entry>+</entry>
+
+            <entry>Addition</entry>
+
+            <entry>scalar + scalar</entry>
+
+            <entry>(datetime, int64), double, float, string, int8, int16,
+            int32, int64, uint8, uint16, uint32, uint64</entry>
+          </row>
+
+          <row>
+            <entry>-</entry>
+
+            <entry>Subtraction or additive inverse</entry>
+
+            <entry>scalar - scalar<para/>-scalar</entry>
+
+            <entry>(datetime, int64), datetime, double, float, string, int8,
+            int16, int32, int64, uint8, uint16, uint32, uint64</entry>
+          </row>
+
+          <row>
+            <entry>/</entry>
+
+            <entry>Division</entry>
+
+            <entry>scalar/scalar</entry>
+
+            <entry>double, float, string, int8, int16, int32, int64, uint8,
+            uint16, uint32, uint64</entry>
+          </row>
+
+          <row>
+            <entry>abs</entry>
+
+            <entry>Absolute value</entry>
+
+            <entry>abs(scalar)</entry>
+
+            <entry>double, int32</entry>
+          </row>
+
+          <row>
+            <entry>ceil</entry>
+
+            <entry>Round to next-highest value</entry>
+
+            <entry>ceil(scalar)</entry>
+
+            <entry>double</entry>
+          </row>
+
+          <row>
+            <entry>floor</entry>
+
+            <entry>Round to next-lowest integer</entry>
+
+            <entry>floor(scalar)</entry>
+
+            <entry>double</entry>
+          </row>
+
+          <row>
+            <entry>pow</entry>
+
+            <entry>Raise to a power</entry>
+
+            <entry>pow(base,exponent)</entry>
+
+            <entry>double</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>random number generator</primary>
+              </indexterm>random</entry>
+
+            <entry>Generate random positive integer. The maximum value is the
+            maximum, unsigned, 32-bit integer: 2147483647.</entry>
+
+            <entry>random()</entry>
+
+            <entry>Output default is uint32</entry>
+          </row>
+
+          <row>
+            <entry>sqrt</entry>
+
+            <entry>Square root</entry>
+
+            <entry>sqrt(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example illustrates a few of the algebraic functions.</para>
+    </informalexample>
+
+    <informalexample>
+      <procedure>
+        <step>
+          <para>Construct an array that contains a random set of values
+          between 0 and 1. <para><programlisting>AFL% create array C &lt;val:double&gt; [i=0:4,5,0];  </programlisting><para><programlisting>AFL% store(build(C,random() /  2147483647.0),C);  </programlisting><screen>{i} val
+{0} 0.547088
+{1} 0.554735
+{2} 0.751838
+{3} 0.935875
+{4} 0.481854
+</screen>The
+          largest value that random() can produce is 2,147,483,647. So we
+          divide the output by a double that is equivalent; this returns a
+          double value between 0 and 1.</para></para></para>
+        </step>
+
+        <step>
+          <para>Try out the square root and power functions. <para><programlisting>AQL% <command>SELECT</command> sqrt(i) <command>AS</command> root, pow(2.0,i) <command>AS</command> power <command>FROM</command> C;</programlisting><screen>{i} root,power
+{0} 0,1
+{1} 1,2
+{2} 1.41421,4
+{3} 1.73205,8
+{4} 2,16
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Try out the "simple" math functions, such as plus and
+          minus.</para>
+
+          <para><programlisting>AFL% store(build(&lt;val:double&gt; [i=0:1,2,0, j=0:1,2,0],i*2 +j+1),A);  </programlisting><screen>[
+[(1),(2)],
+[(3),(4)]
+]</screen><programlisting>AFL% store(build(A,-i*4-j -1),B);  </programlisting><screen>[
+[(-1),(-2)],
+[(-5),(-6)]
+]</screen><programlisting>AQL% <command>SELECT</command> A.val + B.val <command>FROM</command> A,B;  </programlisting><screen>[
+[(0),(0)],
+[(-2),(-2)]
+]</screen><programlisting>AQL% <command>SELECT</command> A.val - B.val <command>FROM</command> A,B;  </programlisting><screen>[
+[(2),(4)],
+[(8),(10)]
+]</screen><programlisting>AQL% <command>SELECT</command> A.val * B.val <command>FROM</command> A,B;  </programlisting><screen>[
+[(-1),(-4)],
+[(-15),(-24)]
+]</screen><programlisting>AQL% <command>SELECT</command> A.val / B.val <command>FROM</command> A,B;  </programlisting><screen>[
+[(-1),(-1)],
+[(-0.6),(-0.666667)]
+]</screen></para></step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

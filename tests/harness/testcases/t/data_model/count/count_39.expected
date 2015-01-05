@@ -1,0 +1,30 @@
+SCIDB QUERY : <create  array T < x: int64 > [ i=1:1050,100,0, j=1:1050,100,0 ]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create  array E < x: uint64 null > [ i=0:0,1,0 ]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create  array R < x: uint64 null > [ i=0:0,1,0 ]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(T,i+j),T)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(E,1050*1050),E)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(repart(aggregate(T, count(x)),R),R)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <SELECT count(*) FROM R , E WHERE abs((R.x-E.x)/iif(E.x=0,1,E.x)) > 1e-07>
+[(0)]
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(R)>
+Query was executed successfully
+

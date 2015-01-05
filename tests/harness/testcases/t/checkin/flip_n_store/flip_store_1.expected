@@ -1,0 +1,258 @@
+SCIDB QUERY : <create array A <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <x:int64> [a=0:14,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <x:int64> [a=0:14,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+[(10),(11),(12)]
+
+SCIDB QUERY : <store(B,E)>
+[]
+
+SCIDB QUERY : <store(D,F)>
+[]
+
+SCIDB QUERY : <store(filter(build(D,x+5),x<>1),D)>
+[{0}(5),{2}(7)]
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+{9}[(),(0),(1),(2),(),()]
+
+SCIDB QUERY : <store(redimension(D,C),C)>
+{3}[(),(),(0),(),(2),()]
+
+SCIDB QUERY : <store(redimension(D,E),E)>
+{3}[(),(),(0),(),(2),()]
+
+SCIDB QUERY : <scan(B)>
+{9}[(),(0),(1),(2),(),()]
+
+SCIDB QUERY : <unpack(B,row)>
+{9}[(),(10,0),(11,1),(12,2),(),()]
+
+SCIDB QUERY : <unpack(C,row)>
+{3}[(),(),(5,0),(),(7,2),()]
+
+SCIDB QUERY : <unpack(E,row)>
+{3}[(),(),(5,0),(),(7,2),()]
+
+SCIDB QUERY : <store(redimension(B,F),F)>
+[(10),(11),(12)]
+
+SCIDB QUERY : <max(B)>
+[(2)]
+
+SCIDB QUERY : <min(B)>
+[(0)]
+
+SCIDB QUERY : <avg(B)>
+[(1)]
+
+SCIDB QUERY : <rename(B,B1)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(B1,B)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(B,10,11)>
+[(0),(1)]
+
+SCIDB QUERY : <between(B,11,20)>
+{9}[(),(),(1),(2),(),()]
+
+SCIDB QUERY : <filter(B,x>1)>
+{9}[(),(),(),(2),(),()]
+
+SCIDB QUERY : <project(B,x)>
+{9}[(),(0),(1),(2),(),()]
+
+SCIDB QUERY : <join(B,B)>
+{9}[(),(0,0),(1,1),(2,2),(),()]
+
+SCIDB QUERY : <cross_join(B,B)>
+{9,9}[[(),(),()],[(),(0,true,0),(0,true,1)],[(),(1,true,0),(1,true,1)]];[[(),(),()],[(0,true,2),(),()],[(1,true,2),(),()]];{12,9}[[(),(2,true,0),(2,true,1)],[(),(),()],[(),(),()]];[[(2,true,2),(),()],[(),(),()],[(),(),()]]
+
+SCIDB QUERY : <apply(B,z,x-a)>
+{9}[(),(0,-10),(1,-10),(2,-10),(),()]
+
+SCIDB QUERY : <count(B)>
+[(3)]
+
+SCIDB QUERY : <sum(B)>
+[(3)]
+
+SCIDB QUERY : <sort(B,x)>
+[(0),(1),(2)]
+
+SCIDB QUERY : <sort(B,x desc)>
+[(2),(1),(0)]
+
+SCIDB QUERY : <max(C)>
+[(2)]
+
+SCIDB QUERY : <min(C)>
+[(0)]
+
+SCIDB QUERY : <avg(C)>
+[(1)]
+
+SCIDB QUERY : <rename(C,C1)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(C1,C)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(C,7,11)>
+[(2),(),()]
+
+SCIDB QUERY : <between(C,7,20)>
+{6}[(),(2),()]
+
+SCIDB QUERY : <filter(C,x>1)>
+{3}[(),(),(),(),(2),()]
+
+SCIDB QUERY : <project(C,x)>
+{3}[(),(),(0),(),(2),()]
+
+SCIDB QUERY : <join(C,C)>
+{3}[(),(),(0,0),(),(2,2),()]
+
+SCIDB QUERY : <cross_join(C,C)>
+{3,3}[[(),(),()],[(),(),()],[(),(),(0,true,0)]];[[(),(),()],[(),(),()],[(),(0,true,2),()]];{6,3}[[(),(),()],[(),(),(2,true,0)],[(),(),()]];[[(),(),()],[(),(2,true,2),()],[(),(),()]]
+
+SCIDB QUERY : <apply(C,z,x-a)>
+{3}[(),(),(0,-5),(),(2,-5),()]
+
+SCIDB QUERY : <count(C)>
+[(2)]
+
+SCIDB QUERY : <sum(C)>
+[(2)]
+
+SCIDB QUERY : <sort(C,x)>
+[(0),(2),()]
+
+SCIDB QUERY : <sort(C,x desc)>
+[(2),(0),()]
+
+SCIDB QUERY : <max(E)>
+[(2)]
+
+SCIDB QUERY : <min(E)>
+[(0)]
+
+SCIDB QUERY : <avg(E)>
+[(1)]
+
+SCIDB QUERY : <rename(E,E1)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(E1,E)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(E,10,11)>
+[]
+
+SCIDB QUERY : <between(E,11,20)>
+[]
+
+SCIDB QUERY : <filter(E,x>1)>
+{3}[(),(),(),(),(2),()]
+
+SCIDB QUERY : <project(E,x)>
+{3}[(),(),(0),(),(2),()]
+
+SCIDB QUERY : <join(E,E)>
+{3}[(),(),(0,0),(),(2,2),()]
+
+SCIDB QUERY : <cross_join(E,E)>
+{3,3}[[(),(),()],[(),(),()],[(),(),(0,true,0)]];[[(),(),()],[(),(),()],[(),(0,true,2),()]];{6,3}[[(),(),()],[(),(),(2,true,0)],[(),(),()]];[[(),(),()],[(),(2,true,2),()],[(),(),()]]
+
+SCIDB QUERY : <apply(E,z,x-a)>
+{3}[(),(),(0,-5),(),(2,-5),()]
+
+SCIDB QUERY : <count(E)>
+[(2)]
+
+SCIDB QUERY : <sum(E)>
+[(2)]
+
+SCIDB QUERY : <sort(E,x)>
+[(0),(2),()]
+
+SCIDB QUERY : <sort(E,x desc)>
+[(2),(0),()]
+
+SCIDB QUERY : <max(F)>
+[(12)]
+
+SCIDB QUERY : <min(F)>
+[(10)]
+
+SCIDB QUERY : <avg(F)>
+[(11)]
+
+SCIDB QUERY : <rename(F,F1)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(F1,F)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(F,0,1)>
+[(10),(11)]
+
+SCIDB QUERY : <between(F,0,1)>
+[(10),(11),()]
+
+SCIDB QUERY : <filter(F,x>1)>
+[(),(),(12)]
+
+SCIDB QUERY : <project(F,a)>
+[(10),(11),(12)]
+
+SCIDB QUERY : <join(F,F)>
+[(10,10),(11,11),(12,12)]
+
+SCIDB QUERY : <cross_join(F,F)>
+[[(10,true,10),(10,true,11),(10,true,12)],[(11,true,10),(11,true,11),(11,true,12)],[(12,true,10),(12,true,11),(12,true,12)]]
+
+SCIDB QUERY : <apply(F,z,x-a)>
+[(10,-10),(11,-10),(12,-10)]
+
+SCIDB QUERY : <count(F)>
+[(3)]
+
+SCIDB QUERY : <sum(F)>
+[(33)]
+
+SCIDB QUERY : <sort(F,a)>
+[(10),(11),(12)]
+
+SCIDB QUERY : <sort(F,a desc)>
+[(12),(11),(10)]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F)>
+Query was executed successfully
+

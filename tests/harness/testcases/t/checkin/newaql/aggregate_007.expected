@@ -1,0 +1,50 @@
+SCIDB QUERY : <create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c$IQUERY_HOST -p $IQUERY_PORT -aq "load(mult_1,'${TEST_DATA_DIR}/mult1.txt')">
+{x,y} a
+{0,0} 1
+{0,1} 2
+{0,2} 3
+{1,0} 4
+{1,1} 5
+{1,2} 6
+{2,0} 7
+{2,1} 8
+{2,2} 9
+
+SCIDB QUERY : <select count(mult_1)>
+{i} count
+{0} 9
+
+SCIDB QUERY : <select sum(a), count(a) from mult_1>
+{i} sum,count_1
+{0} 45,9
+
+SCIDB QUERY : <select sum(a) * count(a) from mult_1>
+{i} expr
+{0} 405
+
+SCIDB QUERY : <select sum(a) * count(*) from mult_1>
+{i} expr
+{0} 405
+
+SCIDB QUERY : <select sum(a * 10) from mult_1>
+{i} sum
+{0} 450
+
+SCIDB QUERY : <select sum(a * 10) + avg(a * 10) from mult_1>
+{i} expr
+{0} 500
+
+SCIDB QUERY : <select (sum(a * 10) + avg(a * 10)) * 2 from mult_1>
+{i} expr
+{0} 1000
+
+SCIDB QUERY : <select (sum(a * 10) + avg(a * 10)) * 2, count(*) * 10 from mult_1>
+{i} expr,expr_1
+{0} 1000,90
+
+SCIDB QUERY : <remove(mult_1)>
+Query was executed successfully
+

@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="versionsOperator">
+  <refnamediv>
+    <refname>versions</refname>
+
+    <refpurpose><indexterm>
+        <primary>versions</primary>
+
+        <secondary>arrays</secondary>
+      </indexterm>Show array versions.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>versions(<replaceable>named_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The versions operator lists all versions of an array in the SciDB
+    namespace. The output of the versions command is a list of versions, each
+    of which has a version ID and a date stamp which is the date and time of
+    creation of that version. The argument
+    <replaceable>named_array</replaceable> must be an array that was
+    previously created and stored in the SciDB namespace.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example creates an array, updates it twice, and then returns
+      the first version of the array.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called m1:<para><programlisting>AFL% CREATE ARRAY m1 &lt;val:double&gt;[i=0:9,10,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Store 1 in each cell of m1:<para><programlisting>AFL% store(build(m1,1),m1);  </programlisting><screen>[(1),(1),(1),(1),(1),(1),(1),(1),(1),(1)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Update every cell to have value 100:<para><programlisting>AFL% store(build(m1,100),m1);  </programlisting><screen>[(100),(100),(100),(100),(100),(100),(100),(100),(100),(100)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the versions command to see the two versions of m1 that
+          you created:<para><programlisting>AFL% versions(m1);  </programlisting><screen>{VersionNo} version_id,timestamp
+{1} 1,'2013-05-31 14:41:45'
+{2} 2,'2013-05-31 14:41:46'
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the scan operator and the '@1' array name extension to
+          display the first version of m1.<para><programlisting>AFL% scan(m1@1);  </programlisting><screen>[(1),(1),(1),(1),(1),(1),(1),(1),(1),(1)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

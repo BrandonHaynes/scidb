@@ -1,0 +1,58 @@
+--setup
+--start-query-logging
+--start-igdata 
+
+load_library('linear_algebra')
+
+#
+#
+
+# csv to .scidb
+#--shell --command "csv2scidb < ${TEST_DATA_DIR}/graph_triplets6_9.csv > /tmp/graph_triplets6_9.scidb.txt"
+
+# load
+--justrun "remove(GRAPH_TRIPLETS_6_9)"
+create array GRAPH_TRIPLETS_6_9 <v0:int64, v1:int64, w:float>[dummy=0:*,1000*1000,0]
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(GRAPH_TRIPLETS_6_9, '${TEST_DATA_DIR}/graph_triplets6_9.scidb.txt')""
+
+
+--justrun "remove(TRANSPOSE_GRAPH_WEIGHTS_6_9)"
+create array TRANSPOSE_GRAPH_WEIGHTS_6_9 <w:float>[v1=0:5,10,0, v0=0:5,10,0]
+
+
+# turn list of triplets into adjacency matrix
+--justrun "remove(TRANSPOSE_GRAPH_EDGES)"
+store(project(apply(redimension(GRAPH_TRIPLETS_6_9,TRANSPOSE_GRAPH_WEIGHTS_6_9),e,int8(1)),e),TRANSPOSE_GRAPH_EDGES)
+
+# and switch to weights (probabilities of transition) of  1/(num edges in column)
+# by dividing 1 by the sum of the column
+--justrun "remove(TRANSITION_PROBABILITY_COLS)"
+store(substitute(project(apply(cross_join(TRANSPOSE_GRAPH_EDGES as E, aggregate(TRANSPOSE_GRAPH_EDGES, sum(e), v0) as SUM, E.v0, SUM.v0), prob, float(float(E.e)/SUM.e_sum)), prob), build(<v:float>[dc=0:0,1,0],NaN)), TRANSITION_PROBABILITY_COLS)
+--stop-igdata
+--test
+# now the test: run the pagerank algorithm, outputting to RANK_VEC
+
+--justrun "remove(RANK_VEC)"
+--shell --command "pagerank_example.sh TRANSITION_PROBABILITY_COLS RANK_VEC"
+
+# show the raw pagerank vector we got back
+--echo "pagerank, as scanned by the .test script"
+scan(RANK_VEC)
+
+# RANK_VEC contains the page's component of the perron vector, which is the pagerank statistic
+#         (minus a scalar related to the page rank of the pages with no outgoing links,
+#          which keeps the perron vector sparse when there are lots of such pages, as in the twitter data)
+# but this is not the ordinal rank of the pages.  we get that by sorting 
+--echo "pagerank, sorted by the .test script"
+# we print [i]<q, vtx> by turning a dimension to an attribute with the following apply()
+sort(apply(RANK_VEC, vtx, vtx), q desc, vtx asc)
+
+--cleanup
+remove(GRAPH_TRIPLETS_6_9)
+remove(TRANSPOSE_GRAPH_WEIGHTS_6_9)
+remove(TRANSPOSE_GRAPH_EDGES)
+remove(TRANSITION_PROBABILITY_COLS)
+remove(RANK_VEC)
+
+
+

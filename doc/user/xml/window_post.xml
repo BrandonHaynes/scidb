@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="winOperator">
+  <refnamediv>
+    <refname>window</refname>
+
+    <refpurpose><indexterm>
+        <primary>window operator</primary>
+      </indexterm>Produces a result array where each output cell is some
+    aggregate calculated over a window around the corresponding cell in the
+    source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>window(<replaceable>array</replaceable>, <replaceable>dim_1_low</replaceable>,<replaceable>dim_1_high</replaceable>, <replaceable>[dim_2_low</replaceable>,<replaceable>dim_2_high</replaceable>,]...
+<replaceable>   aggregate_1</replaceable>(<replaceable>attr_name_1</replaceable>)<optional>,<replaceable>aggrgegate_2</replaceable>(<replaceable>attr_name_2</replaceable>), ...</optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Computes one or more aggregates of any of an array's attributes over
+    a moving window. The result array has the same size and dimensions as the
+    source array.</para>
+
+    <note>
+      <para>The AFL window operator provides the same functionality as the AQL
+      <code><command>SELECT</command></code> ...
+      <code><command>FROM</command></code> ...
+      <code><command>WINDOW</command></code> statement.</para>
+    </note>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The <literal>window</literal> operator takes the following
+    arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">array</emphasis>: a source array with
+          one or more attributes and one or more dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">dim_</emphasis><emphasis>n</emphasis><emphasis role="bold">_low</emphasis>: for each dimension, 1 ... n, this
+          argument specifies the number of cells to the left of the current
+          cell to include in the window.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">dim_</emphasis><emphasis>n</emphasis><emphasis role="bold">_high</emphasis>: for each dimension, 1 ... n, this
+          argument specifies the number of cells to the right of the current
+          cell to include in the window.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">aggregate_</emphasis><emphasis>n</emphasis>(<replaceable>attr_name</replaceable>):
+          one or more aggregate calls, over the specified attribute,
+          <replaceable>attr_name</replaceable>,</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example calculates a running maximum and minimum for a
+      3<symbol>×</symbol>3 window on a 4<symbol>×</symbol>4 array. The window
+      is multi-dimensional, with the same number of dimensions as the array,
+      and is specified by a pair of values for each dimension, the "high" and
+      "low" sizes. Each dimension of the window includes one cell for the
+      "center", "high" number of cells above it, and "low" cells below
+      it.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called m4x4:<para><programlisting>AFL% CREATE ARRAY m4x4 &lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Store values of 0–15 in m4x4: <para><programlisting>AFL% store(build(m4x4,i*4+j),m4x4);  </programlisting><screen>[
+[(0),(1),(2),(3)],
+[(4),(5),(6),(7)],
+[(8),(9),(10),(11)],
+[(12),(13),(14),(15)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Return the maximum and minimum values on a moving 3<symbol role="symbolfont">×</symbol>3 window on m4x4: This window
+          specification is a two-dimensional window of size 3x3, whose
+          "center" is at the upper left corner of the 3x3 rectangle.
+          <para><programlisting>AFL% window(m4x4,0,2,0,2,max(val),min(val));  </programlisting><screen>[
+[(10,0),(11,1),(11,2),(11,3)],
+[(14,4),(15,5),(15,6),(15,7)],
+[(14,8),(15,9),(15,10),(15,11)],
+[(14,12),(15,13),(15,14),(15,15)]
+]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

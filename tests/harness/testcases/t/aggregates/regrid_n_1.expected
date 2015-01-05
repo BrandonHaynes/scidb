@@ -1,0 +1,201 @@
+SCIDB QUERY : <create array A <a:int32 null> [x=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <update A set a=null where x=1>
+{x} a
+{0} 10
+{1} null
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <regrid(A,1,sum(a))>
+{x} a_sum
+{0} 10
+{1} 0
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <regrid(A,1,max(a))>
+{x} a_max
+{0} 10
+{1} null
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <regrid(A,1,min(a))>
+{x} a_min
+{0} 10
+{1} null
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <regrid(A,1,avg(a))>
+{x} a_avg
+{0} 10
+{1} null
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <regrid(A,1,count(a))>
+{x} a_count
+{0} 1
+{1} 0
+{2} 1
+{3} 1
+{4} 1
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+
+SCIDB QUERY : <regrid(A,1,count(*))>
+{x} count
+{0} 1
+{1} 1
+{2} 1
+{3} 1
+{4} 1
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+
+SCIDB QUERY : <regrid(A,1,stdev(a))>
+{x} a_stdev
+{0} null
+{1} null
+{2} null
+{3} null
+{4} null
+{5} null
+{6} null
+{7} null
+{8} null
+
+SCIDB QUERY : <regrid(A,1,var(a))>
+{x} a_var
+{0} null
+{1} null
+{2} null
+{3} null
+{4} null
+{5} null
+{6} null
+{7} null
+{8} null
+
+SCIDB QUERY : <store(build(A,x-2),A)>
+{x} a
+{0} -2
+{1} -1
+{2} 0
+{3} 1
+{4} 2
+{5} 3
+{6} 4
+{7} 5
+{8} 6
+
+SCIDB QUERY : <update A set a=null where x=1>
+{x} a
+{0} -2
+{1} null
+{2} 0
+{3} 1
+{4} 2
+{5} 3
+{6} 4
+{7} 5
+{8} 6
+
+SCIDB QUERY : <regrid(A,18,sum(a),max(a))>
+{x} a_sum,a_max
+{0} 19,6
+
+SCIDB QUERY : <regrid(A,3,max(a),var(a),stdev(a),count(a),sum(a),min(a))>
+{x} a_max,a_var,a_stdev,a_count,a_sum,a_min
+{0} 0,2,1.41421,2,-2,-2
+{1} 3,1,1,3,6,1
+{2} 6,1,1,3,15,4
+
+SCIDB QUERY : <regrid(A,4,min(a),count(*))>
+{x} a_min,count
+{0} -2,4
+{1} 2,4
+{2} 6,1
+
+SCIDB QUERY : <regrid(A,1,avg(a),count(a))>
+{x} a_avg,a_count
+{0} -2,1
+{1} null,0
+{2} 0,1
+{3} 1,1
+{4} 2,1
+{5} 3,1
+{6} 4,1
+{7} 5,1
+{8} 6,1
+
+SCIDB QUERY : <regrid(A,2,count(a),count(*))>
+{x} a_count,count
+{0} 1,2
+{1} 2,2
+{2} 2,2
+{3} 2,2
+{4} 1,1
+
+SCIDB QUERY : <regrid(A,3,count(*),sum(a))>
+{x} count,a_sum
+{0} 3,-2
+{1} 3,6
+{2} 3,15
+
+SCIDB QUERY : <regrid(A,5,stdev(a),avg(a))>
+{x} a_stdev,a_avg
+{0} 1.70783,0.25
+{1} 1.29099,4.5
+
+SCIDB QUERY : <regrid(A,9,var(a),stdev(a))>
+{x} a_var,a_stdev
+{0} 7.125,2.66927
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

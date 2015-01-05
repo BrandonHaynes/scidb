@@ -1,0 +1,46 @@
+--setup
+create array full <s:string> [x=0:19,10,0]
+create array full_redimension_store<x:int64> [s(string)=*,10,0]
+
+create array half <s:string> [x=0:19,10,0]
+create array half_redimension_store<x:int64> [s(string)=*,10,0]
+
+create array us_presidents <first_name:string, middle_name: string null, last_name:string, years_in_office: uint8 null, died_in_office:bool null, assassinated: bool> [president_number=1:44,10,0]
+
+--test
+
+--start-query-logging
+--set-format csv
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'full'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+--igdata "store(build(full, x), full)"
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'full'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'full_redimension_store'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+--igdata "store(redimension(full, full_redimension_store), full_redimension_store)"
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'full_redimension_store'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+
+
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+--igdata "store(filter(build(half, x), x % 2 = 0), half)"
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half_redimension_store'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+--igdata "store(redimension(half, half_redimension_store), half_redimension_store)"
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half_redimension_store'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+--igdata "insert(full, half)"
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)
+
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'us_presidents'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn and attid = 0), nelem), nelem)
+--igdata "load(us_presidents, '${TEST_DATA_DIR}/us_presidents.txt')"
+sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'us_presidents'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn and attid = 0), nelem), nelem)
+
+--stop-query-logging
+
+--cleanup
+remove(full)
+remove(half)
+remove(full_redimension_store)
+remove(half_redimension_store)
+remove(us_presidents)

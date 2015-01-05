@@ -1,0 +1,51 @@
+--setup
+--start-query-logging
+# Ticket number : 1645
+# Tests for fixed window and regrid AQL on UDT's
+
+load_library('rational')
+load_library('point')
+
+create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+
+store(apply(A,b,str2point('(1,1)')),B)
+show(B)
+
+store(apply(A,b,rational('(1/2)')),C)
+show(C)
+
+
+--test
+
+--aql select * from A
+--aql select * from B
+--aql select * from C
+--aql select sum(b) from B where x<2
+--aql select sum(b) from C where x<2
+
+--aql select count(a) from B regrid as (partition by x 2)
+--aql select sum(b),count(*) from B regrid as (partition by x 2)
+--aql select sin(x+0.25),sum(a) from B regrid as (partition by x 1)
+--aql select sum(a)+2 from B regrid as (partition by x 2)
+--aql select sum(2*a) from B regrid as (partition by x 2)
+--aql select count(a),sum(b),avg(b) from C regrid as (partition by x 2)
+
+--aql select sum(b),count(b) from B fixed window as (partition by x 0 preceding and 1 following)
+--aql select sum(b),count(b) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select sum(b),count(b) from B fixed window as (partition by x 0 preceding and 2 following)
+--aql select sum(b),count(b) from C fixed window as (partition by x 0 preceding and 2 following)
+--aql select sum(b),count(b) from C fixed window as (partition by x 0 preceding and 1 following)
+--aql select sum(b),count(b) from C fixed window as (partition by x 1 preceding and 0 following)
+
+--aql select sum(b),max(b),min(b) from C fixed window as (partition by x 0 preceding and 2 following)
+--aql select sum(b),max(b),min(b) over W from C fixed window W as (partition by x 0 preceding and 2 following)
+--aql select sum(b),max(b),min(b) from C fixed window W as (partition by x 0 preceding and 2 following)
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+
+--stop-query-logging

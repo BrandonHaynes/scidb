@@ -1,0 +1,10 @@
+--setup
+--start-query-logging
+create temp array A <a:int64,b:int64> [x=0:2,3,0,y=0:2,3,0]
+create temp array T <a:int64> [x=0:2,3,0,y=0:2,3,0]
+store(join(build(T,x-y-1),build(T,x+y+1)),A)
+
+--cleanup
+remove(A)
+remove(T)
+--stop-query-logging

@@ -1,0 +1,11 @@
+Query was executed successfully
+
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+[An error expected at this place for the query "select sum(A) from A group by x". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+Query was executed successfully
+

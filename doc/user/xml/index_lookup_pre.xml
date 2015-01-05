@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="index_lookup">
+  <refnamediv>
+    <refname>index_lookup</refname>
+
+    <refpurpose><indexterm>
+        <primary>index_lookup</primary>
+      </indexterm>Uses an attribute from input array <emphasis role="bold">A
+    </emphasis>to look up the coordinate value from another input array
+    <emphasis role="bold">B</emphasis>.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>index_lookup (<replaceable>input_array</replaceable>, <replaceable>index_array</replaceable>, <replaceable>input_array</replaceable>.<replaceable>attribute_name</replaceable> 
+    [,<replaceable>output_attribute_name</replaceable>] [,'index_sorted=true | false']
+    [,'memory_limit=<replaceable>MEMORY_LIMIT</replaceable>']);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The required parameters are as follows:<itemizedlist>
+        <listitem>
+          <para>The <replaceable>input_array</replaceable> may have any
+          attributes or dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para>The <replaceable>index_array </replaceable>must have a single
+          dimension and a single non-nullable attribute. The index array data
+          must contain unique values. Empty cells are permitted, either
+          between populated cells, or beyond all populated cells.</para>
+        </listitem>
+
+        <listitem>
+          <para>The input attribute,
+          <replaceable>input_array</replaceable>.<replaceable>attribute_name</replaceable>,
+          must correctly refer to one of the attributes of the input array—the
+          attribute to be looked up. This attribute must have the same data
+          type as the sole attribute of the index array. The comparison
+          <command>&lt;</command> (less than) function must be registered in
+          SciDB for this data type.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>The optional parameters are as follows:<itemizedlist>
+        <listitem>
+          <para>Use <replaceable>output_attribute_name</replaceable> if you
+          want to provide a name for the output attribute.
+          <command>index_lookup</command> returns all of the attributes in the
+          <replaceable>input_array</replaceable>, followed by the newly
+          created output attribute. The new attribute is named <emphasis
+          role="bold">input_attribute_name_index</emphasis> by default, or
+          takes the optional, provided name.</para>
+        </listitem>
+
+        <listitem>
+          <para><code>index_sorted</code> is <emphasis role="bold">false
+          </emphasis>by default. If you set this to <emphasis
+          role="bold">true</emphasis>, the index array must be sorted, and it
+          must be "dense," that is, empty cells are not permitted between the
+          populated cells.</para>
+        </listitem>
+
+        <listitem>
+          <para>Set the<code> memory_limit</code> parameter to increase or
+          decrease the size of the memory cache.<command>
+          index_lookup</command> uses memory to cache a part of the
+          <replaceable>index_array </replaceable>for fast lookup of values. By
+          default, the size of this cache is limited to <emphasis
+          role="bold">MEM_ARRAY_THRESHOLD</emphasis>. Note that this is in
+          addition to the memory already consumed by cached MemArrays as the
+          operator is running. Note that the
+          <replaceable>MEMORY_LIMIT</replaceable> value represents the number
+          of megabytes for the cache, and must be at greater than or equal to
+          1, if entered.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>Note the following characteristics for the output
+    attribute:<itemizedlist>
+        <listitem>
+          <para>It will have data type int64 and be nullable.</para>
+        </listitem>
+
+        <listitem>
+          <para>It will contain the respective coordinates of the
+          corresponding input attribute in the
+          <replaceable>index_array</replaceable>.</para>
+        </listitem>
+
+        <listitem>
+          <para>If the corresponding input attribute is null, or if no value
+          for the input attribute exists in the
+          <replaceable>index_array</replaceable>, the output attribute at that
+          position is set to null.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example shows how to return the index value for the stock
+      symbol attribute of a small array populated with stock trading
+      data.</para>
+
+      <procedure>
+        <step>
+          <para>Assume we have the following small array containing a data for
+          a few stock trades.<programlisting language="test">--afl store(build(&lt;symbol:string&gt;[i=0:9,10,0],'[(BAC),(BAC),(AAPL),(C),
+      (BAC),(ZNGA),(C),(MSFT),(FB),(JPM)]',true),symbols);
+        --show-query=no --show-output=no
+--afl store(build(&lt;ms:int64&gt;[i=0:9,10,0],'[34665774,36774769,56512800,55403661,
+      56395968,30741156,56377439,40979647,40515039,39816561]',true),ms);
+      --show-query=no --show-output=no
+--afl store(build(&lt;volume:uint64&gt;[i=0:9,10,0],'[900,11300,100,100,100,500,
+      200,100,100,100]',true),volume); --show-query=no --show-output=no
+--afl store(build(&lt;price:double&gt;[i=0:9,10,0],'[12.7,19.7,438.7,46.5,18.6,7.1
+      44.85,36.65,27.9,55.5]',true),price); --show-query=no --show-output=no
+--afl store(join(join(join(symbols,ms),volume),price),trades);
+       --show-query=no --show-output=no
+
+--schema trades
+--afl scan(trades); --show-query=no --output-format=dcsv
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use the <command>uniq() </command>operator to create an index
+          of the Stock symbols.<programlisting language="test">--afl store(uniq(sort(project(trades,symbol))),stock_symbols); --output-format=dcsv</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use <command>index_lookup()</command> to return the index
+          value for each row of the <emphasis role="bold">trades
+          </emphasis>array.<programlisting language="test">--afl index_lookup(trades, stock_symbols, trades.symbol, index); --output-format=dcsv</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

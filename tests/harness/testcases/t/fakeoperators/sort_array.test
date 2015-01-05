@@ -1,0 +1,11 @@
+--setup
+--test
+
+load_library('misc')
+
+--start-query-logging
+
+test_sort_array()
+
+--stop-query-logging
+--cleanup

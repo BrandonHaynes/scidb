@@ -1,0 +1,10 @@
+--setup
+CREATE ARRAY v10 <a: double > [x=1:10,10,0]
+load(v10,'${TEST_DATA_DIR}/v10.txt')
+
+--test
+normalize(v10)
+
+--cleanup
+remove (v10)
+

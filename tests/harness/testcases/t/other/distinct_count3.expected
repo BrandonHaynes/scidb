@@ -1,0 +1,130 @@
+SCIDB QUERY : <create array A <num:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A, '${TEST_DATA_DIR}/adc_sparse.txt')">
+{x,y,z} num
+{1,1,1} 15.2
+{100000,100000,1000000} inf
+{100000000,500000,10000000} nan
+
+SCIDB QUERY : <create array B <val:int64> [x=0:*,5000,0,y=0:*,5000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(B, '${TEST_DATA_DIR}/adc_sparse1.txt')">
+{x,y} val
+{0,0} 10
+{5000,5000} 55010
+
+SCIDB QUERY : <aggregate(A,approxdc(num))>
+i,num_ApproxDC
+0,3
+
+SCIDB QUERY : <aggregate(concat(A,A),approxdc(num))>
+i,num_ApproxDC
+0,3
+
+SCIDB QUERY : <aggregate(join(A as A1,A),approxdc(A1.num))>
+i,num_ApproxDC
+0,3
+
+SCIDB QUERY : <aggregate(A,ApproxDC(num))>
+i,num_ApproxDC
+0,3
+
+SCIDB QUERY : <aggregate(A,ApproxDC(num),sum(num))>
+i,num_ApproxDC,num_sum
+0,3,nan
+
+SCIDB QUERY : <aggregate(A,ApproxDC(num),sum(num),min(num),max(num),count(num))>
+i,num_ApproxDC,num_sum,num_min,num_max,num_count
+0,3,nan,nan,nan,3
+
+SCIDB QUERY : <aggregate(B,approxdc(val))>
+i,val_ApproxDC
+0,2
+
+SCIDB QUERY : <aggregate(join(B as B1,B),approxdc(B1.val))>
+i,val_ApproxDC
+0,2
+
+SCIDB QUERY : <aggregate(B,ApproxDC(val))>
+i,val_ApproxDC
+0,2
+
+SCIDB QUERY : <aggregate(B,ApproxDC(val),sum(val),min(val),max(val),count(val))>
+i,val_ApproxDC,val_sum,val_min,val_max,val_count
+0,2,55020,10,55010,2
+
+SCIDB QUERY : <select ApproxDC(A)>
+i,num_ApproxDC
+0,3
+
+SCIDB QUERY : <select ApproxDC(num) from A>
+i,ApproxDC
+0,3
+
+SCIDB QUERY : <select x,ApproxDC(num) from A group by x>
+x,expr,ApproxDC
+1,1,1
+100000,100000,1
+100000000,100000000,1
+
+SCIDB QUERY : <select y,ApproxDC(num) from A group by y>
+y,expr,ApproxDC
+1,1,1
+100000,100000,1
+500000,500000,1
+
+SCIDB QUERY : <select y,ApproxDC(num) from A>
+[An error expected at this place for the query "select y,ApproxDC(num) from A". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ITEM_MUST_BE_INSIDE_AGGREGATE2. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ITEM_MUST_BE_INSIDE_AGGREGATE2.]
+
+SCIDB QUERY : <select y,ApproxDC(num) from A group by y>
+y,expr,ApproxDC
+1,1,1
+100000,100000,1
+500000,500000,1
+
+SCIDB QUERY : <select ApproxDC(B)>
+i,val_ApproxDC
+0,2
+
+SCIDB QUERY : <select ApproxDC(val) from B>
+i,ApproxDC
+0,2
+
+SCIDB QUERY : <select x,ApproxDC(val) from B group by x>
+x,expr,ApproxDC
+0,0,1
+5000,5000,1
+
+SCIDB QUERY : <select y,ApproxDC(val) from B group by y>
+y,expr,ApproxDC
+0,0,1
+5000,5000,1
+
+SCIDB QUERY : <select sin(2*y),cos(2*y),y,ApproxDC(val),count(val) from B group by y>
+y,expr,expr_1,expr_2,ApproxDC,count_1
+0,0,1,0,1,1
+5000,-0.305614,-0.952155,5000,1,1
+
+SCIDB QUERY : <select ApproxDC(val) from B regrid as (partition by x 100,y 100)>
+x,y,ApproxDC
+0,0,1
+50,50,1
+
+SCIDB QUERY : <select ApproxDC(val) from B fixed window as (partition by x 0 preceding and 1 following, y 0 preceding and 0 following)>
+x,y,ApproxDC
+0,0,1
+5000,5000,1
+
+SCIDB QUERY : <select ApproxDC(val) from B fixed window as (partition by x 0 preceding and 100 following, y 10 preceding and 100 following)>
+x,y,ApproxDC
+0,0,1
+5000,5000,1
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

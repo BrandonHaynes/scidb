@@ -1,0 +1,9 @@
+--setup
+create array expr1 <a:int64, b:int64>[x=1:5,5,0, y=1:5,5,0]
+load(expr1,'${TEST_DATA_DIR}/expr1_1.txt')
+
+--test
+project(apply(expr1, a2, 2 * 5 - 3 / 2 / 1 * a / 1 + 4 * b + 4 - b / b * 3), a, b)
+
+--cleanup
+remove (expr1)

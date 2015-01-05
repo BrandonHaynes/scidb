@@ -1,0 +1,155 @@
+SCIDB QUERY : <load_library('rational')>
+Query was executed successfully
+
+SCIDB QUERY : <load_library('point')>
+Query was executed successfully
+
+SCIDB QUERY : <create array A <a:int32>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+1),A)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <store(apply(A,b,str2point('(1,1)')),B)>
+{x} a,b
+{0} 1,'(1,1)'
+{1} 2,'(1,1)'
+{2} 3,'(1,1)'
+
+SCIDB QUERY : <show(B)>
+{i} schema
+{0} 'B<a:int32,b:point> [x=0:2,3,0]'
+
+SCIDB QUERY : <store(apply(A,b,rational('(1/2)')),C)>
+{x} a,b
+{0} 1,'(1/2)'
+{1} 2,'(1/2)'
+{2} 3,'(1/2)'
+
+SCIDB QUERY : <show(C)>
+{i} schema
+{0} 'C<a:int32,b:rational> [x=0:2,3,0]'
+
+SCIDB QUERY : <select * from A>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <select * from B>
+{x} a,b
+{0} 1,'(1,1)'
+{1} 2,'(1,1)'
+{2} 3,'(1,1)'
+
+SCIDB QUERY : <select * from C>
+{x} a,b
+{0} 1,'(1/2)'
+{1} 2,'(1/2)'
+{2} 3,'(1/2)'
+
+SCIDB QUERY : <select sum(b) from B where x<2>
+{i} sum
+{0} '(2,2)'
+
+SCIDB QUERY : <select sum(b) from C where x<2>
+{i} sum
+{0} '(1/1)'
+
+SCIDB QUERY : <select count(a) from B regrid as (partition by x 2)>
+{x} count
+{0} 2
+{1} 1
+
+SCIDB QUERY : <select sum(b),count(*) from B regrid as (partition by x 2)>
+{x} sum,count_1
+{0} '(2,2)',2
+{1} '(1,1)',1
+
+SCIDB QUERY : <select sin(x+0.25),sum(a) from B regrid as (partition by x 1)>
+{x} expr,sum
+{0} 0.247404,1
+{1} 0.948985,2
+{2} 0.778073,3
+
+SCIDB QUERY : <select sum(a)+2 from B regrid as (partition by x 2)>
+{x} expr
+{0} 5
+{1} 5
+
+SCIDB QUERY : <select sum(2*a) from B regrid as (partition by x 2)>
+{x} sum
+{0} 6
+{1} 6
+
+SCIDB QUERY : <select count(a),sum(b),avg(b) from C regrid as (partition by x 2)>
+{x} count,sum_1,avg_2
+{0} 2,'(1/1)','(1/2)'
+{1} 1,'(1/2)','(1/2)'
+
+SCIDB QUERY : <select sum(b),count(b) from B fixed window as (partition by x 0 preceding and 1 following)>
+{x} sum,count_1
+{0} '(2,2)',2
+{1} '(2,2)',2
+{2} '(1,1)',1
+
+SCIDB QUERY : <select sum(b),count(b) from B fixed window as (partition by x 1 preceding and 0 following)>
+{x} sum,count_1
+{0} '(1,1)',1
+{1} '(2,2)',2
+{2} '(2,2)',2
+
+SCIDB QUERY : <select sum(b),count(b) from B fixed window as (partition by x 0 preceding and 2 following)>
+{x} sum,count_1
+{0} '(3,3)',3
+{1} '(2,2)',2
+{2} '(1,1)',1
+
+SCIDB QUERY : <select sum(b),count(b) from C fixed window as (partition by x 0 preceding and 2 following)>
+{x} sum,count_1
+{0} '(3/2)',3
+{1} '(1/1)',2
+{2} '(1/2)',1
+
+SCIDB QUERY : <select sum(b),count(b) from C fixed window as (partition by x 0 preceding and 1 following)>
+{x} sum,count_1
+{0} '(1/1)',2
+{1} '(1/1)',2
+{2} '(1/2)',1
+
+SCIDB QUERY : <select sum(b),count(b) from C fixed window as (partition by x 1 preceding and 0 following)>
+{x} sum,count_1
+{0} '(1/2)',1
+{1} '(1/1)',2
+{2} '(1/1)',2
+
+SCIDB QUERY : <select sum(b),max(b),min(b) from C fixed window as (partition by x 0 preceding and 2 following)>
+{x} sum,max_1,min_2
+{0} '(3/2)','(1/2)','(1/2)'
+{1} '(1/1)','(1/2)','(1/2)'
+{2} '(1/2)','(1/2)','(1/2)'
+
+SCIDB QUERY : <select sum(b),max(b),min(b) over W from C fixed window W as (partition by x 0 preceding and 2 following)>
+{x} sum,max_1,min_2
+{0} '(3/2)','(1/2)','(1/2)'
+{1} '(1/1)','(1/2)','(1/2)'
+{2} '(1/2)','(1/2)','(1/2)'
+
+SCIDB QUERY : <select sum(b),max(b),min(b) from C fixed window W as (partition by x 0 preceding and 2 following)>
+{x} sum,max_1,min_2
+{0} '(3/2)','(1/2)','(1/2)'
+{1} '(1/1)','(1/2)','(1/2)'
+{2} '(1/2)','(1/2)','(1/2)'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+

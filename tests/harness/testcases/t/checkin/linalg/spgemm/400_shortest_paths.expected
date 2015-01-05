@@ -1,0 +1,54 @@
+SCIDB QUERY : <load_library('linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_TRIPLETS_6_9)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <create array GRAPH_TRIPLETS_6_9 <v0:int64, v1:int64, w:float>[dummy=0:*,1000*1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_WEIGHTS_6_9)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <create array GRAPH_WEIGHTS_6_9 <w:float>[v0=0:5,10,0, v1=0:5,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(GRAPH_TRIPLETS_6_9, '${TEST_DATA_DIR}/graph_triplets6_9.scidb.txt')">
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(GRAPH_TRIPLETS_6_9, GRAPH_WEIGHTS_6_9),GRAPH_WEIGHTS_6_9)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+"shortest paths from vertex 0"
+SCIDB QUERY : <scan(SHORTEST_PATHS_VEC)>
+{v1,dummy} multiply
+{0,0} 0
+{1,0} 12
+{2,0} 5
+{3,0} 13
+{4,0} 13
+{5,0} 16
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+[Query was executed successfully. It was only intended to just run.]
+"shortest paths from vertex 2"
+SCIDB QUERY : <scan(SHORTEST_PATHS_VEC)>
+{v1,dummy} multiply
+{1,0} 7
+{2,0} 0
+{3,0} 8
+{4,0} 8
+{5,0} 11
+
+SCIDB QUERY : <remove(GRAPH_TRIPLETS_6_9)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_WEIGHTS_6_9)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+Query was executed successfully
+

@@ -1,0 +1,199 @@
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <create array DIMS  <val:double> [x=0:3,32,0,y=0:3,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(DIMS,iif(x=y,double(x+1),0.0)),DENSE)>
+{x,y} val
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 2
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 3
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 4
+
+SCIDB QUERY : <store(build(DIMS,'[[{0,0}(1),{1,1}(2),{2,2}(3),{3,3}(4)]]',true),SPARSE)>
+{x,y} val
+{0,0} 1
+{1,1} 2
+{2,2} 3
+{3,3} 4
+
+SCIDB QUERY : <store(build(DIMS,'[[]]',true),SPARSE_NONE)>
+{x,y} val
+
+SCIDB QUERY : <gemm(DENSE,  DENSE,  build(DENSE,0))>
+{x,y} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 4
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 9
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 16
+
+SCIDB QUERY : <gemm(SPARSE, DENSE,  build(DENSE,0))>
+{x,y} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 4
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 9
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 16
+
+SCIDB QUERY : <gemm(DENSE,  SPARSE, build(DENSE,0))>
+{x,y} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 4
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 9
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 16
+
+SCIDB QUERY : <gemm(DENSE,  DENSE,  SPARSE_NONE)>
+{x,y} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 4
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 9
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 16
+
+SCIDB QUERY : <gemm(SPARSE, SPARSE, build(DENSE,0))>
+{x,y} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 4
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 9
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 16
+
+SCIDB QUERY : <gemm(SPARSE, DENSE,  SPARSE_NONE)>
+{x,y} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 4
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 9
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 16
+
+SCIDB QUERY : <gemm(DENSE,  SPARSE, SPARSE_NONE)>
+{x,y} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 4
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 9
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 16
+
+SCIDB QUERY : <gemm(SPARSE, SPARSE, SPARSE_NONE)>
+{x,y} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 4
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 9
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 16
+
+SCIDB QUERY : <remove(DIMS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(DENSE)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SPARSE)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SPARSE_NONE)>
+Query was executed successfully
+

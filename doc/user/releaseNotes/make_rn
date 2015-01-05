@@ -1,0 +1,1 @@
+/usr/bin/fop -xsl RNcustom.xsl -xml ./scidb_RN_source.xml -pdf scidb_RN_13.2.pdf

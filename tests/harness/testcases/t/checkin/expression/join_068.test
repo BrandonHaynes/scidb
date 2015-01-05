@@ -1,0 +1,12 @@
+--setup
+create array expr1 <a:int64, b:int64>[x=1:5,5,0, y=1:5,5,0]
+create array expr2 <a:int64, b:int64>[x=1:5,5,0, y=1:5,5,0]
+load(expr1,'${TEST_DATA_DIR}/expr1_1.txt')
+load(expr2,'${TEST_DATA_DIR}/expr2_1.txt')
+
+--test
+filter(join(expr1 as V1, expr2 as V2), (V1.a / V1.a / 5 + V1.a * 4 / 4 + V1.b + 1 * 2) / V1.a + V1.b <= 4 - V2.a / V2.b - 1 * V2.b / 2 / 5 - 2 * V2.b * V2.a / V2.a + V2.b * V2.a * V2.a)
+
+--cleanup
+remove (expr1)
+remove (expr2)

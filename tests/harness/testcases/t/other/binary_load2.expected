@@ -1,0 +1,407 @@
+SCIDB QUERY : <create array UNB <a:double,b:double>[x=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array UNB1 <a:double,b:string>[x=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array UNB2 <a:double,b:string>[x=0:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array UNB3 <a:double,b:string>[x=0:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array UNB4 <a:double null,b:string null>[x=0:*,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array UNB5 <a:double>[x=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array UNB6 <a:double>[x=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(UNB, '${TEST_DATA_DIR}/ub_binload.txt')">
+{x} a,b
+{0} 0,0
+{2} 1,0
+{4} 2,0
+{6} 3,0
+{8} 4,0
+{10} 5,0
+{12} 6,0
+{14} 7,0
+{16} 8,0
+{18} 9,0
+{20} 10,0
+{22} 11,0
+{24} 12,0
+{26} 13,0
+{28} 14,0
+{29} 15,0
+
+SCIDB QUERY : <save(UNB, 'unb.out', 0, '(double,string)')>
+{x} a,b
+{0} 0,0
+{2} 1,0
+{4} 2,0
+{6} 3,0
+{8} 4,0
+{10} 5,0
+{12} 6,0
+{14} 7,0
+{16} 8,0
+{18} 9,0
+{20} 10,0
+{22} 11,0
+{24} 12,0
+{26} 13,0
+{28} 14,0
+{29} 15,0
+
+SCIDB QUERY : <save(UNB, 'unb.txt', 0, '(double,string)')>
+{x} a,b
+{0} 0,0
+{2} 1,0
+{4} 2,0
+{6} 3,0
+{8} 4,0
+{10} 5,0
+{12} 6,0
+{14} 7,0
+{16} 8,0
+{18} 9,0
+{20} 10,0
+{22} 11,0
+{24} 12,0
+{26} 13,0
+{28} 14,0
+{29} 15,0
+
+SCIDB QUERY : <load(UNB1,'unb.out', 0, '(double,string)')>
+{x} a,b
+{0} 0,'0'
+{1} 1,'0'
+{2} 2,'0'
+{3} 3,'0'
+{4} 4,'0'
+{5} 5,'0'
+{6} 6,'0'
+{7} 7,'0'
+{8} 8,'0'
+{9} 9,'0'
+{10} 10,'0'
+{11} 11,'0'
+{12} 12,'0'
+{13} 13,'0'
+{14} 14,'0'
+{15} 15,'0'
+
+SCIDB QUERY : <load(UNB2,'unb.txt', 0, 'text')>
+[An error expected at this place for the query "load(UNB2,'unb.txt', 0, 'text')". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load(UNB2,'unb.out', 0, '(double,string)')>
+{x} a,b
+{0} 0,'0'
+{1} 1,'0'
+{2} 2,'0'
+{3} 3,'0'
+{4} 4,'0'
+{5} 5,'0'
+{6} 6,'0'
+{7} 7,'0'
+{8} 8,'0'
+{9} 9,'0'
+{10} 10,'0'
+{11} 11,'0'
+{12} 12,'0'
+{13} 13,'0'
+{14} 14,'0'
+{15} 15,'0'
+
+SCIDB QUERY : <save(UNB2, 'unb2.txt', 0, '(double,string)')>
+{x} a,b
+{0} 0,'0'
+{1} 1,'0'
+{2} 2,'0'
+{3} 3,'0'
+{4} 4,'0'
+{5} 5,'0'
+{6} 6,'0'
+{7} 7,'0'
+{8} 8,'0'
+{9} 9,'0'
+{10} 10,'0'
+{11} 11,'0'
+{12} 12,'0'
+{13} 13,'0'
+{14} 14,'0'
+{15} 15,'0'
+
+SCIDB QUERY : <save(UNB2, 'unb2.txt', 0, 'text')>
+{x} a,b
+{0} 0,'0'
+{1} 1,'0'
+{2} 2,'0'
+{3} 3,'0'
+{4} 4,'0'
+{5} 5,'0'
+{6} 6,'0'
+{7} 7,'0'
+{8} 8,'0'
+{9} 9,'0'
+{10} 10,'0'
+{11} 11,'0'
+{12} 12,'0'
+{13} 13,'0'
+{14} 14,'0'
+{15} 15,'0'
+
+SCIDB QUERY : <load(UNB4, 'unb2.txt', -0, 'text')>
+{x} a,b
+{0} 0,'0'
+{1} 1,'0'
+{2} 2,'0'
+{3} 3,'0'
+{4} 4,'0'
+{5} 5,'0'
+{6} 6,'0'
+{7} 7,'0'
+{8} 8,'0'
+{9} 9,'0'
+{10} 10,'0'
+{11} 11,'0'
+{12} 12,'0'
+{13} 13,'0'
+{14} 14,'0'
+{15} 15,'0'
+
+SCIDB QUERY : <load(UNB3,'unb.out', 0, '(float,float)')>
+{x} a,b
+{0} 0,'0'
+{1} 2.8026e-45,'6.72623e-44'
+{2} 0,'2.06607e-40'
+{3} 4.4081e-39,'0'
+{4} 2,'2.8026e-45'
+{5} 6.72623e-44,'0'
+{6} 2.06641e-40,'4.4081e-39'
+{7} 0,'2.25'
+{8} 2.8026e-45,'6.72623e-44'
+{9} 0,'2.06658e-40'
+{10} 4.4081e-39,'0'
+{11} 2.375,'2.8026e-45'
+{12} 6.72623e-44,'0'
+{13} 2.06669e-40,'4.4081e-39'
+{14} 0,'2.5'
+{15} 2.8026e-45,'6.72623e-44'
+{16} 0,'2.06678e-40'
+{17} 4.4081e-39,'0'
+{18} 2.5625,'2.8026e-45'
+{19} 6.72623e-44,'0'
+{20} 2.06683e-40,'4.4081e-39'
+{21} 0,'2.625'
+{22} 2.8026e-45,'6.72623e-44'
+{23} 0,'2.06689e-40'
+{24} 4.4081e-39,'0'
+{25} 2.6875,'2.8026e-45'
+{26} 6.72623e-44,'0'
+{27} 2.06694e-40,'4.4081e-39'
+
+SCIDB QUERY : <load(UNB4, 'unb.txt', 0, '(double,string)')>
+{x} a,b
+{0} 0,'0'
+{1} 1,'0'
+{2} 2,'0'
+{3} 3,'0'
+{4} 4,'0'
+{5} 5,'0'
+{6} 6,'0'
+{7} 7,'0'
+{8} 8,'0'
+{9} 9,'0'
+{10} 10,'0'
+{11} 11,'0'
+{12} 12,'0'
+{13} 13,'0'
+{14} 14,'0'
+{15} 15,'0'
+
+SCIDB QUERY : <load(UNB5,'unb.out', 0, '(double,dummy)')>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+{11} 11
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+
+SCIDB QUERY : <save(UNB5,'unb5.txt')>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+{11} 11
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+
+SCIDB QUERY : <load(UNB6,'unb5.txt')>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+{11} 11
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+
+SCIDB QUERY : <load(UNB6,'unb5.txt')>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+{11} 11
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+
+SCIDB QUERY : <load(UNB6,'unb5.txt',0,'text')>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+{11} 11
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+
+SCIDB QUERY : <load(UNB6,'unb5.txt',0,'text',10)>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+{11} 11
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+
+SCIDB QUERY : <load(UNB6,'unb5.txt',0,'(double)')>
+[An error expected at this place for the query "load(UNB6,'unb5.txt',0,'(double)')". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load(UNB6,'unb5.txt',0,'(double)',15,unb6_shadow)>
+{x} a
+{0} 5.89613e-96
+{1} 5.89796e-96
+{2} 6.00279e+140
+{3} 1.27151e-52
+{4} 5.41966e-43
+{5} 2.32773e-33
+{6} 1.03421e+295
+{7} 6.84058e-72
+{8} 5.89799e-96
+{9} 2.73326e-57
+{10} 1.35355e+295
+{11} 2.01026e-110
+{12} 3.57352e-115
+{13} 0
+
+SCIDB QUERY : <load(UNB6,'unb5.txt',0,'text',15)>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+{11} 11
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+
+SCIDB QUERY : <aggregate(unb6_shadow,count(*))>
+{i} count
+{0} 1
+
+SCIDB QUERY : <remove(UNB)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UNB1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UNB2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UNB3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UNB4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UNB5)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UNB6)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(unb6_shadow)>
+Query was executed successfully
+

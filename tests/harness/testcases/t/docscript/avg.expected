@@ -1,0 +1,15 @@
+SCIDB QUERY : <CREATE ARRAY avg_array<val:double>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(avg_array,i*4+j),avg_array)>
+[[(0),(1),(2),(3)],[(4),(5),(6),(7)],[(8),(9),(10),(11)],[(12),(13),(14),(15)]]
+
+SCIDB QUERY : <aggregate(avg_array,avg(val),j)>
+{j} val_avg
+{0} 6
+{1} 7
+{2} 8
+{3} 9
+
+Query was executed successfully
+

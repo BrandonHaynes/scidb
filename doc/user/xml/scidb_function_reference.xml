@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<chapter>
+  <title>SciDB Function Reference</title>
+
+  <para><indexterm>
+      <primary>functions</primary>
+    </indexterm><indexterm>
+      <primary>expressions</primary>
+
+      <secondary>syntax for AFL and AQL</secondary>
+    </indexterm>This chapter lists the SciDB functions that are available for
+  use in SciDB expressions. Expressions can be used in the following types of
+  syntaxes:</para>
+
+  <para><emphasis role="bold">AQL Syntax:</emphasis><synopsis><command>SELECT</command> <replaceable>expression</replaceable> <command>FROM</command> <replaceable>array</replaceable>;
+
+<command>SELECT</command> <replaceable>expression1</replaceable> <command>FROM</command> <replaceable>array</replaceable> <command>WHERE</command> <replaceable>expression2</replaceable>;</synopsis></para>
+
+  <para><emphasis role="bold">AFL Syntax:</emphasis><synopsis>operator(<replaceable>array</replaceable>,<replaceable>expression</replaceable>);</synopsis></para>
+
+  <para>SciDB contains the following categories of functions:<itemizedlist>
+      <listitem>
+        <para><link linkend="algebraicFunctions">Algebraic
+        Functions</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="comparisonFunctions">Comparison
+        Functions</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="hypergeometricFunctions">Hypergeometric
+        Functions</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="temporalFunctions">Temporal
+        Functions</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="trigonometricFunctions">Trigonometric and
+        Transcendental Functions</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="miscFunctions">Miscellaneous
+        functions</link></para>
+      </listitem>
+    </itemizedlist></para>
+
+  <para>You can get a list of all of the available functions by running the
+  following query:<screen>$ iquery -aq "list('functions')"</screen></para>
+
+  <xi:include href="algebraic_functions_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="comparison_functions_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="hypergeometric_functions_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="temporal_functions_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="transcendental_functions_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <xi:include href="misc_functions_post.xml"
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
+</chapter>

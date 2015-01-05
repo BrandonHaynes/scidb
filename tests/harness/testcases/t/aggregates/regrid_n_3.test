@@ -1,0 +1,31 @@
+--setup
+--start-query-logging
+create array A <a:int32 null> [x=-2:8,5,0]
+store(build(A,x+10),A)
+
+--test
+--aql update A set a=null where x=1
+regrid(A,1,sum(a))
+regrid(A,1,max(a))
+regrid(A,1,min(a))
+regrid(A,1,avg(a))
+regrid(A,1,count(a))
+regrid(A,1,count(*))
+regrid(A,1,stdev(a))
+regrid(A,1,var(a))
+
+store(build(A,x-2),A)
+--aql update A set a=null where x=1
+regrid(A,18,sum(a),max(a))
+regrid(A,3,max(a),var(a),stdev(a),count(a),sum(a),min(a))
+regrid(A,4,min(a),count(*))
+regrid(A,1,avg(a),count(a))
+regrid(A,2,count(a),count(*))
+regrid(A,3,count(*),sum(a))
+regrid(A,5,stdev(a),avg(a))
+regrid(A,9,var(a),stdev(a))
+
+
+--cleanup
+remove(A)
+--stop-query-logging

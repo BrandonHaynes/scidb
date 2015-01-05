@@ -1,0 +1,19 @@
+--setup
+--start-query-logging
+create array raw <pos:int64, device:int64, val: float> [offset=1:*,5,0]
+create array A<val:float>[device=1:5,5,0, pos=1:5,5,0]
+
+--shell --command "csv2scidb -p NNN -s 1 -f 1 < $DOC_DATA/raw_2.txt> $DOC_DATA/raw_2.scidb"
+--aql load raw from '${TEST_DATA_DIR}/doc/raw_2.scidb'
+
+--test
+redimension(raw,A)
+redimension(raw,A,sum(val) as val)
+
+--aql select * from redimension(raw, A, sum(val) as val)
+
+--cleanup
+--aql drop array raw
+--aql drop array A
+--stop-query-logging
+

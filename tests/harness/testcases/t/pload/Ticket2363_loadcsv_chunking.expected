@@ -1,0 +1,9 @@
+SCIDB QUERY : <sort(one_chunk,a)>
+{n} a,b,c
+{0} 'a',0,1
+{1} 'b',1,1
+{2} 'c',2,1
+
+SCIDB QUERY : <remove(one_chunk)>
+Query was executed successfully
+

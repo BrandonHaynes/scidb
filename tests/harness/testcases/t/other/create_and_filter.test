@@ -1,0 +1,12 @@
+--setup
+CREATE array TEST2 <a:int16,b:int16>[X=0:3,4,0 , Y=0:3,4,0]
+
+--test
+load(TEST2,'${TEST_DATA_DIR}/test2.txt')
+filter(TEST2,a>5)
+filter(TEST2,a>5 and b>4 )
+filter(TEST2,a>5 OR  b>4 )
+
+--cleanup
+remove(TEST2)
+

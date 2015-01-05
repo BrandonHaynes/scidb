@@ -1,0 +1,144 @@
+#
+# BEGIN_COPYRIGHT
+#
+# This file is part of SciDB.
+# Copyright (C) 2008-2014 SciDB, Inc.
+#
+# SciDB is free software: you can redistribute it and/or modify
+# it under the terms of the AFFERO GNU General Public License as published by
+# the Free Software Foundation.
+#
+# SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+# INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+# NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+# the AFFERO GNU General Public License for the complete license terms.
+#
+# You should have received a copy of the AFFERO GNU General Public License
+# along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+#
+# END_COPYRIGHT
+#
+
+
+import os
+import sys
+import time
+sys.path.append(os.path.join('@CMAKE_INSTALL_PREFIX@', 'lib'))
+import libscidbpython as swig
+
+
+class Connection(object):
+    _handle = None;
+    
+    def __init__(self, handle):
+        self._handle = handle
+        
+    def __del__(self):
+        if self._handle :
+            self.disconnect()
+    
+    def disconnect(self):
+        if not self._handle:
+            raise ValueError("no open connection")
+        db = swig.getSciDB()
+        db.disconnect(self._handle)
+        self._handle = None
+
+    def prepareQuery(self, queryString, type="AFL"):
+        if not self._handle:
+            raise ValueError("no open connection")
+        try:
+            db = swig.getSciDB()
+            if type in ("afl","AFL"):
+                typeNum= swig.AFL
+            elif type in ("aql","AQL"):
+                typeNum= swig.AQL
+            else:
+                raise ValueError("Type must be 'afl' or 'aql', was %s for query %s"%(type,queryString))
+            result=swig.QueryResult()
+            swig.prepareQuery(queryString, typeNum, result, self._handle)
+            return result
+        except Exception, inst:
+            print >> sys.stderr, "Exception of type %s value %s" % (Exception,inst,)
+            print >> sys.stderr, "re-raising ...."
+            raise
+    
+    
+    def executeQuery(self, queryString, type="AFL"):
+        if not self._handle:
+            raise ValueError("no open connection")
+        try:
+            db = swig.getSciDB()
+            if type in ("afl","AFL"):
+                typeNum= swig.AFL
+            elif type in ("aql","AQL"):
+                typeNum= swig.AQL
+            else:
+                raise ValueError("Type must be 'afl' or 'aql', was %s for query %s"%(type,queryString))            
+            result=swig.QueryResult()
+            db.executeQuery(queryString, typeNum, result, self._handle) # or take a prepared query
+            return result
+        except Exception, inst:
+            print >> sys.stderr, "Exception of type %s value %s" % (Exception,inst,)
+            print >> sys.stderr, "re-raising ...."
+            raise
+    
+    def cancelQuery(self, queryID):
+        if not self._handle:
+            raise ValueError("no open connection")
+        db = swig.getSciDB()
+        return db.cancelQuery(queryID, self._handle)
+
+    def completeQuery(self, queryID):
+        if not self._handle:
+            raise ValueError("no open connection")
+        db = swig.getSciDB()
+        return db.completeQuery(queryID, self._handle)
+
+
+
+def connect(hostname = None, port = 1239):
+    db = swig.getSciDB()
+    handle=db.connect(hostname, port=port)
+    if handle:
+        return Connection(handle=handle)
+
+    return None
+
+
+attributeTypeStringFuncs = {
+                                "char"     : swig.Value.getChar,
+                                "string"   : swig.Value.getString,
+                                "datetime" : swig.Value.getDateTime,
+#                                "void"     : swig.Value.getVoid,  though referenced in example2, this doesn't actually exist
+                                "indicator": lambda(x) : True,          # NOCHECKIN: is there a getIndicator() method?
+                                
+                                "bool"     : swig.Value.getBool,
+                                "uint8"    : swig.Value.getUint8,
+                                "uint16"   : swig.Value.getUint16,
+                                "uint32"   : swig.Value.getUint32,
+                                "uint64"   : swig.Value.getUint64, 
+                                "int8"     : swig.Value.getInt8,
+                                "int16"    : swig.Value.getInt16,
+                                "int32"    : swig.Value.getInt32,
+                                "int64"    : swig.Value.getInt64,
+                                
+                                "float"    : swig.Value.getFloat,
+                                "double"   : swig.Value.getDouble,
+                           }
+
+
+#
+# NOCHECKIN: todo: figure out how to bind this to the swig.value python class itself
+# NOCHECKIN: todo: figure out how to look up the type directly from the dataitem.
+#
+def getTypedValue(dataItem, attributeTypeString):
+    # while not chunkiter.end():
+    #     dataitem = chunkiter.getItem()
+    
+
+    if attributeTypeString in attributeTypeStringFuncs:
+        op = attributeTypeStringFuncs[attributeTypeString]
+        return op(dataItem) # in this case dataItem is "self"
+    
+    raise ValueError("unknown type to getValue()")

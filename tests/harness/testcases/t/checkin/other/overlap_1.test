@@ -1,0 +1,17 @@
+# ticket no. 995
+
+--setup
+--start-query-logging
+create array A <a:int32 null> [x=0:3,2,0]
+create array B <a:int32 null> [x=0:3,2,1]
+
+
+--test
+#--aql load A from '${TEST_DATA_DIR}/null_8.txt'
+--shell  --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load A from '../tests/harness/testcases/data/null_8.txt'""
+--aql select * into B from repart(A,B)
+
+--cleanup
+remove(A)
+remove(B)
+--stop-query-logging

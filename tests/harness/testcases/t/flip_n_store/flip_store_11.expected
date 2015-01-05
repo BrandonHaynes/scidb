@@ -1,0 +1,62 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a,b
+{0} 1.05,5.08
+{1} 2.05,6.08
+{2} 3.05,7.08
+
+{a} b
+{1.05} 5.08
+{2.05} 6.08
+{3.05} 7.08
+
+{b} a
+{5.08} 1.05
+{6.08} 2.05
+{7.08} 3.05
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a,b
+{0} '1','5'
+{1} '2','6'
+{2} '3','7'
+
+{a} b
+{'1'} '5'
+{'2'} '6'
+{'3'} '7'
+
+{b} a
+{'5'} '1'
+{'6'} '2'
+{'7'} '3'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

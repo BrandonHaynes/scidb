@@ -1,0 +1,20 @@
+This directory contains a number of python programs utilizing the
+SciDB Python API to execute statements.
+
+* Install scidb.
+
+* sample.py is a program that creates and loads an array, 
+  executes a select AQL statement, and drops the array.
+
+
+* sample2.py takes in a list of afl/aql queries from a file (or files) and
+  executes them. This example shows the use of additional data types,
+  the empty flag for queries with filter predicates.
+
+  The last attribute will be the indicator. Programmatic handling of the indicator may look like this:
+           if myattributes[i].getType() == "indicator": 
+		then process all the attributes of the cell returned...
+
+   1) python sample.py
+   2) python sample2.py
+

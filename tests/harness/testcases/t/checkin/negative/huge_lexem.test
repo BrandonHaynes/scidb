@@ -1,0 +1,9 @@
+--setup
+--shell --command "(for i in $(seq 1 65536);do printf a;done;echo -n '()') > /tmp/huge_lexem_1"
+--shell --command "(for i in $(seq 1 65535);do printf a;done;echo -n '()') > /tmp/huge_lexem_2"
+--test
+--shell --store --command "iquery -f /tmp/huge_lexem_2 --ignore-errors 2>&1|grep -v 'Failed query id'"
+--shell --store --command "iquery -f /tmp/huge_lexem_1 --ignore-errors 2>&1|grep -v 'Failed query id'"
+--cleanup
+--shell --command "rm /tmp/huge_lexem_1"
+--shell --command "rm /tmp/huge_lexem_2"

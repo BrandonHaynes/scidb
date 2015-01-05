@@ -1,0 +1,32 @@
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query. It was only intended to just run.]
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query. It was only intended to just run.]
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <load(pairs_scale22,'/public/data/Kronecker/KroneckerGraph_scale22_edgefactor16.scidb')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(apply(pairs_scale22, v, 1.0), mat_scale22),mat_scale22)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale22, mat_scale22), product_scale22)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale22, mat_scale22), product_scale22)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale22, mat_scale22), product_scale22)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(pairs_scale22)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(mat_scale22)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(product_scale22)>
+[Query was executed successfully, ignoring data output by this query.]
+

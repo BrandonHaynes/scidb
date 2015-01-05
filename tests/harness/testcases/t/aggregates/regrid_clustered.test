@@ -1,0 +1,43 @@
+--setup
+create array A <a:float null> [x=0:3,2,0]
+create array B <a:float null> [x=0:3,2,0]
+create array C <a:float null> [x=0:3,1,0]
+create array D <a:float null> [x=0:3,1,0]
+store(build(A, iif(x % 2 = 0, float(x) + 10, null)), A)
+store(build(B, iif((x+1) % 2 = 0, float(x-1) + 10, null)), B)
+store(repart(A, C), C)
+store(repart(B, D), D)
+--test
+scan(A)
+scan(B)
+scan(C)
+scan(D)
+regrid(A,2,min(a))
+regrid(B,2,min(a))
+regrid(C,2,min(a))
+regrid(D,2,min(a))
+regrid(A,2,max(a))
+regrid(B,2,max(a))
+regrid(C,2,max(a))
+regrid(D,2,max(a))
+regrid(A,2,count(a))
+regrid(B,2,count(a))
+regrid(C,2,count(a))
+regrid(D,2,count(a))
+regrid(A,2,count(*))
+regrid(B,2,count(*))
+regrid(C,2,count(*))
+regrid(D,2,count(*))
+regrid(A,2,sum(a))
+regrid(B,2,sum(a))
+regrid(C,2,sum(a))
+regrid(D,2,sum(a))
+regrid(A,2,avg(a))
+regrid(B,2,avg(a))
+regrid(C,2,avg(a))
+regrid(D,2,avg(a))
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)

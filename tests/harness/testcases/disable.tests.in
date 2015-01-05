@@ -1,0 +1,235 @@
+#
+# keep this file sorted to avoid accidental merges of duplicate lines, each part has its
+# own sort rules
+#
+
+# PART I
+#
+# THIS PART SHOULD BE FOR TESTS THAT ARE NORMALLY DISABLED, not disabled due to bug/ticket
+# e.g. they take too long to run under any supported Cdash config, they are for design or TDD
+#   and the code that runs them will fail, etc
+#
+# - it is best practice if long tests are pushed to a "long" or "slow" subdirectory of the other
+#   related tests that are not, for example, scalapack/64instance is of this type
+# - it is best practice to give a line explaining why disabled, so others can validate
+#   that it is appropriate that they are disabled (and not just leftover from before we started
+#   adding ticket numbers for disabled-due-to-failure)
+#
+#  KEEP THIS IN ALPHABETICAL ORDER
+#
+
+# Disable suite containing very large data
+bigdata
+# next needs conversion to chunksize 32x32
+checkin.scalapack.20_svd_oldVals
+# next has output that is currently too verbose
+checkin.scalapack.31_svd_doSvdWithMetrics_verySmall
+# The below suite has very long execution time and queries need to be updated for syntax
+data_model
+# re-enable after solving #3406
+doc.redimension_2
+# #2131: This only works on one instance! Need to edit fits loader to not throw errors on multiple instances!
+fits.fits_input
+# 2 suites of performance tests, too slow for running as 4 instances
+linalg/spgemm/64instance
+linalg/spgemm/performance
+# 
+# NEED COMMENT
+perf.repart
+# 40_svd_tickets @ 18min is too slow to leave enabled during functional freeze
+scalapack.40_svd_tickets
+# DIR scalapack.64instance are needed for scale-up testing on salty, but take too long to run anywhere else
+scalapack.64instance
+# DIR used for development and other non-production purposes
+scalapack.disabled
+# DIR used for performance testing, too slow for normal use
+scalapack.perf
+# DIR may come back into service sometime
+scalapack.smallest_sizes
+# DIR: backup script tests (take a long time)
+backup
+
+#
+# PART II
+# THIS PART IS FOR FAILING TESTS.  These represent known defects in the code or in the tests
+# - each disabled test must have a corresponding ticket number
+# - TODO: DAVE, please decide whether you would like this sorted
+#         A) alpabetical, so that each test is surely added only once OR
+#         B) in ticket order
+#         as right now it seems random and is inconsistent between disable{,1i}.tests.in
+#
+
+@CONFIGURE_DISABLE_TESTS_SCALAPACK@
+
+#re-enable after solving ticket 2200, test is on rectangular inputs
+scalapack.gemm_01
+
+#re-enable after solving ticket 2200, test is on rectangular inputs
+scalapack.gesvd_01
+
+#re-enable after solving ticket 2232
+docscript.allversions
+
+#re-enable after solving ticket 4273
+other.parse_int64
+
+#re-enable after solving ticket 1849
+other.random_check
+
+# re-enable after solving ticket 2234
+docscript.load
+
+# for not-debug builds this line would be replaced by list of disabled tests
+@CONFIGURE_DISABLE_TESTS_NOT_DEBUG@
+
+# Valgrind
+@CONFIGURE_DISABLE_TESTS_VALGRIND@
+
+#*****************************************************************************
+# PART III
+#
+# THIS PART IS FOR TEMPORARILY DISABLED TESTS.  These test files all include
+# statements that use the olf NID syntax and are disabled while we rip out and
+# de-NID the code base. Many of these just happen to use NIDS in arrays that
+# are then used to test other features, so we need to either replace them with
+# uses of the uniq/index_look operators - talk to Alex about this - or rewrite
+# the tests to not use NIDdled arrays at all.
+#
+# See #3691 Re-enable / rewrite tests that us NID's
+#*****************************************************************************
+
+aggregates.symbols
+aql_misc.create_5
+aql_misc.udt_point
+aql_misc.udt_rational
+checkin.chunk_count
+checkin.flip_n_store.flip_chunksize
+checkin.flip_n_store.flip_n_subarray
+checkin.flip_n_store.flip_n_thin
+checkin.flip_n_store.flip_store_14
+checkin.flip_n_store.flip_store_newdim
+checkin.flip_n_store.flip_store_ni_04
+checkin.flip_n_store.flip_store_rational
+checkin.flip_n_store.select_into_4
+checkin.flip_n_store.select_into_5
+checkin.flip_n_store.select_into_6
+checkin.flip_n_store.select_into_10
+checkin.negative.flip_store_3
+checkin.negative.flip_store_5
+checkin.negative.flip_store_10
+checkin.negative.repart
+checkin.newaql.create_array_expressions
+checkin.aql_neg_misc.select_into_1
+checkin.other.scidbLoadCsv_02_non_int_dimensions
+checkin.other.array_reference
+checkin.other.between_range
+checkin.other.boundaries
+checkin.other.dcsv_format
+checkin.other.flip_vector2
+checkin.other.flip_vectorR2
+checkin.other.flip_vector_str
+checkin.other.join_flip
+checkin.other.iquery_1
+checkin.other.iquery_2
+checkin.other.presidents
+checkin.other.remove_nid
+checkin.other.subarray_range
+checkin.other.thin_7
+checkin.repart_algo_selection
+checkin.repart_empty
+checkin.repart_NID
+checkin.scalapack.11_gemm_neg
+checkin.scalapack.21_svd_neg
+compression.compression_47
+doc.redimension_1
+doc.redimension_store_1
+doc.ug_loadingData_opaque
+flip_n_store.between_sub_nid
+flip_n_store.complex_query_nid
+flip_n_store.flip_store_11
+flip_n_store.flip_store_12
+flip_n_store.flip_store_15
+flip_n_store.flip_store_ni_01
+flip_n_store.flip_store_ni_02
+flip_n_store.flip_store_ni_03
+flip_n_store.flip_store_ni_05
+flip_n_store.flip_store_ni_06
+flip_n_store.flip_store_ni_07
+flip_n_store.flip_store_ni_08
+flip_n_store.flip_store_ni_11
+flip_n_store.flip_store_ni_12
+flip_n_store.flip_store_ni_13
+flip_n_store.flip_store_ni_14
+flip_n_store.flip_store_ni_15
+flip_n_store.flip_store_ni_16
+flip_n_store.flip_store_ni_17
+flip_n_store.flip_store_ni_18
+flip_n_store.flip_store_ni_21
+flip_n_store.flip_store_ni_22
+flip_n_store.flip_store_ni_23
+flip_n_store.flip_store_ni_24
+flip_n_store.flip_store_ni_25
+flip_n_store.flip_store_ni_26
+flip_n_store.flip_store_ni_27
+flip_n_store.flip_store_ni_28
+flip_n_store.flip_store_ni_31
+flip_n_store.flip_store_ni_32
+flip_n_store.flip_store_ni_33
+flip_n_store.flip_store_ni_34
+flip_n_store.flip_store_ni_35
+flip_n_store.flip_store_ni_36
+flip_n_store.flip_store_ni_37
+flip_n_store.flip_store_ni_38
+flip_n_store.flip_store_nulls
+flip_n_store.flip_with_overlap
+flip_n_store.join_merge_cross_nid
+flip_n_store.join_merge_cross_nid2
+flip_n_store.largemap
+flip_n_store.literal_nid
+flip_n_store.mapping
+flip_n_store.mapping2
+flip_n_store.null_nid
+flip_n_store.redim_bounded_NID_Agg
+flip_n_store.redim_bounded_NID_Agg_nodef
+flip_n_store.redim_bounded_NID_Agg_overlap
+flip_n_store.redim_bounded_NID_Agg_overlap_nodef
+flip_n_store.redim_unbounded_NID_Agg
+flip_n_store.redim_unbounded_NID_Agg_nodef
+flip_n_store.redim_unbounded_NID_Agg_overlap
+flip_n_store.redim_unbounded_NID_Agg_overlap_nodef
+flip_n_store.remove_mapping
+flip_n_store.select_into_11
+flip_n_store.select_into_12
+flip_n_store.select_into_13
+flip_n_store.select_into_14
+flip_n_store.select_into_15
+flip_n_store.select_into_8
+flip_n_store.select_into_9
+flip_n_store.sparse_nid1
+flip_n_store.unbounded_ops_double
+flip_n_store.unbounded_ops_int32
+flip_n_store.window_regrid1
+injecterror.inject_4_mapping
+iqueryabort.abort_rdstore_1
+iqueryabort.abort_rdstore_2
+iqueryabort.abort_rdstore_3
+newaql.aggregate3
+other.binary_loader
+other.binary_loader_unlimited
+other.binary_opaque
+other.cross_agg1
+other.cross_sparse4
+other.immutable_binary
+other.iquery_5
+other.iquery_6
+other.merge_data_array
+other.NID_basics
+other.operator_1
+other.redim_NID_UB_misc
+other.UB_basics
+rankquantile.quantile_nid4
+rankquantile.quantile_nid5
+rankquantile.stringdims_withsubarray
+iqueryabort.abort_rdstore_7
+
+#*****************************************************************************

@@ -1,0 +1,36 @@
+--setup
+--start-query-logging
+--start-igdata
+load_library('misc')
+create array C <d:int64> [ X=0:5000000,100000,0]
+create array B <d:int64> [ X=0:5000000,100000,0]
+store(filter(build(B, random()), X > 2500000), B)
+store(filter(build(C, random()), X < 2500000), C)
+
+--test
+# injectError (nodeid, errorid)
+# Error_IDs for inject error:
+# 6 - a specific error injected into the DataStore::invalidateFreelistFile code path which is triggered the first time we try to update the freelist
+
+##
+## ERROR6
+##
+# coordinator
+filter(build(C, injectError(0,6)), X = 0)
+--error "insert(B, C)"
+
+--echo "Restarting SciDB..."
+--shell --command "echo $SCIDB_CLUSTER_NAME"
+--shell --command "${SCIDB_CMD:=scidb.py} stopall $SCIDB_CLUSTER_NAME $SCIDB_CONFIG_FILE"
+--shell --command "${SCIDB_CMD:=scidb.py} startall $SCIDB_CLUSTER_NAME $SCIDB_CONFIG_FILE"
+--shell --command "until iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -naq 'list()' > /dev/null 2>&1; do sleep 1; done"
+--echo "...done."
+--reconnect
+
+insert(B, C)
+
+--cleanup
+remove(B)
+remove(C)
+--stop-igdata
+--stop-query-logging

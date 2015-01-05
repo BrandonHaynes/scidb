@@ -1,0 +1,19 @@
+--setup
+--start-query-logging
+
+create array winnersFlat <event:string,year:int64,person:string,country:string,time:double>[i=0:*,12,0]
+create array winnersCanonical <person:string,country:string,time:double> [year=1996:2008,13,0, event(string)=3,3,0]
+create array yec <person:string,time:double> [year=1996:2008,13,0, event(string)=3,3,0, country(string)=200,200,0]
+--shell --command "csv2scidb -s 1 -p SNSSN < $DOC_DATA/winners2_2.csv > $DOC_DATA/winners2_2.scidb"
+
+--test
+--aql load winnersFlat from '${TEST_DATA_DIR}/doc/winners2_2.scidb'
+store(redimension(winnersFlat, winnersCanonical), winnersCanonical)
+store(redimension(winnersCanonical,yec),yec)
+
+--cleanup
+--aql drop array winnersFlat
+--aql drop array winnersCanonical
+--aql drop array yec
+
+--stop-query-logging

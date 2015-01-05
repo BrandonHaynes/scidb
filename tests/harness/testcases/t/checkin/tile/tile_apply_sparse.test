@@ -1,0 +1,81 @@
+--setup
+load_library('tile_integration')
+create array I <i:int64> [n=1:160000,10000,0]
+create array J <j:int64> [n=1:160000,10000,0]
+create array V <v:int64> [n=1:160000,10000,0]
+--start-igdata
+# prime size tile
+setopt('tile-size','9941')
+store(build(V, int64(random())), V)
+create array A <v:int64,i:int64,j:int64> [n=1:160000,10000,0]
+store(join(join(V, build(I, uint64(random())%10000+1 )), build(J, uint64(random())%10000+1)), A)
+create array B <v:int64> [i=1:10000,1000,0, j=1:10000,1000,0]
+store(redimension(A, B), B)
+create array test_matrix_reparted <v:int64> [i=1:10000,1000,1, j=1:10000,1000,1]
+store(repart(between(B,0,0,400,400), test_matrix_reparted), test_matrix_reparted)
+--stop-igdata
+--test
+--start-igdata
+store(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(B, prod0, v*ceil(i)*v), prod1, prod0*ceil(i)*prod0), prod2, prod1*ceil(i)*prod1), prod3, prod2*ceil(i)*prod2), prod4, prod3*ceil(i)*prod3), prod5, prod4*ceil(i)*prod4), prod6, prod5*ceil(i)*prod5), prod7, prod6*ceil(i)*prod6), prod8, prod7*ceil(i)*prod7), prod9, prod8*ceil(i)*prod8), prod10, prod9*ceil(i)*prod9), prod11, prod10*ceil(i)*prod10), D)
+store(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(B, prod0, v*ceil(i)*v), prod1, prod0*ceil(i)*prod0), prod2, prod1*ceil(i)*prod1), prod3, prod2*ceil(i)*prod2), prod4, prod3*ceil(i)*prod3), prod5, prod4*ceil(i)*prod4), prod6, prod5*ceil(i)*prod5), prod7, prod6*ceil(i)*prod6), prod8, prod7*ceil(i)*prod7), prod9, prod8*ceil(i)*prod8), prod10, prod9*ceil(i)*prod9), prod11, prod10*ceil(i)*prod10), C)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod11 - right.prod11), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod1 - right.prod1), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod7 - right.prod7), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod0 - right.prod0), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store( aggregate( apply      (B, f, sqrt(v)), stdev(f), i), C)
+store( aggregate( tile_apply (B, f, sqrt(v)), stdev(f), i), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.i - right.i), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store( aggregate( apply      (B, f, sqrt(v)), stdev(f), j), C)
+store( aggregate( tile_apply (B, f, sqrt(v)), stdev(f), j), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.j - right.j), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store(      apply( cross_join(B as AA, aggregate( B, avg(v) as mean, i) as BB, AA.i, BB.i), d, v - mean), C)
+store( tile_apply( cross_join(B as AA, aggregate( B, avg(v) as mean, i) as BB, AA.i, BB.i), d, v - mean), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.d - right.d), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store(      apply( cross_join(B as AA, aggregate( B, avg(v) as mean, j) as BB, AA.j, BB.j), d, v - mean), C)
+store( tile_apply( cross_join(B as AA, aggregate( B, avg(v) as mean, j) as BB, AA.j, BB.j), d, v - mean), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.d - right.d), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store( window(     apply(test_matrix_reparted, v2, sqrt(v)), 0,1,0,0, max(v2), min(v2)), C)
+store( window(tile_apply(test_matrix_reparted, v2, sqrt(v)), 0,1,0,0, max(v2), min(v2)), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.v2_max - right.v2_max), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.v2_min - right.v2_min), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store( window(     apply(test_matrix_reparted, v2, sqrt(v)), 1,0,0,0, max(v2), min(v2)), C)
+store( window(tile_apply(test_matrix_reparted, v2, sqrt(v)), 1,0,0,0, max(v2), min(v2)), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.v2_max - right.v2_max), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.v2_min - right.v2_min), diff), diff <>0),count(*))
+--cleanup
+--start-igdata
+setopt('tile-size','10000')
+--stop-igdata
+remove(I)
+remove(J)
+remove(V)
+remove(A)
+remove(B)
+remove(test_matrix_reparted)
+remove(C)
+remove(D)

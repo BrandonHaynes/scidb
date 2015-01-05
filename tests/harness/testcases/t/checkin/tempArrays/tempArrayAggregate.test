@@ -1,0 +1,14 @@
+--setup
+create temp array tempA <a:int64,b:int64> [x=0:2,3,0,y=0:2,3,0]
+create temp array tempB <x:int64,y:int64> [a=-5:6,3,0,b=-5:6,3,0]
+create temp array tempT <a:int64> [x=0:2,3,0,y=0:2,3,0]
+store(join(build(tempT,x-y-1),build(tempT,x+y+1)),tempA)
+
+--test
+redimension(tempA,tempB)
+aggregate(redimension(tempA,tempB),count(*))
+
+--cleanup
+remove(tempA)
+remove(tempB)
+remove(tempT)

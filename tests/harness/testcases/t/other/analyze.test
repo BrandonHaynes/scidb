@@ -1,0 +1,57 @@
+--setup
+create array analyze_test1 <a:double> [x=0:9999,1000,0]
+create array analyze_test2 <a:double> [x=0:999,1000,0]
+create array analyze_test3 <a:double> [x=0:99999,1000,0]
+create array analyze_test4 <a:double> [x=0:999999,10000,0]
+create array analyze_test5 <a:int64> [x=0:1234567,10000,0]
+create array analyze_test6 <a:int64> [x=0:999,10,0, y=0:459,10,0]
+create array analyze_test7 <a:double> [x=1:1000,10,0, y=1:459,10,0]
+create array analyze_test8 <a:string> [x=0:99999,1000,0]
+create array analyze_test9 <a:string> [x=0:99999,1000,0]
+create array analyze_test10 <a:string> [x=0:999999,1000,0]
+
+--igdata "store(build(analyze_test1, x), analyze_test1)"
+--igdata "store(build(analyze_test2, x - 500), analyze_test2)"
+--igdata "store(build(analyze_test3, x / 5), analyze_test3)"
+--igdata "store(build(analyze_test4, x / 5.), analyze_test4)"
+--igdata "store(build(analyze_test5, x * x), analyze_test5)"
+--igdata "store(build(analyze_test6, x * y), analyze_test6)"
+--igdata "store(build(analyze_test7, x / y), analyze_test7)"
+--igdata "store(build(analyze_test8, string(x)), analyze_test8)"
+--igdata "store(build(analyze_test9, string(x) + string(x - 50000)), analyze_test9)"
+--igdata "store(build(analyze_test10, string(x / 5.0)), analyze_test10)"
+
+--test
+analyze(analyze_test1)
+analyze(analyze_test2)
+analyze(analyze_test3)
+analyze(analyze_test4)
+analyze(analyze_test5)
+analyze(analyze_test6)
+analyze(analyze_test7)
+analyze(analyze_test8)
+analyze(analyze_test9)
+analyze(analyze_test10)
+
+aggregate(analyze_test1, approxdc(a))
+aggregate(analyze_test2, approxdc(a))
+aggregate(analyze_test3, approxdc(a))
+aggregate(analyze_test4, approxdc(a))
+aggregate(analyze_test5, approxdc(a))
+aggregate(analyze_test6, ApproxDC(a))
+aggregate(analyze_test7, ApproxDC(a))
+aggregate(analyze_test8, ApproxDC(a))
+aggregate(analyze_test9, ApproxDC(a))
+aggregate(analyze_test10, ApproxDC(a))
+
+--cleanup
+remove(analyze_test1)
+remove(analyze_test2)
+remove(analyze_test3)
+remove(analyze_test4)
+remove(analyze_test5)
+remove(analyze_test6)
+remove(analyze_test7)
+remove(analyze_test8)
+remove(analyze_test9)
+remove(analyze_test10)

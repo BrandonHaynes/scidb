@@ -1,0 +1,363 @@
+SCIDB QUERY : <create array A <a:string> [x=-1:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(apply( build(<a:string> [x=0:1,2,0 ,y=0:1,2,0],string(40/2.5 *x+1)),b,x/1.1),P)>
+{x,y} a,b
+{0,0} '1',0
+{0,1} '1',0
+{1,0} '17',0.909091
+{1,1} '17',0.909091
+
+SCIDB QUERY : <create array ABC <a: int32, b: string, c: double, d: int64, e: bool, f: float, g: string>[i=1:1000,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <show(P)>
+{i} schema
+{0} 'P<a:string,b:double> [x=0:1,2,0,y=0:1,2,0]'
+
+SCIDB QUERY : <store(build(A,string(100000000*(x+2))),A)>
+{x} a
+{-1} '100000000'
+{0} '200000000'
+{1} '300000000'
+{2} '400000000'
+{3} '500000000'
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(ABC, '${TEST_DATA_DIR}/spsp.txt')">
+Query was executed successfully
+
+SCIDB QUERY : <sort(A)>
+{n} a
+{0} '100000000'
+{1} '200000000'
+{2} '300000000'
+{3} '400000000'
+{4} '500000000'
+
+SCIDB QUERY : <sort(A,20)>
+{n} a
+{0} '100000000'
+{1} '200000000'
+{2} '300000000'
+{3} '400000000'
+{4} '500000000'
+
+SCIDB QUERY : <sort(A,a desc)>
+{n} a
+{0} '500000000'
+{1} '400000000'
+{2} '300000000'
+{3} '200000000'
+{4} '100000000'
+
+SCIDB QUERY : <sort(reverse(A))>
+{n} a
+{0} '100000000'
+{1} '200000000'
+{2} '300000000'
+{3} '400000000'
+{4} '500000000'
+
+SCIDB QUERY : <sort(filter(A, a>'100000000' and a<'4000000'))>
+{n} a
+{0} '200000000'
+{1} '300000000'
+
+SCIDB QUERY : <sort(filter(A, a>'100000000' and a<'4000000'), a desc)>
+{n} a
+{0} '300000000'
+{1} '200000000'
+
+SCIDB QUERY : <sort(filter(A, a<>'300000000'))>
+{n} a
+{0} '100000000'
+{1} '200000000'
+{2} '400000000'
+{3} '500000000'
+
+SCIDB QUERY : <sort(filter(A, a<>'300000000'),10)>
+{n} a
+{0} '100000000'
+{1} '200000000'
+{2} '400000000'
+{3} '500000000'
+
+SCIDB QUERY : <rank(A)>
+{x} a,a_rank
+{-1} '100000000',1
+{0} '200000000',2
+{1} '300000000',3
+{2} '400000000',4
+{3} '500000000',5
+
+SCIDB QUERY : <rank(filter(A, a>'100000000' and a<'4000000'))>
+{x} a,a_rank
+{0} '200000000',1
+{1} '300000000',2
+
+SCIDB QUERY : <quantile(A,2)>
+{quantile} percentage,a_quantile
+{0} 0,'100000000'
+{1} 0.5,'300000000'
+{2} 1,'500000000'
+
+SCIDB QUERY : <quantile(A,4)>
+{quantile} percentage,a_quantile
+{0} 0,'100000000'
+{1} 0.25,'200000000'
+{2} 0.5,'300000000'
+{3} 0.75,'400000000'
+{4} 1,'500000000'
+
+SCIDB QUERY : <quantile(A,10)>
+{quantile} percentage,a_quantile
+{0} 0,'100000000'
+{1} 0.1,'100000000'
+{2} 0.2,'100000000'
+{3} 0.3,'200000000'
+{4} 0.4,'200000000'
+{5} 0.5,'300000000'
+{6} 0.6,'300000000'
+{7} 0.7,'400000000'
+{8} 0.8,'400000000'
+{9} 0.9,'500000000'
+{10} 1,'500000000'
+
+SCIDB QUERY : <quantile(A,20)>
+{quantile} percentage,a_quantile
+{0} 0,'100000000'
+{1} 0.05,'100000000'
+{2} 0.1,'100000000'
+{3} 0.15,'100000000'
+{4} 0.2,'100000000'
+{5} 0.25,'200000000'
+{6} 0.3,'200000000'
+{7} 0.35,'200000000'
+{8} 0.4,'200000000'
+{9} 0.45,'300000000'
+{10} 0.5,'300000000'
+{11} 0.55,'300000000'
+{12} 0.6,'300000000'
+{13} 0.65,'400000000'
+{14} 0.7,'400000000'
+{15} 0.75,'400000000'
+{16} 0.8,'400000000'
+{17} 0.85,'500000000'
+{18} 0.9,'500000000'
+{19} 0.95,'500000000'
+{20} 1,'500000000'
+
+SCIDB QUERY : <quantile(filter(A, a>'100000000' and a<'4000000'),2)>
+{quantile} percentage,a_quantile
+{0} 0,'200000000'
+{1} 0.5,'200000000'
+{2} 1,'300000000'
+
+SCIDB QUERY : <quantile(filter(A, a>'100000000' and a<'4000000'),5)>
+{quantile} percentage,a_quantile
+{0} 0,'200000000'
+{1} 0.2,'200000000'
+{2} 0.4,'200000000'
+{3} 0.6,'300000000'
+{4} 0.8,'300000000'
+{5} 1,'300000000'
+
+SCIDB QUERY : <quantile(filter(A, a>'100000000' and a<'4000000'),12)>
+{quantile} percentage,a_quantile
+{0} 0,'200000000'
+{1} 0.0833333,'200000000'
+{2} 0.166667,'200000000'
+{3} 0.25,'200000000'
+{4} 0.333333,'200000000'
+{5} 0.416667,'200000000'
+{6} 0.5,'200000000'
+{7} 0.583333,'300000000'
+{8} 0.666667,'300000000'
+{9} 0.75,'300000000'
+{10} 0.833333,'300000000'
+{11} 0.916667,'300000000'
+{12} 1,'300000000'
+
+SCIDB QUERY : <sort(P)>
+{n} a,b
+{0} '1',0
+{1} '1',0
+{2} '17',0.909091
+{3} '17',0.909091
+
+SCIDB QUERY : <sort(P,a desc)>
+{n} a,b
+{0} '17',0.909091
+{1} '17',0.909091
+{2} '1',0
+{3} '1',0
+
+SCIDB QUERY : <sort(filter(P,b>0),a desc)>
+{n} a,b
+{0} '17',0.909091
+{1} '17',0.909091
+
+SCIDB QUERY : <rank(P,a)>
+{x,y} a,a_rank
+{0,0} '1',1
+{0,1} '1',1
+{1,0} '17',3
+{1,1} '17',3
+
+SCIDB QUERY : <rank(P,b)>
+{x,y} b,b_rank
+{0,0} 0,1
+{0,1} 0,1
+{1,0} 0.909091,3
+{1,1} 0.909091,3
+
+SCIDB QUERY : <rank(filter(P,b>0))>
+{x,y} a,a_rank
+{1,0} '17',1
+{1,1} '17',1
+
+SCIDB QUERY : <rank(filter(P,b>0),a desc)>
+{x,y} a,a_rank
+{1,0} '17',1
+{1,1} '17',1
+
+SCIDB QUERY : <quantile(P,2,a)>
+{quantile} percentage,a_quantile
+{0} 0,'1'
+{1} 0.5,'1'
+{2} 1,'17'
+
+SCIDB QUERY : <quantile(P,4,a)>
+{quantile} percentage,a_quantile
+{0} 0,'1'
+{1} 0.25,'1'
+{2} 0.5,'1'
+{3} 0.75,'17'
+{4} 1,'17'
+
+SCIDB QUERY : <quantile(P,10,a)>
+{quantile} percentage,a_quantile
+{0} 0,'1'
+{1} 0.1,'1'
+{2} 0.2,'1'
+{3} 0.3,'1'
+{4} 0.4,'1'
+{5} 0.5,'1'
+{6} 0.6,'17'
+{7} 0.7,'17'
+{8} 0.8,'17'
+{9} 0.9,'17'
+{10} 1,'17'
+
+SCIDB QUERY : <quantile(filter(P,b>0),2,a)>
+{quantile} percentage,a_quantile
+{0} 0,'17'
+{1} 0.5,'17'
+{2} 1,'17'
+
+SCIDB QUERY : <quantile(filter(P,b>0),4,a)>
+{quantile} percentage,a_quantile
+{0} 0,'17'
+{1} 0.25,'17'
+{2} 0.5,'17'
+{3} 0.75,'17'
+{4} 1,'17'
+
+SCIDB QUERY : <quantile(filter(P,b>0),4,b)>
+{quantile} percentage,b_quantile
+{0} 0,0.909091
+{1} 0.25,0.909091
+{2} 0.5,0.909091
+{3} 0.75,0.909091
+{4} 1,0.909091
+
+SCIDB QUERY : <quantile(filter(P,b>0),10,b)>
+{quantile} percentage,b_quantile
+{0} 0,0.909091
+{1} 0.1,0.909091
+{2} 0.2,0.909091
+{3} 0.3,0.909091
+{4} 0.4,0.909091
+{5} 0.5,0.909091
+{6} 0.6,0.909091
+{7} 0.7,0.909091
+{8} 0.8,0.909091
+{9} 0.9,0.909091
+{10} 1,0.909091
+
+SCIDB QUERY : <sort(ABC)>
+{n} a,b,c,d,e,f,g
+{0} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{1} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <sort(ABC,g desc)>
+{n} a,b,c,d,e,f,g
+{0} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+
+SCIDB QUERY : <sort(ABC,g)>
+{n} a,b,c,d,e,f,g
+{0} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+{1} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+
+SCIDB QUERY : <sort(ABC,e)>
+{n} a,b,c,d,e,f,g
+{0} 1000,'last',4.5567,44,false,44.332,'LAST_10'
+{1} 1,'first',4.44557,45,true,44.556,'FIRST_1'
+
+SCIDB QUERY : <rank(ABC)>
+{i} a,a_rank
+{1} 1,1
+{1000} 1000,2
+
+SCIDB QUERY : <rank(ABC,e)>
+{i} e,e_rank
+{1} true,2
+{1000} false,1
+
+SCIDB QUERY : <rank(ABC,e desc)>
+{i} e,e_rank
+{1} true,2
+{1000} false,1
+
+SCIDB QUERY : <quantile(ABC,2)>
+{quantile} percentage,a_quantile
+{0} 0,1
+{1} 0.5,1
+{2} 1,1000
+
+SCIDB QUERY : <quantile(ABC,3,g)>
+{quantile} percentage,g_quantile
+{0} 0,'FIRST_1'
+{1} 0.333333,'FIRST_1'
+{2} 0.666667,'LAST_10'
+{3} 1,'LAST_10'
+
+SCIDB QUERY : <quantile(ABC,4,a)>
+{quantile} percentage,a_quantile
+{0} 0,1
+{1} 0.25,1
+{2} 0.5,1
+{3} 0.75,1000
+{4} 1,1000
+
+SCIDB QUERY : <quantile(ABC,4,e)>
+{quantile} percentage,e_quantile
+{0} 0,false
+{1} 0.25,false
+{2} 0.5,false
+{3} 0.75,true
+{4} 1,true
+
+SCIDB QUERY : <quantile(ABC,4,a,g)>
+[An error expected at this place for the query "quantile(ABC,4,a,g)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(P)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ABC)>
+Query was executed successfully
+

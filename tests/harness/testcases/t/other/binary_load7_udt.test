@@ -1,0 +1,46 @@
+--setup
+--start-query-logging
+# Ticket number : 1688
+# Tests for the binary load-save on Arrays with UDT
+# Tests cover AFL syntax
+
+load_library('rational')
+
+create array RAT <val: rational > [ x=0:2,3,0]
+create array RAT1 <val1: rational,val2:rational >[ x=0:2,3,0]
+create array RAT2 <val1: rational,val2:rational >[ x=0:2,3,0]
+create array RAT3 <fraction: rational > [ x=0:2,3,0]
+
+--test
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(RAT,'${TEST_DATA_DIR}/rat.txt')""
+store(join(RAT,RAT),RAT1)
+save(RAT, 'rational.out', 0, '(rational)')
+save(RAT1, 'ration1.bin', 0, '(rational,rational)')
+
+save(RAT, 'rational.txt', 0, 'text')
+save(RAT1, 'ration1.txt', 0, 'text')
+save(RAT1, 'rat11.txt')
+save(RAT, 'ration11.txt')
+
+load(RAT2, 'ration1.bin', 0, '(rational,rational)')
+load(RAT3, 'rational.out', 0, '(rational)')
+
+load(RAT3, 'ration11.txt')
+load(RAT2, 'rat11.txt')
+
+--error --code scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER "load(RAT3, 'rational.out', 0, '(double)',100)"
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(RAT3, 'rational.out', 0, '(string)')"
+load(RAT3, 'rational.out', 0, '(string)', 100, rat_shad)
+load(RAT3, 'ration1.bin', 0, '(rational,dummy(16))')
+load(RAT3, 'ration1.bin', 0, '(dummy(16),rational)')
+aggregate(versions(RAT3),count(*))
+
+
+--cleanup
+remove(RAT)
+remove(RAT1)
+remove(RAT2)
+remove(RAT3)
+remove(rat_shad)
+
+--stop-query-logging

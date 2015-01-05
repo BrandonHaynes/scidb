@@ -1,0 +1,24 @@
+SSDB benchmark:
+--------------
+You can run the SSDB benchmark using the run_{LVL}.sh scripts.
+where LVL is the dificulty level (tiny, very_small, small, normal) 
+
+The scripts are executed using (example tiny config):
+./run_tiny.sh [-g|-i|-h]
+
+Where:
+
+g	Causes the data generation and also the init phase.
+i	Creates the arrays, load the data from ./data, and prepares the different data structures.
+h	Prints this message
+No parameter Only Execute the benchmark given all the data is loaded/prepared.
+
+Parallel Configuration:
+-----------------------
+To allow a faster load with multiple node, data must be generated into each node. We provide the some
+utilities to perform this task. Note: You must modify the scripts given your case.
+Example:
+- Each datafile must reside on the same path under each node, this path should already exist, ex: /data/normal 
+- Copy ssdbgen, tileData and chunkDistributer.sh under /data/normal for all the nodes (see: setenv.sh)
+- Execute parallelChunkCreation.sh from the master node.
+- Execute ./run_normal.sh -i

@@ -1,0 +1,10 @@
+# ticket no. 3545
+
+--setup
+create array A <a:int32 null default null>[x=0:3,2,0]
+
+--test
+--error --hideQueryString --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(A,'${TEST_DATA_DIR}/negative_idx.txt')"
+
+--cleanup
+remove(A)

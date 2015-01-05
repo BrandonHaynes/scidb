@@ -1,0 +1,87 @@
+SCIDB QUERY : <create array v1 <a:double, b:int64> [x=1:3,2,0, y=1:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <CREATE ARRAY v2 <c: string> [x=1:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <CREATE ARRAY k <b:int64, c: float> [x=1:9,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(join(build(<a:double> [x=1:3,2,0,y=1:3,2,0], x+y), build(<b:int64> [x=1:3,2,0,y=1:3,2,0], x*y)), v1)>
+{x,y} a,b
+{1,1} 2,1
+{1,2} 3,2
+{2,1} 3,2
+{2,2} 4,4
+{1,3} 4,3
+{2,3} 5,6
+{3,1} 4,3
+{3,2} 5,6
+{3,3} 6,9
+
+SCIDB QUERY : <store(build(<c: string> [x=1:3,2,0], 'addr_'+string(x)+string(x)), v2)>
+{x} c
+{1} 'addr_11'
+{2} 'addr_22'
+{3} 'addr_33'
+
+SCIDB QUERY : <store(join(build(<b:int64> [x=1:9,3,0], x), build(<c:float> [x=1:9,3,0], x/1.777)), k)>
+{x} b,c
+{1} 1,0.562746
+{2} 2,1.12549
+{3} 3,1.68824
+{4} 4,2.25098
+{5} 5,2.81373
+{6} 6,3.37648
+{7} 7,3.93922
+{8} 8,4.50197
+{9} 9,5.06472
+
+"DD join int64"
+SCIDB QUERY : <select * from v1 join v2 on v1.x = v2.x>
+{x,y} a,b,c
+{1,1} 2,1,'addr_11'
+{1,2} 3,2,'addr_11'
+{2,1} 3,2,'addr_22'
+{2,2} 4,4,'addr_22'
+{1,3} 4,3,'addr_11'
+{2,3} 5,6,'addr_22'
+{3,1} 4,3,'addr_33'
+{3,2} 5,6,'addr_33'
+{3,3} 6,9,'addr_33'
+
+"AA join int64"
+SCIDB QUERY : <select * from v1 join k on v1.b = k.b>
+{x,y,x} a,b,b,c
+{1,1,1} 2,1,1,0.562746
+{1,2,2} 3,2,2,1.12549
+{2,1,2} 3,2,2,1.12549
+{2,2,4} 4,4,4,2.25098
+{1,3,3} 4,3,3,1.68824
+{2,3,6} 5,6,6,3.37648
+{3,1,3} 4,3,3,1.68824
+{3,2,6} 5,6,6,3.37648
+{3,3,9} 6,9,9,5.06472
+
+"AD join int64"
+SCIDB QUERY : <select * from v1 join k on v1.b = k.x>
+{x,y,x} a,b,b,c
+{1,1,1} 2,1,1,0.562746
+{1,2,2} 3,2,2,1.12549
+{2,1,2} 3,2,2,1.12549
+{2,2,4} 4,4,4,2.25098
+{1,3,3} 4,3,3,1.68824
+{2,3,6} 5,6,6,3.37648
+{3,1,3} 4,3,3,1.68824
+{3,2,6} 5,6,6,3.37648
+{3,3,9} 6,9,9,5.06472
+
+SCIDB QUERY : <drop array v1>
+Query was executed successfully
+
+SCIDB QUERY : <drop array v2>
+Query was executed successfully
+
+SCIDB QUERY : <drop array k>
+Query was executed successfully
+

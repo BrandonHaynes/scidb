@@ -1,0 +1,28 @@
+--setup
+--start-query-logging
+create array A1 < v : double null > [ x=0:9,5,0, y=0:9,5,0 ]
+create array A2 < v : double null > [ x=0:9,5,2, y=0:9,5,2 ]
+
+store(filter(build( A1, x+10*y), x <> y ), A1 )
+store(redimension( A1, A2 ), A2 )
+
+--test
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "window ( Array_Does_Not_Exist, 1, 1, sum ( v ) )"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "window ( A1, 1, 1, sum ( v ) )"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "window ( A1, 1, 1, 1, 1, 1, 1, sum ( v ) )"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "window ( A1, 1, 1, 1, 1, sum ( v_doesnt_exist ) )"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3 "window ( A1, -1, 1, 1, 1, sum ( v ) )"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3 "window ( A1, 1, -1, 1, 1, sum ( v ) )"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3 "window ( A1, 1, 1, -1, 1, sum ( v ) )"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3 "window ( A1, 1, 1, 1, -1, sum ( v ) )"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "window ( A1, 1, 1, 1, 1, sum ( v ), I )"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR5 "window ( A1, 1, 1, 1, 1, sum ( v ), 'must_be_probe_or_materialize' )"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_AGGREGATE_ARGUMENTS_COUNT "window ( A1, 1, 1, 1, 1, sum ( v ), A1.v * 2 )"
+
+aggregate ( filter ( join ( window ( A1, 1, 1, 1, 1, sum ( v ) as sum_v, count ( * ) as cnt_v ) AS B1, window ( A2, 1, 1, 1, 1, sum ( v ) as sum_v, count ( * ) as cnt_v ) AS B2), B1.sum_v <> B2.sum_v OR B1.cnt_v <> B2.cnt_v ), count ( * ) as diffs )
+
+--cleanup
+remove(A1)
+remove(A2)
+
+--stop-query-logging

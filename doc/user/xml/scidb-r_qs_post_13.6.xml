@@ -1,0 +1,1181 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+<!ENTITY scidb_version "13.6">
+<!ENTITY scidb_revision "6367">
+]>
+<article>
+  <info>
+    <title>SciDB and SciDB-R Quick Start</title>
+
+    <author>
+      <personname>
+        <firstname>SciDB Version &scidb_version;</firstname>
+
+        <surname>(using SciDB-R)</surname>
+      </personname>
+    </author>
+
+    <copyright>
+      <year>2013 Paradigm4, Inc.</year>
+    </copyright>
+  </info>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>This guide helps new users begin working with SciDB, and R users
+    begin working with SciDB-R.</para>
+
+    <para><emphasis role="bold">SciDB</emphasis> is an all-in-one data
+    management and advanced analytics platform. It provides massively scalable
+    complex analytics inside a next-generation database with data versioning
+    to support the needs of commercial and scientific applications. SciDB
+    organizes data in <emphasis>n</emphasis>-dimensional arrays. Its features
+    include ACID transactions, parallel processing, distributed storage,
+    efficient sparse array storage, and native linear algebra
+    operations.</para>
+
+    <para><emphasis role="bold">SciDB-R</emphasis> lets you remain an R
+    programmer, but expands R’s power to include SciDB’s massive-scale data
+    management and analytical capabilities. With SciDB-R, you can do all of
+    the following <emphasis>from inside an R program</emphasis>:<itemizedlist>
+        <listitem>
+          <para>Use SciDB as a storage backend</para>
+        </listitem>
+
+        <listitem>
+          <para>Use SciDB to offload large computations to a cluster</para>
+        </listitem>
+
+        <listitem>
+          <para>Use SciDB to filter and join data before performing
+          analytics</para>
+        </listitem>
+
+        <listitem>
+          <para>Use SciDB to share data among multiple users, all with ACID
+          guarantees</para>
+        </listitem>
+
+        <listitem>
+          <para>Use SciDB to perform multidimensional windowing and
+          aggregation</para>
+        </listitem>
+
+        <listitem>
+          <para>Use SciDB’s massively scalable analytical capabilities,
+          including statistical methods, correlation, and dense and sparse
+          linear algebra operations</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>This document describes how to use a Virtual Machine (VM) with both
+    SciDB and R installed. You can use this image to quickly and easily get
+    started using SciDB and the SciDB package for R.</para>
+
+    <para>We also provide the following documents:<itemizedlist>
+        <listitem>
+          <para><emphasis>SciDB and R</emphasis> describes the R front-end to
+          SciDB. Link: <ulink url="http://cran.r-project.org/web/packages/scidb/vignettes/scidb.pdf">SciDB
+          and R</ulink></para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis>SciDB User's Guide</emphasis> provides a complete
+          guide to SciDB. Link: <ulink url="http://www.scidb.org/forum/viewtopic.php?f=16&amp;t=364">Download
+          SciDB Releases</ulink></para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>For more information:<itemizedlist>
+        <listitem>
+          <para>Consult <ulink url="https://www.virtualbox.org/">https://www.virtualbox.org/</ulink>
+          for more information about VirtualBox.</para>
+        </listitem>
+
+        <listitem>
+          <para>See the <ulink url="http://www.scidb.org/forum/viewforum.php?f=23">SciDB-R
+          Discussion page</ulink> for help from the user community about the
+          SciDB package for R.</para>
+        </listitem>
+
+        <listitem>
+          <para>See the <ulink url="http://cran.us.r-project.org/">Comprehensive R Archive
+          Network</ulink> (CRAN) for details about R.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>There are three basic ways that you can get started:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link linkend="virtualBox">Download a VirtualBox
+        image</link>.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="AMI">Use the SciDB Amazon Machine Image (AMI) to
+        create your own AMI</link>.</para>
+      </listitem>
+
+      <listitem>
+        <para>Download and install a full version of SciDB and SciDB-R from
+        the forum.<itemizedlist>
+            <listitem>
+              <para>SciDB: <ulink url="http://www.scidb.org/forum/viewforum.php?f=14">http://www.scidb.org/forum/viewforum.php?f=14</ulink></para>
+            </listitem>
+
+            <listitem>
+              <para>SciDB-R: <ulink url="http://www.scidb.org/forum/viewtopic.php?f=16&amp;t=364">http://www.scidb.org/forum/viewtopic.php?f=16&amp;t=364</ulink></para>
+            </listitem>
+          </itemizedlist></para>
+      </listitem>
+    </itemizedlist>
+
+    <note>
+      <para><emphasis role="bold">Note: </emphasis>Both the VirtualBox and AMI
+      SciDB installations are small-scale. That is, they are useful as an
+      introduction to SciDB, and for small amounts of data. If you want to use
+      SciDB on very large datasets, we recommend that you download the full
+      version of SciDB from the forum.</para>
+    </note>
+
+    <para>If you have any questions or concerns, contact
+    <email>support@scidb.org</email> for help getting started.</para>
+  </section>
+
+  <section>
+    <title>Download and start the image</title>
+
+    <para>Paradigm4 provides both a VirtualBox image and an Amazon Machine
+    Image. Use whichever you prefer.</para>
+
+    <section id="virtualBox">
+      <title id="virtualBox">Use a VirtualBox Image</title>
+
+      <para>The VirtualBox Image is running on CentOS 6.</para>
+
+      <procedure>
+        <step>
+          <para>Download the image provided by Paradigm4 at the following
+          URL:</para>
+
+          <para>
+            <ulink url="https://downloads.paradigm4.com/QuickStart/13.3/SciDB13.3-CentOS6.3-VirtualBox4.1.12-withR.ova">https://downloads.paradigm4.com/QuickStart/&scidb_version;/SciDB&scidb_version;-CentOS6.3-VirtualBox4.1.12-withR.ova</ulink>
+          </para>
+
+          <para>Download the .ova file to a partition with at least 8GB of
+          available space.</para>
+        </step>
+
+        <step>
+          <para>Open VirtualBox and click <emphasis role="bold">File
+          </emphasis>| <emphasis role="bold">Import Appliance</emphasis> and
+          select the downloaded file.</para>
+        </step>
+
+        <step>
+          <para>Start the VirtualBox image.</para>
+        </step>
+      </procedure>
+
+      <para>By default, the VM is configured to use "bridged" networking.
+      Bridged networking presents the VM as a new computer to whatever network
+      the host machine is connected to, with DHCP network configuration. The
+      VM may or may not be able to obtain an IP address with this
+      approach.</para>
+
+      <para>If the VM can obtain IP addresses, you will see them listed after
+      you start the image. The start screen lists the following
+      information:</para>
+
+      <screen>Welcome to the SciDB VM!
+
+A simple SciDB web interface is available by directing your browser to:
+http://192.168.56.101:8080
+:
+:</screen>
+
+      <para>Note that your URL may be different. If you see valid IP
+      addresses, you can continue to section 4.</para>
+
+      <note>
+        <para><emphasis role="bold">Note: </emphasis>You can always log in to
+        a text console in the VM and use SciDB from the command prompt,
+        whether or not the networking is configured correctly.</para>
+      </note>
+
+      <para>However, if the VM is not able to obtain IP addresses using
+      bridged networking, you will not see the welcome message. In this case,
+      perform the following steps to set up a Host-only Network for
+      VirtualBox.</para>
+
+      <procedure>
+        <step>
+          <para>Power off the VM.</para>
+        </step>
+
+        <step>
+          <para>From the VirtualBox menu, select click <emphasis role="bold">File </emphasis>| <emphasis role="bold">Preferences</emphasis>.</para>
+        </step>
+
+        <step>
+          <para>Select <emphasis role="bold">Network</emphasis> and add a
+          Host-only Network if you do not already have one. You can use all of
+          the default settings.</para>
+        </step>
+
+        <step>
+          <para>Click <emphasis role="bold">OK</emphasis>.</para>
+        </step>
+
+        <step>
+          <para>Select your SciDB-R VM, and click <emphasis role="bold">Settings</emphasis>.</para>
+        </step>
+
+        <step>
+          <para>Select <emphasis role="bold">Network</emphasis>, and for
+          <literal>Adapter 1</literal>, change from <emphasis role="bold">Bridged Adapter</emphasis> to <emphasis role="bold">Host-only Adapter</emphasis>.</para>
+        </step>
+
+        <step>
+          <para>The name will be populated with the Host-only Network adapter
+          that you added in step 3. Click <emphasis role="bold">OK</emphasis>
+          and then restart the VM.</para>
+        </step>
+      </procedure>
+
+      <para>SciDB is configured to start as a service inside the VM. When
+      SciDB startup is successful, three access methods are presented by the
+      VM in a startup text message:<itemizedlist>
+          <listitem>
+            <para>Access RStudio from a web browser on your computer.</para>
+          </listitem>
+
+          <listitem>
+            <para>Access a simple SciDB web console from a web browser on your
+            computer.</para>
+          </listitem>
+
+          <listitem>
+            <para>Log onto a VM shell and work from the command line.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>To continue, see <xref linkend="GUI"/>.</para>
+    </section>
+
+    <section id="AMI">
+      <title>Use an Amazon Machine Image</title>
+
+      <para>We have created an Amazon Machine Image (AMI) that contains a
+      saved Virtual Machine with SciDB and R installed. You can use Amazon's
+      EC2 service to instantly launch this machine, log into it and use the
+      SciDB-R package. It requires an Amazon Web Services account and Amazon
+      will charge you a small hourly fee for using their EC2 service. Consult
+      <ulink url="http://aws.amazon.com">http://aws.amazon.com/</ulink> for
+      more information.</para>
+
+      <para>Note the following information for this AMI:<itemizedlist>
+          <listitem>
+            <para>The Operating System is Ubuntu 12.04.</para>
+          </listitem>
+
+          <listitem>
+            <para>To run SciDB, use the<literal> ubuntu</literal> user account
+            (as opposed to the standard <literal>scidb</literal> account
+            discussed in SciDB User Guide).</para>
+          </listitem>
+
+          <listitem>
+            <para>There are examples provided in the scripts folder: explore
+            these to see how the data on the AMI has been stored into
+            SciDB.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>To work with the AMI, perform the following steps:</para>
+
+      <procedure>
+        <step>
+          <para>Create the AMI image.</para>
+
+          <substeps>
+            <step>
+              <para>If you do not already have an Amazon AWS account, create
+              one at <ulink url="http://aws.amazon.com">http://aws.amazon.com/</ulink>.</para>
+            </step>
+
+            <step>
+              <para>On the Amazon Web Services page, select <emphasis role="bold">My Account/Console</emphasis> &gt; <emphasis role="bold">AWS Management Console</emphasis>.</para>
+            </step>
+
+            <step>
+              <para>Click <emphasis role="bold">EC2</emphasis>.</para>
+            </step>
+
+            <step>
+              <para>Click <emphasis role="bold">Instances</emphasis>, then
+              <emphasis role="bold">Launch Instance</emphasis>.</para>
+            </step>
+
+            <step>
+              <para>Select <emphasis role="bold">Classic Wizard </emphasis>and
+              click <emphasis role="bold">Continue</emphasis>.</para>
+            </step>
+
+            <step>
+              <para>Select <emphasis role="bold">Community AMIs</emphasis> and
+              enter <literal>ami-703a5c19</literal> (the name of the SciDB
+              image) into the text field. This should return the details for
+              the ami-703a5c19 image.</para>
+            </step>
+
+            <step>
+              <para>Click <emphasis role="bold">Select</emphasis>. The
+              remaining steps of the Wizard apply to starting any instance on
+              AWS. Note the following parameters:</para>
+
+              <itemizedlist>
+                <listitem>
+                  <para><emphasis role="bold">Security Groups: </emphasis>For
+                  your security group, create a rule permitting incoming TCP
+                  SSH connections on port 22, 8080, and 8787.</para>
+                </listitem>
+
+                <listitem>
+                  <para><emphasis role="bold">Key Pairs: </emphasis>If
+                  desired, you may create a Key Pair or use an existing one.
+                  This will allow logging into the instance as the <emphasis role="bold">ubuntu</emphasis> user using PKI rather than a
+                  password.</para>
+                </listitem>
+              </itemizedlist>
+            </step>
+          </substeps>
+        </step>
+
+        <step>
+          <para>Launch and log onto the image.</para>
+
+          <substeps>
+            <step>
+              <para>On the final page of the wizard, click <emphasis role="bold">Launch</emphasis>. This launches your
+              instance.</para>
+            </step>
+
+            <step>
+              <para>On your AWS console page, your instances are
+              listed.</para>
+            </step>
+
+            <step>
+              <para>Wait a few minutes for the image to come fully online.
+              When you see <literal>running</literal> in the <emphasis role="bold">State </emphasis>column, click the Instance.</para>
+            </step>
+
+            <step>
+              <para>The instance details are displayed in the the lower
+              portion of the page. Below the instance name is the public DNS
+              for the instance. For example:</para>
+
+              <screen>ec2-54-242-36-232.compute-1.amazonaws.com</screen>
+
+              <para>Note that this is an example: your public DNS will be
+              different.</para>
+            </step>
+
+            <step>
+              <para>Open a terminal window from your computer to SSH into the
+              AMI as the ubuntu user.<screen>ssh ubuntu@ec2-54-242-36-232.compute-1.amazonaws.com</screen>Again,
+              the URL is an example only. When asked for the scidb password,
+              enter <emphasis role="bold">paradigm4</emphasis>.</para>
+            </step>
+          </substeps>
+
+          <note>
+            <para><emphasis role="bold">Note: </emphasis>The standard EC2
+            approach of using a PEM key pair to log in as the ubuntu user is
+            always supported as well.</para>
+          </note>
+        </step>
+
+        <step>
+          <para>The supplied database is <emphasis role="bold">mydb</emphasis>. Start SciDB by typing the following
+          command:<programlisting>./START_SCIDB.sh</programlisting></para>
+        </step>
+
+        <step>
+          <para>In addition to using SciDB from the command line, you can
+          access a GUI for SciDB or for RStudio. Point your browser to the one
+          of the following URLs (assuming the same "base-URL" listed in step
+          2.d):<itemizedlist>
+              <listitem>
+                <para>To use SciDB:
+                ec2-54-242-36-232.compute-1.amazonaws.com:8080</para>
+              </listitem>
+
+              <listitem>
+                <para>To use SciDB-R:
+                ec2-54-242-36-232.compute-1.amazonaws.com:8787</para>
+              </listitem>
+            </itemizedlist></para>
+        </step>
+      </procedure>
+
+      <para>To continue, see <xref linkend="GUI"/>.</para>
+    </section>
+  </section>
+
+  <section id="GUI">
+    <title>Connect to RStudio or SciDB</title>
+
+    <para>Once you have downloaded the VirtualBox image, or created your own
+    AMI from the template, you can proceed to connect to SciDB or
+    RStudio.</para>
+
+    <section id="RStudioConnect">
+      <title>Connect to RStudio</title>
+
+      <para>Depending on whether you are using a VirtualBox image or an Amazon
+      Machine image, you can access RStudio:<itemizedlist>
+          <listitem>
+            <para>VirtualBox Image: you should have noted the URL for RStudio
+            when you started the VM. For example, <emphasis role="bold">http://192.168.56.101:8787</emphasis></para>
+          </listitem>
+
+          <listitem>
+            <para>AMI: use the public DNS for the AMI, and append <emphasis role="bold">:8787</emphasis> for the port. For example: <emphasis role="bold">ec2-54-242-36-232.compute-1.amazonaws.com:8787</emphasis></para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>From the web page, use your credentials to log on.</para>
+
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para>User name<itemizedlist>
+                <listitem>
+                  <para>VirtualBox Image: <literal>scidb</literal></para>
+                </listitem>
+
+                <listitem>
+                  <para>AMI: <literal>ubuntu</literal></para>
+                </listitem>
+              </itemizedlist></para>
+          </listitem>
+
+          <listitem>
+            <para>Password: <literal>paradigm4</literal></para>
+          </listitem>
+        </itemizedlist>
+      </para>
+
+      <para>You can start by running the following short example:</para>
+
+      <programlisting>library("scidb")
+scidbconnect()
+iquery("store(build(&lt;v:double&gt;[i=0:9,10,0,j=0:9,10,0],random()%100),A)")
+scidblist()</programlisting>
+
+      <para>For more information on the R package for SciDB, see the
+      <emphasis>SciDB and R</emphasis> guide.</para>
+    </section>
+
+    <section id="SciDBConnect">
+      <title>Connect to SciDB</title>
+
+      <para>You can connect to a SciDB Web console, or use SciDB in a terminal
+      shell.</para>
+
+      <para>
+        <emphasis role="bold">Access a SciDB Web Console</emphasis>
+      </para>
+
+      <para>You can access a SciDB web console to view logs and run queries
+      from your browser. Depending on whether you are using a VirtualBox image
+      or an Amazon Machine image, do one of the following:<itemizedlist>
+          <listitem>
+            <para>VirtualBox Image: you should have noted the SciDB web URL
+            when you started the VM. For example, <emphasis role="bold">http://192.168.56.101:8080</emphasis></para>
+          </listitem>
+
+          <listitem>
+            <para>AMI: use the public DNS for the AMI, and append <emphasis role="bold">:8080</emphasis> for the port. For example: <emphasis role="bold">ec2-54-242-36-232.compute-1.amazonaws.com:8080</emphasis></para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>The URL home page displays a brief summary of the running SciDB
+      configuration (only one instance by default), and a button that you can
+      press to view the SciDB coordinator log.</para>
+
+      <para>Select <emphasis role="bold">Interactive Query</emphasis> from the
+      menu along the top of the page to view a basic interactive query screen.
+      You can perform the following actions:<itemizedlist>
+          <listitem>
+            <para>Enter a valid AFL query in the text box and press <emphasis role="bold">Execute query and return result</emphasis> to run the
+            query and view its output,</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter a query and press <emphasis role="bold">Execute
+            query</emphasis> to run the query without viewing output. Note
+            that non-operators like <command>remove</command> and DDL
+            operators like <command>rename</command> only work with the
+            <emphasis role="bold">Execute query</emphasis> button.</para>
+          </listitem>
+
+          <listitem>
+            <para>Press <emphasis role="bold">Upload file</emphasis> for a
+            simplified CSV file uploading dialog.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>
+        <emphasis role="bold">Log on to the VM Shell</emphasis>
+      </para>
+
+      <para>Start the VirtualBox image, or SSH into the AMI. At the command
+      prompt, enter your credentials:<itemizedlist>
+          <listitem>
+            <para>User name: <literal>scidb</literal></para>
+          </listitem>
+
+          <listitem>
+            <para>Password: <literal>paradigm4</literal></para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>For more information on SciDB, see the <emphasis>SciDB User's
+      Guide</emphasis>.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Sample Data</title>
+
+    <para>The virtual machine image contains some sample data. The <emphasis role="bold">XLDB_Examples</emphasis> folder contains scripts that were
+    used to create and load the sample arrays.</para>
+  </section>
+
+  <section id="terminology">
+    <title>Terminology</title>
+
+    <para>The following terms are useful when learning about SciDB.</para>
+
+    <variablelist>
+      <varlistentry>
+        <term>Arrays</term>
+
+        <listitem>
+          <para>SciDB uses multidimensional arrays as its basic storage and
+          processing unit. An array has any number of dimensions and
+          attributes (see below). A user creates a SciDB array by specifying
+          dimensions and attributes of the array.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Dimensions</term>
+
+        <listitem>
+          <para>Dimensions form the coordinate system. An n-dimensional SciDB
+          array has dimensions d<subscript>1</subscript>,
+          d<subscript>2</subscript>, ..., d<subscript>n</subscript>. The size
+          of the dimension is the number of ordered values in that
+          dimension.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Attributes</term>
+
+        <listitem>
+          <para>Each combination of dimension values identifies a cell or
+          element of an array, which can hold multiple data values called
+          attributes (a<subscript>1</subscript>, a<subscript>2</subscript>,
+          ..., a<subscript>m</subscript>). Each data value is referred to as
+          an attribute, and belongs to one of the supported data types in
+          SciDB.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>AFL (Array Functional Language)</term>
+
+        <listitem>
+          <para>AFL is a functional language for working with SciDB arrays.
+          AFL operators are used to compose queries or statements. AFL
+          contains operators for performing both data definition and data
+          manipulation. All queries in this guide are composed of AFL
+          operators.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>AQL (Array Query Language)</term>
+
+        <listitem>
+          <para>AQL is a high-level declarative language for working with
+          SciDB arrays. It is similar to the SQL language for relational
+          databases, but uses an array-based data model and a more
+          comprehensive analytical query set compared with standard relational
+          databases.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>iquery</term>
+
+        <listitem>
+          <para>The iquery executable is the basic command-line tool for
+          communicating with SciDB. iquery is the default SciDB client used to
+          issue AQL and AFL commands.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>An important part of SciDB database design is selecting which values
+    will be <emphasis>dimensions</emphasis> and which will be
+    <emphasis>attributes</emphasis>. You can get guidance on database design
+    in the <emphasis role="bold">Database Design</emphasis> section of the
+    <emphasis role="bold">Creating and Removing Arrays</emphasis> chapter in
+    the full documentation.</para>
+
+    <para>A few observations to keep in mind when you are defining your
+    arrays:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Joins of arrays are performed along dimensions.</para>
+      </listitem>
+
+      <listitem>
+        <para>Operators such as <command>slice</command> and
+        <command>subarray</command> use dimensions to quickly select
+        subregions.</para>
+      </listitem>
+
+      <listitem>
+        <para>Group-by clauses work over dimensions.</para>
+      </listitem>
+
+      <listitem>
+        <para>Aggregates work over attributes.</para>
+      </listitem>
+
+      <listitem>
+        <para>Filtering over dimensions is faster than filtering over
+        attributes.</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section>
+    <title>Learning SciDB</title>
+
+    <para>To get acquainted with SciDB, you will perform the following
+    tasks.</para>
+
+    <orderedlist>
+      <listitem>
+        <para><link linkend="matrixCreate">Create a simple array</link> and
+        <link linkend="matrixInfo">retrieve some information about the
+        array</link>.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="matrixLoad">Load data into an array</link>. There
+        are several ways to do this. We describe a few of them.</para>
+      </listitem>
+
+      <listitem>
+        <para>Examine ways to <link linkend="operationsExamples">select
+        sub-regions from an array</link>.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="advancedExample">Walk through an advanced
+        example</link> that combines several operators into a single
+        query.</para>
+      </listitem>
+    </orderedlist>
+
+    <section id="matrixCreate">
+      <title>Creating an Array</title>
+
+      <note>
+        <para>Note: In this guide, the output of queries is formatted to fit
+        the page nicely. When you run your queries, the output will be the
+        same—but the format of the output will be different. SciDB offers many
+        formatting options. One useful one is the <emphasis role="bold">dcsv</emphasis> format, illustrated below.</para>
+      </note>
+
+      <para>The basic way to create an array in SciDB is to use the CREATE
+      ARRAY statement.</para>
+
+      <procedure>
+        <step>
+          <para>From a command prompt, start iquery with AFL as the
+          language.<programlisting>$ iquery -a
+</programlisting>Optionally, you can start iquery with the dcsv format option:
+          this will display output one cell per line, with some other useful
+          information.<programlisting>$ iquery -o dcsv -a
+</programlisting>Either command opens an AFL command prompt.<programlisting>AFL%</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use the CREATE ARRAY statement to create an
+          array.<para><programlisting>AFL% CREATE ARRAY test &lt;val:double&gt;[i=0:4,6,0, j=0:4,6,0];  </programlisting>This
+          creates a 5<symbol>x</symbol>5 array, with a single, double
+          precision floating-point attribute. Note the following about the
+          CREATE ARRAY statement:<itemizedlist>
+              <listitem>
+                <para>The first argument in the name for the array, in this
+                case <literal>test</literal>.</para>
+              </listitem>
+
+              <listitem>
+                <para>The next argument is the attribute list, contained
+                within '&lt;&gt;'. Here we have only a single attribute, so we
+                specify its name and data type.</para>
+              </listitem>
+
+              <listitem>
+                <para>The third argument is the dimension list, contained
+                within '[]'.</para>
+              </listitem>
+
+              <listitem>
+                <para>For each dimension, we specify its name, lower bound,
+                upper bound, chunk size, and chunk overlap.</para>
+              </listitem>
+
+              <listitem>
+                <para>The first dimension is <literal>i</literal>, starting at
+                0 and ranging to 4, setting the dimension size to 5. The chunk
+                size for both dimensions is set to 6. In this guide, we always
+                use 0 for the value of the chunk overlap. For details about
+                chunk overlap, see the "Array Dimensions" section of the
+                <emphasis>SciDB User's Guide</emphasis>.</para>
+              </listitem>
+
+              <listitem>
+                <para>In this case, the second dimension,
+                <literal>j</literal>, has the same values as the first
+                dimension, but that does not need to be the case.</para>
+              </listitem>
+            </itemizedlist></para></para>
+        </step>
+      </procedure>
+    </section>
+
+    <section id="matrixInfo">
+      <title>Getting Array Information</title>
+
+      <para>After you create an array, you can retrieve information about the
+      array.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>List all of the existing arrays.<para><programlisting>AFL% list('arrays');  </programlisting><screen>name,id,schema,availability
+'test',976,'test&lt;val:double&gt; [i=0:4,6,0,j=0:4,6,0]',true
+</screen></para></para>
+        </listitem>
+
+        <listitem>
+          <para>Retrieve the schema for a particular array.<para><programlisting>AFL% show(test);  </programlisting><screen>[('test&lt;val:double&gt; [i=0:4,6,0,j=0:4,6,0]')]
+</screen></para></para>
+        </listitem>
+
+        <listitem>
+          <para>Retrieve the contents for a particular array.<para><programlisting>AFL% scan(test);  </programlisting><screen>[[]]
+</screen>As
+          you can see, <literal>test </literal>is currently empty.</para></para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section id="matrixLoad">
+      <title>Populating an Array with Data</title>
+
+      <para>SciDB offers several ways to get data into an array.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>
+            <link linkend="loadConstant">Populate the array with the same
+            value in every cell</link>
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            <link linkend="loadExpression">Populate the array using an
+            expression</link>
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            <link linkend="loadFile">Populate the array from a file</link>
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      <section id="loadConstant">
+        <title>Constant Values</title>
+
+        <para>This section describes how to populate an array with a single
+        value. We use the <command>build </command>operator, which takes two
+        arguments:<itemizedlist>
+            <listitem>
+              <para>A <emphasis role="bold">schema</emphasis>, which is the
+              list of attributes and dimensions, with their details. Note that
+              for the <command>build </command>operator, you must specify
+              <emphasis>exactly </emphasis>one attribute.</para>
+            </listitem>
+
+            <listitem>
+              <para>An <emphasis role="bold">expression</emphasis>, which
+              specifies the values for the attribute.</para>
+            </listitem>
+          </itemizedlist></para>
+
+        <orderedlist>
+          <listitem>
+            <para>Populate an array. The following query fills a
+            5<symbol>x</symbol>5 array with 1's.<para><programlisting>AFL% build(&lt;val:double&gt;[i=0:4,6,0, j=0:4,6,0],1);  </programlisting><screen>[
+[(1),(1),(1),(1),(1)],
+[(1),(1),(1),(1),(1)],
+[(1),(1),(1),(1),(1)],
+[(1),(1),(1),(1),(1)],
+[(1),(1),(1),(1),(1)]
+]</screen>Note
+            that this query does not store the result anywhere—that is, SciDB
+            does not create a new array filled with 1's.</para></para>
+          </listitem>
+
+          <listitem>
+            <para>To store the result of our previous query, we need to use
+            the <command>store</command> operator.<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:4,6,0, j=0:4,6,0],1),test);  </programlisting><screen>[
+[(1),(1),(1),(1),(1)],
+[(1),(1),(1),(1),(1)],
+[(1),(1),(1),(1),(1)],
+[(1),(1),(1),(1),(1)],
+[(1),(1),(1),(1),(1)]
+]</screen>This
+            stores the output from the <command>build</command> operator into
+            the array, <literal>test</literal>.</para></para>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section id="loadExpression">
+        <title>Calculated Values</title>
+
+        <para>This section describes how to use expressions to populate an
+        array with values.</para>
+
+        <procedure>
+          <step>
+            <para>SciDB has a random function, <command>random()</command>,
+            that is useful for populating an array with randomly-generated
+            values. Here, we create a 3<symbol>x</symbol>4 array, and fill it
+            with random numbers between 10 and 99.<para><programlisting>AFL% store(build(&lt;randomVal:int64&gt;[i=0:2,3,0, j=0:3,4,0],random()%90+10),random_100);  </programlisting><screen>[
+[(84),(52),(50),(51)],
+[(56),(21),(41),(25)],
+[(22),(55),(39),(80)]
+]</screen>Note
+            that in this query, our attribute is of type int64 (an integer
+            data type). Of course, your output will differ, as the random()
+            function produces random output.</para></para>
+          </step>
+
+          <step>
+            <para>This example uses the <command>iif</command> operator—inline
+            if—to populate an array with two different values.<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:4,6,0, j=0:4,6,0],iif(i=j,1,0)),test);  </programlisting><screen>[
+[(1),(0),(0),(0),(0)],
+[(0),(1),(0),(0),(0)],
+[(0),(0),(1),(0),(0)],
+[(0),(0),(0),(1),(0)],
+[(0),(0),(0),(0),(1)]
+]</screen>Note
+            that we have created a 5<symbol>x</symbol>5 identity array. The
+            <command>iif</command> operator takes three
+            arguments:<itemizedlist>
+                <listitem>
+                  <para>An expression to evaluate. In this case, the
+                  expression is i=j.</para>
+                </listitem>
+
+                <listitem>
+                  <para>A value to store into a cell if the expression is
+                  true.</para>
+                </listitem>
+
+                <listitem>
+                  <para>A value to store into a cell if the expression is
+                  false.</para>
+                </listitem>
+              </itemizedlist>So, in this example, when i=j, we store 1, and in
+            all other cells, we store 0.</para></para>
+          </step>
+
+          <step>
+            <para>You can nest the <command>iif</command> operator to get more
+            control over the values to add.<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:4,6,0, j=0:4,6,0],iif(i&gt;j,1,iif(i=1,7,0))),test);  </programlisting><screen>[
+[(0),(0),(0),(0),(0)],
+[(1),(7),(7),(7),(7)],
+[(1),(1),(0),(0),(0)],
+[(1),(1),(1),(0),(0)],
+[(1),(1),(1),(1),(0)]
+]</screen>In
+            this example, if i &gt; j, we add a 1 to the array, and if i &lt;=
+            j, SciDB evaluates the nested <command>iif</command> function, and
+            adds a 7 or 0 to the array, depending on whether the second
+            expression is true.</para></para>
+          </step>
+        </procedure>
+      </section>
+
+      <section id="loadFile">
+        <title>Load from a File</title>
+
+        <para>In many cases, your data exists in a file on disk. Here we
+        describe how to load from a CSV-formatted file into a SciDB array.
+        There are several other approaches to loading data from disk files,
+        and they are discussed in the <emphasis>SciDB User's
+        Guide</emphasis>.</para>
+
+        <para>Suppose that you have a CSV file,
+        <literal>/tmp/datafile.csv</literal>, with the following
+        content:<screen>Type,MPG
+Truck, 23.5
+Sedan, 48.7
+SUV, 19.6
+Convertible, 26.8</screen></para>
+
+        <para>We will use the SciDB utility, <command>csv2scidb</command>, to
+        convert this file into the SciDB format, and then load it into an
+        array.</para>
+
+        <procedure>
+          <step>
+            <para>Create a SciDB array to hold the data.<para><programlisting>AFL% create array A &lt;type:string, mpg:double&gt; [x=0:*,10,0];  </programlisting></para></para>
+          </step>
+
+          <step>
+            <para>Convert the data into the SciDB format. Note that you run
+            <command>csv2scidb</command> from your Linux terminal prompt, not
+            from inside an iquery session.<programlisting>$ csv2scidb -p SN -s 1 &lt; /tmp/datafile.csv &gt; /tmp/datafile.scidb</programlisting>The
+            details of the <command>csv2scidb</command> utility are described
+            in the <emphasis>SciDB User's Guide</emphasis>.</para>
+          </step>
+
+          <step>
+            <para>Now load the SciDB-formatted file into your array. For the
+            <command>load</command> query, you need to specify the full system
+            path name for the file that you are loading.<programlisting>AFL% load(A, '/tmp/datafile.scidb');</programlisting><screen>{x} type,mpg
+{0} "Truck",23.5
+{1} "Sedan",48.7
+{2} "SUV",19.6
+{3} "Convertible",26.8
+</screen></para>
+          </step>
+        </procedure>
+      </section>
+    </section>
+
+    <section id="operationsExamples">
+      <title>Selecting Subsets of an Array</title>
+
+      <para>One common task is selecting subsets of an array. SciDB allows you
+      to reduce matrices to contiguous or noncontiguous subsets of its
+      cells.</para>
+
+      <para>Let's look at a single array to compare the three SciDB reduction
+      operators, <literal>subarray</literal>, <literal>slice</literal>, and
+      <literal>thin</literal>.</para>
+
+      <procedure>
+        <step>
+          <para>We will use the array that we created earlier, <emphasis role="bold">test</emphasis>, and fill it with values.<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:4,6,0, j=0:4,6,0], i*5 +j+1),test);  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Select a 3x3 sub array from the interior of the
+          array:<para><programlisting>AFL% subarray(test,1,1,3,3);  </programlisting><screen>[
+[(7),(8),(9)],
+[(12),(13),(14)],
+[(17),(18),(19)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Slice the third column (j=2), and then the second row (i=1):
+          <para><programlisting>AFL% slice(test,j,2);  </programlisting><screen>[(3),(8),(13),(18),(23)]
+</screen><para><programlisting>AFL% slice(test,i,1);  </programlisting><screen>[(6),(7),(8),(9),(10)]
+</screen></para></para></para>
+        </step>
+
+        <step>
+          <para>Use the <literal role="bold">thin </literal>operator to
+          uniformly sample data from the array. <para><programlisting>AFL% thin(test,0,2,0,2);  </programlisting><screen>[
+[(1),(3),(5)],
+[(11),(13),(15)],
+[(21),(23),(25)]
+]</screen><para><programlisting>AFL% thin(test,1,3,1,2);  </programlisting><screen>[
+[(7),(9)],
+[(22),(24)]
+]</screen>The
+          thin operator selects elements from given array dimensions at
+          defined intervals.</para></para></para>
+        </step>
+      </procedure>
+    </section>
+
+    <section id="advancedExample">
+      <title>The Power of Operator Composition</title>
+
+      <para>You can use combinations of operations on SciDB data. This allows
+      you to view and analyze data in a nearly endless variety of ways.</para>
+
+      <para>For example, let's look at a query to list the SciDB
+      functions:<para><programlisting>AFL% list('functions');  </programlisting></para></para>
+
+      <para>If you run this query, it returns several hundred elements. Here
+      are the first few items:<screen>{No} name,profile,deterministic,library
+{0} "%","double %(double,double)",true,"scidb"
+{1} "%","int16 %(int16,int16)",true,"scidb"
+{2} "%","int32 %(int32,int32)",true,"scidb"
+{3} "%","int64 %(int64,int64)",true,"scidb"
+{4} "%","int8 %(int8,int8)",true,"scidb"
+{5} "%","uint16 %(uint16,uint16)",true,"scidb"
+{6} "%","uint32 %(uint32,uint32)",true,"scidb"
+{7} "%","uint64 %(uint64,uint64)",true,"scidb"
+{8} "%","uint8 %(uint8,uint8)",true,"scidb"
+</screen>Note that the remainder function, %, is overloaded—it can be used on
+      most of the numeric data types. Several of the other SciDB functions are
+      also overloaded.</para>
+
+      <para>Now let's say that you want only the names of functions, and you
+      want them sorted, and you only want one record per function name. One
+      way to do this is as follows:</para>
+
+      <procedure>
+        <step>
+          <para>Run the following query to create an array:<para><programlisting>AFL% store(sort(project(filter(list('functions'),
+   library='scidb'),name)),functionsArray);  </programlisting>Let's break down the actions in this query:<itemizedlist>
+              <listitem>
+                <para>Starting from the inside—which is where the SciDB engine
+                starts—we have <literal>list('functions')</literal>, which
+                lists information about all functions.</para>
+              </listitem>
+
+              <listitem>
+                <para>We <literal>filter</literal> the list of functions to
+                return only the ones in SciDB itself (not in any add-on
+                libraries).</para>
+              </listitem>
+
+              <listitem>
+                <para>Next, we <literal>project </literal>only the name of the
+                functions—this is similar to <command>SELECT name
+                </command>from SQL.</para>
+              </listitem>
+
+              <listitem>
+                <para>We then <literal>sort </literal>the list and
+                <literal>store </literal>it to a SciDB array.</para>
+              </listitem>
+            </itemizedlist></para></para>
+        </step>
+
+        <step>
+          <para>Let's take a look at the schema of
+          <literal>functionsArray</literal>:<para><programlisting>AFL% show(functionsArray);  </programlisting><screen>[('functionsArray&lt;name:string&gt; [n=0:*,357,0]')]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>We will use <literal>redimension_store </literal>to convert
+          the attribute, <emphasis role="bold">name</emphasis>, to a dimension
+          which removes duplicate values. First, we need to create a target
+          array that has a string dimension to match the string attribute,
+          <emphasis role="bold">name</emphasis>. And since all arrays need at
+          least one attribute, we the <command>count </command>function to
+          create an attribute that counts the number of occurrences of each
+          function name.<para><programlisting>AFL% create array target &lt;count:uint64 null&gt; [name(string)=*,1000,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>And finally, we redimension the source array into the
+          target.<para><programlisting>AFL% redimension_store(functionsArray, target, count(*) as count);  </programlisting><screen>{name} count
+{'%'} 9
+{'*'} 10
+{'+'} 12
+{'-'} 23
+{'/'} 10
+{'&lt;'} 15
+{'&lt;='} 15
+{'&lt;&gt;'} 15
+{'='} 15
+{'&gt;'} 15
+{'&gt;='} 15
+{'abs'} 2
+{'acos'} 2
+{'and'} 1
+{'append_offset'} 1
+{'apply_offset'} 1
+{'asin'} 2
+{'atan'} 2
+{'ceil'} 1
+{'cos'} 2
+{'day_of_week'} 2
+{'exp'} 2
+{'first'} 2
+{'floor'} 1
+{'format'} 1
+{'get_offset'} 1
+{'high'} 2
+{'hour_of_day'} 2
+{'iif'} 1
+{'instanceid'} 1
+{'is_nan'} 1
+{'is_null'} 1
+{'last'} 2
+{'length'} 2
+{'log'} 2
+{'log10'} 2
+{'low'} 2
+{'max'} 2
+{'min'} 2
+{'missing'} 1
+{'missing_reason'} 1
+{'not'} 1
+{'now'} 1
+{'or'} 1
+{'pow'} 1
+{'random'} 1
+{'regex'} 1
+{'sin'} 2
+{'sqrt'} 2
+{'strchar'} 1
+{'strftime'} 1
+{'strip_offset'} 1
+{'strlen'} 1
+{'substr'} 1
+{'tan'} 2
+{'togmt'} 1
+{'tznow'} 1
+</screen>As
+          you can see, the dimension actually contains the names of the SciDB
+          functions. The attribute, <emphasis role="bold">count</emphasis>,
+          contains the number of variations of the corresponding
+          function.</para></para>
+        </step>
+      </procedure>
+    </section>
+  </section>
+</article>

@@ -1,0 +1,63 @@
+SCIDB QUERY : <create array A <a:int32 default 5> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from filter(build(A,x+3),true)>
+{x} a
+{0} 3
+{1} 4
+{2} 5
+
+SCIDB QUERY : <select * into A from filter(build(A,x+3),x<>1)>
+{x} a
+{0} 3
+{2} 5
+
+SCIDB QUERY : <select a+0 from A>
+{x} expr
+{0} 3
+{2} 5
+
+SCIDB QUERY : <update A set a = a + 1>
+{x} a
+{0} 4
+{2} 6
+
+SCIDB QUERY : <update A set a = a - 1>
+{x} a
+{0} 3
+{2} 5
+
+SCIDB QUERY : <update A set a = a * 1>
+{x} a
+{0} 3
+{2} 5
+
+SCIDB QUERY : <update A set a = a / 1>
+{x} a
+{0} 3
+{2} 5
+
+SCIDB QUERY : <update A set a = a * 10>
+{x} a
+{0} 30
+{2} 50
+
+SCIDB QUERY : <update A set a = a / 10>
+{x} a
+{0} 3
+{2} 5
+
+SCIDB QUERY : <update A set a = a / 2>
+{x} a
+{0} 1
+{2} 2
+
+SCIDB QUERY : <select * into A from filter(build(A,x+3),true)>
+{x} a
+{0} 3
+{1} 4
+{2} 5
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

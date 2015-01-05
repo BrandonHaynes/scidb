@@ -1,0 +1,13 @@
+--setup
+create array A<a:int32> [x=0:2,3,0]
+create array B<b:int32> [y=0:2,3,0]
+store(build(A,1),A)
+store(build(B,2),B)
+
+--test
+--aql select * from A,B where a<b and x>1
+
+--cleanup
+remove(A)
+remove(B)
+

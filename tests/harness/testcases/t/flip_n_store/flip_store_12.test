@@ -1,0 +1,22 @@
+--setup
+create array A <a:string,b:string>[x=0:2,3,0]
+create array T <a:string>[x=0:2,3,0]
+create array B <b:string>[a(string)=2,1,0]
+
+--test
+store(join(filter(build(T,'a_'+string(x+1)),x=1),filter(build(T,'b_'+string(x+1)),x=1)),A)
+store(redimension(A,B),B)
+unpack(B,row)
+
+store(join(filter(build(T,'a_'+string(x+1)),x<>1),filter(build(T,'b_'+string(x+1)),x<>1)),A)
+store(redimension(A,B),B)
+unpack(B,row)
+
+store(join(filter(build(T,'a_'+string(x+1)),x=1),filter(build(T,'b_'+string(x+1)),x=1)),A)
+store(redimension(A,B),B)
+unpack(B,row)
+
+--cleanup
+remove(A)
+remove(T)
+remove(B)

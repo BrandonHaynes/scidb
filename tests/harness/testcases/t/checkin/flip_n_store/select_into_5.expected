@@ -1,0 +1,90 @@
+SCIDB QUERY : <create array A <a:int32, b:int32, c:string> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array TS <a:string> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:int32, c:string> [b(int32)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array F <c:string, ad:double, b:int32, c2:string> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into C from B>
+{b} a,c
+
+SCIDB QUERY : <select * into A from build(T,x+1),build(T,x+10),build(TS,'c_'+string(x))>
+{x} a,b,c
+{0} 1,10,'c_0'
+{1} 2,11,'c_1'
+{2} 3,12,'c_2'
+
+SCIDB QUERY : <select * into B from A>
+{b} a,c
+{10} 1,'c_0'
+{11} 2,'c_1'
+{12} 3,'c_2'
+
+SCIDB QUERY : <select b,a,c into C from A>
+{b} a,c
+{10} 1,'c_0'
+{11} 2,'c_1'
+{12} 3,'c_2'
+
+SCIDB QUERY : <select b into D from A>
+{x} b
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select b,c,a,a,c into E from A>
+{x} b,c,a,a_2,c_2
+{0} 10,'c_0',1,1,'c_0'
+{1} 11,'c_1',2,2,'c_1'
+{2} 12,'c_2',3,3,'c_2'
+
+SCIDB QUERY : <store(project(apply(A, ad, double(a)*1.8), c, ad, b, c), F)>
+{x} c,ad,b,c2
+{0} 'c_0',1.8,10,'c_0'
+{1} 'c_1',3.6,11,'c_1'
+{2} 'c_2',5.4,12,'c_2'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <scan(E)>
+{x} b,c,a,a_2,c_2
+{0} 10,'c_0',1,1,'c_0'
+{1} 11,'c_1',2,2,'c_1'
+{2} 12,'c_2',3,3,'c_2'
+
+SCIDB QUERY : <scan(F)>
+{x} c,ad,b,c2
+{0} 'c_0',1.8,10,'c_0'
+{1} 'c_1',3.6,11,'c_1'
+{2} 'c_2',5.4,12,'c_2'
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F)>
+Query was executed successfully
+

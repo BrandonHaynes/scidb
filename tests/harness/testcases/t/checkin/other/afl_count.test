@@ -1,0 +1,10 @@
+--setup
+create array A <duplicates: double> [x=0:9,10,0, host=-9:9,20,0]
+--igdata "store(build(A, 2), A)"
+
+--test
+aggregate(filter(scan(A), duplicates > 1), count(*), host)
+--aql select count(*) from A where duplicates > 1 group by host
+
+--cleanup
+remove(A)

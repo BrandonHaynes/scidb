@@ -1,0 +1,46 @@
+--setup
+create array A<a:int32> [x=0:8,4,0, y=0:8,4,4]
+create array B<a:int32> [x=0:8,4,2, y=0:8,4,2]
+create array C<a:int32> [x=0:8,4,4, y=0:8,4,0]
+
+--test
+--aql select * into A from build(A, x+y)
+--aql select * into B from build(B, x+y)
+--aql select * into C from build(C, x+y)
+
+--set-format store
+--aql select * from A,B
+--set-format csv+
+--aql select * from A,B
+
+--set-format store
+--aql select * from A,C
+--set-format csv+
+--aql select * from A,C
+
+
+--set-format store
+--aql select * from B,C
+--set-format csv+
+--aql select * from B,C
+
+--set-format store
+--aql select * from C,B
+--set-format csv+
+--aql select * from C,B
+
+--set-format store
+--aql select * from C,A
+--set-format csv+
+--aql select * from C,A
+
+--set-format store
+--aql select * from B,A
+--set-format csv+
+--aql select * from B,A
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+

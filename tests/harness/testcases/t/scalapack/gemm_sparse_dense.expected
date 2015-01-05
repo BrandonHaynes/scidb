@@ -1,0 +1,346 @@
+Query was executed successfully
+
+SCIDB QUERY : <CREATE ARRAY M5x5_dense<a: double >[I=0:4,32,0,J=0:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <CREATE ARRAY M5x5_Sparse <a1: double> [x=0:4,32,0,y=0:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create ARRAY M5x5<a:double> [x=0:4,32,0,y=0:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store ( build (M5x5_dense, 5*I + J ), M5x5_dense)>
+{I,J} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{0,3} 3
+{0,4} 4
+{1,0} 5
+{1,1} 6
+{1,2} 7
+{1,3} 8
+{1,4} 9
+{2,0} 10
+{2,1} 11
+{2,2} 12
+{2,3} 13
+{2,4} 14
+{3,0} 15
+{3,1} 16
+{3,2} 17
+{3,3} 18
+{3,4} 19
+{4,0} 20
+{4,1} 21
+{4,2} 22
+{4,3} 23
+{4,4} 24
+
+SCIDB QUERY : <store ( build (M5x5, 5*x + y ), M5x5)>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{0,3} 3
+{0,4} 4
+{1,0} 5
+{1,1} 6
+{1,2} 7
+{1,3} 8
+{1,4} 9
+{2,0} 10
+{2,1} 11
+{2,2} 12
+{2,3} 13
+{2,4} 14
+{3,0} 15
+{3,1} 16
+{3,2} 17
+{3,3} 18
+{3,4} 19
+{4,0} 20
+{4,1} 21
+{4,2} 22
+{4,3} 23
+{4,4} 24
+
+SCIDB QUERY : <store ( filter(build(M5x5_Sparse, 1.0*x+100.0*y), x=y), M5x5_Sparse)>
+{x,y} a1
+{0,0} 0
+{1,1} 101
+{2,2} 202
+{3,3} 303
+{4,4} 404
+
+SCIDB QUERY : <CREATE ARRAY M5x5_dense_c2<a: double >[I=0:4,32,0,J=0:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <CREATE ARRAY M5x5_Sparse_c2<a1: double> [x=0:4,32,0,y=0:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array M5x5_c2<a:double> [x=0:4,32,0,y=0:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store ( build (M5x5_dense_c2, 5*I + J ), M5x5_dense_c2)>
+{I,J} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{0,3} 3
+{0,4} 4
+{1,0} 5
+{1,1} 6
+{1,2} 7
+{1,3} 8
+{1,4} 9
+{2,0} 10
+{2,1} 11
+{2,2} 12
+{2,3} 13
+{2,4} 14
+{3,0} 15
+{3,1} 16
+{3,2} 17
+{3,3} 18
+{3,4} 19
+{4,0} 20
+{4,1} 21
+{4,2} 22
+{4,3} 23
+{4,4} 24
+
+SCIDB QUERY : <store ( build (M5x5_c2, 5*x + y ), M5x5_c2)>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{0,3} 3
+{0,4} 4
+{1,0} 5
+{1,1} 6
+{1,2} 7
+{1,3} 8
+{1,4} 9
+{2,0} 10
+{2,1} 11
+{2,2} 12
+{2,3} 13
+{2,4} 14
+{3,0} 15
+{3,1} 16
+{3,2} 17
+{3,3} 18
+{3,4} 19
+{4,0} 20
+{4,1} 21
+{4,2} 22
+{4,3} 23
+{4,4} 24
+
+SCIDB QUERY : <store ( filter(build(M5x5_Sparse_c2, 1.0*x+100.0*y), x=y), M5x5_Sparse_c2)>
+{x,y} a1
+{0,0} 0
+{1,1} 101
+{2,2} 202
+{3,3} 303
+{4,4} 404
+
+SCIDB QUERY : <CREATE ARRAY M4x4_dense_nzd<a: double >[I=1:4,32,0,J=1:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <CREATE ARRAY M4x4_Sparse_nzd<a1: double> [x=1:4,32,0,y=1:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array M4x4_nzd<a:double> [x=1:4,32,0,y=1:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store ( build (M4x4_dense_nzd, 5*I + J ), M4x4_dense_nzd)>
+{I,J} a
+{1,1} 6
+{1,2} 7
+{1,3} 8
+{1,4} 9
+{2,1} 11
+{2,2} 12
+{2,3} 13
+{2,4} 14
+{3,1} 16
+{3,2} 17
+{3,3} 18
+{3,4} 19
+{4,1} 21
+{4,2} 22
+{4,3} 23
+{4,4} 24
+
+SCIDB QUERY : <store ( build (M4x4_nzd, 5*x + y ), M4x4_nzd)>
+{x,y} a
+{1,1} 6
+{1,2} 7
+{1,3} 8
+{1,4} 9
+{2,1} 11
+{2,2} 12
+{2,3} 13
+{2,4} 14
+{3,1} 16
+{3,2} 17
+{3,3} 18
+{3,4} 19
+{4,1} 21
+{4,2} 22
+{4,3} 23
+{4,4} 24
+
+SCIDB QUERY : <store ( filter(build(M4x4_Sparse_nzd, 1.0*x+100.0*y), x=y), M4x4_Sparse_nzd)>
+{x,y} a1
+{1,1} 101
+{2,2} 202
+{3,3} 303
+{4,4} 404
+
+SCIDB QUERY : <CREATE ARRAY M5x2_dense_new<a: double >[I=0:4,32,0,J=0:1,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <CREATE ARRAY M2x5_Sparse<a1: double> [x=0:1,32,0,y=0:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store ( build (M5x2_dense_new, 5*I+J ), M5x2_dense_new)>
+{I,J} a
+{0,0} 0
+{0,1} 1
+{1,0} 5
+{1,1} 6
+{2,0} 10
+{2,1} 11
+{3,0} 15
+{3,1} 16
+{4,0} 20
+{4,1} 21
+
+SCIDB QUERY : <store ( filter(build(M2x5_Sparse, 1.0*x+100.0*y), x=y), M2x5_Sparse)>
+{x,y} a1
+{0,0} 0
+{1,1} 101
+
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <gemm(M5x5_dense,M5x5_Sparse,M5x5)>
+{x,y} gemm
+{0,0} 0
+{0,1} 102
+{0,2} 406
+{0,3} 912
+{0,4} 1620
+{1,0} 5
+{1,1} 612
+{1,2} 1421
+{1,3} 2432
+{1,4} 3645
+{2,0} 10
+{2,1} 1122
+{2,2} 2436
+{2,3} 3952
+{2,4} 5670
+{3,0} 15
+{3,1} 1632
+{3,2} 3451
+{3,3} 5472
+{3,4} 7695
+{4,0} 20
+{4,1} 2142
+{4,2} 4466
+{4,3} 6992
+{4,4} 9720
+
+SCIDB QUERY : <gemm(M5x5_dense_c2,M5x5_Sparse_c2,M5x5_c2)>
+{x,y} gemm
+{0,0} 0
+{0,1} 102
+{0,2} 406
+{0,3} 912
+{0,4} 1620
+{1,0} 5
+{1,1} 612
+{1,2} 1421
+{1,3} 2432
+{1,4} 3645
+{2,0} 10
+{2,1} 1122
+{2,2} 2436
+{2,3} 3952
+{2,4} 5670
+{3,0} 15
+{3,1} 1632
+{3,2} 3451
+{3,3} 5472
+{3,4} 7695
+{4,0} 20
+{4,1} 2142
+{4,2} 4466
+{4,3} 6992
+{4,4} 9720
+
+SCIDB QUERY : <gemm(M5x2_dense_new,M2x5_Sparse,M5x5)>
+{x,y} gemm
+{0,0} 0
+{0,1} 102
+{0,2} 2
+{0,3} 3
+{0,4} 4
+{1,0} 5
+{1,1} 612
+{1,2} 7
+{1,3} 8
+{1,4} 9
+{2,0} 10
+{2,1} 1122
+{2,2} 12
+{2,3} 13
+{2,4} 14
+{3,0} 15
+{3,1} 1632
+{3,2} 17
+{3,3} 18
+{3,4} 19
+{4,0} 20
+{4,1} 2142
+{4,2} 22
+{4,3} 23
+{4,4} 24
+
+SCIDB QUERY : <remove(M5x5_dense)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M5x5_Sparse)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M5x5)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M5x5_dense_c2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M5x5_Sparse_c2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M5x5_c2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M4x4_dense_nzd)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M4x4_Sparse_nzd)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M4x4_nzd)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M5x2_dense_new)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M2x5_Sparse)>
+Query was executed successfully
+

@@ -1,0 +1,6 @@
+SCIDB QUERY : <load_library('misc')>
+Query was executed successfully
+
+SCIDB QUERY : <test_cache()>
+{i} dummy
+

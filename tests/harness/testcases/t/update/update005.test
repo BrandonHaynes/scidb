@@ -1,0 +1,25 @@
+--setup
+--start-query-logging
+
+--aql create  array expr2 <a:int64, b:int64>[x=1:5,2,0, y=1:5,2,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load expr2 from '${TEST_DATA_DIR}/expr2.txt'""
+
+--test
+
+--aql update expr2 set a=888 where x=5 and y=5
+
+--aql update expr2 set a=777 where a=1
+
+--aql update expr2 set a=555 where b=x+2
+
+--aql update expr2 set a=1,b=2 where a+1=b-1
+
+--aql update expr2 set b=6 where y=4
+
+--aql update expr2 set b=0 where a=1 and b=6 and x=3
+
+
+--cleanup
+--aql drop array expr2
+
+--stop-query-logging

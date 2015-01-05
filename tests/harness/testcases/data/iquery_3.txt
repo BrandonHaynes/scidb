@@ -1,0 +1,13 @@
+[
+(),
+(21,"ice cream",50.5,"mango"),
+(31,"soft drink",45.25,"coca cola"),
+(,"coffee",,"CCD"),
+(51,"chocolate",150.4,),
+(61,,10,"nice"),
+(),
+(81,"tea",,"lemon"),
+(91,,90.1,),
+(,,100,"Lays"),
+(11,"bread",35.2,"brown")
+]

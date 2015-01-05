@@ -1,0 +1,19 @@
+SCIDB QUERY : <CREATE ARRAY left_array<val:double>[i=0:2,3,0, j=0:2,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(left_array,i*3+j),left_array)>
+[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]]
+
+SCIDB QUERY : <CREATE ARRAY right_array<val:double>[k=0:5,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(right_array,k+101),right_array)>
+[(101),(102),(103),(104),(105),(106)]
+
+SCIDB QUERY : <cross_join(left_array,right_array,j,k)>
+[[(0,101),(1,102),(2,103)],[(3,101),(4,102),(5,103)],[(6,101),(7,102),(8,103)]]
+
+Query was executed successfully
+
+Query was executed successfully
+

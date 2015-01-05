@@ -1,0 +1,40 @@
+--setup
+--start-query-logging
+create array A <a:int32,b:int64> [x=0:8,3,0,y=0:2,3,0]
+create array T1 <a:int32> [x=0:8,3,0,y=0:2,3,0]
+create array T2 <b:int64> [x=0:8,3,0,y=0:2,3,0]
+store(filter(build(T1,x+10+y),x<>2 and x<>5),T1)
+store(filter(build(T2,x+12+y),x<>2 and x<>5),T2)
+store(join(T1,T2),A)
+
+--test
+store(filter(build(T1,x-10),x<>2 and x<>5),T1)
+store(filter(build(T2,x-12),x<>2 and x<>5),T2)
+store(join(T1,T2),A)
+window(A,8,9,1,2,sum(a),max(a))
+window(A,1,1,0,1,max(a),var(a),stdev(a),count(a),sum(a),min(a))
+window(A,1,2,0,0,min(a),count(*))
+window(A,0,0,2,2,avg(a),count(a))
+window(A,0,1,2,3,count(a),count(*))
+window(A,1,1,4,5,count(*),sum(a))
+window(A,2,2,2,2,stdev(a),avg(a))
+window(A,4,4,3,3,var(a),stdev(a))
+
+
+store(filter(build(T1,x+10),x<>2 and x<>5),T1)
+store(filter(build(T2,x+12),x<>2 and x<>5),T2)
+store(join(T1,T2),A)
+window(A,8,9,8,9,sum(b),max(b))
+window(A,1,1,4,5,max(a),var(b),stdev(a),count(a),sum(b),min(a))
+window(A,1,2,1,2,min(a),count(*))
+window(A,0,0,3,3,avg(a),count(b))
+window(A,0,1,0,1,count(b),count(*))
+window(A,1,1,3,4,count(*),sum(a))
+window(A,2,2,1,2,stdev(a),avg(b))
+window(A,4,4,2,3,var(b),stdev(a))
+
+--cleanup
+remove(A)
+remove(T1)
+remove(T2)
+--stop-query-logging

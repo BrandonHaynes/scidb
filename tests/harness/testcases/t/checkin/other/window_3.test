@@ -1,0 +1,9 @@
+--setup
+create array a10x10<x:double>[i=1:10,5,0, j=1:10,5,0]
+store(build(a10x10, 1), a10x10)
+
+--test
+window(repart(a10x10, <x:double>[i=1:10,5,1, j=1:10,5,1]), 1, 1, 1, 1, sum(x),count(x))
+
+--cleanup
+remove(a10x10)

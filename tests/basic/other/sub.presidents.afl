@@ -1,0 +1,1 @@
+substitute(substitute(us_presidents, build(<val:string>[x=0:0,1,0], 'no_middle_name'), middle_name), build(<val:uint8>[x=0:0,1,0], 255), years_in_office)

@@ -1,0 +1,241 @@
+SCIDB QUERY : <create array A <a1: double > [x=0:5,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array NID <x:int64> [a1(double)=6,3,0, a2(double)=6,3,0 ,a3(double)=6,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(apply(apply(build(A,13.5*6/x),a2,a1*5.72),a3,a2*0.5),A_derivative)>
+{x} a1,a2,a3
+{0} inf,inf,inf
+{1} 81,463.32,231.66
+{2} 40.5,231.66,115.83
+{3} 27,154.44,77.22
+{4} 20.25,115.83,57.915
+{5} 16.2,92.664,46.332
+
+SCIDB QUERY : <scan(A_derivative)>
+{x} a1,a2,a3
+{0} inf,inf,inf
+{1} 81,463.32,231.66
+{2} 40.5,231.66,115.83
+{3} 27,154.44,77.22
+{4} 20.25,115.83,57.915
+{5} 16.2,92.664,46.332
+
+SCIDB QUERY : <store(redimension(A_derivative,NID),NID)>
+{a1,a2,a3} x
+{16.2,92.664,46.332} 5
+{20.25,115.83,57.915} 4
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+{inf,inf,inf} 0
+
+SCIDB QUERY : <show(NID)>
+{i} schema
+{0} 'NID<x:int64> [a1(double)=6,3,0,a2(double)=6,3,0,a3(double)=6,3,0]'
+
+SCIDB QUERY : <scan(NID)>
+{a1,a2,a3} x
+{16.2,92.664,46.332} 5
+{20.25,115.83,57.915} 4
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+{inf,inf,inf} 0
+
+SCIDB QUERY : <unpack(NID,i)>
+{i} a1,a2,a3,x
+{0} 16.2,92.664,46.332,5
+{1} 20.25,115.83,57.915,4
+{2} 27,154.44,77.22,3
+{3} 40.5,231.66,115.83,2
+{4} 81,463.32,231.66,1
+{5} inf,inf,inf,0
+
+SCIDB QUERY : <select * from NID>
+{a1,a2,a3} x
+{16.2,92.664,46.332} 5
+{20.25,115.83,57.915} 4
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+{inf,inf,inf} 0
+
+SCIDB QUERY : <select * from NID where x=1>
+{a1,a2,a3} x
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <select * from NID where a1=40.5>
+{a1,a2,a3} x
+{40.5,231.66,115.83} 2
+
+SCIDB QUERY : <select * from NID where a1=20.25>
+{a1,a2,a3} x
+{20.25,115.83,57.915} 4
+
+SCIDB QUERY : <select * from NID where a1=inf>
+[An error expected at this place for the query "select * from NID where a1=inf". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+SCIDB QUERY : <select * from NID where a1=(2.0/(2.0-2.0))>
+{a1,a2,a3} x
+{inf,inf,inf} 0
+
+SCIDB QUERY : <select * from NID where a1=16.2 or a1=81>
+{a1,a2,a3} x
+{16.2,92.664,46.332} 5
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <select * from NID where (a1=16.2 or a2=154.44)>
+{a1,a2,a3} x
+{16.2,92.664,46.332} 5
+{27,154.44,77.22} 3
+
+SCIDB QUERY : <select * from NID where a1=16.2 or a1=20.25 or a1=27 or a1=40.5 or a1=81>
+{a1,a2,a3} x
+{16.2,92.664,46.332} 5
+{20.25,115.83,57.915} 4
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <select * from NID where a1=81 or a2=231.66 or a3=77.22>
+{a1,a2,a3} x
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <select x from NID where a1=81 or a2=231.66 or a3=77.22>
+{a1,a2,a3} x
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <select * from NID where a1=81 or a2=463.32 or a3=231.66>
+{a1,a2,a3} x
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <select * from NID where a1=81 and a2=463.32 and a3=231.66>
+{a1,a2,a3} x
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <select * from between(NID,16.2,92.664,46.332,81,463.32,231.66)>
+{a1,a2,a3} x
+{20.25,115.83,57.915} 4
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <between(NID,16.2,92.664,46.332,81,463.32,231.66)>
+{a1,a2,a3} x
+{20.25,115.83,57.915} 4
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <between(NID,0,0,0,5,5,5)>
+{a1,a2,a3} x
+
+SCIDB QUERY : <store(subarray(NID,16.2,92.664,46.332,81,463.32,231.66),AAA)>
+{a1,a2,a3} x
+{20.25,115.83,57.915} 4
+{27,154.44,77.22} 3
+{40.5,231.66,115.83} 2
+{81,463.32,231.66} 1
+
+SCIDB QUERY : <show(AAA)>
+{i} schema
+{0} 'AAA<x:int64> [a1(double)=5,3,0,a2(double)=4,3,0,a3(double)=4,3,0]'
+
+SCIDB QUERY : <merge(NID,AAA)>
+[An error expected at this place for the query "merge(NID,AAA)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED.]
+
+SCIDB QUERY : <merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66))>
+[An error expected at this place for the query "merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66))". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED.]
+
+SCIDB QUERY : <unpack(merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66)),i)>
+[An error expected at this place for the query "unpack(merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66)),i)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED.]
+
+SCIDB QUERY : <store(unpack(merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66)),i),BBB)>
+[An error expected at this place for the query "store(unpack(merge(NID,subarray(NID,16.2,92.664,46.332,81,463.32,231.66)),i),BBB)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED.]
+
+SCIDB QUERY : <join(AAA,AAA)>
+{a1,a2,a3} x,x
+{20.25,115.83,57.915} 4,4
+{27,154.44,77.22} 3,3
+{40.5,231.66,115.83} 2,2
+{81,463.32,231.66} 1,1
+
+SCIDB QUERY : <join(NID,AAA)>
+{a1,a2,a3} x,x
+{20.25,115.83,57.915} 4,4
+{27,154.44,77.22} 3,3
+{40.5,231.66,115.83} 2,2
+{81,463.32,231.66} 1,1
+
+SCIDB QUERY : <cross_join(NID,AAA)>
+{a1,a2,a3,a1,a2,a3} x,x
+{16.2,92.664,46.332,20.25,115.83,57.915} 5,4
+{16.2,92.664,46.332,27,154.44,77.22} 5,3
+{20.25,115.83,57.915,20.25,115.83,57.915} 4,4
+{20.25,115.83,57.915,27,154.44,77.22} 4,3
+{27,154.44,77.22,20.25,115.83,57.915} 3,4
+{27,154.44,77.22,27,154.44,77.22} 3,3
+{16.2,92.664,46.332,40.5,231.66,115.83} 5,2
+{20.25,115.83,57.915,40.5,231.66,115.83} 4,2
+{27,154.44,77.22,40.5,231.66,115.83} 3,2
+{16.2,92.664,46.332,81,463.32,231.66} 5,1
+{20.25,115.83,57.915,81,463.32,231.66} 4,1
+{27,154.44,77.22,81,463.32,231.66} 3,1
+{40.5,231.66,115.83,20.25,115.83,57.915} 2,4
+{40.5,231.66,115.83,27,154.44,77.22} 2,3
+{81,463.32,231.66,20.25,115.83,57.915} 1,4
+{81,463.32,231.66,27,154.44,77.22} 1,3
+{inf,inf,inf,20.25,115.83,57.915} 0,4
+{inf,inf,inf,27,154.44,77.22} 0,3
+{40.5,231.66,115.83,40.5,231.66,115.83} 2,2
+{81,463.32,231.66,40.5,231.66,115.83} 1,2
+{inf,inf,inf,40.5,231.66,115.83} 0,2
+{40.5,231.66,115.83,81,463.32,231.66} 2,1
+{81,463.32,231.66,81,463.32,231.66} 1,1
+{inf,inf,inf,81,463.32,231.66} 0,1
+
+SCIDB QUERY : <cross_join(NID,AAA)>
+{a1,a2,a3,a1,a2,a3} x,x
+{16.2,92.664,46.332,20.25,115.83,57.915} 5,4
+{16.2,92.664,46.332,27,154.44,77.22} 5,3
+{20.25,115.83,57.915,20.25,115.83,57.915} 4,4
+{20.25,115.83,57.915,27,154.44,77.22} 4,3
+{27,154.44,77.22,20.25,115.83,57.915} 3,4
+{27,154.44,77.22,27,154.44,77.22} 3,3
+{16.2,92.664,46.332,40.5,231.66,115.83} 5,2
+{20.25,115.83,57.915,40.5,231.66,115.83} 4,2
+{27,154.44,77.22,40.5,231.66,115.83} 3,2
+{16.2,92.664,46.332,81,463.32,231.66} 5,1
+{20.25,115.83,57.915,81,463.32,231.66} 4,1
+{27,154.44,77.22,81,463.32,231.66} 3,1
+{40.5,231.66,115.83,20.25,115.83,57.915} 2,4
+{40.5,231.66,115.83,27,154.44,77.22} 2,3
+{81,463.32,231.66,20.25,115.83,57.915} 1,4
+{81,463.32,231.66,27,154.44,77.22} 1,3
+{inf,inf,inf,20.25,115.83,57.915} 0,4
+{inf,inf,inf,27,154.44,77.22} 0,3
+{40.5,231.66,115.83,40.5,231.66,115.83} 2,2
+{81,463.32,231.66,40.5,231.66,115.83} 1,2
+{inf,inf,inf,40.5,231.66,115.83} 0,2
+{40.5,231.66,115.83,81,463.32,231.66} 2,1
+{81,463.32,231.66,81,463.32,231.66} 1,1
+{inf,inf,inf,81,463.32,231.66} 0,1
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(NID)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A_derivative)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AAA)>
+Query was executed successfully
+

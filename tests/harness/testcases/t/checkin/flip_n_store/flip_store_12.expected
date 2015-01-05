@@ -1,0 +1,30 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+[{0}(),{1}('a_2','b_2'),{2}()]
+
+[('b_2')]
+
+[('a_2','b_2')]
+
+[{0}('a_1','b_1'),{1}(),{2}('a_3','b_3')]
+
+[('b_1'),('b_3')]
+
+[('a_1','b_1'),('a_3','b_3')]
+
+[{0}(),{1}('a_2','b_2'),{2}()]
+
+[('b_2')]
+
+[('a_2','b_2')]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

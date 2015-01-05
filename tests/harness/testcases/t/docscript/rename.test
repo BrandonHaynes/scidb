@@ -1,0 +1,41 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+store(build(<val:double>[i=0:9,10,0],1),source)  
+--set-format csv
+--stop-igdata
+--start-igdata
+list('arrays')  
+--set-format dcsv
+rename(source,target)  
+--set-format csv
+--stop-igdata
+--start-igdata
+list('arrays')  
+--set-format dcsv
+remove(target)  
+--set-format dense
+--stop-igdata
+store(build(<val:int64> [i=0:3,4,0,j=0:1,2,0],i*4+j),A)  
+store(build(A,i*3+j),A)  
+store(build(A,i*2+j+1),A)  
+--set-format csv
+--start-igdata
+list('arrays',true)  
+--set-format dcsv
+rename(A,Octagon)  
+--set-format csv
+--stop-igdata
+--start-igdata
+list('arrays',true)  
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(Octagon)

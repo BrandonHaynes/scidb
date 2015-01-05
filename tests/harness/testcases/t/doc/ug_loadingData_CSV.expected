@@ -1,0 +1,30 @@
+SCIDB QUERY : <csv2scidb -s 1 -p SNSN < $DOC_DATA/olympic_data.csv > $DOC_DATA/olympic_data.scidb>
+
+SCIDB QUERY : <CREATE ARRAY winnersFlat < event:string,year:int64,person:string,time:double > [i=0:*,1000000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load winnersFlat FROM '${TEST_DATA_DIR}/doc/olympic_data.scidb'">
+{i} event,year,person,time
+{0} 'dash',1996,'Bailey',9.84
+{1} 'dash',2000,'Greene',9.87
+{2} 'dash',2004,'Gatlin',9.85
+{3} 'dash',2008,'Bolt',9.69
+{4} 'steeplechase',1996,'Keter',487.12
+{5} 'steeplechase',2000,'Kosgei',503.17
+{6} 'steeplechase',2004,'Kemboi',485.81
+{7} 'steeplechase',2008,'Kipruto',490.34
+{8} 'marathon',1996,'Thugwane',7956
+{9} 'marathon',2000,'Abera',7811
+{10} 'marathon',2004,'Baldini',7855
+{11} 'marathon',2008,'Wanjiru',7596
+
+SCIDB QUERY : <select * from analyze(winnersFlat)>
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'event','dash','steeplechase',3,12
+{1} 'year','1996','2008',4,12
+{2} 'person','Abera','Wanjiru',12,12
+{3} 'time','9.69','7956',12,12
+
+SCIDB QUERY : <drop array winnersFlat>
+Query was executed successfully
+

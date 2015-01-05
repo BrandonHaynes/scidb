@@ -1,0 +1,177 @@
+SCIDB QUERY : <create array A <a:int32,b:string> [x=0:2,3,0,y=0:9,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:int32,b:string> [p=0:2,3,0,q=0:9,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:int32,b:string> [p=0:2,1,0,q=0:9,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <a:int32,b:string> [p=0:2,3,1,q=0:9,3,2]>
+Query was executed successfully
+
+SCIDB QUERY : <create array E <a:int32,b:string> [p=0:2,2,1,q=0:9,3,1]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from build(<a:int32>[x=0:2,3,0,y=0:9,2,0],x+y+1),build(<a:string>[x=0:2,3,0,y=0:9,2,0],'b_'+string(x+y+1))>
+{x,y} a,b
+{0,0} 1,'b_1'
+{0,1} 2,'b_2'
+{1,0} 2,'b_2'
+{1,1} 3,'b_3'
+{2,0} 3,'b_3'
+{2,1} 4,'b_4'
+{0,2} 3,'b_3'
+{0,3} 4,'b_4'
+{1,2} 4,'b_4'
+{1,3} 5,'b_5'
+{2,2} 5,'b_5'
+{2,3} 6,'b_6'
+{0,4} 5,'b_5'
+{0,5} 6,'b_6'
+{1,4} 6,'b_6'
+{1,5} 7,'b_7'
+{2,4} 7,'b_7'
+{2,5} 8,'b_8'
+{0,6} 7,'b_7'
+{0,7} 8,'b_8'
+{1,6} 8,'b_8'
+{1,7} 9,'b_9'
+{2,6} 9,'b_9'
+{2,7} 10,'b_10'
+{0,8} 9,'b_9'
+{0,9} 10,'b_10'
+{1,8} 10,'b_10'
+{1,9} 11,'b_11'
+{2,8} 11,'b_11'
+{2,9} 12,'b_12'
+
+SCIDB QUERY : <select * into B from A>
+{p,q} a,b
+{0,0} 1,'b_1'
+{0,1} 2,'b_2'
+{1,0} 2,'b_2'
+{1,1} 3,'b_3'
+{2,0} 3,'b_3'
+{2,1} 4,'b_4'
+{0,2} 3,'b_3'
+{0,3} 4,'b_4'
+{1,2} 4,'b_4'
+{1,3} 5,'b_5'
+{2,2} 5,'b_5'
+{2,3} 6,'b_6'
+{0,4} 5,'b_5'
+{0,5} 6,'b_6'
+{1,4} 6,'b_6'
+{1,5} 7,'b_7'
+{2,4} 7,'b_7'
+{2,5} 8,'b_8'
+{0,6} 7,'b_7'
+{0,7} 8,'b_8'
+{1,6} 8,'b_8'
+{1,7} 9,'b_9'
+{2,6} 9,'b_9'
+{2,7} 10,'b_10'
+{0,8} 9,'b_9'
+{0,9} 10,'b_10'
+{1,8} 10,'b_10'
+{1,9} 11,'b_11'
+{2,8} 11,'b_11'
+{2,9} 12,'b_12'
+
+SCIDB QUERY : <select * into C from A where x=1>
+{p,q} a,b
+{1,0} 2,'b_2'
+{1,1} 3,'b_3'
+{1,2} 4,'b_4'
+{1,3} 5,'b_5'
+{1,4} 6,'b_6'
+{1,5} 7,'b_7'
+{1,6} 8,'b_8'
+{1,7} 9,'b_9'
+{1,8} 10,'b_10'
+{1,9} 11,'b_11'
+
+SCIDB QUERY : <select * into C from A where y=1>
+{p,q} a,b
+{0,1} 2,'b_2'
+{1,1} 3,'b_3'
+{2,1} 4,'b_4'
+
+SCIDB QUERY : <select * into D from A where a=4>
+{p,q} a,b
+{1,2} 4,'b_4'
+{2,1} 4,'b_4'
+{0,3} 4,'b_4'
+
+SCIDB QUERY : <select * into D from A where b<>'b_1'>
+{p,q} a,b
+{0,1} 2,'b_2'
+{0,2} 3,'b_3'
+{1,0} 2,'b_2'
+{1,1} 3,'b_3'
+{1,2} 4,'b_4'
+{2,0} 3,'b_3'
+{2,1} 4,'b_4'
+{2,2} 5,'b_5'
+{0,3} 4,'b_4'
+{0,4} 5,'b_5'
+{0,5} 6,'b_6'
+{1,3} 5,'b_5'
+{1,4} 6,'b_6'
+{1,5} 7,'b_7'
+{2,3} 6,'b_6'
+{2,4} 7,'b_7'
+{2,5} 8,'b_8'
+{0,6} 7,'b_7'
+{0,7} 8,'b_8'
+{0,8} 9,'b_9'
+{1,6} 8,'b_8'
+{1,7} 9,'b_9'
+{1,8} 10,'b_10'
+{2,6} 9,'b_9'
+{2,7} 10,'b_10'
+{2,8} 11,'b_11'
+{0,9} 10,'b_10'
+{1,9} 11,'b_11'
+{2,9} 12,'b_12'
+
+SCIDB QUERY : <select * into D from A where x=1 and y<>1>
+{p,q} a,b
+{1,0} 2,'b_2'
+{1,2} 4,'b_4'
+{1,3} 5,'b_5'
+{1,4} 6,'b_6'
+{1,5} 7,'b_7'
+{1,6} 8,'b_8'
+{1,7} 9,'b_9'
+{1,8} 10,'b_10'
+{1,9} 11,'b_11'
+
+SCIDB QUERY : <select * into E from A where x=0 and y<3>
+{p,q} a,b
+{0,0} 1,'b_1'
+{0,1} 2,'b_2'
+{0,2} 3,'b_3'
+
+SCIDB QUERY : <select * into E from A where a=10 and b='b_10'>
+{p,q} a,b
+{1,8} 10,'b_10'
+{0,9} 10,'b_10'
+{2,7} 10,'b_10'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+

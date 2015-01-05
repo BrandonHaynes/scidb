@@ -1,0 +1,60 @@
+# This is to test acceptance of large dimension values (#3960)
+# The word LIMIT here refers to 2^63 - 1
+
+
+--test
+
+# Case when chunk size is greater than the default product of chunk sizes (50k presently)
+create array A1 <a:int32> [i=0:*,1000000,0,j,k]
+show(A1)
+
+# Default chunk sizes (product is 50k presently)
+create array A2  <a:int32> [i]
+show(A2)
+create array A22 <a:int32> [i,j]
+show(A22)
+create array A23 <a:int32> [i,j,k]
+show(A23)
+
+# Test the LIMIT
+create array A3 <a:int32>  [i=0:*,9223372036854775807,0,j,k]
+show(A3)
+create array A32 <a:int32> [i,j=0:*,9223372036854775807,0,k]
+show(A32)
+create array A33 <a:int32> [i,j,k=0:*,9223372036854775807,0]
+show(A33)
+
+# A 'sample working number' for chunk size
+create array A4 <a:int32> [i=0:*,8234567890123456789,0,j=0:0,1,0,k=0:0,1,0]
+show(A4)
+
+# Case when overlap is introduced with a sample 'working number'
+--error --code=scidb::SCIDB_SE_METADATA::SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE "create array AE <a:int32> [i=0:*,8234567890123456789,0,j=0:0,1,0,k=0:0,1,1]"
+
+# Case when a single dimension crosses the LIMIT
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER "create array AE <a:int32> [i=0:*,9223372036854775808,0,j,k]"
+
+# Case when the product of chunk sizes crosses the LIMIT
+--error --code=scidb::SCIDB_SE_METADATA::SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE "create array AE <a:int32> [i=0:*,8223372036854775807,0,j=0:9,9,0,k=0:9,9,0]"
+
+# Different Combinations for testing the LIMIT
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER "create array AE <a:int32> [i,j=0:*,9223372036854775808,0,k]"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER "create array AE <a:int32> [i=0:*,9223372036854775808,0]"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER "create array AE <a:int32> [i,j=0:*,9223372036854775808,1]"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER "create array AE <a:int32> [i,j,k=0:*,9223372036854775808,0]"
+
+
+# Confirm that the erroneous array was Not created
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ARRAY_DOESNT_EXIST "show(AE)"
+
+
+--cleanup
+remove(A1)
+remove(A2)
+remove(A22)
+remove(A23)
+remove(A3)
+remove(A32)
+remove(A33)
+remove(A4)
+

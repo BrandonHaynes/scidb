@@ -1,0 +1,115 @@
+SCIDB QUERY : <create array A <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+5),A)>
+{x} a
+{0} 5
+{1} 6
+{2} 7
+
+SCIDB QUERY : <create array B <a:int64,b:int64> [x=0:2,3,0,y=13:16,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(join(build(<a:int64>[x=0:2,3,0,y=13:16,1,0],(x+1)*y),build(<a:int64>[x=0:2,3,0,y=13:16,1,0],(x+1)*(y-1))),B)>
+{x,y} a,b
+{0,13} 13,12
+{1,13} 26,24
+{2,13} 39,36
+{0,14} 14,13
+{1,14} 28,26
+{2,14} 42,39
+{0,15} 15,14
+{1,15} 30,28
+{2,15} 45,42
+{0,16} 16,15
+{1,16} 32,30
+{2,16} 48,45
+
+SCIDB QUERY : <redimension(A,<x:int64>[a=0:9,5,0])>
+{a} x
+{5} 0
+{6} 1
+{7} 2
+
+SCIDB QUERY : <aggregate(redimension(B, <a:int64> [x=0:2,3,0]),count(*))>
+{i} count
+{0} 3
+
+SCIDB QUERY : <redimension(B,<a:int64 null, count:uint64 null> [x=0:2,3,0], sum(a) as a, count(a) as count)>
+{x} a,count
+{0} 58,4
+{1} 116,4
+{2} 174,4
+
+SCIDB QUERY : <aggregate(redimension(B, <b:int64> [x=0:2,3,0]),count(*))>
+{i} count
+{0} 3
+
+SCIDB QUERY : <redimension(B,<b:int64 null, count:uint64 null> [x=0:2,3,0], sum(b) as b, count(b) as count)>
+{x} b,count
+{0} 54,4
+{1} 108,4
+{2} 162,4
+
+SCIDB QUERY : <aggregate(redimension(B, <b:int64> [y=13:16,1,0]),count(*))>
+{i} count
+{0} 4
+
+SCIDB QUERY : <redimension(B,<b:int64 null, count:uint64 null> [y=13:16,1,0], sum(b) as b, count(*) as count)>
+{y} b,count
+{13} 72,3
+{14} 78,3
+{15} 84,3
+{16} 90,3
+
+SCIDB QUERY : <redimension(B,<b:int64,a:int64> [y=13:16,1,0,x=0:2,3,0])>
+{y,x} b,a
+{13,0} 12,13
+{13,1} 24,26
+{13,2} 36,39
+{14,0} 13,14
+{14,1} 26,28
+{14,2} 39,42
+{15,0} 14,15
+{15,1} 28,30
+{15,2} 42,45
+{16,0} 15,16
+{16,1} 30,32
+{16,2} 45,48
+
+SCIDB QUERY : <redimension(B,<a:int64,b:int64> [x=0:2,3,0,y=13:16,1,0])>
+{x,y} a,b
+{0,13} 13,12
+{1,13} 26,24
+{2,13} 39,36
+{0,14} 14,13
+{1,14} 28,26
+{2,14} 42,39
+{0,15} 15,14
+{1,15} 30,28
+{2,15} 45,42
+{0,16} 16,15
+{1,16} 32,30
+{2,16} 48,45
+
+SCIDB QUERY : <redimension(B,<x:int64,y:int64> [a=0:50,5,0,b=0:50,1,0])>
+{a,b} x,y
+{13,12} 0,13
+{14,13} 0,14
+{15,14} 0,15
+{16,15} 0,16
+{26,24} 1,13
+{28,26} 1,14
+{30,28} 1,15
+{32,30} 1,16
+{39,36} 2,13
+{42,39} 2,14
+{45,42} 2,15
+{48,45} 2,16
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

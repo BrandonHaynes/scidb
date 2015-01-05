@@ -1,0 +1,4 @@
+store(cast(build(<a:int64>[x=0:8,3,0], x*2), <b:int64>[i=0:8,3,0]), anonymous_schema_004);
+
+show(anonymous_schema_004);
+

@@ -1,0 +1,59 @@
+SCIDB QUERY : <create array cube <sample: string, probe: string, algo: string, response: double>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<sample: string>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0], 'sample-' + string(i)), s)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<probe: string>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0], 'probe-' + string(j)), p)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<algo: string>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0], 'algo-' + string(k)), a)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<response: double>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0], (i+j+k)*1.001), r)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(join(join(s, p), a), r), cube)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(cube)>
+{i} schema
+{0} "cube<sample:string,probe:string,algo:string,response:double> [i=1:7000,1000,0,j=1:7000,1000,0,k=1:3,1,0]"
+
+SCIDB QUERY : <count(cube)>
+{i} count
+{0} 147000000
+
+SCIDB QUERY : <store(unpack(cube, x), expo_1d)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(expo_1d)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(r)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<response: double>[i=1:700,100,0, j=1:700,100,0, k=1:3,1,0], (i+j+k)*1.001), r)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(unpack(r, x), expo_1d)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(cube)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(s)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(p)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(a)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(r)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(expo_1d)>
+Query was executed successfully
+

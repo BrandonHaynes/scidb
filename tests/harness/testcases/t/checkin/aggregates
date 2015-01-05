@@ -1,0 +1,264 @@
+SCIDB QUERY : <create array A <a:int32,b:double> [x=-1:2,3,2,y=0:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <a:int32> [x=-1:2,3,2,y=0:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T2 <a:double> [x=-1:2,3,2,y=0:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(join(build(T,x+y+5),build(T2,x+y+10.2)),A)>
+[[(4,9.2),(5,10.2)],[(5,10.2),(6,11.2)],[(6,11.2),(7,12.2)]];[[(6,11.2)],[(7,12.2)],[(8,13.2)]];[[(7,12.2),(8,13.2)]];[[(9,14.2)]]
+
+SCIDB QUERY : <aggregate(A,sum(a))>
+[(78)]
+
+SCIDB QUERY : <aggregate(A,max(a))>
+[(9)]
+
+SCIDB QUERY : <aggregate(A,min(a))>
+[(4)]
+
+SCIDB QUERY : <aggregate(A,count(a))>
+[(12)]
+
+SCIDB QUERY : <aggregate(A,var(a))>
+[(2.09091)]
+
+SCIDB QUERY : <aggregate(A,stdev(a))>
+[(1.446)]
+
+SCIDB QUERY : <aggregate(A,avg(a))>
+[(6.5)]
+
+SCIDB QUERY : <aggregate(A,sum(a),max(a),min(a),count(a),stdev(a),var(a),avg(a))>
+[(78,9,4,12,1.446,2.09091,6.5)]
+
+SCIDB QUERY : <aggregate(A,sum(a),x)>
+[(15),(18),(21),(24)]
+
+SCIDB QUERY : <aggregate(A,max(a),x)>
+[(6),(7),(8),(9)]
+
+SCIDB QUERY : <aggregate(A,min(a),x)>
+[(4),(5),(6),(7)]
+
+SCIDB QUERY : <aggregate(A,count(a),x)>
+[(3),(3),(3),(3)]
+
+SCIDB QUERY : <aggregate(A,var(a),x)>
+[(1),(1),(1),(1)]
+
+SCIDB QUERY : <aggregate(A,stdev(a),x)>
+[(1),(1),(1),(1)]
+
+SCIDB QUERY : <aggregate(A,avg(a),x)>
+[(5),(6),(7),(8)]
+
+SCIDB QUERY : <aggregate(A,sum(a),max(a),min(a),count(a),stdev(a),var(a),avg(a),x)>
+[(15,6,4,3,1,1,5),(18,7,5,3,1,1,6),(21,8,6,3,1,1,7),(24,9,7,3,1,1,8)]
+
+SCIDB QUERY : <aggregate(A,sum(a),x,x,x)>
+[[[(15),(0),(0)],[(0),(0),(0)],[(0),(0),(0)]],[[(0),(0),(0)],[(0),(18),(0)],[(0),(0),(0)]],[[(0),(0),(0)],[(0),(0),(0)],[(0),(0),(21)]]];{2,2,2}[[[(24)]]]
+
+SCIDB QUERY : <aggregate(A,sum(a),y)>
+[(22),(26),(30)]
+
+SCIDB QUERY : <aggregate(A,max(a),y)>
+[(7),(8),(9)]
+
+SCIDB QUERY : <aggregate(A,min(a),y)>
+[(4),(5),(6)]
+
+SCIDB QUERY : <aggregate(A,count(a),y)>
+[(4),(4),(4)]
+
+SCIDB QUERY : <aggregate(A,var(a),y)>
+[(1.66667),(1.66667),(1.66667)]
+
+SCIDB QUERY : <aggregate(A,stdev(a),y)>
+[(1.29099),(1.29099),(1.29099)]
+
+SCIDB QUERY : <aggregate(A,avg(a),y)>
+[(5.5),(6.5),(7.5)]
+
+SCIDB QUERY : <aggregate(A,sum(a),max(a),min(a),count(a),stdev(a),var(a),avg(a),y)>
+[(22,7,4,4,1.29099,1.66667,5.5),(26,8,5,4,1.29099,1.66667,6.5),(30,9,6,4,1.29099,1.66667,7.5)]
+
+SCIDB QUERY : <aggregate(A,sum(a),y,y,y)>
+[[[(22),(0)],[(0),(0)]],[[(0),(0)],[(0),(26)]]];{2,2,2}[[[(30)]]]
+
+SCIDB QUERY : <aggregate(A,sum(a),x,y)>
+[[(4),(5)],[(5),(6)],[(6),(7)]];[[(6)],[(7)],[(8)]];[[(7),(8)]];[[(9)]]
+
+SCIDB QUERY : <aggregate(A,max(a),x,y)>
+[[(4),(5)],[(5),(6)],[(6),(7)]];[[(6)],[(7)],[(8)]];[[(7),(8)]];[[(9)]]
+
+SCIDB QUERY : <aggregate(A,min(a),x,y)>
+[[(4),(5)],[(5),(6)],[(6),(7)]];[[(6)],[(7)],[(8)]];[[(7),(8)]];[[(9)]]
+
+SCIDB QUERY : <aggregate(A,count(a),x,y)>
+[[(1),(1)],[(1),(1)],[(1),(1)]];[[(1)],[(1)],[(1)]];[[(1),(1)]];[[(1)]]
+
+SCIDB QUERY : <aggregate(A,var(a),x,y)>
+[[(null),(null)],[(null),(null)],[(null),(null)]];[[(null)],[(null)],[(null)]];[[(null),(null)]];[[(null)]]
+
+SCIDB QUERY : <aggregate(A,stdev(a),x,y)>
+[[(null),(null)],[(null),(null)],[(null),(null)]];[[(null)],[(null)],[(null)]];[[(null),(null)]];[[(null)]]
+
+SCIDB QUERY : <aggregate(A,avg(a),x,y)>
+[[(4),(5)],[(5),(6)],[(6),(7)]];[[(6)],[(7)],[(8)]];[[(7),(8)]];[[(9)]]
+
+SCIDB QUERY : <aggregate(A,sum(a),max(a),min(a),count(a),stdev(a),var(a),avg(a),x,y)>
+[[(4,4,4,1,null,null,4),(5,5,5,1,null,null,5)],[(5,5,5,1,null,null,5),(6,6,6,1,null,null,6)],[(6,6,6,1,null,null,6),(7,7,7,1,null,null,7)]];[[(6,6,6,1,null,null,6)],[(7,7,7,1,null,null,7)],[(8,8,8,1,null,null,8)]];[[(7,7,7,1,null,null,7),(8,8,8,1,null,null,8)]];[[(9,9,9,1,null,null,9)]]
+
+SCIDB QUERY : <aggregate(A,sum(b))>
+[(140.4)]
+
+SCIDB QUERY : <aggregate(A,max(b))>
+[(14.2)]
+
+SCIDB QUERY : <aggregate(A,min(b))>
+[(9.2)]
+
+SCIDB QUERY : <aggregate(A,count(b))>
+[(12)]
+
+SCIDB QUERY : <aggregate(A,var(b))>
+[(2.09091)]
+
+SCIDB QUERY : <aggregate(A,stdev(b))>
+[(1.446)]
+
+SCIDB QUERY : <aggregate(A,avg(b))>
+[(11.7)]
+
+SCIDB QUERY : <aggregate(A,sum(b),max(b),min(b),count(b),stdev(b),var(b),avg(b))>
+[(140.4,14.2,9.2,12,1.446,2.09091,11.7)]
+
+SCIDB QUERY : <aggregate(A,sum(b),x)>
+[(30.6),(33.6),(36.6),(39.6)]
+
+SCIDB QUERY : <aggregate(A,max(b),x)>
+[(11.2),(12.2),(13.2),(14.2)]
+
+SCIDB QUERY : <aggregate(A,min(b),x)>
+[(9.2),(10.2),(11.2),(12.2)]
+
+SCIDB QUERY : <aggregate(A,count(b),x)>
+[(3),(3),(3),(3)]
+
+SCIDB QUERY : <aggregate(A,var(b),x)>
+[(1),(1),(1),(1)]
+
+SCIDB QUERY : <aggregate(A,stdev(b),x)>
+[(1),(1),(1),(1)]
+
+SCIDB QUERY : <aggregate(A,avg(b),x)>
+[(10.2),(11.2),(12.2),(13.2)]
+
+SCIDB QUERY : <aggregate(A,sum(b),max(b),min(b),count(b),stdev(b),var(b),avg(b),x)>
+[(30.6,11.2,9.2,3,1,1,10.2),(33.6,12.2,10.2,3,1,1,11.2),(36.6,13.2,11.2,3,1,1,12.2),(39.6,14.2,12.2,3,1,1,13.2)]
+
+SCIDB QUERY : <aggregate(A,sum(b),x,x,x)>
+[[[(30.6),(0),(0)],[(0),(0),(0)],[(0),(0),(0)]],[[(0),(0),(0)],[(0),(33.6),(0)],[(0),(0),(0)]],[[(0),(0),(0)],[(0),(0),(0)],[(0),(0),(36.6)]]];{2,2,2}[[[(39.6)]]]
+
+SCIDB QUERY : <aggregate(A,sum(b),y)>
+[(42.8),(46.8),(50.8)]
+
+SCIDB QUERY : <aggregate(A,max(b),y)>
+[(12.2),(13.2),(14.2)]
+
+SCIDB QUERY : <aggregate(A,min(b),y)>
+[(9.2),(10.2),(11.2)]
+
+SCIDB QUERY : <aggregate(A,count(b),y)>
+[(4),(4),(4)]
+
+SCIDB QUERY : <aggregate(A,var(b),y)>
+[(1.66667),(1.66667),(1.66667)]
+
+SCIDB QUERY : <aggregate(A,stdev(b),y)>
+[(1.29099),(1.29099),(1.29099)]
+
+SCIDB QUERY : <aggregate(A,avg(b),y)>
+[(10.7),(11.7),(12.7)]
+
+SCIDB QUERY : <aggregate(A,sum(b),max(b),min(b),count(b),stdev(b),var(b),avg(b),y)>
+[(42.8,12.2,9.2,4,1.29099,1.66667,10.7),(46.8,13.2,10.2,4,1.29099,1.66667,11.7),(50.8,14.2,11.2,4,1.29099,1.66667,12.7)]
+
+SCIDB QUERY : <aggregate(A,sum(b),y,y,y)>
+[[[(42.8),(0)],[(0),(0)]],[[(0),(0)],[(0),(46.8)]]];{2,2,2}[[[(50.8)]]]
+
+SCIDB QUERY : <aggregate(A,sum(b),x,y)>
+[[(9.2),(10.2)],[(10.2),(11.2)],[(11.2),(12.2)]];[[(11.2)],[(12.2)],[(13.2)]];[[(12.2),(13.2)]];[[(14.2)]]
+
+SCIDB QUERY : <aggregate(A,max(b),x,y)>
+[[(9.2),(10.2)],[(10.2),(11.2)],[(11.2),(12.2)]];[[(11.2)],[(12.2)],[(13.2)]];[[(12.2),(13.2)]];[[(14.2)]]
+
+SCIDB QUERY : <aggregate(A,min(b),x,y)>
+[[(9.2),(10.2)],[(10.2),(11.2)],[(11.2),(12.2)]];[[(11.2)],[(12.2)],[(13.2)]];[[(12.2),(13.2)]];[[(14.2)]]
+
+SCIDB QUERY : <aggregate(A,count(b),x,y)>
+[[(1),(1)],[(1),(1)],[(1),(1)]];[[(1)],[(1)],[(1)]];[[(1),(1)]];[[(1)]]
+
+SCIDB QUERY : <aggregate(A,var(b),x,y)>
+[[(null),(null)],[(null),(null)],[(null),(null)]];[[(null)],[(null)],[(null)]];[[(null),(null)]];[[(null)]]
+
+SCIDB QUERY : <aggregate(A,stdev(b),x,y)>
+[[(null),(null)],[(null),(null)],[(null),(null)]];[[(null)],[(null)],[(null)]];[[(null),(null)]];[[(null)]]
+
+SCIDB QUERY : <aggregate(A,avg(b),x,y)>
+[[(9.2),(10.2)],[(10.2),(11.2)],[(11.2),(12.2)]];[[(11.2)],[(12.2)],[(13.2)]];[[(12.2),(13.2)]];[[(14.2)]]
+
+SCIDB QUERY : <aggregate(A,sum(b),max(b),min(b),count(b),stdev(b),var(b),avg(b),x,y)>
+[[(9.2,9.2,9.2,1,null,null,9.2),(10.2,10.2,10.2,1,null,null,10.2)],[(10.2,10.2,10.2,1,null,null,10.2),(11.2,11.2,11.2,1,null,null,11.2)],[(11.2,11.2,11.2,1,null,null,11.2),(12.2,12.2,12.2,1,null,null,12.2)]];[[(11.2,11.2,11.2,1,null,null,11.2)],[(12.2,12.2,12.2,1,null,null,12.2)],[(13.2,13.2,13.2,1,null,null,13.2)]];[[(12.2,12.2,12.2,1,null,null,12.2),(13.2,13.2,13.2,1,null,null,13.2)]];[[(14.2,14.2,14.2,1,null,null,14.2)]]
+
+SCIDB QUERY : <aggregate(A,sum(b),x,x,y)>
+[[[(9.2),(10.2)],[(0),(0)],[(0),(0)]],[[(0),(0)],[(10.2),(11.2)],[(0),(0)]],[[(0),(0)],[(0),(0)],[(11.2),(12.2)]]];[[[(11.2)],[(0)],[(0)]],[[(0)],[(12.2)],[(0)]],[[(0)],[(0)],[(13.2)]]];{2,2,0}[[[(12.2),(13.2)]]];[[[(14.2)]]]
+
+SCIDB QUERY : <aggregate(A,sum(b),y,x,y)>
+[[[(9.2),(0)],[(10.2),(0)],[(11.2),(0)]],[[(0),(10.2)],[(0),(11.2)],[(0),(12.2)]]];{0,2,0}[[[(12.2),(0)]],[[(0),(13.2)]]];{2,-1,2}[[[(11.2)],[(12.2)],[(13.2)]]];{2,2,2}[[[(14.2)]]]
+
+SCIDB QUERY : <aggregate(A,sum(b),sum(a))>
+[(140.4,78)]
+
+SCIDB QUERY : <aggregate(A,avg(b),count(a),x)>
+[(10.2,3),(11.2,3),(12.2,3),(13.2,3)]
+
+SCIDB QUERY : <aggregate(A,var(b),stdev(a),y)>
+[(1.66667,1.29099),(1.66667,1.29099),(1.66667,1.29099)]
+
+SCIDB QUERY : <aggregate(A,sum(b),sum(a),x,y)>
+[[(9.2,4),(10.2,5)],[(10.2,5),(11.2,6)],[(11.2,6),(12.2,7)]];[[(11.2,6)],[(12.2,7)],[(13.2,8)]];[[(12.2,7),(13.2,8)]];[[(14.2,9)]]
+
+SCIDB QUERY : <aggregate(A,min(b),max(a),x,y)>
+[[(9.2,4),(10.2,5)],[(10.2,5),(11.2,6)],[(11.2,6),(12.2,7)]];[[(11.2,6)],[(12.2,7)],[(13.2,8)]];[[(12.2,7),(13.2,8)]];[[(14.2,9)]]
+
+SCIDB QUERY : <aggregate(A,max(b),avg(a),x,y)>
+[[(9.2,4),(10.2,5)],[(10.2,5),(11.2,6)],[(11.2,6),(12.2,7)]];[[(11.2,6)],[(12.2,7)],[(13.2,8)]];[[(12.2,7),(13.2,8)]];[[(14.2,9)]]
+
+SCIDB QUERY : <aggregate(A,avg(b),count(a),x,y)>
+[[(9.2,1),(10.2,1)],[(10.2,1),(11.2,1)],[(11.2,1),(12.2,1)]];[[(11.2,1)],[(12.2,1)],[(13.2,1)]];[[(12.2,1),(13.2,1)]];[[(14.2,1)]]
+
+SCIDB QUERY : <aggregate(A,count(b),var(a),x,y)>
+[[(1,null),(1,null)],[(1,null),(1,null)],[(1,null),(1,null)]];[[(1,null)],[(1,null)],[(1,null)]];[[(1,null),(1,null)]];[[(1,null)]]
+
+SCIDB QUERY : <aggregate(A,var(b),stdev(a),x,y)>
+[[(null,null),(null,null)],[(null,null),(null,null)],[(null,null),(null,null)]];[[(null,null)],[(null,null)],[(null,null)]];[[(null,null),(null,null)]];[[(null,null)]]
+
+SCIDB QUERY : <aggregate(A,stdev(b),min(a),x,y)>
+[[(null,4),(null,5)],[(null,5),(null,6)],[(null,6),(null,7)]];[[(null,6)],[(null,7)],[(null,8)]];[[(null,7),(null,8)]];[[(null,9)]]
+
+SCIDB QUERY : <aggregate(A,sum(a),max(b),min(b),count(a),stdev(b),var(b),avg(b),x,y)>
+[[(4,9.2,9.2,1,null,null,9.2),(5,10.2,10.2,1,null,null,10.2)],[(5,10.2,10.2,1,null,null,10.2),(6,11.2,11.2,1,null,null,11.2)],[(6,11.2,11.2,1,null,null,11.2),(7,12.2,12.2,1,null,null,12.2)]];[[(6,11.2,11.2,1,null,null,11.2)],[(7,12.2,12.2,1,null,null,12.2)],[(8,13.2,13.2,1,null,null,13.2)]];[[(7,12.2,12.2,1,null,null,12.2),(8,13.2,13.2,1,null,null,13.2)]];[[(9,14.2,14.2,1,null,null,14.2)]]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T2)>
+Query was executed successfully
+

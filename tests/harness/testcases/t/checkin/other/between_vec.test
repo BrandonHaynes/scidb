@@ -1,0 +1,11 @@
+--setup
+create array vec <a:int32, b:int32> [i=1:10,10,0]
+load(vec,'${TEST_DATA_DIR}/vec.txt')
+
+--test
+between(vec, 1, length('vec', 'i')-1)
+
+--cleanup
+remove (vec)
+
+

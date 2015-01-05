@@ -1,0 +1,10 @@
+--setup
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense,'${TEST_DATA_DIR}/dense.txt')
+
+--test
+subarray(dense, 0, 0, 5, 5)
+
+--cleanup
+remove (dense)
+

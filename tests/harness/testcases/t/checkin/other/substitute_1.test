@@ -1,0 +1,22 @@
+--setup
+--start-query-logging
+create array null_1 <a:int32,b:int32> [x=0:2,3,0, y=0:2,3,0]
+create array null_2 <a:int32 null,b:int32 null> [x=0:2,3,0, y=0:2,3,0]
+create array null_val <a:int32>[x=0:5,3,0]
+
+--shell  --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(null_1,'${TEST_DATA_DIR}/null_1.txt')""
+--shell  --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(null_2,'${TEST_DATA_DIR}/null_1.txt')""
+
+--test
+store(build(null_val,x+10),null_val)
+substitute(null_2,null_val)
+substitute(null_1,null_val)
+store(build(null_val,x+100),null_val)
+substitute(null_2,null_val)
+substitute(null_1,null_val)
+
+--cleanup
+remove(null_1)
+remove(null_2)
+remove(null_val)
+--stop-query-logging

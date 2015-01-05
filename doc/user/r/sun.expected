@@ -1,0 +1,3 @@
+SCIDB QUERY : <select * from list()>
+[Query was executed successfully, ignoring data output by this query.]
+

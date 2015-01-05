@@ -1,0 +1,57 @@
+--setup
+--start-query-logging
+create array A <a:int32,b:double> [x=0:7,3,2]
+create array T1 <a:int32> [x=0:7,3,2]
+create array T2 <b:double> [x=0:7,3,2]
+store(filter(build(T1,x+10),x<>2 and x<>5),T1)
+store(filter(build(T2,x+12.2),x<>2 and x<>5),T2)
+store(filter(join(T1,T2),1),A)
+
+--test
+regrid(A,1,sum(a))
+regrid(A,1,max(a))
+regrid(A,1,min(a))
+regrid(A,1,avg(a))
+regrid(A,1,count(a))
+regrid(A,1,count(*))
+regrid(A,1,stdev(a))
+regrid(A,1,var(a))
+
+store(filter(build(T1,x-10),x<>2 and x<>5),T1)
+store(filter(build(T2,x-12),x<>2 and x<>5),T2)
+store(filter(join(T1,T2),1),A)
+regrid(A,18,sum(a),max(a))
+regrid(A,3,max(a),var(a),stdev(a),count(a),sum(a),min(a))
+regrid(A,4,min(a),count(*))
+regrid(A,1,avg(a),count(a))
+regrid(A,2,count(a),count(*))
+regrid(A,3,count(*),sum(a))
+regrid(A,5,stdev(a),avg(a))
+regrid(A,9,var(a),stdev(a))
+
+regrid(A,1,sum(b))
+regrid(A,1,max(b))
+regrid(A,1,min(b))
+regrid(A,1,avg(b))
+regrid(A,1,count(b))
+regrid(A,1,count(*))
+regrid(A,1,stdev(b))
+regrid(A,1,var(b))
+
+store(filter(build(T1,x+10),x<>2 and x<>5),T1)
+store(filter(build(T2,x+12),x<>2 and x<>5),T2)
+store(filter(join(T1,T2),1),A)
+regrid(A,18,sum(b),max(b))
+regrid(A,3,max(a),var(b),stdev(a),count(a),sum(b),min(a))
+regrid(A,4,min(a),count(*))
+regrid(A,1,avg(a),count(b))
+regrid(A,2,count(b),count(*))
+regrid(A,3,count(*),sum(a))
+regrid(A,5,stdev(a),avg(b))
+regrid(A,9,var(b),stdev(a))
+
+--cleanup
+remove(A)
+remove(T1)
+remove(T2)
+--stop-query-logging

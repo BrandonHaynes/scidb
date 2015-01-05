@@ -1,0 +1,51 @@
+--setup
+--start-query-logging
+# Ticket number : 1688
+# Tests for the binary load-save on 1-D unbounded arrays:
+
+create array UNB <a:double,b:double>[x=0:*,5,0]
+create array UNB1 <a:double,b:string>[x=0:*,5,0]
+create array UNB2 <a:double,b:string>[x=0:*,10,0]
+create array UNB3 <a:double,b:string>[x=0:*,10,0]
+create array UNB4 <a:double null,b:string null>[x=0:*,10,0]
+create array UNB5 <a:double>[x=0:*,5,0]
+create array UNB6 <a:double>[x=0:*,5,0]
+
+--test
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(UNB, '${TEST_DATA_DIR}/ub_binload.txt')""
+save(UNB, 'unb.out', 0, '(double,string)')
+save(UNB, 'unb.txt', 0, '(double,string)')
+load(UNB1,'unb.out', 0, '(double,string)')
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(UNB2,'unb.txt', 0, 'text')"
+load(UNB2,'unb.out', 0, '(double,string)')
+save(UNB2, 'unb2.txt', 0, '(double,string)')
+save(UNB2, 'unb2.txt', 0, 'text')
+load(UNB4, 'unb2.txt', -0, 'text')
+
+## Undesired output 
+load(UNB3,'unb.out', 0, '(float,float)')
+load(UNB4, 'unb.txt', 0, '(double,string)')
+load(UNB5,'unb.out', 0, '(double,dummy)')
+save(UNB5,'unb5.txt')
+load(UNB6,'unb5.txt')
+load(UNB6,'unb5.txt')
+load(UNB6,'unb5.txt',0,'text')
+load(UNB6,'unb5.txt',0,'text',10)
+
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(UNB6,'unb5.txt',0,'(double)')"
+## Undesired output
+load(UNB6,'unb5.txt',0,'(double)',15,unb6_shadow)
+load(UNB6,'unb5.txt',0,'text',15)
+aggregate(unb6_shadow,count(*))
+
+--cleanup
+remove(UNB)
+remove(UNB1)
+remove(UNB2)
+remove(UNB3)
+remove(UNB4)
+remove(UNB5)
+remove(UNB6)
+remove(unb6_shadow)
+
+--stop-query-logging

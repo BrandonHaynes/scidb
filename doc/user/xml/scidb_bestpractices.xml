@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<appendix id="tuningSciDB">
+  <title>Tuning your SciDB Installation</title>
+
+  <para><indexterm>
+      <primary>configuration</primary>
+
+      <secondary>tuning</secondary>
+    </indexterm><indexterm>
+      <primary>performance tuning</primary>
+    </indexterm><indexterm>
+      <primary>improving performance</primary>
+    </indexterm>This chapter provides general guidelines about maximizing the
+  performance of SciDB on your system. Below are suggestions meant to guide
+  you in choosing the right combination of settings for SciDB configuration
+  parameters for your SciDB installation.</para>
+
+  <para>The default values of the configuration parameters are described in
+  the "SciDB Configuration Parameters" section of the Installation
+  chapter.</para>
+
+  <section id="configMemory">
+    <title>Configuring Memory Usage</title>
+
+    <para>SciDB provides the following parameters for configuring the usage of
+    RAM:<itemizedlist>
+        <listitem>
+          <para><parameter>merge-sort-buffer </parameter>(megabytes). The
+          maximum amount of memory that the <command>sort() </command>operator
+          can consume, per thread. Note that each thread of the operator will
+          consume up to this amount. </para>
+        </listitem>
+
+        <listitem>
+          <para><parameter role="bold">smgr-cache-size
+          </parameter>(megabytes). The amount of memory that the storage
+          manager cache may use. This is a cache that is used by all queries
+          and stays occupied when the system is quiescent. This cache is
+          populated with chunks of persistent arrays that were recently read
+          or recorded. On systems with a very large amount of memory, setting
+          this parameter to a large value will allow one to essentially run
+          SciDB read queries "out of memory."</para>
+        </listitem>
+
+        <listitem>
+          <para><parameter role="bold">mem-array-threshold
+          </parameter>(megabytes). The amount of memory that the temporary
+          array cache may use. This applies to operators that work by creating
+          temporary materialized arrays (aggregates, some repartitions,
+          variable_window, redimension, others). If the cache is too small to
+          hold all temporary materialized data, some of these temporary
+          results are flushed to temporary files on disk.</para>
+
+          <para>All running queries with materialized temporary arrays share
+          this cache. Notice that the <parameter>tmp-path </parameter>
+          configuration parameter controls the location of the temporary disk
+          storage. It is important to make sure that this location is not
+          mapped into memory (for example via RAM disk or the
+          <command>tmpfs</command> utility).</para>
+        </listitem>
+
+        <listitem>
+          <para><parameter role="bold">network-buffer </parameter>(megabytes):
+          Roughly, the amount of memory that the SciDB instance may use to
+          receive data from other instances via the network. To be precise,
+          the sender instance send out this much data prior to pausing and
+          waiting for the receiver instances to consume the data and
+          respond.</para>
+        </listitem>
+
+        <listitem>
+          <para><parameter role="bold">max-memory-limit
+          </parameter>(megabytes): The hard-limit maximum amount of memory
+          that the SciDB instance is allowed to consume. If the instance
+          requests more memory from the operating system—this can happen for
+          several reasons—the allocation will fail with an exception.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <note>
+      <para>These parameters are per-instance. For example, if you set
+      <parameter role="bold">smgr-cache-size</parameter> to 25 Gigabytes, you
+      are allowing the storage manager cache <emphasis>on each instance
+      </emphasis>to use up to 25 Gigabytes of memory.</para>
+    </note>
+
+    <para>When setting values for these parameters, keep in mind the following
+    guidelines:<screen>(MAX_NUMBER_OF_QUERIES * 
+  max(network-buffer, merge-sort-buffer * result-prefetch-threads)
+  +  mem-array-threshold + smgr-cache-size ) &lt; max-memory-limit</screen></para>
+
+    <para>and<screen>(MAX_NUMBER_OF_QUERIES *
+  max(network-buffer, merge-sort-buffer * result-prefetch-threads)
+  + mem-array-threshold + smgr-cache-size) *
+ (number of instances on host )) &lt;= 75% of RAM</screen></para>
+
+    <para>where MAX_NUMBER_OF_QUERIES is the maximum number of concurrent
+    queries allowed in the system. See more on MAX_NUMBER_OF_QUERIES
+    below.</para>
+  </section>
+
+  <section>
+    <title>Configuring CPU Usage</title>
+
+    <para>SciDB provides the following parameters for configuring the usage of
+    your CPUs (aka "cores"):<itemizedlist>
+        <listitem>
+          <para><parameter role="bold">execution-threads </parameter>(number
+          of threads): Controls the number of threads allocated to handling
+          client requests. This number is closely related to the maximum
+          number of queries that SciDB can run concurrently. In fact, note the
+          following relationship:<screen>execution-threads = MAX_NUMBER_OF_QUERIES + 2</screen>Usually,
+          each running query uses one of these threads for execution.</para>
+        </listitem>
+
+        <listitem>
+          <para><parameter role="bold">result-prefetch-threads
+          </parameter>(number of threads): Controls the total number of
+          threads available to all queries together. This parameter can be
+          used to adjust the level of parallelism within a query (in addition
+          to the main execution thread). Any given query is not guaranteed to
+          have access to all of the threads because it may be competing with
+          other running queries.</para>
+        </listitem>
+
+        <listitem>
+          <para><parameter role="bold">result-prefetch-queue-size</parameter>
+          (number of threads): The maximum number of threads that a given
+          query can attempt to use.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>When setting values for these parameters, keep in mind the following
+    guidelines:<screen>result-prefetch-queue-size * MAX_NUMBER_OF_QUERIES =
+  result-prefetch-threads</screen></para>
+
+    <para>and<screen>(execution-threads + result-prefetch-threads) * (number of instances 
+on host ) ~= (number of CPU cores on host) + 2</screen></para>
+
+    <para>The last relationship may not be true in some cases, depending on
+    the work load. For example, if the work load is very CPU-intensive and not
+    much IO is involved, the number of threads should be slightly larger than
+    the number of cores. However, if there is a mix of CPU and IO in the work
+    load, increasing <parameter>result-prefetch-threads </parameter>may be
+    beneficial.</para>
+
+    <para>The best values for <parameter>execution-threads
+    </parameter>and<parameter> result-prefetch-threads </parameter>should be
+    determined empirically.</para>
+  </section>
+
+  <section id="configTrouble">
+    <title>Optimizing Configuration Parameters</title>
+
+    <para>Beyond using the configuration parameters for optimizing your SciDB
+    installation, this section provides a few useful guidelines.</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The <link linkend="max-memory-limit">max-memory-limit</link>
+        parameter</para>
+      </listitem>
+
+      <listitem>
+        <para>How to identify <link linkend="strayLocks">unreleased
+        locks</link></para>
+      </listitem>
+
+      <listitem>
+        <para>Determine optimal <link linkend="chunkSize">chunk
+        size</link></para>
+      </listitem>
+
+      <listitem>
+        <para>Useful <link linkend="ulimit">Linux commands</link></para>
+      </listitem>
+    </itemizedlist>
+
+    <section id="max-memory-limit">
+      <title>Max-memory-limit</title>
+
+      <para><indexterm>
+          <primary>memory, parameter</primary>
+        </indexterm><indexterm>
+          <primary>max-memory-limit</primary>
+        </indexterm>You should <emphasis role="bold">always</emphasis> set the
+      <parameter role="bold">max-memory-limit</parameter> parameter.</para>
+
+      <para>If this parameter is not set, you will not receive "out of memory"
+      notifications. If a query runs up against the limit, and then tries to
+      use more memory than is available, Linux kills the process.</para>
+
+      <para>Note that if you are using the Paradigm4 add-ons to SciDB, the
+      <literal>system</literal> plugin contains code that helps you detect
+      failures sooner.</para>
+    </section>
+
+    <section id="strayLocks">
+      <title>Unreleased Locks</title>
+
+      <para>It is possible for SciDB to get into a state where a database lock
+      was never released. This can happen if a write query fails in some way.
+      Now, SciDB is in a state where the next time a query attempts to write
+      to that array, the write will fail.</para>
+
+      <para>If a query appears to be running longer than anticipated, you can
+      check the array to see if it is in this state. You can use the
+      <literal>list</literal> operator to check the availability of all of
+      your arrays.</para>
+
+      <para><programlisting>AFL% list('arrays');</programlisting><screen>name,id,schema,availability
+'A',23,'A&lt;val:double&gt; [i=0:2,32,0,j=0:1,32,0]',false
+</screen>Here, you can see that the availability of array A is false. This can
+      indicate that there is an unreleased lock for this array.</para>
+
+      <para>To recover from this situation, you need to restart SciDB.</para>
+    </section>
+
+    <section id="chunkSize">
+      <title>Chunk Size</title>
+
+      <para><indexterm>
+          <primary>chunks</primary>
+
+          <secondary>analyzing chunk size</secondary>
+        </indexterm><indexterm>
+          <primary>chunk map</primary>
+        </indexterm>The chunk size for your array can have a negative impact
+      on memory usage in either of the following ways:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">Chunk size is too big.</emphasis> If you
+          have a chunk that you thought would be sparser than it turned out to
+          be, the chunk may be too big for the available memory.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Too many small chunks.</emphasis> If you
+          have lots of nearly empty chunks, then the sheer number of chunks
+          may be too large for the available memory, since the chunk map needs
+          to fit in memory.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>You can use the following query (listed on the SciDB forum, as
+      well) to analyze your chunks.<programlisting>project(
+ cross_join(
+  redimension(
+   apply(filter(list('chunk map'), inst=instn and attid=0), iid, int64(inst), aid, int64(arrid)),
+   &lt;nchunks:uint64 null,
+    min_ccnt:uint32 null,
+    avg_ccnt:double null,
+    max_ccnt:uint32 null,
+    total_cnt: uint64 null&gt;
+   [iid = 0:*,1000,0, aid= 0:*,1000,0],
+   count(*) as nchunks,
+   min(nelem) as min_ccnt,
+   avg(nelem) as avg_ccnt,
+   max(nelem) as max_ccnt,
+   sum(nelem) as total_cnt
+  ) as A,
+  redimension(
+   apply( list('arrays', true), aid, int64(id)),
+   &lt;name: string null&gt;
+   [aid = 0:*,1000,0]
+  ) as B,
+  A.aid, B.aid
+ ),
+ name, nchunks, min_ccnt, avg_ccnt, max_ccnt, total_cnt
+);</programlisting></para>
+
+      <para>Output looks like this:<screen> iid,aid,name,nchunks,min_ccnt,avg_ccnt,max_ccnt,total_cnt
+ 0,79,'flat@1',5,1000000,1e+06,1000000,5000000
+ 0,81,'matrix@1',5,999546,1.00017e+06,1001470,5000865
+ 0,85,'svd_result@1',3000,10000,10000,10000,30000000
+ 1,79,'flat@1',5,1000000,1e+06,1000000,5000000
+ 1,81,'matrix@1',5,998209,999826,1000741,4999128
+ 1,85,'svd_result@1',3002,3,9993.34,10000,30000013
+</screen></para>
+
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">iid</emphasis> is the Instance ID; this
+          example is using two instances</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">aid</emphasis> is the versioned array
+          ID; this example contains 3 arrays</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">nchunks</emphasis> is the number of
+          chunks for the given array on that instance</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">ccnt</emphasis> is the chunk count—the
+          number of cells per chunk</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">min_ccnt</emphasis>, <emphasis
+          role="bold">avg_ccnt</emphasis>, and <emphasis
+          role="bold">max_ccnt</emphasis>; the query collects min, max and
+          average of <emphasis role="bold">ccnt</emphasis>.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">total_cnt</emphasis> is the total number
+          of cells, for the specified array and instance</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>This query can help detect cross-chunk skew and cross-instance
+      skew.</para>
+    </section>
+
+    <section id="ulimit">
+      <title>Useful Linux Commands</title>
+
+      <para><indexterm>
+          <primary>Linux commands</primary>
+        </indexterm>The <command>ulimit</command> command provides control
+      over the resources available to the shell and to processes started by
+      it. We recommend that you always set this limit to <emphasis
+      role="bold">unlimited</emphasis> by issuing the following
+      command:<programlisting>sudo ulimit -c unlimited</programlisting></para>
+
+      <para>This allows Linux to dump core files in the event of a crash. You
+      can then use these dumps to diagnose the problem, or send us the details
+      so that we can identify the issue.</para>
+
+      <para>Also, in the event of a crash, run <command>dmesg</command> on
+      each SciDB server. You use the <command>dmesg</command> command to write
+      out the kernel messages in Linux. This will provide additional debugging
+      information.</para>
+
+      <para>Before a crash, you can run the Linux utility
+      <command>pstack</command>. It presents a well-formatted, multi-threaded
+      picture of the running processes.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Configuration Example</title>
+
+    <para>This section suggests configuration settings for a small, multi-disk
+    SciDB installation.</para>
+
+    <note>
+      <para>Some of the parameters mentioned in this example are not discussed
+      in the preceding sections. For details, see the "SciDB Configuration
+      Parameters" section in the Installation chapter.</para>
+    </note>
+
+    <para>Suppose that we have a cluster with homogeneous motherboards, each
+    motherboard has 16GB RAM and 3 disks. In this case, it is natural to use 3
+    SciDB instances per motherboard.</para>
+
+    <para>We will leave 1GB of RAM for the OS. We use the following
+    settings:</para>
+
+    <para><itemizedlist>
+        <listitem>
+          <para>smgr-cache-size = 1024</para>
+        </listitem>
+
+        <listitem>
+          <para>mem-array-threshold = 1024</para>
+        </listitem>
+
+        <listitem>
+          <para>merge-sort-buffer = 128</para>
+        </listitem>
+
+        <listitem>
+          <para>network-buffer = 512</para>
+        </listitem>
+
+        <listitem>
+          <para>replication-send-queue-size = 500</para>
+        </listitem>
+
+        <listitem>
+          <para>replication-receive-queue-size = 500</para>
+        </listitem>
+
+        <listitem>
+          <para>max-memory-limit = 5000</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>In this case, we use 1GB for the SMGR cache. We also use 1GB for the
+    memory array cache.</para>
+
+    <para>For the send and receive queue sizes, we assume that the average
+    message size is about 1MB, and allocate 1GB total to the replication
+    queue—which is only used when executing stored queries.</para>
+
+    <para>We allocate 512MB for other network usage.</para>
+
+    <para>With these settings, the system uses about 1GB of RAM when it is at
+    rest, and somewhere between 3-3.5GB footprint while running
+    queries.</para>
+
+    <para>The other 2-1.5GB is "breathing room" for various temporary results,
+    operator and user code overhead, and so on.</para>
+
+    <para>By setting the max-memory-limit to 5000, SciDB does not allow this
+    system to use more than 5000MB of memory per instance. Note that when the
+    system is running a query using multiple threads, it is fair to expect
+    that each thread has one or several array chunks in memory, which adds to
+    the memory footprint.</para>
+
+    <para>Now suppose further that our motherboard with 3 instances has 24CPU
+    cores. We want each instance to use 8 cores. CPU resources are more
+    elastic, so we do not need to leave a core "for the operating
+    system."</para>
+
+    <para>Suppose we want to support up to 2 concurrent queries, up to 4
+    threads per query. Our parameters look like this:</para>
+
+    <para><itemizedlist>
+        <listitem>
+          <para>execution-threads = 4</para>
+        </listitem>
+
+        <listitem>
+          <para>operator-threads = 4</para>
+        </listitem>
+
+        <listitem>
+          <para>result-prefetch-threads = 8</para>
+        </listitem>
+
+        <listitem>
+          <para>result-prefetch-queue-size = 4</para>
+        </listitem>
+      </itemizedlist>In this case, when more than 2 queries are submitted to
+    SciDB, the system begins to execute the first two, and places the rest on
+    the queue. In general, the value of<parameter role="bold">
+    operator-threads </parameter>should always equal the value of <parameter
+    role="bold">result-prefetch-queue-size</parameter>.</para>
+  </section>
+</appendix>

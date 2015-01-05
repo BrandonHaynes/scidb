@@ -1,0 +1,93 @@
+SCIDB QUERY : <create  array A <a:char,b:char>[x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:char>[a(char)=4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:char>[b(char)=4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <a:char>[x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(join(filter(build(T,string(x+1)),x<>2),filter(build(T,string(x+5)),x<>0)),A)>
+{x} a,b
+{1} '2','6'
+{3} '4','8'
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+{a} b
+{'2'} '6'
+{'4'} '8'
+
+SCIDB QUERY : <store(redimension(A,C),C)>
+{b} a
+{'6'} '2'
+{'8'} '4'
+
+SCIDB QUERY : <cross_join(A,B)>
+{x,a} a,b,b
+{1,'2'} '2','6','6'
+{1,'4'} '2','6','8'
+{3,'2'} '4','8','6'
+{3,'4'} '4','8','8'
+
+SCIDB QUERY : <cross_join(B,A)>
+{a,x} b,a,b
+{'2',1} '6','2','6'
+{'4',1} '8','2','6'
+{'2',3} '6','4','8'
+{'4',3} '8','4','8'
+
+SCIDB QUERY : <cross_join(B,C)>
+{a,b} b,a
+{'2','6'} '6','2'
+{'2','8'} '6','4'
+{'4','6'} '8','2'
+{'4','8'} '8','4'
+
+SCIDB QUERY : <cross_join(C,B)>
+{b,a} a,b
+{'6','2'} '2','6'
+{'6','4'} '2','8'
+{'8','2'} '4','6'
+{'8','4'} '4','8'
+
+SCIDB QUERY : <cross_join(subarray(A,1,3),B)>
+{x,a} a,b,b
+{0,'2'} '2','6','6'
+{0,'4'} '2','6','8'
+{2,'2'} '4','8','6'
+{2,'4'} '4','8','8'
+
+SCIDB QUERY : <count(cross_join(subarray(A,1,3),B))>
+{i} count
+{0} 4
+
+SCIDB QUERY : <cross_join(xgrid(A,2),B)>
+{x,a} a,b,b
+{2,'2'} '2','6','6'
+{2,'4'} '2','6','8'
+{3,'2'} '2','6','6'
+{3,'4'} '2','6','8'
+{6,'2'} '4','8','6'
+{6,'4'} '4','8','8'
+{7,'2'} '4','8','6'
+{7,'4'} '4','8','8'
+
+SCIDB QUERY : <count(cross_join(xgrid(A,2),B))>
+{i} count
+{0} 8
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+

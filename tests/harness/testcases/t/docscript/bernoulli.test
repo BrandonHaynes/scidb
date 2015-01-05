@@ -1,0 +1,30 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY bernoulli_array<val:double>[i=0:4,5,0,j=0:4,5,0]  
+--set-format dense
+--stop-igdata
+store(build(bernoulli_array,i*5+1+j),bernoulli_array)  
+--start-igdata
+bernoulli(bernoulli_array,0.5)  
+--set-format dcsv
+CREATE ARRAY busywork<val:double>[i=0:500,501,0,j=0:500,501,0]  
+build(busywork,i+j) 
+--set-format dense
+--stop-igdata
+--start-igdata
+bernoulli(bernoulli_array,0.5)  
+--stop-igdata
+bernoulli(bernoulli_array,0.5,15)  
+bernoulli(bernoulli_array,0.5,15)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(bernoulli_array)
+remove(busywork)

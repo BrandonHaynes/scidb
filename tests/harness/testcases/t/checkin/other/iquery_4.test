@@ -1,0 +1,46 @@
+--setup
+--start-query-logging
+
+create array catalogue <code:int64, type:string, price:double, review:string> [id=0:10,3,0]
+create array catalogue1 <code:int64 null, type:string null, price:double null, review:string null> [id=0:10,3,0]
+create array catalogue2 <code:int64, type:string null, price:double null, review:string> [id=0:10,3,0]
+create array catalogue3 <code:int64 null, type:string, price:double, review:string null> [id=0:10,3,0]
+
+--shell --store --command "iquery -c $IQUERY_HOST $IQUERY_PORT -aq "load(catalogue,'${TEST_DATA_DIR}/iquery_4.txt')""
+--shell --store --command "iquery -c $IQUERY_HOST $IQUERY_PORT -aq "load(catalogue1,'${TEST_DATA_DIR}/iquery_4.txt')""
+--shell --store --command "iquery -c $IQUERY_HOST $IQUERY_PORT -aq "load(catalogue2,'${TEST_DATA_DIR}/iquery_4.txt')""
+--shell --store --command "iquery -c $IQUERY_HOST $IQUERY_PORT -aq "load(catalogue3,'${TEST_DATA_DIR}/iquery_4.txt')""
+
+--test
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue )\'')
+--shell --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue )\'')
+--shell --store --command " iquery  -o lsparse -aq 'scan ( catalogue )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue1 )\'')
+--shell --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue1 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue1 )\'')
+--shell --store --command " iquery  -o lsparse -aq 'scan ( catalogue1 )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue2 )\'')
+--shell --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue2 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue2 )\'')
+--shell --store --command " iquery  -o lsparse -aq 'scan ( catalogue2 )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue3 )\'')
+--shell --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue3 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue3 )\'')
+--shell --store --command " iquery  -o lsparse -aq 'scan ( catalogue3 )' "
+
+
+--cleanup
+remove(catalogue)
+remove(catalogue1)
+remove(catalogue2)
+remove(catalogue3)
+--stop-query-logging

@@ -1,0 +1,8 @@
+--setup
+
+--test
+--start-query-logging
+--shell --command "PYTHONPATH=${PYTHONPATH}:${SCIDB_INSTALL_PATH}/bin ${TESTDIR}/testing_python_modules.py"
+--stop-query-logging
+
+--cleanup

@@ -1,0 +1,57 @@
+--setup
+--aql CREATE  ARRAY delta_timing_small < COL000N: int32 COMPRESSION 'null suppression',COL001C: char COMPRESSION 'null filter',COL002S: string COMPRESSION 'zlib'> [a=0:99,10,0,b=0:1,1,0]
+--aql CREATE  ARRAY nondelta_timing_small <COL000N: int32 COMPRESSION 'bzlib' reserve 0,COL001C: char COMPRESSION 'zlib' reserve 0,COL002S: string reserve 0  > [a=0:99,10,0,b=0:1,1,0]
+--aql load delta_timing_small from '${TEST_DATA_DIR}/simple01a.txt'
+--aql load nondelta_timing_small from '${TEST_DATA_DIR}/simple01a.txt'
+--test
+--start-timer create_delta_1
+--aql update delta_timing_small set COL000N = 99 where COL001C = 'R'
+--stop-timer
+--start-timer create_nondelta_1
+--aql update nondelta_timing_small set COL000N = 99 where COL001C = 'R'
+--stop-timer
+--start-timer create_delta_2
+--aql update delta_timing_small set COL000N = 99 where COL001C = 'T'
+--stop-timer
+--start-timer create_nondelta_2
+--aql update nondelta_timing_small set COL000N = 99 where COL001C = 'T'
+--stop-timer
+--start-timer create_delta_3
+--aql update delta_timing_small set COL001C = 'X' where COL000N = 21
+--stop-timer
+--start-timer create_nondelta_3
+--aql update nondelta_timing_small set COL001C = 'X' where COL000N = 21
+--stop-timer
+--start-timer create_delta_4
+--aql update delta_timing_small set COL000N = 99 where COL001C = 'T' and COL000N = 19
+--stop-timer
+--start-timer create_nondelta_4
+--aql update nondelta_timing_small set COL000N = 99 where COL001C = 'T' and COL000N = 19
+--stop-timer
+--start-timer create_delta_5
+--aql update delta_timing_small set COL002S = 'XXX' where COL002S = 'P' and COL000N = 15
+--stop-timer
+--start-timer create_nondelta_5
+--aql update nondelta_timing_small set COL002S = 'XXX' where COL002S = 'P' and COL000N = 15
+--stop-timer
+--start-timer create_delta_6
+--aql update delta_timing_small set COL000N = 77 where COL002S > 'V'
+--stop-timer
+--start-timer create_nondelta_6
+--aql update nondelta_timing_small set COL000N = 77 where COL002S > 'V'
+--stop-timer
+--start-timer create_delta_7
+--aql update delta_timing_small set COL000N = 88 where COL002S < 'K'
+--stop-timer
+--start-timer create_nondelta_7
+--aql update nondelta_timing_small set COL000N = 88 where COL002S < 'K'
+--stop-timer
+--start-timer create_delta_8
+--aql update delta_timing_small set COL002S = 'ZZZ' where COL000N%10 = 0
+--stop-timer
+--start-timer create_nondelta_8
+--aql update nondelta_timing_small set COL002S = 'ZZZ' where COL000N%10 = 0
+--stop-timer
+--cleanup
+--aql drop array delta_timing_small 
+--aql drop array nondelta_timing_small 

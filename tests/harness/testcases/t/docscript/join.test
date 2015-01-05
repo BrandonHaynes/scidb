@@ -1,0 +1,24 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array left_array <val:double>[i=0:2,3,0,j=0:2,3,0]  
+store(build(left_array,1),left_array)  
+create array right_array <val:double>[i=0:2,3,0,j=0:5,3,0]  
+store(build(right_array,0),right_array)  
+--set-format auto
+--stop-igdata
+store(join(left_array,right_array),result_array)  
+--set-format dcsv
+show(result_array)
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(left_array)
+remove(right_array)
+remove(result_array)

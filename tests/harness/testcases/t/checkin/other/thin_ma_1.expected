@@ -1,0 +1,70 @@
+SCIDB QUERY : <create array A <a:int32, b:string> [x=-2:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ti <a:int32> [x=-2:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts <b:string> [x=-2:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from build(Ti,x+10),build(Ts,x+10)>
+{x} a,b
+{-2} 8,'8'
+{-1} 9,'9'
+{0} 10,'10'
+{1} 11,'11'
+{2} 12,'12'
+{3} 13,'13'
+{4} 14,'14'
+{5} 15,'15'
+{6} 16,'16'
+{7} 17,'17'
+{8} 18,'18'
+
+SCIDB QUERY : <thin(A,-2,1)>
+{x} a,b
+{0} 8,'8'
+{1} 9,'9'
+{2} 10,'10'
+{3} 11,'11'
+{4} 12,'12'
+{5} 13,'13'
+{6} 14,'14'
+{7} 15,'15'
+{8} 16,'16'
+{9} 17,'17'
+{10} 18,'18'
+
+SCIDB QUERY : <thin(A,-2,2)>
+{x} a,b
+{0} 8,'8'
+{1} 10,'10'
+{2} 12,'12'
+{3} 14,'14'
+{4} 16,'16'
+{5} 18,'18'
+
+SCIDB QUERY : <thin(A,0,3)>
+{x} a,b
+{0} 10,'10'
+{1} 13,'13'
+{2} 16,'16'
+
+SCIDB QUERY : <thin(A,1,2)>
+[An error expected at this place for the query "thin(A,1,2)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <thin(A,1,3)>
+[An error expected at this place for the query "thin(A,1,3)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <thin(A,2,3)>
+[An error expected at this place for the query "thin(A,2,3)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ti)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+

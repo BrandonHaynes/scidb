@@ -1,0 +1,10 @@
+# http://trac.scidb.org/ticket/944
+
+--setup
+create array null_3 <a:int32 null,b:int32 null> [x=0:2,3,0, y=0:2,3,0]
+
+--test
+--aql load null_3 from '${TEST_DATA_DIR}/null_3.txt'
+
+--cleanup
+remove(null_3)

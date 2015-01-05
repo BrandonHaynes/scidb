@@ -1,0 +1,21 @@
+--setup
+--start-query-logging
+create array A <a:int32 null default 5> [x=0:2,3,0,y=2:5,2,1]
+
+
+--test
+--aql select * into A from filter(build(A,iif(x=0,y,null)),x<>1)
+--aql select a from A
+--aql select a+0 from A
+--aql select 0+a from A
+--aql update A set a = a + 1
+--aql update A set a = a - 1
+--aql update A set a = a * 1
+--aql update A set a = a / 1
+--aql update A set a = a * 10
+--aql update A set a = a / 10
+--aql update A set a = a / 2
+
+--cleanup
+remove(A)
+--stop-query-logging

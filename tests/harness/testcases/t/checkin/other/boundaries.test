@@ -1,0 +1,101 @@
+--setup
+--start-query-logging
+create array B<j:int8>[i=0:14,5,0]
+store(build(B, '[(),(1),(2),(3),(4),(5),(6)]', true), B)
+
+--test
+project(dimensions(B),low,high)
+create array A<j:int8>[i=0:*,5,0]
+store(B, A)
+project(dimensions(A),low,high)
+store(build(B, '[(),(),(),(),(),(),(),(),(),(),(),(),(12),(13),(14)]', true), B)
+project(dimensions(B),low,high)
+store(B, A)
+project(dimensions(A),low,high)
+store(between(B,12,13),B)
+project(dimensions(B),low,high)
+store(between(B,12,13),A)
+project(dimensions(A),low,high)
+insert(build(B, '[(),(),(2),(3)]', true), B)
+project(dimensions(B),low,high)
+insert(build(B, '[(),(),(2),(3)]', true), A)
+project(dimensions(A),low,high)
+save(A, '/tmp/scidb_array_a.out', 0)
+create array AL<j:int8>[i=0:*,5,0]
+load(AL, '/tmp/scidb_array_a.out', 0)
+project(dimensions(AL),low,high)
+
+create array BI<j:int8>[i=0:14,5,0]
+store(build(BI, '[(),(1),(2),(3),(4),(5),(6)]', true), BI)
+project(dimensions(BI),low,high)
+create array AI<j:int8>[i=0:*,5,0]
+store(BI, AI)
+project(dimensions(AI),low,high)
+store(build(BI, '{10}[(),(),(12),(13),(14)]', true), BI)
+project(dimensions(BI),low,high)
+store(build(BI, '{10}[(),(),(12),(13),(14)]', true), AI)
+project(dimensions(AI),low,high)
+save(AI, '/tmp/scidb_array_a.out', 0)
+create array AIL<j:int8>[i=0:*,5,0]
+load(AIL, '/tmp/scidb_array_a.out', 0)
+project(dimensions(AIL),low,high)
+
+create array BN<j:int8>[i=0:14,5,0]
+store(build(BN, '[(),(1),(2),(3),(4),(5),(6)]', true), BN)
+project(dimensions(BN),low,high)
+create array AN<j:int8>[i=0:*,5,0]
+store(BN, AN)
+project(dimensions(AN),low,high)
+store(build(BN, '[(),(),(),(),(),(),(),(),(),(),(),(),(12),(13),(14)]', true), BN)
+project(dimensions(BN),low,high)
+store(BN, AN)
+project(dimensions(AN),low,high)
+store(filter(AN, i>3 and i<9), ANF)
+project(dimensions(ANF),low,high)
+insert(build(<j:int8>[i=0:19,5,0],'{15}[(15),(16),(17)]',true),AN)
+project(dimensions(AN),low,high)
+save(AN, '/tmp/scidb_array_a.out', 0)
+create array ANL<j:int8>[i=0:*,5,0]
+load(ANL, '/tmp/scidb_array_a.out',0)
+project(dimensions(ANL), low, high)
+
+create array BNI<j:int8>[i=0:14,5,0]
+store(build(BNI, '[(),(1),(2),(3),(4),(5),(6)]', true), BNI)
+project(dimensions(BNI),low,high)
+create array ANI<j:int8>[i=0:*,5,0]
+store(BNI, ANI)
+project(dimensions(ANI),low,high)
+store(build(BNI, '{10}[(),(),(12),(13),(14)]', true), BNI)
+project(dimensions(BNI),low,high)
+store(build(BNI, '{10}[(),(),(12),(13),(14)]', true), ANI)
+project(dimensions(ANI),low,high)
+save(ANI, '/tmp/scidb_array_a.out', 0)
+create array ANIL<j:int8>[i=0:*,5,0]
+load(ANIL, '/tmp/scidb_array_a.out',0)
+project(dimensions(ANIL), low, high)
+
+
+create array target <j:int8> [x=-10:*,2,0, y(string)=*,2,0]
+store(redimension(apply(join(A,variable_window(A,i, 3,0, count(*) as count)),x, int64(count*3), y, 'abc_'+string(count)), target), target)
+project(dimensions(target), low,high)
+
+store(redimension(filter(apply(join(A,variable_window(A,i, 3,0, count(*) as count)),x, int64(count*3), y, 'abc_'+string(count)), count%2<>0), target), target)
+project(dimensions(target), low,high)
+
+--cleanup
+remove(B) 
+remove(A)
+remove(AL) 
+remove(BI)  
+remove(AI) 
+remove(AIL) 
+remove(BN) 
+remove(AN) 
+remove(ANF) 
+remove(ANL) 
+remove(BNI) 
+remove(ANI) 
+remove(ANIL) 
+remove(target) 
+--shell --command "rm /tmp/scidb_array_a.out" --store
+--stop-query-logging

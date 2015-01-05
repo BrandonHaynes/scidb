@@ -1,0 +1,280 @@
+SCIDB QUERY : <create array A <a:char,b:char>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <a:char>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:char>[a(char)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:char>[b(char)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(join(build(T,string(x+1)),build(T,string(x+5))),A)>
+{x} a,b
+{0} '1','5'
+{1} '2','6'
+{2} '3','7'
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+a,b
+0,'5'
+1,'6'
+2,'7'
+
+SCIDB QUERY : <store(redimension(B,C),C)>
+b,a
+0,'1'
+1,'2'
+2,'3'
+
+SCIDB QUERY : <unpack(B,row)>
+row,a,b
+0,'1','5'
+1,'2','6'
+2,'3','7'
+
+SCIDB QUERY : <unpack(C,row)>
+row,b,a
+0,'5','1'
+1,'6','2'
+2,'7','3'
+
+SCIDB QUERY : <rename(B,B1)>
+Query was executed successfully
+
+SCIDB QUERY : <max(B1)>
+i,b_max
+0,'7'
+
+SCIDB QUERY : <min(B1)>
+i,b_min
+0,'5'
+
+SCIDB QUERY : <subarray(B1,'1','2')>
+a,b
+0,'5'
+1,'6'
+
+SCIDB QUERY : <between(B1,'1','3')>
+a,b
+0,'5'
+1,'6'
+2,'7'
+
+SCIDB QUERY : <filter(B1,a>'1')>
+a,b
+1,'6'
+2,'7'
+
+SCIDB QUERY : <filter(B1,a<'2')>
+a,b
+0,'5'
+
+SCIDB QUERY : <filter(B1,a='2')>
+a,b
+1,'6'
+
+SCIDB QUERY : <filter(B1,a<>'2')>
+a,b
+0,'5'
+2,'7'
+
+SCIDB QUERY : <filter(B1,b>'5')>
+a,b
+1,'6'
+2,'7'
+
+SCIDB QUERY : <filter(B1,b<'6')>
+a,b
+0,'5'
+
+SCIDB QUERY : <filter(B1,b='7')>
+a,b
+2,'7'
+
+SCIDB QUERY : <filter(B1,b<>'6')>
+a,b
+0,'5'
+2,'7'
+
+SCIDB QUERY : <project(B1,b)>
+a,b
+0,'5'
+1,'6'
+2,'7'
+
+SCIDB QUERY : <join(B1,B1)>
+a,b,b
+0,'5','5'
+1,'6','6'
+2,'7','7'
+
+SCIDB QUERY : <cross_join(B1,B1)>
+a,a,b,b
+0,0,'5','5'
+0,1,'5','6'
+0,2,'5','7'
+1,0,'6','5'
+1,1,'6','6'
+1,2,'6','7'
+2,0,'7','5'
+2,1,'7','6'
+2,2,'7','7'
+
+SCIDB QUERY : <apply(B1,z,a+'_z')>
+a,b,z
+0,'5','1_z'
+1,'6','2_z'
+2,'7','3_z'
+
+SCIDB QUERY : <apply(B1,z,b+'_z')>
+a,b,z
+0,'5','5_z'
+1,'6','6_z'
+2,'7','7_z'
+
+SCIDB QUERY : <count(B1)>
+i,count
+0,3
+
+SCIDB QUERY : <sort(B1,b)>
+n,b
+0,'5'
+1,'6'
+2,'7'
+
+SCIDB QUERY : <sort(B1,b desc)>
+n,b
+0,'7'
+1,'6'
+2,'5'
+
+SCIDB QUERY : <rename(B1,B)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(C,C1)>
+Query was executed successfully
+
+SCIDB QUERY : <max(C1)>
+i,a_max
+0,'3'
+
+SCIDB QUERY : <min(C1)>
+i,a_min
+0,'1'
+
+SCIDB QUERY : <subarray(C1,'5','6')>
+b,a
+0,'1'
+1,'2'
+
+SCIDB QUERY : <between(C1,'5','7')>
+b,a
+0,'1'
+1,'2'
+2,'3'
+
+SCIDB QUERY : <filter(C1,a>'1')>
+b,a
+1,'2'
+2,'3'
+
+SCIDB QUERY : <filter(C1,a<'2')>
+b,a
+0,'1'
+
+SCIDB QUERY : <filter(C1,a='2')>
+b,a
+1,'2'
+
+SCIDB QUERY : <filter(C1,a<>'2')>
+b,a
+0,'1'
+2,'3'
+
+SCIDB QUERY : <filter(C1,b>'5')>
+b,a
+1,'2'
+2,'3'
+
+SCIDB QUERY : <filter(C1,b<'6')>
+b,a
+0,'1'
+
+SCIDB QUERY : <filter(C1,b='7')>
+b,a
+2,'3'
+
+SCIDB QUERY : <filter(C1,b<>'6')>
+b,a
+0,'1'
+2,'3'
+
+SCIDB QUERY : <project(C1,a)>
+b,a
+0,'1'
+1,'2'
+2,'3'
+
+SCIDB QUERY : <join(C1,C1)>
+b,a,a
+0,'1','1'
+1,'2','2'
+2,'3','3'
+
+SCIDB QUERY : <cross_join(C1,C1)>
+b,b,a,a
+0,0,'1','1'
+0,1,'1','2'
+0,2,'1','3'
+1,0,'2','1'
+1,1,'2','2'
+1,2,'2','3'
+2,0,'3','1'
+2,1,'3','2'
+2,2,'3','3'
+
+SCIDB QUERY : <apply(C1,z,a+'_z')>
+b,a,z
+0,'1','1_z'
+1,'2','2_z'
+2,'3','3_z'
+
+SCIDB QUERY : <apply(C1,z,b+'_z')>
+b,a,z
+0,'1','5_z'
+1,'2','6_z'
+2,'3','7_z'
+
+SCIDB QUERY : <count(C1)>
+i,count
+0,3
+
+SCIDB QUERY : <sort(C1,a)>
+n,a
+0,'1'
+1,'2'
+2,'3'
+
+SCIDB QUERY : <sort(C1,a desc)>
+n,a
+0,'3'
+1,'2'
+2,'1'
+
+SCIDB QUERY : <rename(C1,C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+

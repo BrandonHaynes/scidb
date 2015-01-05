@@ -1,0 +1,11 @@
+--setup
+--start-query-logging
+--test
+store(redimension(apply(build(<i:int64>[k=1:1,1,0],0),a,'a',b,'b'),<a:string, b:string>[i=0:*,1000000,0]),SPARSE_CHUNK_STR)
+apply(SPARSE_CHUNK_STR, ab, a+b)
+store(redimension(apply(build(<i:int64>[k=1:1,1,0],0),a,7.0,b,11),<a:double, b:int64>[i=0:*,1000000,0]),SPARSE_CHUNK_NUM)
+apply(SPARSE_CHUNK_NUM, ab, a+b)
+--cleanup
+remove(SPARSE_CHUNK_STR)
+remove(SPARSE_CHUNK_NUM)
+--stop-query-logging

@@ -1,0 +1,18 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(build(<val:double>[row=0:2,6,0, col=0:1,2,0],row*2+col),left_array)  
+store(build(<val:double>[row=0:1,6,0, col=0:1,2,0],pow( double(row*2+col+1),2.0)),right_array)  
+concat(left_array,right_array)  
+--set-format dcsv
+show('concat(left_array,right_array)','afl')  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(left_array)
+remove(right_array)

@@ -1,0 +1,4 @@
+--setup
+--test
+--shell --store-all --command "R --slave < ${TESTDIR}/R_interpreter.R"
+--cleanup

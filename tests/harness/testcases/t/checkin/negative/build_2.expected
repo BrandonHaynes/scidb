@@ -1,0 +1,147 @@
+SCIDB QUERY : <create array A <a:bool>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:int32>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:string>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <a:int8>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array E <a:int16>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array F <a:char>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array G <a:datetime>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array H <a:bool>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array I <a:int32>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array J <a:string>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array K <a:int8>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array L <a:int16>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array M <a:char>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array N <a:datetime>[x=0:4,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <build(<a:bool>[x=0:4,2,0],null)>
+[An error expected at this place for the query "build(<a:bool>[x=0:4,2,0],null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(<a:string>[x=0:4,2,0],null)>
+[An error expected at this place for the query "build(<a:string>[x=0:4,2,0],null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(<a:int32>[x=0:4,2,0],null)>
+[An error expected at this place for the query "build(<a:int32>[x=0:4,2,0],null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(<a:int8>[x=0:4,2,0],null)>
+[An error expected at this place for the query "build(<a:int8>[x=0:4,2,0],null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(<a:int16>[x=0:4,2,0],null)>
+[An error expected at this place for the query "build(<a:int16>[x=0:4,2,0],null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(<a:char>[x=0:4,2,0],null)>
+[An error expected at this place for the query "build(<a:char>[x=0:4,2,0],null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(<a:datetime>[x=0:4,2,0],null)>
+[An error expected at this place for the query "build(<a:datetime>[x=0:4,2,0],null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(A,null)>
+[An error expected at this place for the query "build(A,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(B,null)>
+[An error expected at this place for the query "build(B,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(C,null)>
+[An error expected at this place for the query "build(C,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(D,null)>
+[An error expected at this place for the query "build(D,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(E,null)>
+[An error expected at this place for the query "build(E,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(F,null)>
+[An error expected at this place for the query "build(F,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(G,null)>
+[An error expected at this place for the query "build(G,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(H,null)>
+[An error expected at this place for the query "build(H,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(I,null)>
+[An error expected at this place for the query "build(I,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(J,null)>
+[An error expected at this place for the query "build(J,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(K,null)>
+[An error expected at this place for the query "build(K,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(L,null)>
+[An error expected at this place for the query "build(L,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(M,null)>
+[An error expected at this place for the query "build(M,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <build(N,null)>
+[An error expected at this place for the query "build(N,null)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(H)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(I)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(J)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(K)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(L)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(N)>
+Query was executed successfully
+

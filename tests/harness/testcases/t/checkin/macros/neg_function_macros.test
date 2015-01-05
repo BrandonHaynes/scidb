@@ -1,0 +1,29 @@
+--setup
+create array A < a1 : int32, a2 : string > [ I=0:9,5,0, J=0:9,5,0 ]
+
+--test
+#
+#  Check for:
+#
+#   1. AFL and AQL
+#
+#   Do the arguments exist?
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION "op_count ( filter ( A, func_min ( A.b1, A.a1 ) = A.a1 ))"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION "op_count ( filter ( A, func_min ( A.a1, A.b1 ) = A.a1 ))"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION --aql="SELECT COUNT(*) FROM A WHERE func_min ( A.a1, A.b1 ) = A.a1"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION --aql="SELECT COUNT(*) FROM A WHERE func_min ( A.b1, A.a1 ) = A.a1"
+
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION "op_count ( filter ( A, func_max ( A.b1, A.a1 ) = A.a1 ))"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION "op_count ( filter ( A, func_max ( A.a1, A.b1 ) = A.a1 ))"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION --aql="SELECT COUNT(*) FROM A WHERE func_max ( A.a1, A.b1 ) = A.a1"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION --aql="SELECT COUNT(*) FROM A WHERE func_max ( A.b1, A.a1 ) = A.a1"
+
+#
+#   Are argument types compatible? (Does a function exist?)
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND "op_count ( filter ( A, func_min ( A.a1, A.a2 ) = A.a1 ))"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="SELECT COUNT(*) FROM A WHERE func_min ( A.a1, A.a2 ) = A.a1"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND "op_count ( filter ( A, func_max ( A.a1, A.a2 ) = A.a1 ))"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="SELECT COUNT(*) FROM A WHERE func_max ( A.a1, A.a2 ) = A.a1"
+
+--cleanup
+remove ( A )

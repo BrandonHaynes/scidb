@@ -1,0 +1,9 @@
+--setup
+create array M4x4 <a:int32, b:int32> [x=0:3,4,0, y=0:3,4,0]
+load(M4x4,'${TEST_DATA_DIR}/M4x4_1.txt')
+
+--test
+project(M4x4, a)
+
+--cleanup
+remove (M4x4)

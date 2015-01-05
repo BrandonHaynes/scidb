@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="prodAggregate">
+    <refname>prod</refname>
+
+    <refpurpose><indexterm>
+        <primary>prod</primary>
+      </indexterm><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>prod</secondary>
+      </indexterm>Product aggregate</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>AQL% <command>SELECT</command> prod(<replaceable>attribute</replaceable>) <command>FROM</command> <replaceable>array</replaceable> <optional><command>GROUP BY</command> <replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional></synopsis>
+
+    <synopsis>AFL% aggregate(<replaceable>array</replaceable>,prod(<replaceable>attribute</replaceable>)<optional>,<replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The prod aggregate calculates the cumulative product of a group of
+    values.</para>
+
+    <para>The product of an empty set is 0. The product of a set that contains
+    only NULL values is also 0. If the set contains NULL and NOT NULL values,
+    the result is the product of all the NOT NULL values.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example finds the product of every column of a 3<symbol
+      role="symbolfont">×</symbol>3 array.</para>
+
+      <procedure>
+        <step>
+          <para>Create and array, m3<symbol>x</symbol>3, and store values of
+          1–9 into it:<programlisting language="test">--afl store(build(&lt;val:double&gt;[row=0:2,3,0,col=0:2,3,0],row*3+col+1),m3x3); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Find the product of each column in m3x3:<programlisting
+          language="test">--afl aggregate(m3x3,prod(val),col) --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Find the product of all the cells of m3x3:<programlisting
+          language="test">--afl aggregate(m3x3,prod(val)) --output-format=dense</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

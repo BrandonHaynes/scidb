@@ -1,0 +1,184 @@
+SCIDB QUERY : <create array A <a:double> [x=-3:8,4,2]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,3.567/(3.0+x)),A)>
+{x} a
+{-3} inf
+{-2} 3.567
+{-1} 1.7835
+{0} 1.189
+{1} 0.89175
+{2} 0.7134
+{3} 0.5945
+{4} 0.509571
+{5} 0.445875
+{6} 0.396333
+{7} 0.3567
+{8} 0.324273
+
+SCIDB QUERY : <sort(A)>
+{n} a
+{0} 0.324273
+{1} 0.3567
+{2} 0.396333
+{3} 0.445875
+{4} 0.509571
+{5} 0.5945
+{6} 0.7134
+{7} 0.89175
+{8} 1.189
+{9} 1.7835
+{10} 3.567
+{11} inf
+
+SCIDB QUERY : <sort(A,a)>
+{n} a
+{0} 0.324273
+{1} 0.3567
+{2} 0.396333
+{3} 0.445875
+{4} 0.509571
+{5} 0.5945
+{6} 0.7134
+{7} 0.89175
+{8} 1.189
+{9} 1.7835
+{10} 3.567
+{11} inf
+
+SCIDB QUERY : <sort(A,a desc)>
+{n} a
+{0} inf
+{1} 3.567
+{2} 1.7835
+{3} 1.189
+{4} 0.89175
+{5} 0.7134
+{6} 0.5945
+{7} 0.509571
+{8} 0.445875
+{9} 0.396333
+{10} 0.3567
+{11} 0.324273
+
+SCIDB QUERY : <sort(filter(A, x<1))>
+{n} a
+{0} 1.189
+{1} 1.7835
+{2} 3.567
+{3} inf
+
+SCIDB QUERY : <sort(filter(A, x=-1 or x=0))>
+{n} a
+{0} 1.189
+{1} 1.7835
+
+SCIDB QUERY : <sort(filter(A, x=-1 or x=0),a desc)>
+{n} a
+{0} 1.7835
+{1} 1.189
+
+SCIDB QUERY : <rank(A)>
+{x} a,a_rank
+{-3} inf,12
+{-2} 3.567,11
+{-1} 1.7835,10
+{0} 1.189,9
+{1} 0.89175,8
+{2} 0.7134,7
+{3} 0.5945,6
+{4} 0.509571,5
+{5} 0.445875,4
+{6} 0.396333,3
+{7} 0.3567,2
+{8} 0.324273,1
+
+SCIDB QUERY : <rank(A,a)>
+{x} a,a_rank
+{-3} inf,12
+{-2} 3.567,11
+{-1} 1.7835,10
+{0} 1.189,9
+{1} 0.89175,8
+{2} 0.7134,7
+{3} 0.5945,6
+{4} 0.509571,5
+{5} 0.445875,4
+{6} 0.396333,3
+{7} 0.3567,2
+{8} 0.324273,1
+
+SCIDB QUERY : <rank(filter(A, x<1))>
+{x} a,a_rank
+{-3} inf,4
+{-2} 3.567,3
+{-1} 1.7835,2
+{0} 1.189,1
+
+SCIDB QUERY : <rank(filter(A, x=-1 or x=0))>
+{x} a,a_rank
+{-1} 1.7835,2
+{0} 1.189,1
+
+SCIDB QUERY : <quantile(A,2)>
+{quantile} percentage,a_quantile
+{0} 0,0.324273
+{1} 0.5,0.5945
+{2} 1,inf
+
+SCIDB QUERY : <quantile(A,4)>
+{quantile} percentage,a_quantile
+{0} 0,0.324273
+{1} 0.25,0.396333
+{2} 0.5,0.5945
+{3} 0.75,1.189
+{4} 1,inf
+
+SCIDB QUERY : <quantile(A,10)>
+{quantile} percentage,a_quantile
+{0} 0,0.324273
+{1} 0.1,0.3567
+{2} 0.2,0.396333
+{3} 0.3,0.445875
+{4} 0.4,0.509571
+{5} 0.5,0.5945
+{6} 0.6,0.89175
+{7} 0.7,1.189
+{8} 0.8,1.7835
+{9} 0.9,3.567
+{10} 1,inf
+
+SCIDB QUERY : <aggregate(quantile(A,100),count(*))>
+{i} count
+{0} 101
+
+SCIDB QUERY : <quantile(filter(A, x<1),3)>
+{quantile} percentage,a_quantile
+{0} 0,1.189
+{1} 0.333333,1.7835
+{2} 0.666667,3.567
+{3} 1,inf
+
+SCIDB QUERY : <quantile(filter(A, x<1),10)>
+{quantile} percentage,a_quantile
+{0} 0,1.189
+{1} 0.1,1.189
+{2} 0.2,1.189
+{3} 0.3,1.7835
+{4} 0.4,1.7835
+{5} 0.5,1.7835
+{6} 0.6,3.567
+{7} 0.7,3.567
+{8} 0.8,inf
+{9} 0.9,inf
+{10} 1,inf
+
+SCIDB QUERY : <quantile(filter(A, x=-1 or x=0),2,a)>
+{quantile} percentage,a_quantile
+{0} 0,1.189
+{1} 0.5,1.189
+{2} 1,1.7835
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

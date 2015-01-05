@@ -1,0 +1,11 @@
+--setup
+create array xyz <a:double> [x=0:1999,100,0, y=0:1999,100,0]
+create array xyz_200 <a:double> [x=0:1999,200,0, y=0:1999,200,0]
+load(xyz,'${TEST_DATA_DIR}/xyz_small.txt')
+
+--test
+repart(xyz, xyz_200)
+
+--cleanup
+remove (xyz)
+remove (xyz_200)

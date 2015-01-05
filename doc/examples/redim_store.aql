@@ -1,0 +1,41 @@
+##############################################
+# Executing the following script in iquery. 
+##############################################
+remove(expo);
+remove(Ds); 
+remove(Dp);
+remove(Dsp);
+
+count(join(join(build(<s: string>[i=1:25,5,0], 'sample-'+string((i-1)%5)), build(<p: string>[i=1:25,5,0], 'probe-'+string(i/5))), build(<val: double>[i=1:25,5,0], 1.01*i*i-i)));
+store(join(join(build(<s: string>[i=1:25,5,0], 'sample-'+string((i-1)%5)), build(<p: string>[i=1:25,5,0], 'probe-'+string((i-1)/5))), build(<val: double>[i=1:25,5,0], 1.01*i*i-i)), expo);
+show(expo);
+
+#####################################
+# Show the expo 1d data set.
+####################################
+set format 'csv+';
+scan(expo);
+
+######################################################
+# Show three redim_store to different multi-dimensional arrays.
+######################################################
+create empty array Ds<av:double NULL>[s(string)=5,5,0];
+create empty array Dp<av:double NULL>[p(string)=5,5,0];
+create empty array Dsp<val:double>[s(string)=5,5,0, p(string)=5,5,0];
+
+#############################
+### Replace this with AQL now.
+#############################
+redimension_store(expo, Ds, avg(val) as av);
+redimension_store(expo, Dp, avg(val) as av);
+redimension_store(expo, Dsp);
+
+###################################################
+# Checked in the pprint.sed into doc/user/examples/
+###################################################
+# iquery -aq "scan(Dsp)" | sed -f /home/zetics/doc/pprint.sed
+
+set lang aql;
+SELECT val FROM Dsp WHERE s='sample-2' AND p='probe-3';
+
+

@@ -1,0 +1,10 @@
+# load a series of ill-formed modules.
+
+--test
+--error --hideQueryString --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_REDEFINED          "load_module('${TEST_DATA_DIR}/module_negative_1.txt')"
+--error --hideQueryString --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_NOT_APPLICABLE     "load_module('${TEST_DATA_DIR}/module_negative_2.txt')"
+--error --hideQueryString --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE       "load_module('${TEST_DATA_DIR}/module_negative_3.txt')"
+--error --hideQueryString --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_ARITY_MISMATCH     "load_module('${TEST_DATA_DIR}/module_negative_4.txt')"
+--error --hideQueryString --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE       "load_module('${TEST_DATA_DIR}/module_negative_5.txt')"
+--error --hideQueryString --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NAME_IS_RECURSIVE       "load_module('${TEST_DATA_DIR}/module_negative_6.txt')"
+

@@ -1,0 +1,28 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array C <val:double> [i=0:4,5,0]  
+--stop-igdata
+--start-igdata
+store(build(C,random() / 2147483647.0),C)  
+--stop-igdata
+--aql select sqrt(i) as root, pow(2.0,i) as power from C 
+--set-format dense
+store(build(<val:double> [i=0:1,2,0, j=0:1,2,0],i*2 +j+1),A)  
+store(build(A,-i*4-j -1),B)  
+--aql select A.val + B.val from A,B  
+--aql select A.val - B.val from A,B  
+--aql select A.val * B.val from A,B  
+--aql select A.val / B.val from A,B  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(C)
+remove(A)
+remove(B)

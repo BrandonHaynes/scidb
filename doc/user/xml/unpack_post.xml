@@ -1,0 +1,175 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="unpackOperator">
+  <refnamediv>
+    <refname>unpack</refname>
+
+    <refpurpose><indexterm>
+        <primary>unpack</primary>
+      </indexterm>Produces a one-dimensional result array from the data in a
+    multi-dimensional source array. Note that the unpack operator excludes all
+    empty cells from the result array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>unpack(<replaceable>source_array</replaceable>,<replaceable>dimension_name</replaceable>[,<replaceable>chunk_size</replaceable>]);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <code>unpack()</code> operator unpacks a multidimensional array
+    into a single-dimensional result array creating new attributes to
+    represent source array dimension values. The result array has a single
+    zero-based dimension and attributes combining variables of the input
+    array. The name for the new single dimension is passed to the operator as
+    the second argument.</para>
+
+    <para>You can control the chunk size of the resulting array with the
+    optional <code>chunk_size</code> parameter.</para>
+
+    <para><indexterm>
+        <primary>binary save</primary>
+      </indexterm><indexterm>
+        <primary>save</primary>
+
+        <secondary>binary</secondary>
+      </indexterm>One use case for unpack is for saving a multidimensional
+    array into a binary backup file. The way to do this is to first unpack the
+    array, and then use the <code>save</code> operator to perform a binary
+    save. You perform a binary save similarly to the way you perform a binary
+    load—see <xref linkend="loadBinary"/> for details.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example takes 2-dimensional, 1-attribute array and outputs a
+      1-dimensional, 3-attribute array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-attribute, 2-dimensional array called
+          m3x3:<para><programlisting>AQL% <command>CREATE ARRAY</command> m3x3 &lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Store values of 0–8 in m3x3:<para><programlisting>AFL% store(build(m3x3,i*3+j),m3x3);  </programlisting><screen>[
+[(0),(1),(2)],
+[(3),(4),(5)],
+[(6),(7),(8)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create a new attribute called val2 containing values 100–108
+          and store the resulting array as m3x3_2attr:<para><programlisting>AFL% store(apply(m3x3,val2,val+100),m3x3_2attr);  </programlisting><screen>[
+[(0,100),(1,101),(2,102)],
+[(3,103),(4,104),(5,105)],
+[(6,106),(7,107),(8,108)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Unpack m3x3_2attr into a 1-dimensional array. <para><programlisting>AFL% unpack(m3x3_2attr, x);</programlisting><screen>{x} i,j,val,val2
+{0} 0,0,0,100
+{1} 0,1,1,101
+{2} 0,2,2,102
+{3} 1,0,3,103
+{4} 1,1,4,104
+{5} 1,2,5,105
+{6} 2,0,6,106
+{7} 2,1,7,107
+{8} 2,2,8,108
+</screen> The
+          first two values in each cell are the dimensions, and the second two
+          are the attribute values.</para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example illustrates how empty cells are removed during the
+      unpack process.</para>
+
+      <procedure>
+        <step>
+          <para>We use a previously created 3x3 array, A, where row 1 has only
+          empty cells, row 2 has only null values, and row 3 has only non-null
+          values. <para><screen>[('A&lt;value:string NULL DEFAULT null&gt; [row=1:3,3,0,col=1:3,3,0]')]
+</screen><screen>[
+[(),(),()],
+[(null),(null),(null)],
+[('a7'),('a8'),('a9')]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Unpack array A.<para><programlisting>AFL% unpack(A, x);</programlisting><screen>{x} row,col,value
+{0} 2,1,null
+{1} 2,2,null
+{2} 2,3,null
+{3} 3,1,'a7'
+{4} 3,2,'a8'
+{5} 3,3,'a9'
+</screen>
+          Note that <code>unpack</code> has excluded the empty cells from the
+          result array.</para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example shows how to use unpack to backup an array into a
+      binary file.</para>
+
+      <procedure>
+        <step>
+          <para>Assume we have the following array, <emphasis role="bold">Names</emphasis>:<para><programlisting>AFL% show(Names)</programlisting><screen><command>Names</command>
+
+&lt; firstnames:string,
+lastnames:string &gt;
+
+[i=0:2,3,0,
+j=0:1,2,0]</screen><programlisting>AFL% scan(Names);  </programlisting><screen>[
+[('Bill','Clinton'),('Anne','Rice')],
+[('Joe','Pantoliano'),('Steve','Jobs')],
+[('Burt','Reynolds'),('Ronald','Reagan')]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Unpack <emphasis role="bold">Names</emphasis> into a
+          1-dimensional array, <emphasis role="bold">namesFlat</emphasis>.
+          <para><programlisting>AFL% store(unpack(Names,x),namesFlat);  </programlisting><screen>{x} i,j,firstnames,lastnames
+{0} 0,0,'Bill','Clinton'
+{1} 0,1,'Anne','Rice'
+{2} 1,0,'Joe','Pantoliano'
+{3} 1,1,'Steve','Jobs'
+{4} 2,0,'Burt','Reynolds'
+{5} 2,1,'Ronald','Reagan'
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>View the schema for <emphasis role="bold">namesFlat</emphasis>, so that we can create the query
+          for the binary save.<para><programlisting>AFL% show(namesFlat)</programlisting><screen><command>namesFlat</command>
+
+&lt; i:int64,
+j:int64,
+firstnames:string,
+lastnames:string &gt;
+
+[x=0:*,6,0]</screen></para></para>
+        </step>
+
+        <step>
+          <para>So we have two int64 types, followed by two string types. Now
+          we perform the binary save.<programlisting>AFL% save(namesFlat,'/tmp/namesFlat.bin',0, '(int64,int64,string,string)');  </programlisting>This
+          writes the binary file, <emphasis role="bold">namesFlat.bin</emphasis>, to the /tmp folder.</para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

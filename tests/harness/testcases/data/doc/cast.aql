@@ -1,0 +1,45 @@
+# Run the redim_store.aql script first.
+
+# Convert a bounded dimension into an unbounded dimension.
+# cast not required here.
+create array Dsp1<val:double> [s(string)=*,5,0,p(string)=5,5,0];
+store(Dsp, Dsp1);
+
+###########################################
+# Convert an unbounded dimension to bounded. 
+# This may change later. 
+scan(Dsp1);
+
+# The following creates a schema with bounded dimensions.
+store(Dsp1, Dsp_new);
+
+##########################################
+# Make an attribute NULLable.
+#########################################
+remove(Dsp1);
+create array Dsp1<val:double NULL> [s(string)=*,5,0,p(string)=5,5,0];
+cast(Dsp, Dsp1);
+
+###########################################
+remove(Dsp2);
+create array Dsp2<val: double NULL>[sample(string)=*,5,0, probe(string)=5,5,0];
+store(cast(Dsp, Dsp2), Dsp3);
+
+join(cast(Dsp, Dsp2), cast(Dsp, Dsp2));
+
+##########################################
+# NID to standard array.
+##########################################
+create array Dsp_std<val: double> [s=0:*,5,0, p=0:*,5,0];
+
+# Store + cast to get unbounded dimensions. 
+store(cast(Dsp, Dsp_std), Dsp_std);
+
+# cast this to get integer bounded dimensions. 
+store(cast(Dsp, Dsp_std), Dsp_std_new);
+
+# Make an attribute Non-NULLable.
+remove(Dsp1);
+Use substitute -- example there is ok. 
+
+

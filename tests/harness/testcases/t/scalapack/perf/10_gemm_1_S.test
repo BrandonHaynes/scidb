@@ -1,0 +1,68 @@
+--setup
+--start-query-logging
+
+# NOTE: NNcNN notation means size Rows,Cols ; chunkSize Rows,Cols
+
+# identity: 11c11, 22c11, 22c22
+create array ident1<a: double >   [r=0:0,32,0, c=0:0,32,0]
+create array ident2<a: double >   [r=0:1,32,0, c=0:1,32,0]
+create array ident4<a: double >   [r=0:3,32,0, c=0:3,32,0]
+create array ident8<a: double >   [r=0:7,32,0, c=0:7,32,0]
+create array ident16<a: double >   [r=0:15,32,0, c=0:15,32,0]
+create array ident32<a: double >   [r=0:31,32,0, c=0:31,32,0]
+create array ident64<a: double >   [r=0:63,32,0, c=0:63,32,0]
+create array ident128<a: double >   [r=0:127,32,0, c=0:127,32,0]
+create array ident256<a: double >   [r=0:255,32,0, c=0:255,32,0]
+create array ident512<a: double >   [r=0:511,32,0, c=0:511,32,0]
+create array ident1024<a: double >   [r=0:1023,32,0, c=0:1023,32,0]
+create array ident2048<a: double >   [r=0:2047,32,0, c=0:2047,32,0]
+create array ident4096<a: double >   [r=0:4095,32,0, c=0:4095,32,0]
+create array ident8192<a: double >   [r=0:8191,32,0, c=0:8191,32,0]
+#create array ident16384<a: double >   [r=0:16383,32,0, c=0:16383,32,0]
+#create array ident32768<a: double >   [r=0:32767,32,0, c=0:32767,32,0]
+#create array ident65536<a: double >   [r=0:65535,32,0, c=0:65535,32,0]
+
+load_library('dense_linear_algebra')
+
+--test
+
+--shell --command "echo 1 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident1,1), build(ident1,1), build(ident1,0))'"
+--shell --command "echo 2 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident2,1), build(ident2,1), build(ident2,0))'"
+--shell --command "echo 4 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident4,1), build(ident4,1), build(ident4,0))'"
+--shell --command "echo 8 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident8,1), build(ident8,1), build(ident8,0))'"
+--shell --command "echo 16 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident16,1), build(ident16,1), build(ident16,0))'"
+--shell --command "echo 32 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident32,1), build(ident32,1), build(ident32,0))'"
+--shell --command "echo 64 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident64,1), build(ident64,1), build(ident64,0))'"
+--shell --command "echo 128 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident128,1), build(ident128,1), build(ident128,0))'"
+--shell --command "echo 256 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident256,1), build(ident256,1), build(ident256,0))'"
+--shell --command "echo 512 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident512,1), build(ident512,1), build(ident512,0))'"
+--shell --command "echo 1024 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident1024,1), build(ident1024,1), build(ident1024,0))'"
+--shell --command "echo 2048 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident2048,1), build(ident2048,1), build(ident2048,0))'"
+--shell --command "echo 4096 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident4096,1), build(ident4096,1), build(ident4096,0))'"
+--shell --command "echo 8192 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident8192,1), build(ident8192,1), build(ident8192,0))'"
+#--shell --command "echo 16384 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident16384,1), build(ident16384,1), build(ident16384,0))'"
+#--shell --command "echo 32768 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident32768,1), build(ident32768,1), build(ident32768,0))'"
+#--shell --command "echo 65536 >&2; /usr/bin/time -f%E iquery -naq 'gemm(build(ident65536,1), build(ident65536,1), build(ident65536,0))'"
+
+--stop-query-logging
+
+--cleanup
+
+remove(ident1)
+remove(ident2)
+remove(ident4)
+remove(ident8)
+remove(ident16)
+remove(ident32)
+remove(ident64)
+remove(ident128)
+remove(ident256)
+remove(ident512)
+remove(ident1024)
+remove(ident2048)
+remove(ident4096)
+remove(ident8192)
+#remove(ident16384)
+#remove(ident32768)
+#remove(ident65536)
+

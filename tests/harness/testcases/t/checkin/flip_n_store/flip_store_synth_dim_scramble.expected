@@ -1,0 +1,34 @@
+SCIDB QUERY : <create array A <x:int64, y:int64, att1:int64, att2:int64>[dummy=0:250,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(join(join(build(<x:int64>[dummy=0:250,3,0], dummy/130),build(<y:int64>[dummy=0:250,3,0], dummy%2)),build(<att1:int64>[dummy=0:250,3,0], dummy)),build(<att2:int64>[dummy=0:250,3,0], dummy)), A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array B<att1:int64, att2:int64>[x=0:*,1,0, y=0:*,1,0, synth=0:*,100,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(filter(B, att1<>att2),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <aggregate(filter(redimension(A,B), att1<>att2),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <aggregate(apply(redimension(join(join(build(<a:int64> [x=1:100,10,0], x%10),build(<b:int64>[x=1:100,10,0], x)), build( <c:int64> [x=1:100,10,0], x)), <b:int64, c:int64> [a=0:9,2,0, s=1:10,10,0]), d, b-c ), sum(b), sum(c), avg(d), count(*))>
+{i} b_sum,c_sum,d_avg,count
+{0} 5050,5050,0,100
+
+SCIDB QUERY : <aggregate(B,count(*))>
+{i} count
+{0} 251
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

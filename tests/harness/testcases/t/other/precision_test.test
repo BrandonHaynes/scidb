@@ -1,0 +1,24 @@
+# ticket no. 1714
+# set precision for floating point number
+
+--setup
+--start-query-logging
+
+create array foo <x:double> [i=1:10,10,0]
+store(build(foo, 1.0/i), foo)
+
+--test
+
+scan(foo)
+--set-precision 10
+scan(foo)
+--igdata "save(foo,'/tmp/foo.dat')"
+--shell --store --command="cat /tmp/foo.dat"
+load(foo,'/tmp/foo.dat')
+--shell --command="rm /tmp/foo.dat"
+--set-precision 6
+
+--cleanup
+remove(foo)
+--stop-query-logging
+

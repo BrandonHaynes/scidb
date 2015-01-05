@@ -1,0 +1,17 @@
+--setup
+
+--test
+--start-query-logging
+
+create array bounded <a:int64>[x=0:10,5,0]
+--error --hideQueryString "load(bounded,'${TEST_DATA_DIR}/unbounded_empty.txt')"
+
+
+ 
+scan(bounded)  
+
+
+--stop-query-logging
+--cleanup
+
+remove(bounded)

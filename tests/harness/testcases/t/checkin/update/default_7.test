@@ -1,0 +1,32 @@
+--setup
+--start-query-logging
+create array A <a:int32 default 10, b:string default 'b_default'> [x=0:2,3,0,y=2:5,2,1]
+create array Ti <a:int32 default 10> [x=0:2,3,0,y=2:5,2,1]
+create array Ts <b:string default 'b_default'> [x=0:2,3,0,y=2:5,2,1]
+
+--test
+--aql select * into Ti from filter(build(Ti,x+y+3),x<>1)
+--aql select * into Ts from filter(build(Ts,'b_'+string(x+y+3)),x<>1)
+--aql select * into A from Ti,Ts
+
+--aql update A set a = a + 1
+--aql update A set a = a + 20
+--aql update A set a = a - 21
+--aql update A set a = 10
+--aql select a from A
+--aql select a + 0 from A
+--aql update A set a = a * 1
+--aql update A set a = a / 1
+--aql update A set a = a * 10
+--aql update A set a = a / 10
+--aql update A set a = a / 2
+--aql select * into Ti from filter(build(Ti,x+y+3),x<>1)
+--aql select * into Ts from filter(build(Ts,'b_'+string(x+y+3)),x<>1)
+--aql select * into A from Ti,Ts
+
+
+--cleanup
+remove(A)
+remove(Ti)
+remove(Ts)
+--stop-query-logging

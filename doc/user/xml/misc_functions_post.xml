@@ -1,0 +1,322 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="miscFunctions">
+  <refnamediv>
+    <refname>Miscellaneous functions</refname>
+
+    <refpurpose>SciDB functions that do not fit into any of the other
+    categories.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis><command>SELECT</command> <replaceable>expression1</replaceable> <command>FROM</command> <replaceable>array</replaceable> <command>WHERE</command> <replaceable>expression2</replaceable>;</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>These uncategorized functions perform useful tasks in SciDB.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="4">
+        <colspec colname="c1" colwidth="15*"/>
+
+        <colspec align="left" colname="c2" colwidth="35*"/>
+
+        <colspec colname="c3" colwidth="22*"/>
+
+        <colspec colname="cgen1" colwidth="10*"/>
+
+        <thead>
+          <row>
+            <entry>Function Name</entry>
+
+            <entry>Description</entry>
+
+            <entry>Syntax</entry>
+
+            <entry>Data Types</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>first_index</entry>
+
+            <entry><indexterm>
+                <primary>first_index</primary>
+              </indexterm>Returns the initial dimension value of the supplied
+            dimension. This function takes two arguments:<itemizedlist>
+                <listitem>
+                  <para>Array name as a string</para>
+                </listitem>
+
+                <listitem>
+                  <para>Dimension name as a string (optional if the array has
+                  only one dimension)</para>
+                </listitem>
+              </itemizedlist></entry>
+
+            <entry>first_index ('array')<para>or</para>first_index
+            ('array','dimension')</entry>
+
+            <entry>string</entry>
+          </row>
+
+          <row>
+            <entry>high</entry>
+
+            <entry><indexterm>
+                <primary>dimensions</primary>
+
+                <secondary>maximum value</secondary>
+              </indexterm>Returns the maximum dimension value where the cell
+            is non-empty. This function takes two arguments: <itemizedlist>
+                <listitem>
+                  <para>Array name as a string</para>
+                </listitem>
+
+                <listitem>
+                  <para>Dimension name as a string (optional if the array has
+                  only one dimension)</para>
+                </listitem>
+              </itemizedlist></entry>
+
+            <entry>high('array')<para>or</para>high('array','dimension')</entry>
+
+            <entry>string</entry>
+          </row>
+
+          <row>
+            <entry>instanceid</entry>
+
+            <entry><indexterm>
+                <primary>instances</primary>
+
+                <secondary>IDs</secondary>
+              </indexterm><indexterm>
+                <primary>instanceid</primary>
+              </indexterm>Returns the instance ID (int64) of the SciDB
+            instance invoked. Usually, SciDB arrays are spread across some or
+            all of the instances in the SciDB cluster. Thus, you can use the
+            instanceid function to determine where the chunks of an array are
+            stored.</entry>
+
+            <entry>instanceid()</entry>
+
+            <entry>None</entry>
+          </row>
+
+          <row>
+            <entry>last_index</entry>
+
+            <entry><indexterm>
+                <primary>last_index</primary>
+              </indexterm>Returns the final dimension value of the supplied
+            dimension. This function takes two arguments:<itemizedlist>
+                <listitem>
+                  <para>Array name as a string</para>
+                </listitem>
+
+                <listitem>
+                  <para>Dimension name as a string (optional if the array has
+                  only one dimension)</para>
+                </listitem>
+              </itemizedlist></entry>
+
+            <entry>last_index ('array')<para>or</para>last_index
+            ('array','dimension')</entry>
+
+            <entry>string</entry>
+          </row>
+
+          <row>
+            <entry>length</entry>
+
+            <entry>Returns the size of the supplied dimension. This function
+            takes two arguments:<itemizedlist>
+                <listitem>
+                  <para>Array name as a string, and optionally,</para>
+                </listitem>
+
+                <listitem>
+                  <para>Dimension name as a string (optional if the array has
+                  only one dimension)</para>
+                </listitem>
+              </itemizedlist><para><indexterm>
+                <primary>dimensions</primary>
+
+                <secondary>size used in calculations</secondary>
+              </indexterm>Since <literal>length</literal> is a function, it
+            can be used with the <literal>apply</literal> operator in
+            calculations where the size of the dimension is
+            needed.</para></entry>
+
+            <entry>length('array')<para>or</para>length('array','dimension')</entry>
+
+            <entry>string</entry>
+          </row>
+
+          <row>
+            <entry>low</entry>
+
+            <entry><indexterm>
+                <primary>dimensions</primary>
+
+                <secondary>minimum value</secondary>
+              </indexterm>Returns the minimum dimension value where the cell
+            is non-empty. This function takes two arguments: <itemizedlist>
+                <listitem>
+                  <para>Array name as a string</para>
+                </listitem>
+
+                <listitem>
+                  <para>Dimension name as a string (optional if the array has
+                  only one dimension)</para>
+                </listitem>
+              </itemizedlist></entry>
+
+            <entry>low('array')<para>or</para>low('array','dimension')</entry>
+
+            <entry>string</entry>
+          </row>
+
+          <row>
+            <entry>missing</entry>
+
+            <entry><indexterm>
+                <primary>missing function</primary>
+              </indexterm>Returns the missing reason code from an integer
+            array.</entry>
+
+            <entry>missing(scalar integer)</entry>
+
+            <entry>int32</entry>
+          </row>
+
+          <row>
+            <entry>missing_reason</entry>
+
+            <entry><indexterm>
+                <primary>missing_reason function</primary>
+              </indexterm>Returns the missing reason code for array
+            data.</entry>
+
+            <entry>missing_reason(mr_code)</entry>
+
+            <entry>all datatypes</entry>
+          </row>
+
+          <row>
+            <entry>regex</entry>
+
+            <entry><indexterm>
+                <primary>wildcards</primary>
+              </indexterm><indexterm>
+                <primary>regex</primary>
+              </indexterm><indexterm>
+                <primary>regular expressions</primary>
+              </indexterm>Regular expression matching function. Uses the
+            standard regular expression language from the <emphasis role="bold">boost</emphasis> library. Returns a boolean.</entry>
+
+            <entry>regex('expr1','expr2')</entry>
+
+            <entry>string</entry>
+          </row>
+
+          <row>
+            <entry>strlen</entry>
+
+            <entry>Returns the string length as an int32.</entry>
+
+            <entry>strlen(string)</entry>
+
+            <entry>string</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>These examples illustrate the miscellaneous functions.</para>
+    </informalexample>
+
+    <informalexample>
+      <para><indexterm>
+          <primary>strings</primary>
+
+          <secondary>length function</secondary>
+        </indexterm>Use the <literal>strlen</literal> function to return the
+      lengths of strings in an array.</para>
+
+      <procedure>
+        <step>
+          <para>Assume we have the following array, Names:<para><programlisting>AFL% show(Names)</programlisting><screen><command>Names</command>
+
+&lt; firstnames:string,
+lastnames:string &gt;
+
+[i=0:2,3,0,
+j=0:1,2,0]</screen><programlisting>AFL% scan(Names);  </programlisting><screen>[
+[('Bill','Clinton'),('Anne','Rice')],
+[('Joe','Pantoliano'),('Steve','Jobs')],
+[('Burt','Reynolds'),('Ronald','Reagan')]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>We can select the cells where the first name and last name
+          contain the same number of characters.</para>
+
+          <para><programlisting>AFL% filter(apply(Names,first,strlen(firstnames),
+        last,strlen(lastnames)),first=last);  </programlisting><screen>{i,j} firstnames,lastnames,first,last
+{0,1} 'Anne','Rice',4,4
+{2,1} 'Ronald','Reagan',6,6
+</screen></para></step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para><indexterm>
+          <primary>filter</primary>
+
+          <secondary>on strings</secondary>
+        </indexterm>Use the <literal>regex</literal> function to filter a list
+      of strings, based on a regular expression.</para>
+
+      <procedure>
+        <step>
+          <para>Store the list of functions in an array.<para><programlisting>AFL% store(list('functions'),SciDB_functions);  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>We use a regular expression to return all the elements that
+          contains the string, 'datetimetz'.</para>
+
+          <para><programlisting>AFL% filter(project(SciDB_functions,name,profile),
+      regex(profile,'(.*)datetimetz(.*)'));  </programlisting><screen>name,profile
+'&lt;','bool &lt;(datetimetz,datetimetz)'
+'&lt;=','bool &lt;=(datetimetz,datetimetz)'
+'&lt;&gt;','bool &lt;&gt;(datetimetz,datetimetz)'
+'=','bool =(datetimetz,datetimetz)'
+'&gt;','bool &gt;(datetimetz,datetimetz)'
+'&gt;=','bool &gt;=(datetimetz,datetimetz)'
+'append_offset','datetimetz append_offset(datetime,int64)'
+'apply_offset','datetimetz apply_offset(datetime,int64)'
+'day_of_week','uint8 day_of_week(datetimetz)'
+'get_offset','int64 get_offset(datetimetz)'
+'hour_of_day','uint8 hour_of_day(datetimetz)'
+'strip_offset','datetime strip_offset(datetimetz)'
+'togmt','datetime togmt(datetimetz)'
+'tznow','datetimetz tznow()'
+</screen></para></step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

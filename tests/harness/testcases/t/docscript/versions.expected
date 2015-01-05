@@ -1,0 +1,17 @@
+SCIDB QUERY : <CREATE ARRAY m1 <val:double>[i=0:9,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(m1,1),m1)>
+[(1),(1),(1),(1),(1),(1),(1),(1),(1),(1)]
+
+SCIDB QUERY : <store(build(m1,100),m1)>
+[(100),(100),(100),(100),(100),(100),(100),(100),(100),(100)]
+
+SCIDB QUERY : <versions(m1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(m1@1)>
+[(1),(1),(1),(1),(1),(1),(1),(1),(1),(1)]
+
+Query was executed successfully
+

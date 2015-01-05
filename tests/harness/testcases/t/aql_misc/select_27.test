@@ -1,0 +1,28 @@
+# ticket no. 1388
+
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:2,3,0]
+--aql select * into A from build(A,x+10)
+--aql create array B <a:string, b:int64> [x=0:2,3,0,y=-1:3,2,1]
+
+--test
+--aql select x,a from A
+--aql select a,x from A
+--aql select a,x,a from A
+--aql select x,a,x from A
+--aql select x,x,a from A
+--aql select a,a,x,a from A
+
+--aql select * into B from build(<a:string>[x=0:2,3,0,y=-1:3,2,1],string(x)+'_'+string(y)),build(<b:int64>[x=0:2,3,0,y=-1:3,2,1],x+y)
+--aql select a,b from B
+--aql select b,a,b from B
+--aql select x,y from B
+--aql select y,x from B
+--aql select b,a,x,y,x from B
+
+--cleanup
+remove(A)
+remove(B)
+--stop-query-logging
+

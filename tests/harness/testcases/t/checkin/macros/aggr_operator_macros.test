@@ -1,0 +1,99 @@
+--setup
+create array A < a1 : int32, a2 : int32 NULL > [ I=0:9,5,0, J=0:9,5,0 ]
+create array B < a1 : int32, a2 : int32 NULL > [ I=0:9,5,0, J=0:9,5,0 ]
+store ( filter ( join ( build ( < a1 : int32 > [ I=0:9,5,0, J=0:9,5,0 ], I*9+J ), build ( < a2 : int32 NULL > [ I=0:9,5,0, J=0:9,5,0 ], iif(((I*9+J)%2=0),missing(0),(I*9+J)))), a1%5 != 0), A)
+store ( A, B )
+#
+#  Basic tests to:
+#
+#    1. Establish that the operator is present in the system at start-up.
+#
+#    2. Check that each of the operator macros behaves correctly. To do this,
+#       I've created a data set that consists of two identical arrays, each
+#       of which has two non-identical attributes. Then the queries ensure
+#       that when we perform the aggregates we get the same answer when the
+#       same attributes are used, and different answers when different
+#       attributes are used.
+#
+#    3. To check that this works for sparse arrays, and null-able attributes,
+#       ensure that the data being used to run the tests is sparse and
+#       contains nulls.
+#
+#    4. Each operator macro test takes a small query to generate its input.
+#
+#    5. Test that the operator macros nest (in this case, just use one of the
+#       macro operators on the outside of each statement).
+#
+--test
+#
+# Basic count test(s) ...
+op_count ( filter ( join ( op_count ( A ) AS FIRST, op_count( B ) AS SECOND ), FIRST.count <> SECOND.count))
+op_count ( filter ( join ( op_count ( A ) AS FIRST, op_count( B ) AS SECOND ), FIRST.count = SECOND.count))
+
+#
+# Basic sum test(s) ...
+op_count ( filter ( join ( op_sum ( A, a1 ) AS FIRST, op_sum( B, a1 ) AS SECOND ), FIRST.a1_sum <> SECOND.a1_sum))
+op_count ( filter ( join ( op_sum ( A, a1 ) AS FIRST, op_sum( B, a1 ) AS SECOND ), FIRST.a1_sum = SECOND.a1_sum))
+#
+# More sum tests ... null in a2 makes the sum(...) different.
+op_count ( filter ( join ( op_sum ( A, a1 ) AS FIRST, op_sum( B, a2 ) AS SECOND ), FIRST.a1_sum <> SECOND.a2_sum))
+op_count ( filter ( join ( op_sum ( A, a1 ) AS FIRST, op_sum( B, a2 ) AS SECOND ), FIRST.a1_sum = SECOND.a2_sum))
+
+#
+# Basic avg test(s) ...
+op_count ( filter ( join ( op_avg ( A, a1 ) AS FIRST, op_avg( B, a1 ) AS SECOND ), FIRST.a1_avg <> SECOND.a1_avg))
+op_count ( filter ( join ( op_avg ( A, a1 ) AS FIRST, op_avg( B, a1 ) AS SECOND ), FIRST.a1_avg = SECOND.a1_avg))
+#
+# More avg tests ... null in a2 makes the avg(...) different.
+op_count ( filter ( join ( op_avg ( A, a1 ) AS FIRST, op_avg( B, a2 ) AS SECOND ), FIRST.a1_avg <> SECOND.a2_avg))
+op_count ( filter ( join ( op_avg ( A, a1 ) AS FIRST, op_avg( B, a2 ) AS SECOND ), FIRST.a1_avg = SECOND.a2_avg))
+
+#
+# Basic stdev test(s) ...
+op_count ( filter ( join ( op_stdev ( A, a1 ) AS FIRST, op_stdev( B, a1 ) AS SECOND ), FIRST.a1_stdev <> SECOND.a1_stdev))
+op_count ( filter ( join ( op_stdev ( A, a1 ) AS FIRST, op_stdev( B, a1 ) AS SECOND ), FIRST.a1_stdev = SECOND.a1_stdev))
+#
+# More stdev tests ... null in a2 makes the stdev(...) different.
+op_count ( filter ( join ( op_stdev ( A, a1 ) AS FIRST, op_stdev( B, a2 ) AS SECOND ), FIRST.a1_stdev <> SECOND.a2_stdev))
+op_count ( filter ( join ( op_stdev ( A, a1 ) AS FIRST, op_stdev( B, a2 ) AS SECOND ), FIRST.a1_stdev = SECOND.a2_stdev))
+
+#
+# Basic min test(s) ...
+op_count ( filter ( join ( op_min ( A, a1 ) AS FIRST, op_min( B, a1 ) AS SECOND ), FIRST.a1_min <> SECOND.a1_min))
+op_count ( filter ( join ( op_min ( A, a1 ) AS FIRST, op_min( B, a1 ) AS SECOND ), FIRST.a1_min = SECOND.a1_min))
+#
+# More min tests ... null in a2 makes the min(...) different.
+op_count ( filter ( join ( op_min ( A, a1 ) AS FIRST, op_min( B, a2 ) AS SECOND ), FIRST.a1_min <> SECOND.a2_min))
+op_count ( filter ( join ( op_min ( A, a1 ) AS FIRST, op_min( B, a2 ) AS SECOND ), FIRST.a1_min = SECOND.a2_min))
+
+#
+# Basic max test(s) ...
+op_count ( filter ( join ( op_max ( A, a1 ) AS FIRST, op_max( B, a1 ) AS SECOND ), FIRST.a1_max <> SECOND.a1_max))
+op_count ( filter ( join ( op_max ( A, a1 ) AS FIRST, op_max( B, a1 ) AS SECOND ), FIRST.a1_max = SECOND.a1_max))
+#
+# More max tests ... null in a2 makes the max(...) different.
+op_count ( filter ( join ( op_max ( A, a1 ) AS FIRST, op_max( B, a2 ) AS SECOND ), FIRST.a1_max <> SECOND.a2_max))
+op_count ( filter ( join ( op_max ( A, a1 ) AS FIRST, op_max( B, a2 ) AS SECOND ), FIRST.a1_max = SECOND.a2_max))
+
+#
+# Basic range test(s) ...
+op_count ( filter ( join ( op_range ( A, a1 ) AS FIRST, op_range( B, a1 ) AS SECOND ), FIRST.min <> SECOND.min OR FIRST.max <> SECOND.max OR FIRST.range <> SECOND.range ))
+op_count ( filter ( join ( op_range ( A, a1 ) AS FIRST, op_range( B, a1 ) AS SECOND ), FIRST.min = SECOND.min AND FIRST.max = SECOND.max AND FIRST.range = SECOND.range))
+#
+# More range tests ... null in a2 makes the range(...) different.
+op_count ( filter ( join ( op_range ( A, a1 ) AS FIRST, op_range( B, a2 ) AS SECOND ), FIRST.min <> SECOND.min OR FIRST.max <> SECOND.max OR FIRST.range <> SECOND.range))
+op_count ( filter ( join ( op_range ( A, a1 ) AS FIRST, op_range( B, a2 ) AS SECOND ), FIRST.min = SECOND.min AND FIRST.max = SECOND.max AND FIRST.range = SECOND.range))
+
+#
+# Basic op_distinct_count() tests ...
+op_count ( filter ( join ( op_distinct_count ( A, a1 ) AS FIRST, op_distinct_count( B, a1 ) AS SECOND ), FIRST.count <> SECOND.count))
+op_count ( filter ( join ( op_distinct_count ( A, a1 ) AS FIRST, op_distinct_count( B, a1 ) AS SECOND ), FIRST.count = SECOND.count))
+
+#
+# More op_distinct_count() tests ... null in a2 makes the count differ.
+op_count ( filter ( join ( op_distinct_count ( A, a1 ) AS FIRST, op_distinct_count( B, a2 ) AS SECOND ), FIRST.count <> SECOND.count))
+op_count ( filter ( join ( op_distinct_count ( A, a1 ) AS FIRST, op_distinct_count( B, a2 ) AS SECOND ), FIRST.count = SECOND.count))
+
+--cleanup
+remove(A)
+remove(B)

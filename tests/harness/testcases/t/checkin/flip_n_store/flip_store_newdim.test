@@ -1,0 +1,29 @@
+--setup
+--start-query-logging
+create array TS <timestamp:datetime, userID:int64, resourceID:int64>[i=1:*,5,0]
+create array TS_1 <userID:int64, resourceID:int64>[timestamp(datetime)=*,5,0, eventID=1:1000,1000,0]
+create array TS_2 <userID:int64 null, resourceID:int64 null>[timestamp(datetime)=*,5,0]
+create array TS_3 <i:int64>[timestamp(datetime)=*,5,0, userID=1:*,5,0, resourceID=1:*,5,0, eventID=1:1000,1000,0]
+create array TS_4 <i:int64>[timestamp(datetime)=*,5,0, userID=1:*,5,0, resourceID=1:*,5,0]
+load(TS,'${TEST_DATA_DIR}/redimension_ts.txt')
+
+--igdata "store(redimension(TS, TS_1), TS_1)"
+--igdata "store(redimension(TS, TS_2, max(userID) as userID, max(resourceID) as resourceID), TS_2)"
+--igdata "store(redimension(TS, TS_3), TS_3)"
+--igdata "store(redimension(TS, TS_4), TS_4)"
+
+--test
+aggregate(TS,count(*))
+aggregate(TS_1,count(*))
+aggregate(TS_2,count(*))
+aggregate(TS_3,count(*))
+aggregate(TS_4,count(*))
+
+
+--cleanup
+remove(TS)
+remove(TS_1)
+remove(TS_2)
+remove(TS_3)
+remove(TS_4)
+--stop-query-logging

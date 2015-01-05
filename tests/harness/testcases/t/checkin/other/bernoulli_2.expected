@@ -1,0 +1,52 @@
+Query was executed successfully
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[(1000000)]
+
+[(1000000)]
+
+verify results for unique seed value
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[(0)]
+
+test if bernoullis actually have different output
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[()]
+
+range should be 1000 +/- 999  (1-1999)
+[()]
+
+[()]
+
+size of join should be much smaller
+[()]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

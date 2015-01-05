@@ -1,0 +1,268 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{X} a
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+
+{X} b
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+
+{X} c
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+
+{X} d
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+
+{X} a,b
+{0} 1,1
+{1} 2,2
+{2} 3,3
+{3} 4,4
+{4} 5,5
+{5} 6,6
+{6} 7,7
+{7} 8,8
+{8} 9,9
+{9} 10,10
+
+{X} a,b,c
+{0} 1,1,1
+{1} 2,2,2
+{2} 3,3,3
+{3} 4,4,4
+{4} 5,5,5
+{5} 6,6,6
+{6} 7,7,7
+{7} 8,8,8
+{8} 9,9,9
+{9} 10,10,10
+
+{X} a,b,c,d
+{0} 1,1,1,1
+{1} 2,2,2,2
+{2} 3,3,3,3
+{3} 4,4,4,4
+{4} 5,5,5,5
+{5} 6,6,6,6
+{6} 7,7,7,7
+{7} 8,8,8,8
+{8} 9,9,9,9
+{9} 10,10,10,10
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+{x} b
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+{x} c
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+{x} d
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+{x} a,b
+{0} 0,0
+{2} 1,1
+{4} 2,2
+{6} 3,3
+{8} 4,4
+{10} 5,5
+{12} 6,6
+{14} 7,7
+{16} 8,8
+{18} 9,9
+{20} 10,10
+{22} 11,11
+{24} 12,12
+{26} 13,13
+{28} 14,14
+{29} 15,15
+
+{x} a,b,c
+{0} 0,0,0
+{2} 1,1,1
+{4} 2,2,2
+{6} 3,3,3
+{8} 4,4,4
+{10} 5,5,5
+{12} 6,6,6
+{14} 7,7,7
+{16} 8,8,8
+{18} 9,9,9
+{20} 10,10,10
+{22} 11,11,11
+{24} 12,12,12
+{26} 13,13,13
+{28} 14,14,14
+{29} 15,15,15
+
+{x} a,b,c,d
+{0} 0,0,0,0
+{2} 1,1,1,1
+{4} 2,2,2,2
+{6} 3,3,3,3
+{8} 4,4,4,4
+{10} 5,5,5,5
+{12} 6,6,6,6
+{14} 7,7,7,7
+{16} 8,8,8,8
+{18} 9,9,9,9
+{20} 10,10,10,10
+{22} 11,11,11,11
+{24} 12,12,12,12
+{26} 13,13,13,13
+{28} 14,14,14,14
+{29} 15,15,15,15
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+[An error expected at this place for the query "consume(merge(Y3,X3),4,5)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT3. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT3.]
+
+[An error expected at this place for the query "consume(merge(Y3,X3),4.5)". And it failed with error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_IMPLICIT_CONVERTER. Expected error code = scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_IMPLICIT_CONVERTER.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

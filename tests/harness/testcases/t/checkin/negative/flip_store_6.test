@@ -1,0 +1,10 @@
+--setup
+create array A <a:int32> [x=0:2,3,0]
+
+--test
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "filter(build(A,null),1)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "store(filter(build(A,null),1),A)"
+scan(A)
+
+--cleanup
+remove(A)

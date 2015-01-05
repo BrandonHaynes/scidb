@@ -1,0 +1,4 @@
+sum(
+    filter(opt_dense_quad_small_1,val<>0)
+)
+   

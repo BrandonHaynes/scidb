@@ -1,0 +1,24 @@
+[52i386]
+name=PBONE RedHat EL 5 i386
+baseurl=http://yum.pbone.net/52/i386/
+gpgcheck=0
+proxy=http://proxy.pbone.net:3127/
+proxy_username=PBONE_USER_NAME
+proxy_password=PBONE_USER_PASSWORD
+enabled=0
+[52x86_64]
+name=PBONE RedHat EL 5 x86_64
+baseurl=http://yum.pbone.net/52/x86_64/
+gpgcheck=0
+proxy=http://proxy.pbone.net:3127/
+proxy_username=PBONE_USER_NAME
+proxy_password=PBONE_USER_PASSWORD
+enabled=0
+[52noarch]
+name=PBONE RedHat EL 5 noarch
+baseurl=http://yum.pbone.net/52/noarch/
+gpgcheck=0
+proxy=http://proxy.pbone.net:3127/
+proxy_username=PBONE_USER_NAME
+proxy_password=PBONE_USER_PASSWORD
+enabled=0

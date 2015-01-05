@@ -1,0 +1,31 @@
+--setup
+--start-query-logging
+#Ticket number : 1651 
+#Tests for the cross operator
+
+create array a1 <p:int64 NULL>[x=0:7,4,0]
+create array a4 <r:string NULL>[x=10:20,2,0]
+store(build(a1,3*x+1),a1)
+--aql update a1 set p=NULL where x>5
+store(build(a4,20*x+1),a4)
+--aql select * into a5 from  a4 where x<13 or x>15
+
+
+--test
+cross_join(a1,a4)
+scan(a1)
+scan(a4)
+scan(a5)
+cross_join(a1,regrid(a5,2,count(r)))
+# sum for the string type attribute is the concatenation of string ie "2" +(sum) "3" ="23"
+cross_join(a1,regrid(a5,2,sum(r)))
+cross_join(a1,subarray(a4,10,12))
+cross_join(a1,subarray(a5,10,12))
+cross_join(cross_join(a1,subarray(a5,10,12)),a1)
+
+--cleanup
+remove(a1)
+remove(a4)
+remove(a5)
+
+--stop-query-logging

@@ -1,0 +1,73 @@
+SCIDB QUERY : <create array event <event:string> [i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array year <year:int64 null>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array person <person:string>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array country <country:string null>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array time <time:double>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(event,iif(i<4,'dash',iif(i<8,'steeplechase','marathon'))),event)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(year,1996+(i%4 * 4)),year)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,Kemboi, Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,Kenya,Kenya, USA,Ethiopia,Italy,Kenya]',true),country)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),(503.17),(485.81), (490.34),(7956),(7811),(7855),(7596)]',true),time)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(event,join(person,join(year,join(country,time)))),winnersFlat)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(winnersFlat)>
+{i} event,person,year,country,time
+{0} 'dash','Bailey',1996,'Canada',9.84
+{1} 'dash','Greene',2000,'USA',9.87
+{2} 'dash','Gatlin',2004,'USA',9.85
+{3} 'dash','Bolt',2008,'Jamaica',9.69
+{4} 'steeplechase','Keter',1996,'Kenya',487.12
+{5} 'steeplechase','Kosgei',2000,'Kenya',503.17
+{6} 'steeplechase','Kemboi',2004,'Kenya',485.81
+{7} 'steeplechase','Kipruto',2008,'Kenya',490.34
+{8} 'marathon','Thugwane',1996,'USA',7956
+{9} 'marathon','Abera',2000,'Ethiopia',7811
+{10} 'marathon','Baldini',2004,'Italy',7855
+{11} 'marathon','Wanjiru',2008,'Kenya',7596
+
+SCIDB QUERY : <attributes(winnersFlat)>
+{No} name,type_id,nullable
+{0} 'event','string',false
+{1} 'person','string',false
+{2} 'year','int64',true
+{3} 'country','string',true
+{4} 'time','double',false
+
+SCIDB QUERY : <filter(attributes(winnersFlat),nullable=true)>
+{No} name,type_id,nullable
+{2} 'year','int64',true
+{3} 'country','string',true
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

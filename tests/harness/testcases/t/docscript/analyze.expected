@@ -1,0 +1,70 @@
+SCIDB QUERY : <create array event <event:string> [i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array year <year:int64>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array person <person:string>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array country <country:string>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array time <time:double>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(event,iif(i<4,'dash',iif(i<8,'steeplechase','marathon'))),event)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(year,1996+(i%4 * 4)),year)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,Kemboi,Kipruto, Thugwane,Abera,Baldini,Wanjiru]',true),person)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,Kenya,Kenya,USA, Ethiopia,Italy,Kenya]',true),country)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),(503.17),(485.81), (490.34),(7956),(7811),(7855),(7596)]',true),time)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(event,join(person,join(year,join(country,time)))),winnersFlat)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(winnersFlat)>
+{i} schema
+{0} 'winnersFlat<event:string,person:string,year:int64,country:string,time:double> [i=0:11,12,0]'
+
+SCIDB QUERY : <attributes(winnersFlat)>
+{No} name,type_id,nullable
+{0} 'event','string',false
+{1} 'person','string',false
+{2} 'year','int64',false
+{3} 'country','string',false
+{4} 'time','double',false
+
+SCIDB QUERY : <analyze(winnersFlat)>
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'event','dash','steeplechase',3,12
+{1} 'person','Abera','Wanjiru',12,12
+{2} 'year','1996','2008',4,12
+{3} 'country','Canada','USA',6,12
+{4} 'time','9.69','7956',12,12
+
+SCIDB QUERY : <analyze(winnersFlat,year,time)>
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'year','1996','2008',4,12
+{1} 'time','9.69','7956',12,12
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

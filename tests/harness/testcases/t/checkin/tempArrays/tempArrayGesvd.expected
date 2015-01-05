@@ -1,0 +1,55 @@
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array M8x8_default <val:double default 0.0> [x=0:*,32,0,y=0:*,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(M8x8_default,'[[{0,0}(1),{1,1}(2),{2,2}(3),{3,3}(4),{4,4}(5),{5,5}(6),{6,6}(7),{7,7}(8)]]',true),M8x8_default)>
+{x,y} val
+{0,0} 1
+{1,1} 2
+{2,2} 3
+{3,3} 4
+{4,4} 5
+{5,5} 6
+{6,6} 7
+{7,7} 8
+
+SCIDB QUERY : <gesvd(M8x8_default, 'values')>
+{i} sigma
+{0} 8
+{1} 7
+{2} 6
+{3} 5
+{4} 4
+{5} 3
+{6} 2
+{7} 1
+{8} 0
+{9} 0
+{10} 0
+{11} 0
+{12} 0
+{13} 0
+{14} 0
+{15} 0
+{16} 0
+{17} 0
+{18} 0
+{19} 0
+{20} 0
+{21} 0
+{22} 0
+{23} 0
+{24} 0
+{25} 0
+{26} 0
+{27} 0
+{28} 0
+{29} 0
+{30} 0
+{31} 0
+
+SCIDB QUERY : <remove(M8x8_default)>
+Query was executed successfully
+

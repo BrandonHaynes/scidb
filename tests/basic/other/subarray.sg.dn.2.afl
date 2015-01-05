@@ -1,0 +1,1 @@
+apply(join (subarray( sg( dense,4), 0,3,2,5), subarray(cast (sg(dense,3), <a2:double> [x=0:5,3,0,y=0:5,3,0]), 3,3,5,5) as dense2), sum, a+a2)

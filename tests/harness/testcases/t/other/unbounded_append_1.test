@@ -1,0 +1,25 @@
+--setup
+
+create array unbounded <a:int64>[x=0:*,5,0]
+load(unbounded,'${TEST_DATA_DIR}/unbounded.txt')
+
+--test
+
+store(input(unbounded,  '${TEST_DATA_DIR}/append.txt'), unbounded)
+store(input(unbounded,  '${TEST_DATA_DIR}/append2.txt'), unbounded)
+store(input(unbounded,  '${TEST_DATA_DIR}/append2.txt'), unbounded)
+store(input(unbounded,  '${TEST_DATA_DIR}/append2.txt'), unbounded)
+
+
+project(versions(unbounded), version_id)
+scan(unbounded)  
+
+merge(unbounded@1, unbounded@2)
+
+merge(merge(unbounded@1, unbounded@2), unbounded@3)
+
+merge(merge(merge(unbounded@1, unbounded@2), unbounded@3), unbounded@4)
+
+--cleanup
+
+remove(unbounded) 

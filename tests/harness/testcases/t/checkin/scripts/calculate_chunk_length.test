@@ -1,0 +1,10 @@
+--setup
+store(build(<i:int64>[j=0:100,10,0], j-40), arr3361)
+
+--test
+--start-query-logging
+--shell --command "${SCIDB_INSTALL_PATH}/bin/calculate_chunk_length.py arr3361 'i=?:?,?,?' -v"
+--stop-query-logging
+
+--cleanup
+remove(arr3361)

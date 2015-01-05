@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="inputOperator">
+  <refnamediv>
+    <refname>input</refname>
+
+    <refpurpose><indexterm>
+        <primary>input</primary>
+      </indexterm>Populate a temporary array with data read from a
+    file.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>input(<replaceable>existing_array</replaceable>|<replaceable>anonymous_schema</replaceable>,<replaceable>input_file, instance_id, format</replaceable><optional>,<optional><replaceable>max_errors, shadow_array</replaceable></optional></optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <code>input</code> operator interprets its arguments similarly
+    to the way the <code>load</code> operator does, but rather than storing
+    its result in the database it returns a temporary array.</para>
+
+    <para>The <code>input</code> operator takes the following
+    parameters:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>existing_array | anonymous_schema</emphasis>: You can
+        specify an existing array or provide an array schema for matching the
+        data in the file to be input.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>input_file</emphasis>: the complete path to the file
+        that contains the source data to be loaded.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>instance_id</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> Specifies the instance or instances
+        for performing the input. If pieces of the input file exist on several
+        nodes, you can perform the input in parallel.</para>
+
+        <para>The default is to load all data from the coordinator instance.
+        The value must be one of the following:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">-2</emphasis>: Load all data using the
+            coordinator instance of the query. This is the default.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">-1</emphasis>: Initiate the load from
+            all instances. That is, the load is distributed to all instances,
+            and the data is loaded concurrently.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">0</emphasis>, <emphasis
+            role="bold">1</emphasis>, ...: Load all data using the specified
+            instance ID.</para>
+          </listitem>
+        </itemizedlist>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>format</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> The default is to input data from a
+        SciDB-formatted text file. The format string depends on the type of
+        file that you are loading.<itemizedlist>
+            <listitem>
+              <para><emphasis role="bold">Binary load:</emphasis> If you are
+              loading binary data, the load <literal>operator</literal> uses
+              the format string as a guide for interpreting the contents of
+              the binary file.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">OPAQUE load:</emphasis> the string
+              must be <command>opaque</command> or <command>OPAQUE</command>;
+              you must have previously saved the array data in the OPAQUE
+              format.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">SciDB-formatted text
+              load:</emphasis> If your text file is in SciDB format, use the
+              string <command>text</command> or <command>TEXT</command>. This
+              is the default.</para>
+            </listitem>
+          </itemizedlist></para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>max_errors</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> Specifies the limit of errors before
+        the operator will fail. The default value is 0, meaning that if any
+        errors are encountered, the operation will fail.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>shadow_array</emphasis>: <emphasis
+        role="bold">Optional.</emphasis> Specifies a "shadow array"—SciDB
+        writes this array into the array name that you provide. This is a
+        mechanism by which you can keep track of errors while still loading
+        the error-free values. The schema of shadow array is the same as
+        output array, except that each attribute becomes a string data type.
+        The shadow array also contains an additional attribute: <emphasis
+        role="bold">row_offset</emphasis>. The row_offset attribute contains a
+        position in the file where an error was detected.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example reads a SciDB-formatted file from the examples
+      directory.<programlisting language="test">--afl create array m4x4 &lt;val1:int32, val2:int32&gt;[i=0:3,4,0, j=0:3,4,0]; --show-output=no
+--afl input(m4x4,'../tests/harness/testcases/data/doc/m4x4_missing.txt'); --output-format=dense --chunkify=yes</programlisting></para>
+
+      <para>But note that the m4x4 array is empty—the data was not stored
+      during the execution of the <literal>input</literal>
+      operation.<programlisting language="test">--afl scan(m4x4); --output-format=dense</programlisting></para>
+    </informalexample>
+  </refsect1>
+</refentry>

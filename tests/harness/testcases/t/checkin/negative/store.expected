@@ -1,0 +1,12 @@
+Query was executed successfully
+
+[An error expected at this place for the query "store(filter(build(A,'test'),1),B)". And it failed with error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING.]
+
+[An error expected at this place for the query "scan(B)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+[An error expected at this place for the query "store(build(A,'test'),C)". And it failed with error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING.]
+
+[An error expected at this place for the query "scan(C)". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+Query was executed successfully
+

@@ -1,0 +1,10 @@
+--setup
+
+create array join1 <a:int64,b:string> [i=0:6,3,0, j=0:1,1,0]
+load(join1,'${TEST_DATA_DIR}/join1.txt')
+
+--test
+--aql select * from join1 as J1 cross join join1 as J2 where J1.b = J2.b
+
+--cleanup
+remove(join1)

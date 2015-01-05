@@ -1,0 +1,46 @@
+--setup
+load_library('point')
+create array A <a:int32>[x=0:2,3,0]
+create array B <b:point>[x=0:2,3,0]
+
+--test
+
+attributes(B)
+
+store(build(A,x+1),A)
+
+apply(A,b,point2str(str2point('(1,1)')))
+
+project(apply(build(B,str2point('(1,1)')),c,point2str(b)),c)
+
+project(apply(build(B,str2point('(1,1)')+str2point('(1,2)')),c,point2str(b)),c)
+
+project(apply(build(B,str2point('(1,1)')+str2point('(-1,-2)')),c,point2str(b)),c)
+
+project(apply(build(B,str2point('(1,1)')+str2point('(-1,2)')),c,point2str(b)),c)
+
+project(apply(build(B,str2point('(-1,1)')+str2point('(-1,2)')),c,point2str(b)),c)
+
+project(apply(build(B,str2point('(-1,-1)')+str2point('(-1,2)')),c,point2str(b)),c)
+
+project(apply(build(B,str2point('(1,1)')+str2point('(1,2)')),c,point2str(b)),c)
+
+project(apply(store(build(B,str2point('(1,1)')),B),c,point2str(b)),c)
+
+--aql select point2str(b) from B
+
+--aql select point2str(b)+' test' from B
+
+--aql select point2str(b+b+b+b+b) from B
+
+--aql select point2str(b+str2point('(9,9)')) from B
+
+--aql select point2str(b) from B where x<1
+
+--aql select point2str(b) from B where point2str(b)='(1,1)'
+
+
+
+--cleanup
+remove(A)
+remove(B)

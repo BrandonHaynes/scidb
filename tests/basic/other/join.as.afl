@@ -1,0 +1,1 @@
+filter(join(vec as V1, vec as V2), V1.a > V2.b)

@@ -1,0 +1,178 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="loadOperator">
+  <refnamediv>
+    <refname>load</refname>
+
+    <refpurpose>Load data to an array from a file.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>load(<replaceable> output_array</replaceable>, <replaceable>input_file</replaceable>
+             <optional>, <replaceable>instance_id</replaceable>,<replaceable> format</replaceable>, <replaceable>max_errors</replaceable>, <replaceable>shadow_array</replaceable></optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>load operator</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>load from file</secondary>
+      </indexterm>The AFL load operator loads data from
+    <replaceable>input_file</replaceable> into the cells of a SciDB array,
+    <replaceable>output_array</replaceable>.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The load operator takes the following arguments:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>output_array</emphasis>: the name of a SciDB array to
+        hold the data.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>input_file</emphasis>: the complete path to the file
+        that contains the source data for the array.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>instance_id</emphasis>: <emphasis role="bold">Optional.</emphasis> Specifies the instance or instances
+        for performing the load. The default is to load all data from the
+        coordinator instance. The value must be one of the following:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">-2</emphasis>: Load all data using the
+            coordinator instance of the query. This is the default.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">-1</emphasis>: Initiate the load from
+            all instances. That is, the load is distributed to all instances,
+            and the data is loaded concurrently.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">0</emphasis>, <emphasis role="bold">1</emphasis>, ...: Load all data using the specified
+            instance ID.</para>
+          </listitem>
+        </itemizedlist>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>format</emphasis>: <emphasis role="bold">Optional.</emphasis> The default is to load data from a
+        SciDB-formatted text file. The format string depends on the type of
+        file that you are loading.<itemizedlist>
+            <listitem>
+              <para><emphasis role="bold">Binary load:</emphasis> If you are
+              loading binary data, the load <literal>operator</literal> uses
+              the format string as a guide for interpreting the contents of
+              the binary file.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">OPAQUE load:</emphasis> the string
+              must be <command>opaque</command> or <command>OPAQUE</command>;
+              you must have previously saved the array data in the OPAQUE
+              format.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">SciDB-formatted text
+              load:</emphasis> If your text file is in SciDB format, use the
+              string <command>text</command> or <command>TEXT</command>. This
+              is the default.</para>
+            </listitem>
+          </itemizedlist></para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>max_errors</emphasis>: <emphasis role="bold">Optional.</emphasis> Specifies the limit of errors before
+        the operator will fail. The default value is 0, meaning that if any
+        errors are encountered, the operation will fail.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>shadow_array</emphasis>: <emphasis role="bold">Optional.</emphasis> Specifies a "shadow array"—SciDB
+        writes this array into the array name that you provide. This is a
+        mechanism by which you can keep track of errors while still loading
+        the error-free values. The schema of the shadow array is the same as
+        output array, except that each attribute becomes a string data type.
+        The shadow array also contains an additional attribute: <emphasis role="bold">row_offset</emphasis>. The row_offset attribute contains a
+        position in the file where an error was detected.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example loads data from a binary file.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array to hold the array data: <para><programlisting>AFL% CREATE ARRAY intensityFlat
+   &lt; exposure:string, elapsedTime:int64,
+   measuredIntensity:int64 null &gt; [i=0:*,5,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Load the data, specifying a maximum of 99 errors, and saving
+          information to a shadow array: <para><programlisting>AFL% load(intensityFlat,'../tests/harness/testcases/data/doc/intensity_data.bin',-2,
+   '(string, int64, int64 null)',99,shadowArray);  </programlisting><screen>{i} exposure,elapsedTime,measuredIntensity
+{0} 'High',0,100
+{1} 'High',1,100
+{2} 'High',2,99
+{3} 'High',3,99
+{4} 'High',4,98
+{5} 'High',5,97
+{6} 'High',6,null
+{7} 'High',7,null
+{8} 'Medium',0,100
+{9} 'Medium',1,95
+{10} 'Medium',2,89
+{11} 'Medium',3,null
+{12} 'Medium',4,null
+{13} 'Medium',5,80
+{14} 'Medium',6,78
+{15} 'Medium',7,77
+{16} 'Low',0,100
+{17} 'Low',1,85
+{18} 'Low',2,71
+{19} 'Low',3,60
+{20} 'Low',4,50
+{21} 'Low',5,41
+{22} 'Low',6,35
+{23} 'Low',7,29
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Now, let's see what happens if the measuredIntensity attribute
+          does not allow nulls: <para><programlisting>AFL% remove(intensityFlat);  </programlisting><programlisting>AFL% CREATE ARRAY intensityFlat
+&lt; exposure:string, elapsedTime:int64, measuredIntensity:int64 &gt;
+[i=0:*,5,0];  </programlisting><programlisting>AFL% load(intensityFlat,'../tests/harness/testcases/data/doc/intensity_data.bin',-2,
+   '(string, int64, int64)',99,shadowArray);  </programlisting><screen>{i} exposure,elapsedTime,measuredIntensity
+{0} 'High',0,25855
+{1} '',0,0
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>View the data in shadowArray to get details on why the file
+          did not load correctly: <para><programlisting>AFL% scan(shadowArray)  </programlisting><screen>{i} exposure,elapsedTime,measuredIntensity,row_offset
+{1} 'Failed to read file: 0','Failed to read file: 0','Failed to read file: 0',25
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

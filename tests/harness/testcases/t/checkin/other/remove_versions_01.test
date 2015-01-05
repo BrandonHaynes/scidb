@@ -1,0 +1,23 @@
+# ticket no. 3719
+
+--setup
+
+create array foo <a:int32> [I=0:50000,1000,0]
+
+--igdata "store(build(foo,1),foo)"
+--igdata "store(build(foo,2),foo)"
+--igdata "store(build(foo,3),foo)"
+--igdata "store(build(foo,4),foo)"
+
+
+--test
+remove_versions(foo, 3)
+aggregate(filter(foo, a = 4), count(a))
+aggregate(filter(foo, a = 3), count(a))
+aggregate(filter(foo@3, a = 3), count(a))
+--error --code=scidb::SCIDB_SE_SYSCAT::SCIDB_LE_ARRAY_DOESNT_EXIST "aggregate(filter(foo@2, a = 2), count(a))"
+--error --code=scidb::SCIDB_SE_SYSCAT::SCIDB_LE_ARRAY_DOESNT_EXIST "aggregate(filter(foo@1, a = 1), count(a))"
+
+--cleanup
+
+remove (foo)

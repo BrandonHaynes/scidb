@@ -1,0 +1,151 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+store(build(<device_id:int64>[i=1:25,5,0],(i-1)%5),devices)  
+store(build(<probe_id:int64>[i=1:25,5,0],(i-1)/5),probes)  
+store(build(<val:double>[i=1:25,5,0],' [(0.01),(2.04),(6.09),(12.16),(20.25), (30.36),(42.49),(56.64),(72.81),(91), (111.21),(133.44),(157.69),(183.96),(212.25), (242.56),(274.89),(309.24),(345.61),(384), (424.41),(466.84),(511.29),(557.76),(606.25)]', true),values)  
+--stop-igdata
+store(join(devices,(join(probes,values))),device_probe)  
+--start-igdata
+create array two_dim<val:double>[device_id=0:4,5,0, probe_id=0:4,5,0]  
+--set-format dense
+--stop-igdata
+store(redimension(device_probe, two_dim),two_dim)  
+--aql SELECT val FROM two_dim WHERE device_id=2 and probe_id=3  
+--set-format dcsv
+--start-igdata
+store(build(<val1:int64>[i=0:9,10,0],i/5),first)  
+store(build(<val2:int64 null>[i=0:9,10,0],iif(i!=5,i%5,null)),second)  
+store(build(<val3:double>[i=0:9,10,0], '[(1),(0.540302), (-0.416147),(-0.989992),(-0.653644),(0.7),(0.841471),(0.909297), (0.14112),(-0.756802)]',true),third)  
+--stop-igdata
+store(join(first,join(second,third)),redim_missing)  
+--start-igdata
+CREATE ARRAY redim_target <val3:double> [val1=0:2,2,0, val2=0:5,5,0]  
+--set-format dense
+--stop-igdata
+store(redimension(redim_missing,redim_target),redim_target)  
+--set-format dcsv
+--start-igdata
+CREATE ARRAY m4x4 <val:double>[i=0:3,4,0,j=0:3,4,0]  
+store(build(m4x4,i*4+j),m4x4)  
+--set-format dense
+--stop-igdata
+scan(m4x4)  
+--set-format dcsv
+show(m4x4)
+--start-igdata
+CREATE ARRAY m3x3 < val:double >[i=0:2,3,0,j=0:2,3,0]  
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(m3x3, '${TEST_DATA_DIR}/doc/m3x3.txt')""
+--set-format dense
+--stop-igdata
+--aql SELECT * INTO m1 FROM unpack(m3x3,k)  
+--set-format dcsv
+show(m1)
+show(m3x3)
+--set-format dense
+--aql SELECT * FROM m3x3  
+--aql SELECT * FROM reverse(m3x3)  
+--set-format dcsv
+show(m4x4)
+--set-format dense
+scan(m4x4)  
+--aql SELECT * FROM subarray(m4x4, 2, 2, 3, 4)  
+--set-format dcsv
+--start-igdata
+CREATE ARRAY m3x3x3 < val: double >[i=0:2,3,0,j=0:2,3,0,k=0:2,3,0]  
+--stop-igdata
+show(m3x3x3)
+--set-format dense
+--start-igdata
+store(build(m3x3x3, i+j+k), m3x3x3)  
+--stop-igdata
+scan(m3x3x3)  
+slice(m3x3x3,k,1)  
+--set-format dcsv
+show(m4x4)
+--set-format dense
+scan(m4x4)  
+thin(m4x4, 0, 2, 0, 2)  
+--set-format dcsv
+--start-igdata
+create array square_array <val:int64>[i=0:15,16,0,j=0:15,16,0]  
+store(build(square_array,i*16+j),square_array)  
+--set-format dense
+--stop-igdata
+subarray(square_array,5,5,8,8)  
+slice(square_array,j,5)  
+slice(square_array,i,9)  
+thin(square_array,0,4,0,8)  
+thin(square_array,0,8,0,2)  
+thin(square_array,2,8,1,2)  
+--aql SELECT * INTO m3x3_new FROM attribute_rename(m3x3,val,val2)  
+--set-format dcsv
+show(m3x3_new)
+--set-format dense
+--aql SELECT * INTO m3x3_new_attr FROM apply(m3x3,val2,val+10,val3,pow(val,2))  
+--set-format dcsv
+show(m3x3_new_attr)
+--set-format dense
+--aql SELECT val2, val3 FROM m3x3_new_attr  
+--set-format dcsv
+--start-igdata
+create array chunks<val1:double,val2:double>[i=0:999,100,0,j=0:999,100,0]  
+--set-format dense
+--stop-igdata
+show(chunks)  
+--set-format dcsv
+--start-igdata
+--aql SELECT * INTO chunks_part FROM repart(chunks,<val1:double,val2:double> [i=0:999,10,0,j=0:999,1000,0])  
+--set-format dense
+--stop-igdata
+show(chunks_part)  
+--set-format dcsv
+--start-igdata
+--aql SELECT * INTO chunks_overlap FROM repart(chunks,<val1:double,val2:double> [i=0:999,100,10,j=0:999,100,10])  
+store(two_dim, Dsp)  
+--stop-igdata
+scan(Dsp) 
+show(Dsp)
+--aql SELECT * INTO Dsp_slice_0 FROM slice(Dsp, device_id, 0)  
+--aql SELECT * INTO Dsp_slice_1 FROM slice(Dsp, device_id, 1)  
+--aql SELECT * INTO Dsp_slice_2 FROM slice(Dsp, device_id, 2)  
+show(Dsp_slice_2)
+--aql SELECT * INTO Dsp_1d FROM concat(Dsp_slice_0, Dsp_slice_2)  
+show(Dsp_1d)
+--aql SELECT * into Dsp_new FROM concat(adddim(Dsp_slice_0, d), adddim(Dsp_slice_2, d))  
+show(Dsp_new)
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(devices)
+remove(probes)
+remove(values)
+remove(device_probe)
+remove(two_dim)
+remove(first)
+remove(second)
+remove(third)
+remove(redim_missing)
+remove(redim_target)
+remove(m4x4)
+remove(m3x3)
+remove(m1)
+remove(m3x3x3)
+remove(square_array)
+remove(m3x3_new)
+remove(m3x3_new_attr)
+remove(chunks)
+remove(chunks_part)
+remove(chunks_overlap)
+remove(Dsp)
+remove(Dsp_slice_0)
+remove(Dsp_slice_1)
+remove(Dsp_slice_2)
+remove(Dsp_1d)
+remove(Dsp_new)

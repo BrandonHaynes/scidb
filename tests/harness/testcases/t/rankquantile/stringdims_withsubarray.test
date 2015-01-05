@@ -1,0 +1,49 @@
+--setup
+--start-query-logging
+
+CREATE ARRAY expo < ID : string, num: string, AffyId : string, response : double > [ Offset=0:*, 20, 0]
+create array md_expo <response: double> [ID(string)=*,10,0, AffyId(string)=*,10,0]
+
+--test 
+
+load(expo, '${TEST_DATA_DIR}/stringdims_withsubarray.txt')
+
+--set-format csv+
+store(redimension(expo, md_expo), md_expo)
+
+avg_rank(md_expo)
+avg_rank(md_expo, response)
+avg_rank(md_expo, response, ID)
+avg_rank(md_expo, response, AffyId)
+avg_rank(md_expo, response, AffyId, ID)
+
+rank(md_expo)
+rank(md_expo, response)
+rank(md_expo, response, ID)
+rank(md_expo, response, AffyId)
+rank(md_expo, response, AffyId, ID)
+
+quantile(md_expo, 1)
+quantile(md_expo, 1, response)
+quantile(md_expo, 1, response, ID)
+quantile(md_expo, 1, response, AffyId)
+
+store(quantile(md_expo, 9, response), md_expo_quant)
+
+store(subarray(quantile(md_expo, 9, response, ID), null, 0, 'GSM325815', 9), md_expo_quant_ID)
+
+store(quantile(subarray(md_expo, null, null, 'GSM325815', null), 9, response, ID), md_expo_quant2_ID)
+
+store(subarray(quantile(md_expo, 9, response, AffyId), '202188_at', 0, '243427_s_at', 9), md_expo_quant_AffyId)
+--reset-format
+
+--cleanup
+
+remove(expo)
+remove(md_expo)
+remove(md_expo_quant_AffyId)
+remove(md_expo_quant2_ID)
+remove(md_expo_quant_ID)
+remove(md_expo_quant)
+
+--stop-query-logging

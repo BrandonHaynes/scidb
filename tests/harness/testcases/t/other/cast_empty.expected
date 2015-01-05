@@ -1,0 +1,28 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+1),A)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <create array B <b:int32> [y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(cast(A,B),C)>
+{y} b
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <show(C)>
+{i} schema
+{0} 'C<b:int32> [y=0:2,3,0]'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

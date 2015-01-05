@@ -1,0 +1,2126 @@
+--setup
+
+--shell --command "test -e ${TEST_DATA_DIR}/large_single_chunk.txt || gen_matrix -r 1 1 1000 1000 1.0 0.9 N > ${TEST_DATA_DIR}/large_single_chunk.txt"
+
+--aql CREATE ARRAY delta_timing<x:double  COMPRESSION 'rle'>[i=1:1000,1000,0, j=1:1000,1000,0]
+--aql CREATE ARRAY dense_delta_timing<x:double COMPRESSION 'bitmap encoding' reserve 100>[i=1:1000,1000,0, j=1:1000,1000,0]
+--aql CREATE ARRAY nondelta_timing<x:double COMPRESSION 'zlib' reserve 0>[i=1:1000,1000,0, j=1:1000,1000,0]
+
+--test
+--start-igdata
+--aql load delta_timing from '${TEST_DATA_DIR}/large_single_chunk.txt'
+--aql load dense_delta_timing from '${TEST_DATA_DIR}/large_single_chunk.txt'
+--aql load nondelta_timing from '${TEST_DATA_DIR}/large_single_chunk.txt'
+
+--start-timer update_delta_timing_1
+--aql update delta_timing set x = x + 1 where i = 1 and j = 1
+--stop-timer
+--start-timer update_delta_timing_2
+--aql update delta_timing set x = x + 2 where i = 1 and j = 2
+--stop-timer
+--start-timer update_delta_timing_3
+--aql update delta_timing set x = x + 3 where i = 1 and j = 3
+--stop-timer
+--start-timer update_delta_timing_4
+--aql update delta_timing set x = x + 4 where i = 1 and j = 4
+--stop-timer
+--start-timer update_delta_timing_5
+--aql update delta_timing set x = x + 5 where i = 1 and j = 5
+--stop-timer
+--start-timer update_delta_timing_6
+--aql update delta_timing set x = x + 6 where i = 1 and j = 6
+--stop-timer
+--start-timer update_delta_timing_7
+--aql update delta_timing set x = x + 7 where i = 1 and j = 7
+--stop-timer
+--start-timer update_delta_timing_8
+--aql update delta_timing set x = x + 8 where i = 1 and j = 8
+--stop-timer
+--start-timer update_delta_timing_9
+--aql update delta_timing set x = x + 9 where i = 1 and j = 9
+--stop-timer
+--start-timer update_delta_timing_10
+--aql update delta_timing set x = x + 10 where i = 1 and j = 10
+--stop-timer
+--start-timer update_delta_timing_11
+--aql update delta_timing set x = x + 11 where i = 1 and j = 11
+--stop-timer
+--start-timer update_delta_timing_12
+--aql update delta_timing set x = x + 12 where i = 1 and j = 12
+--stop-timer
+--start-timer update_delta_timing_13
+--aql update delta_timing set x = x + 13 where i = 1 and j = 13
+--stop-timer
+--start-timer update_delta_timing_14
+--aql update delta_timing set x = x + 14 where i = 1 and j = 14
+--stop-timer
+--start-timer update_delta_timing_15
+--aql update delta_timing set x = x + 15 where i = 1 and j = 15
+--stop-timer
+--start-timer update_delta_timing_16
+--aql update delta_timing set x = x + 16 where i = 1 and j = 16
+--stop-timer
+--start-timer update_delta_timing_17
+--aql update delta_timing set x = x + 17 where i = 1 and j = 17
+--stop-timer
+--start-timer update_delta_timing_18
+--aql update delta_timing set x = x + 18 where i = 1 and j = 18
+--stop-timer
+--start-timer update_delta_timing_19
+--aql update delta_timing set x = x + 19 where i = 1 and j = 19
+--stop-timer
+--start-timer update_delta_timing_20
+--aql update delta_timing set x = x + 20 where i = 1 and j = 20
+--stop-timer
+--start-timer update_delta_timing_21
+--aql update delta_timing set x = x + 21 where i = 1 and j = 21
+--stop-timer
+--start-timer update_delta_timing_22
+--aql update delta_timing set x = x + 22 where i = 1 and j = 22
+--stop-timer
+--start-timer update_delta_timing_23
+--aql update delta_timing set x = x + 23 where i = 1 and j = 23
+--stop-timer
+--start-timer update_delta_timing_24
+--aql update delta_timing set x = x + 24 where i = 1 and j = 24
+--stop-timer
+--start-timer update_delta_timing_25
+--aql update delta_timing set x = x + 25 where i = 1 and j = 25
+--stop-timer
+--start-timer update_delta_timing_26
+--aql update delta_timing set x = x + 26 where i = 1 and j = 26
+--stop-timer
+--start-timer update_delta_timing_27
+--aql update delta_timing set x = x + 27 where i = 1 and j = 27
+--stop-timer
+--start-timer update_delta_timing_28
+--aql update delta_timing set x = x + 28 where i = 1 and j = 28
+--stop-timer
+--start-timer update_delta_timing_29
+--aql update delta_timing set x = x + 29 where i = 1 and j = 29
+--stop-timer
+--start-timer update_delta_timing_30
+--aql update delta_timing set x = x + 30 where i = 1 and j = 30
+--stop-timer
+--start-timer update_delta_timing_31
+--aql update delta_timing set x = x + 31 where i = 1 and j = 31
+--stop-timer
+--start-timer update_delta_timing_32
+--aql update delta_timing set x = x + 32 where i = 1 and j = 32
+--stop-timer
+--start-timer update_delta_timing_33
+--aql update delta_timing set x = x + 33 where i = 1 and j = 33
+--stop-timer
+--start-timer update_delta_timing_34
+--aql update delta_timing set x = x + 34 where i = 1 and j = 34
+--stop-timer
+--start-timer update_delta_timing_35
+--aql update delta_timing set x = x + 35 where i = 1 and j = 35
+--stop-timer
+--start-timer update_delta_timing_36
+--aql update delta_timing set x = x + 36 where i = 1 and j = 36
+--stop-timer
+--start-timer update_delta_timing_37
+--aql update delta_timing set x = x + 37 where i = 1 and j = 37
+--stop-timer
+--start-timer update_delta_timing_38
+--aql update delta_timing set x = x + 38 where i = 1 and j = 38
+--stop-timer
+--start-timer update_delta_timing_39
+--aql update delta_timing set x = x + 39 where i = 1 and j = 39
+--stop-timer
+--start-timer update_delta_timing_40
+--aql update delta_timing set x = x + 40 where i = 1 and j = 40
+--stop-timer
+--start-timer update_delta_timing_41
+--aql update delta_timing set x = x + 41 where i = 1 and j = 41
+--stop-timer
+--start-timer update_delta_timing_42
+--aql update delta_timing set x = x + 42 where i = 1 and j = 42
+--stop-timer
+--start-timer update_delta_timing_43
+--aql update delta_timing set x = x + 43 where i = 1 and j = 43
+--stop-timer
+--start-timer update_delta_timing_44
+--aql update delta_timing set x = x + 44 where i = 1 and j = 44
+--stop-timer
+--start-timer update_delta_timing_45
+--aql update delta_timing set x = x + 45 where i = 1 and j = 45
+--stop-timer
+--start-timer update_delta_timing_46
+--aql update delta_timing set x = x + 46 where i = 1 and j = 46
+--stop-timer
+--start-timer update_delta_timing_47
+--aql update delta_timing set x = x + 47 where i = 1 and j = 47
+--stop-timer
+--start-timer update_delta_timing_48
+--aql update delta_timing set x = x + 48 where i = 1 and j = 48
+--stop-timer
+--start-timer update_delta_timing_49
+--aql update delta_timing set x = x + 49 where i = 1 and j = 49
+--stop-timer
+--start-timer update_delta_timing_50
+--aql update delta_timing set x = x + 50 where i = 1 and j = 50
+--stop-timer
+--start-timer update_delta_timing_51
+--aql update delta_timing set x = x + 51 where i = 1 and j = 51
+--stop-timer
+--start-timer update_delta_timing_52
+--aql update delta_timing set x = x + 52 where i = 1 and j = 52
+--stop-timer
+--start-timer update_delta_timing_53
+--aql update delta_timing set x = x + 53 where i = 1 and j = 53
+--stop-timer
+--start-timer update_delta_timing_54
+--aql update delta_timing set x = x + 54 where i = 1 and j = 54
+--stop-timer
+--start-timer update_delta_timing_55
+--aql update delta_timing set x = x + 55 where i = 1 and j = 55
+--stop-timer
+--start-timer update_delta_timing_56
+--aql update delta_timing set x = x + 56 where i = 1 and j = 56
+--stop-timer
+--start-timer update_delta_timing_57
+--aql update delta_timing set x = x + 57 where i = 1 and j = 57
+--stop-timer
+--start-timer update_delta_timing_58
+--aql update delta_timing set x = x + 58 where i = 1 and j = 58
+--stop-timer
+--start-timer update_delta_timing_59
+--aql update delta_timing set x = x + 59 where i = 1 and j = 59
+--stop-timer
+--start-timer update_delta_timing_60
+--aql update delta_timing set x = x + 60 where i = 1 and j = 60
+--stop-timer
+--start-timer update_delta_timing_61
+--aql update delta_timing set x = x + 61 where i = 1 and j = 61
+--stop-timer
+--start-timer update_delta_timing_62
+--aql update delta_timing set x = x + 62 where i = 1 and j = 62
+--stop-timer
+--start-timer update_delta_timing_63
+--aql update delta_timing set x = x + 63 where i = 1 and j = 63
+--stop-timer
+--start-timer update_delta_timing_64
+--aql update delta_timing set x = x + 64 where i = 1 and j = 64
+--stop-timer
+--start-timer update_delta_timing_65
+--aql update delta_timing set x = x + 65 where i = 1 and j = 65
+--stop-timer
+--start-timer update_delta_timing_66
+--aql update delta_timing set x = x + 66 where i = 1 and j = 66
+--stop-timer
+--start-timer update_delta_timing_67
+--aql update delta_timing set x = x + 67 where i = 1 and j = 67
+--stop-timer
+--start-timer update_delta_timing_68
+--aql update delta_timing set x = x + 68 where i = 1 and j = 68
+--stop-timer
+--start-timer update_delta_timing_69
+--aql update delta_timing set x = x + 69 where i = 1 and j = 69
+--stop-timer
+--start-timer update_delta_timing_70
+--aql update delta_timing set x = x + 70 where i = 1 and j = 70
+--stop-timer
+--start-timer update_delta_timing_71
+--aql update delta_timing set x = x + 71 where i = 1 and j = 71
+--stop-timer
+--start-timer update_delta_timing_72
+--aql update delta_timing set x = x + 72 where i = 1 and j = 72
+--stop-timer
+--start-timer update_delta_timing_73
+--aql update delta_timing set x = x + 73 where i = 1 and j = 73
+--stop-timer
+--start-timer update_delta_timing_74
+--aql update delta_timing set x = x + 74 where i = 1 and j = 74
+--stop-timer
+--start-timer update_delta_timing_75
+--aql update delta_timing set x = x + 75 where i = 1 and j = 75
+--stop-timer
+--start-timer update_delta_timing_76
+--aql update delta_timing set x = x + 76 where i = 1 and j = 76
+--stop-timer
+--start-timer update_delta_timing_77
+--aql update delta_timing set x = x + 77 where i = 1 and j = 77
+--stop-timer
+--start-timer update_delta_timing_78
+--aql update delta_timing set x = x + 78 where i = 1 and j = 78
+--stop-timer
+--start-timer update_delta_timing_79
+--aql update delta_timing set x = x + 79 where i = 1 and j = 79
+--stop-timer
+--start-timer update_delta_timing_80
+--aql update delta_timing set x = x + 80 where i = 1 and j = 80
+--stop-timer
+--start-timer update_delta_timing_81
+--aql update delta_timing set x = x + 81 where i = 1 and j = 81
+--stop-timer
+--start-timer update_delta_timing_82
+--aql update delta_timing set x = x + 82 where i = 1 and j = 82
+--stop-timer
+--start-timer update_delta_timing_83
+--aql update delta_timing set x = x + 83 where i = 1 and j = 83
+--stop-timer
+--start-timer update_delta_timing_84
+--aql update delta_timing set x = x + 84 where i = 1 and j = 84
+--stop-timer
+--start-timer update_delta_timing_85
+--aql update delta_timing set x = x + 85 where i = 1 and j = 85
+--stop-timer
+--start-timer update_delta_timing_86
+--aql update delta_timing set x = x + 86 where i = 1 and j = 86
+--stop-timer
+--start-timer update_delta_timing_87
+--aql update delta_timing set x = x + 87 where i = 1 and j = 87
+--stop-timer
+--start-timer update_delta_timing_88
+--aql update delta_timing set x = x + 88 where i = 1 and j = 88
+--stop-timer
+--start-timer update_delta_timing_89
+--aql update delta_timing set x = x + 89 where i = 1 and j = 89
+--stop-timer
+--start-timer update_delta_timing_90
+--aql update delta_timing set x = x + 90 where i = 1 and j = 90
+--stop-timer
+--start-timer update_delta_timing_91
+--aql update delta_timing set x = x + 91 where i = 1 and j = 91
+--stop-timer
+--start-timer update_delta_timing_92
+--aql update delta_timing set x = x + 92 where i = 1 and j = 92
+--stop-timer
+--start-timer update_delta_timing_93
+--aql update delta_timing set x = x + 93 where i = 1 and j = 93
+--stop-timer
+--start-timer update_delta_timing_94
+--aql update delta_timing set x = x + 94 where i = 1 and j = 94
+--stop-timer
+--start-timer update_delta_timing_95
+--aql update delta_timing set x = x + 95 where i = 1 and j = 95
+--stop-timer
+--start-timer update_delta_timing_96
+--aql update delta_timing set x = x + 96 where i = 1 and j = 96
+--stop-timer
+--start-timer update_delta_timing_97
+--aql update delta_timing set x = x + 97 where i = 1 and j = 97
+--stop-timer
+--start-timer update_delta_timing_98
+--aql update delta_timing set x = x + 98 where i = 1 and j = 98
+--stop-timer
+--start-timer update_delta_timing_99
+--aql update delta_timing set x = x + 99 where i = 1 and j = 99
+--stop-timer
+--start-timer update_delta_timing_100
+--aql update delta_timing set x = x + 100 where i = 1 and j = 100
+--stop-timer
+
+--start-timer update_dense_delta_timing_1
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_2
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_3
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_4
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_5
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_6
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_7
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_8
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_9
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_10
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_11
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_12
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_13
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_14
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_15
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_16
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_17
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_18
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_19
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_20
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_21
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_22
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_23
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_24
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_25
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_26
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_27
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_28
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_29
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_30
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_31
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_32
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_33
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_34
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_35
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_36
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_37
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_38
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_39
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_40
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_41
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_42
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_43
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_44
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_45
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_46
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_47
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_48
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_49
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_50
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_51
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_52
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_53
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_54
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_55
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_56
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_57
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_58
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_59
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_60
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_61
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_62
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_63
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_64
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_65
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_66
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_67
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_68
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_69
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_70
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_71
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_72
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_73
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_74
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_75
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_76
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_77
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_78
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_79
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_80
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_81
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_82
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_83
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_84
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_85
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_86
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_87
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_88
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_89
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_90
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_91
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_92
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_93
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_94
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_95
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_96
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_97
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_98
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_99
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+--start-timer update_dense_delta_timing_100
+--aql update dense_delta_timing set x = x + 1
+--stop-timer
+
+--start-timer update_nondelta_timing_1
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_2
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 2
+--stop-timer
+--start-timer update_nondelta_timing_3
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_4
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 4
+--stop-timer
+--start-timer update_nondelta_timing_5
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_6
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 6
+--stop-timer
+--start-timer update_nondelta_timing_7
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_8
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 8
+--stop-timer
+--start-timer update_nondelta_timing_9
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_10
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 10
+--stop-timer
+--start-timer update_nondelta_timing_11
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_12
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 12
+--stop-timer
+--start-timer update_nondelta_timing_13
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_14
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 14
+--stop-timer
+--start-timer update_nondelta_timing_15
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_16
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 16
+--stop-timer
+--start-timer update_nondelta_timing_17
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_18
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 18
+--stop-timer
+--start-timer update_nondelta_timing_19
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_20
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 20
+--stop-timer
+--start-timer update_nondelta_timing_21
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_22
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 22
+--stop-timer
+--start-timer update_nondelta_timing_23
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_24
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 24
+--stop-timer
+--start-timer update_nondelta_timing_25
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_26
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 26
+--stop-timer
+--start-timer update_nondelta_timing_27
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_28
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 28
+--stop-timer
+--start-timer update_nondelta_timing_29
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_30
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 30
+--stop-timer
+--start-timer update_nondelta_timing_31
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_32
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 32
+--stop-timer
+--start-timer update_nondelta_timing_33
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_34
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 34
+--stop-timer
+--start-timer update_nondelta_timing_35
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_36
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 36
+--stop-timer
+--start-timer update_nondelta_timing_37
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_38
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 38
+--stop-timer
+--start-timer update_nondelta_timing_39
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_40
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 40
+--stop-timer
+--start-timer update_nondelta_timing_41
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_42
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 42
+--stop-timer
+--start-timer update_nondelta_timing_43
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_44
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 44
+--stop-timer
+--start-timer update_nondelta_timing_45
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_46
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 46
+--stop-timer
+--start-timer update_nondelta_timing_47
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_48
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 48
+--stop-timer
+--start-timer update_nondelta_timing_49
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_50
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 50
+--stop-timer
+--start-timer update_nondelta_timing_51
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_52
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 52
+--stop-timer
+--start-timer update_nondelta_timing_53
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_54
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 54
+--stop-timer
+--start-timer update_nondelta_timing_55
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_56
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 56
+--stop-timer
+--start-timer update_nondelta_timing_57
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_58
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 58
+--stop-timer
+--start-timer update_nondelta_timing_59
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_60
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 60
+--stop-timer
+--start-timer update_nondelta_timing_61
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_62
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 62
+--stop-timer
+--start-timer update_nondelta_timing_63
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_64
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 64
+--stop-timer
+--start-timer update_nondelta_timing_65
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_66
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 66
+--stop-timer
+--start-timer update_nondelta_timing_67
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_68
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 68
+--stop-timer
+--start-timer update_nondelta_timing_69
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_70
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 70
+--stop-timer
+--start-timer update_nondelta_timing_71
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_72
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 72
+--stop-timer
+--start-timer update_nondelta_timing_73
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_74
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 74
+--stop-timer
+--start-timer update_nondelta_timing_75
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_76
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 76
+--stop-timer
+--start-timer update_nondelta_timing_77
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_78
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 78
+--stop-timer
+--start-timer update_nondelta_timing_79
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_80
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 80
+--stop-timer
+--start-timer update_nondelta_timing_81
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_82
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 82
+--stop-timer
+--start-timer update_nondelta_timing_83
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_84
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 84
+--stop-timer
+--start-timer update_nondelta_timing_85
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_86
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 86
+--stop-timer
+--start-timer update_nondelta_timing_87
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_88
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 88
+--stop-timer
+--start-timer update_nondelta_timing_89
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_90
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 90
+--stop-timer
+--start-timer update_nondelta_timing_91
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_92
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 92
+--stop-timer
+--start-timer update_nondelta_timing_93
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_94
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 94
+--stop-timer
+--start-timer update_nondelta_timing_95
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_96
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 96
+--stop-timer
+--start-timer update_nondelta_timing_97
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_98
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 98
+--stop-timer
+--start-timer update_nondelta_timing_99
+--aql update nondelta_timing set x = x + 1
+--stop-timer
+--start-timer update_nondelta_timing_100
+--aql update nondelta_timing set x = x + 1 where i = 1 and j = 100
+--stop-timer
+
+
+
+--start-timer delta_timing_1
+--aql select * from delta_timing@1
+--stop-timer
+
+--start-timer delta_timing_2
+--aql select * from delta_timing@2
+--stop-timer
+
+--start-timer delta_timing_3
+--aql select * from delta_timing@3
+--stop-timer
+
+--start-timer delta_timing_4
+--aql select * from delta_timing@4
+--stop-timer
+
+--start-timer delta_timing_5
+--aql select * from delta_timing@5
+--stop-timer
+
+--start-timer delta_timing_6
+--aql select * from delta_timing@6
+--stop-timer
+
+--start-timer delta_timing_7
+--aql select * from delta_timing@7
+--stop-timer
+
+--start-timer delta_timing_8
+--aql select * from delta_timing@8
+--stop-timer
+
+--start-timer delta_timing_9
+--aql select * from delta_timing@9
+--stop-timer
+
+--start-timer delta_timing_10
+--aql select * from delta_timing@10
+--stop-timer
+
+--start-timer delta_timing_11
+--aql select * from delta_timing@11
+--stop-timer
+
+--start-timer delta_timing_12
+--aql select * from delta_timing@12
+--stop-timer
+
+--start-timer delta_timing_13
+--aql select * from delta_timing@13
+--stop-timer
+
+--start-timer delta_timing_14
+--aql select * from delta_timing@14
+--stop-timer
+
+--start-timer delta_timing_15
+--aql select * from delta_timing@15
+--stop-timer
+
+--start-timer delta_timing_16
+--aql select * from delta_timing@16
+--stop-timer
+
+--start-timer delta_timing_17
+--aql select * from delta_timing@17
+--stop-timer
+
+--start-timer delta_timing_18
+--aql select * from delta_timing@18
+--stop-timer
+
+--start-timer delta_timing_19
+--aql select * from delta_timing@19
+--stop-timer
+
+--start-timer delta_timing_20
+--aql select * from delta_timing@20
+--stop-timer
+
+--start-timer delta_timing_21
+--aql select * from delta_timing@21
+--stop-timer
+
+--start-timer delta_timing_22
+--aql select * from delta_timing@22
+--stop-timer
+
+--start-timer delta_timing_23
+--aql select * from delta_timing@23
+--stop-timer
+
+--start-timer delta_timing_24
+--aql select * from delta_timing@24
+--stop-timer
+
+--start-timer delta_timing_25
+--aql select * from delta_timing@25
+--stop-timer
+
+--start-timer delta_timing_26
+--aql select * from delta_timing@26
+--stop-timer
+
+--start-timer delta_timing_27
+--aql select * from delta_timing@27
+--stop-timer
+
+--start-timer delta_timing_28
+--aql select * from delta_timing@28
+--stop-timer
+
+--start-timer delta_timing_29
+--aql select * from delta_timing@29
+--stop-timer
+
+--start-timer delta_timing_30
+--aql select * from delta_timing@30
+--stop-timer
+
+--start-timer delta_timing_31
+--aql select * from delta_timing@31
+--stop-timer
+
+--start-timer delta_timing_32
+--aql select * from delta_timing@32
+--stop-timer
+
+--start-timer delta_timing_33
+--aql select * from delta_timing@33
+--stop-timer
+
+--start-timer delta_timing_34
+--aql select * from delta_timing@34
+--stop-timer
+
+--start-timer delta_timing_35
+--aql select * from delta_timing@35
+--stop-timer
+
+--start-timer delta_timing_36
+--aql select * from delta_timing@36
+--stop-timer
+
+--start-timer delta_timing_37
+--aql select * from delta_timing@37
+--stop-timer
+
+--start-timer delta_timing_38
+--aql select * from delta_timing@38
+--stop-timer
+
+--start-timer delta_timing_39
+--aql select * from delta_timing@39
+--stop-timer
+
+--start-timer delta_timing_40
+--aql select * from delta_timing@40
+--stop-timer
+
+--start-timer delta_timing_41
+--aql select * from delta_timing@41
+--stop-timer
+
+--start-timer delta_timing_42
+--aql select * from delta_timing@42
+--stop-timer
+
+--start-timer delta_timing_43
+--aql select * from delta_timing@43
+--stop-timer
+
+--start-timer delta_timing_44
+--aql select * from delta_timing@44
+--stop-timer
+
+--start-timer delta_timing_45
+--aql select * from delta_timing@45
+--stop-timer
+
+--start-timer delta_timing_46
+--aql select * from delta_timing@46
+--stop-timer
+
+--start-timer delta_timing_47
+--aql select * from delta_timing@47
+--stop-timer
+
+--start-timer delta_timing_48
+--aql select * from delta_timing@48
+--stop-timer
+
+--start-timer delta_timing_49
+--aql select * from delta_timing@49
+--stop-timer
+
+--start-timer delta_timing_50
+--aql select * from delta_timing@50
+--stop-timer
+
+--start-timer delta_timing_51
+--aql select * from delta_timing@51
+--stop-timer
+
+--start-timer delta_timing_52
+--aql select * from delta_timing@52
+--stop-timer
+
+--start-timer delta_timing_53
+--aql select * from delta_timing@53
+--stop-timer
+
+--start-timer delta_timing_54
+--aql select * from delta_timing@54
+--stop-timer
+
+--start-timer delta_timing_55
+--aql select * from delta_timing@55
+--stop-timer
+
+--start-timer delta_timing_56
+--aql select * from delta_timing@56
+--stop-timer
+
+--start-timer delta_timing_57
+--aql select * from delta_timing@57
+--stop-timer
+
+--start-timer delta_timing_58
+--aql select * from delta_timing@58
+--stop-timer
+
+--start-timer delta_timing_59
+--aql select * from delta_timing@59
+--stop-timer
+
+--start-timer delta_timing_60
+--aql select * from delta_timing@60
+--stop-timer
+
+--start-timer delta_timing_61
+--aql select * from delta_timing@61
+--stop-timer
+
+--start-timer delta_timing_62
+--aql select * from delta_timing@62
+--stop-timer
+
+--start-timer delta_timing_63
+--aql select * from delta_timing@63
+--stop-timer
+
+--start-timer delta_timing_64
+--aql select * from delta_timing@64
+--stop-timer
+
+--start-timer delta_timing_65
+--aql select * from delta_timing@65
+--stop-timer
+
+--start-timer delta_timing_66
+--aql select * from delta_timing@66
+--stop-timer
+
+--start-timer delta_timing_67
+--aql select * from delta_timing@67
+--stop-timer
+
+--start-timer delta_timing_68
+--aql select * from delta_timing@68
+--stop-timer
+
+--start-timer delta_timing_69
+--aql select * from delta_timing@69
+--stop-timer
+
+--start-timer delta_timing_70
+--aql select * from delta_timing@70
+--stop-timer
+
+--start-timer delta_timing_71
+--aql select * from delta_timing@71
+--stop-timer
+
+--start-timer delta_timing_72
+--aql select * from delta_timing@72
+--stop-timer
+
+--start-timer delta_timing_73
+--aql select * from delta_timing@73
+--stop-timer
+
+--start-timer delta_timing_74
+--aql select * from delta_timing@74
+--stop-timer
+
+--start-timer delta_timing_75
+--aql select * from delta_timing@75
+--stop-timer
+
+--start-timer delta_timing_76
+--aql select * from delta_timing@76
+--stop-timer
+
+--start-timer delta_timing_77
+--aql select * from delta_timing@77
+--stop-timer
+
+--start-timer delta_timing_78
+--aql select * from delta_timing@78
+--stop-timer
+
+--start-timer delta_timing_79
+--aql select * from delta_timing@79
+--stop-timer
+
+--start-timer delta_timing_80
+--aql select * from delta_timing@80
+--stop-timer
+
+--start-timer delta_timing_81
+--aql select * from delta_timing@81
+--stop-timer
+
+--start-timer delta_timing_82
+--aql select * from delta_timing@82
+--stop-timer
+
+--start-timer delta_timing_83
+--aql select * from delta_timing@83
+--stop-timer
+
+--start-timer delta_timing_84
+--aql select * from delta_timing@84
+--stop-timer
+
+--start-timer delta_timing_85
+--aql select * from delta_timing@85
+--stop-timer
+
+--start-timer delta_timing_86
+--aql select * from delta_timing@86
+--stop-timer
+
+--start-timer delta_timing_87
+--aql select * from delta_timing@87
+--stop-timer
+
+--start-timer delta_timing_88
+--aql select * from delta_timing@88
+--stop-timer
+
+--start-timer delta_timing_89
+--aql select * from delta_timing@89
+--stop-timer
+
+--start-timer delta_timing_90
+--aql select * from delta_timing@90
+--stop-timer
+
+--start-timer delta_timing_91
+--aql select * from delta_timing@91
+--stop-timer
+
+--start-timer delta_timing_92
+--aql select * from delta_timing@92
+--stop-timer
+
+--start-timer delta_timing_93
+--aql select * from delta_timing@93
+--stop-timer
+
+--start-timer delta_timing_94
+--aql select * from delta_timing@94
+--stop-timer
+
+--start-timer delta_timing_95
+--aql select * from delta_timing@95
+--stop-timer
+
+--start-timer delta_timing_96
+--aql select * from delta_timing@96
+--stop-timer
+
+--start-timer delta_timing_97
+--aql select * from delta_timing@97
+--stop-timer
+
+--start-timer delta_timing_98
+--aql select * from delta_timing@98
+--stop-timer
+
+--start-timer delta_timing_99
+--aql select * from delta_timing@99
+--stop-timer
+
+--start-timer delta_timing_100
+--aql select * from delta_timing@100
+--stop-timer
+
+
+--start-timer dense_delta_timing_1
+--aql select * from dense_delta_timing@1
+--stop-timer
+
+--start-timer dense_delta_timing_2
+--aql select * from dense_delta_timing@2
+--stop-timer
+
+--start-timer dense_delta_timing_3
+--aql select * from dense_delta_timing@3
+--stop-timer
+
+--start-timer dense_delta_timing_4
+--aql select * from dense_delta_timing@4
+--stop-timer
+
+--start-timer dense_delta_timing_5
+--aql select * from dense_delta_timing@5
+--stop-timer
+
+--start-timer dense_delta_timing_6
+--aql select * from dense_delta_timing@6
+--stop-timer
+
+--start-timer dense_delta_timing_7
+--aql select * from dense_delta_timing@7
+--stop-timer
+
+--start-timer dense_delta_timing_8
+--aql select * from dense_delta_timing@8
+--stop-timer
+
+--start-timer dense_delta_timing_9
+--aql select * from dense_delta_timing@9
+--stop-timer
+
+--start-timer dense_delta_timing_10
+--aql select * from dense_delta_timing@10
+--stop-timer
+
+--start-timer dense_delta_timing_11
+--aql select * from dense_delta_timing@11
+--stop-timer
+
+--start-timer dense_delta_timing_12
+--aql select * from dense_delta_timing@12
+--stop-timer
+
+--start-timer dense_delta_timing_13
+--aql select * from dense_delta_timing@13
+--stop-timer
+
+--start-timer dense_delta_timing_14
+--aql select * from dense_delta_timing@14
+--stop-timer
+
+--start-timer dense_delta_timing_15
+--aql select * from dense_delta_timing@15
+--stop-timer
+
+--start-timer dense_delta_timing_16
+--aql select * from dense_delta_timing@16
+--stop-timer
+
+--start-timer dense_delta_timing_17
+--aql select * from dense_delta_timing@17
+--stop-timer
+
+--start-timer dense_delta_timing_18
+--aql select * from dense_delta_timing@18
+--stop-timer
+
+--start-timer dense_delta_timing_19
+--aql select * from dense_delta_timing@19
+--stop-timer
+
+--start-timer dense_delta_timing_20
+--aql select * from dense_delta_timing@20
+--stop-timer
+
+--start-timer dense_delta_timing_21
+--aql select * from dense_delta_timing@21
+--stop-timer
+
+--start-timer dense_delta_timing_22
+--aql select * from dense_delta_timing@22
+--stop-timer
+
+--start-timer dense_delta_timing_23
+--aql select * from dense_delta_timing@23
+--stop-timer
+
+--start-timer dense_delta_timing_24
+--aql select * from dense_delta_timing@24
+--stop-timer
+
+--start-timer dense_delta_timing_25
+--aql select * from dense_delta_timing@25
+--stop-timer
+
+--start-timer dense_delta_timing_26
+--aql select * from dense_delta_timing@26
+--stop-timer
+
+--start-timer dense_delta_timing_27
+--aql select * from dense_delta_timing@27
+--stop-timer
+
+--start-timer dense_delta_timing_28
+--aql select * from dense_delta_timing@28
+--stop-timer
+
+--start-timer dense_delta_timing_29
+--aql select * from dense_delta_timing@29
+--stop-timer
+
+--start-timer dense_delta_timing_30
+--aql select * from dense_delta_timing@30
+--stop-timer
+
+--start-timer dense_delta_timing_31
+--aql select * from dense_delta_timing@31
+--stop-timer
+
+--start-timer dense_delta_timing_32
+--aql select * from dense_delta_timing@32
+--stop-timer
+
+--start-timer dense_delta_timing_33
+--aql select * from dense_delta_timing@33
+--stop-timer
+
+--start-timer dense_delta_timing_34
+--aql select * from dense_delta_timing@34
+--stop-timer
+
+--start-timer dense_delta_timing_35
+--aql select * from dense_delta_timing@35
+--stop-timer
+
+--start-timer dense_delta_timing_36
+--aql select * from dense_delta_timing@36
+--stop-timer
+
+--start-timer dense_delta_timing_37
+--aql select * from dense_delta_timing@37
+--stop-timer
+
+--start-timer dense_delta_timing_38
+--aql select * from dense_delta_timing@38
+--stop-timer
+
+--start-timer dense_delta_timing_39
+--aql select * from dense_delta_timing@39
+--stop-timer
+
+--start-timer dense_delta_timing_40
+--aql select * from dense_delta_timing@40
+--stop-timer
+
+--start-timer dense_delta_timing_41
+--aql select * from dense_delta_timing@41
+--stop-timer
+
+--start-timer dense_delta_timing_42
+--aql select * from dense_delta_timing@42
+--stop-timer
+
+--start-timer dense_delta_timing_43
+--aql select * from dense_delta_timing@43
+--stop-timer
+
+--start-timer dense_delta_timing_44
+--aql select * from dense_delta_timing@44
+--stop-timer
+
+--start-timer dense_delta_timing_45
+--aql select * from dense_delta_timing@45
+--stop-timer
+
+--start-timer dense_delta_timing_46
+--aql select * from dense_delta_timing@46
+--stop-timer
+
+--start-timer dense_delta_timing_47
+--aql select * from dense_delta_timing@47
+--stop-timer
+
+--start-timer dense_delta_timing_48
+--aql select * from dense_delta_timing@48
+--stop-timer
+
+--start-timer dense_delta_timing_49
+--aql select * from dense_delta_timing@49
+--stop-timer
+
+--start-timer dense_delta_timing_50
+--aql select * from dense_delta_timing@50
+--stop-timer
+
+--start-timer dense_delta_timing_51
+--aql select * from dense_delta_timing@51
+--stop-timer
+
+--start-timer dense_delta_timing_52
+--aql select * from dense_delta_timing@52
+--stop-timer
+
+--start-timer dense_delta_timing_53
+--aql select * from dense_delta_timing@53
+--stop-timer
+
+--start-timer dense_delta_timing_54
+--aql select * from dense_delta_timing@54
+--stop-timer
+
+--start-timer dense_delta_timing_55
+--aql select * from dense_delta_timing@55
+--stop-timer
+
+--start-timer dense_delta_timing_56
+--aql select * from dense_delta_timing@56
+--stop-timer
+
+--start-timer dense_delta_timing_57
+--aql select * from dense_delta_timing@57
+--stop-timer
+
+--start-timer dense_delta_timing_58
+--aql select * from dense_delta_timing@58
+--stop-timer
+
+--start-timer dense_delta_timing_59
+--aql select * from dense_delta_timing@59
+--stop-timer
+
+--start-timer dense_delta_timing_60
+--aql select * from dense_delta_timing@60
+--stop-timer
+
+--start-timer dense_delta_timing_61
+--aql select * from dense_delta_timing@61
+--stop-timer
+
+--start-timer dense_delta_timing_62
+--aql select * from dense_delta_timing@62
+--stop-timer
+
+--start-timer dense_delta_timing_63
+--aql select * from dense_delta_timing@63
+--stop-timer
+
+--start-timer dense_delta_timing_64
+--aql select * from dense_delta_timing@64
+--stop-timer
+
+--start-timer dense_delta_timing_65
+--aql select * from dense_delta_timing@65
+--stop-timer
+
+--start-timer dense_delta_timing_66
+--aql select * from dense_delta_timing@66
+--stop-timer
+
+--start-timer dense_delta_timing_67
+--aql select * from dense_delta_timing@67
+--stop-timer
+
+--start-timer dense_delta_timing_68
+--aql select * from dense_delta_timing@68
+--stop-timer
+
+--start-timer dense_delta_timing_69
+--aql select * from dense_delta_timing@69
+--stop-timer
+
+--start-timer dense_delta_timing_70
+--aql select * from dense_delta_timing@70
+--stop-timer
+
+--start-timer dense_delta_timing_71
+--aql select * from dense_delta_timing@71
+--stop-timer
+
+--start-timer dense_delta_timing_72
+--aql select * from dense_delta_timing@72
+--stop-timer
+
+--start-timer dense_delta_timing_73
+--aql select * from dense_delta_timing@73
+--stop-timer
+
+--start-timer dense_delta_timing_74
+--aql select * from dense_delta_timing@74
+--stop-timer
+
+--start-timer dense_delta_timing_75
+--aql select * from dense_delta_timing@75
+--stop-timer
+
+--start-timer dense_delta_timing_76
+--aql select * from dense_delta_timing@76
+--stop-timer
+
+--start-timer dense_delta_timing_77
+--aql select * from dense_delta_timing@77
+--stop-timer
+
+--start-timer dense_delta_timing_78
+--aql select * from dense_delta_timing@78
+--stop-timer
+
+--start-timer dense_delta_timing_79
+--aql select * from dense_delta_timing@79
+--stop-timer
+
+--start-timer dense_delta_timing_80
+--aql select * from dense_delta_timing@80
+--stop-timer
+
+--start-timer dense_delta_timing_81
+--aql select * from dense_delta_timing@81
+--stop-timer
+
+--start-timer dense_delta_timing_82
+--aql select * from dense_delta_timing@82
+--stop-timer
+
+--start-timer dense_delta_timing_83
+--aql select * from dense_delta_timing@83
+--stop-timer
+
+--start-timer dense_delta_timing_84
+--aql select * from dense_delta_timing@84
+--stop-timer
+
+--start-timer dense_delta_timing_85
+--aql select * from dense_delta_timing@85
+--stop-timer
+
+--start-timer dense_delta_timing_86
+--aql select * from dense_delta_timing@86
+--stop-timer
+
+--start-timer dense_delta_timing_87
+--aql select * from dense_delta_timing@87
+--stop-timer
+
+--start-timer dense_delta_timing_88
+--aql select * from dense_delta_timing@88
+--stop-timer
+
+--start-timer dense_delta_timing_89
+--aql select * from dense_delta_timing@89
+--stop-timer
+
+--start-timer dense_delta_timing_90
+--aql select * from dense_delta_timing@90
+--stop-timer
+
+--start-timer dense_delta_timing_91
+--aql select * from dense_delta_timing@91
+--stop-timer
+
+--start-timer dense_delta_timing_92
+--aql select * from dense_delta_timing@92
+--stop-timer
+
+--start-timer dense_delta_timing_93
+--aql select * from dense_delta_timing@93
+--stop-timer
+
+--start-timer dense_delta_timing_94
+--aql select * from dense_delta_timing@94
+--stop-timer
+
+--start-timer dense_delta_timing_95
+--aql select * from dense_delta_timing@95
+--stop-timer
+
+--start-timer dense_delta_timing_96
+--aql select * from dense_delta_timing@96
+--stop-timer
+
+--start-timer dense_delta_timing_97
+--aql select * from dense_delta_timing@97
+--stop-timer
+
+--start-timer dense_delta_timing_98
+--aql select * from dense_delta_timing@98
+--stop-timer
+
+--start-timer dense_delta_timing_99
+--aql select * from dense_delta_timing@99
+--stop-timer
+
+--start-timer dense_delta_timing_100
+--aql select * from dense_delta_timing@100
+--stop-timer
+
+
+--start-timer nondelta_timing_1
+--aql select * from nondelta_timing@1
+--stop-timer
+
+--start-timer nondelta_timing_2
+--aql select * from nondelta_timing@2
+--stop-timer
+
+--start-timer nondelta_timing_3
+--aql select * from nondelta_timing@3
+--stop-timer
+
+--start-timer nondelta_timing_4
+--aql select * from nondelta_timing@4
+--stop-timer
+
+--start-timer nondelta_timing_5
+--aql select * from nondelta_timing@5
+--stop-timer
+
+--start-timer nondelta_timing_6
+--aql select * from nondelta_timing@6
+--stop-timer
+
+--start-timer nondelta_timing_7
+--aql select * from nondelta_timing@7
+--stop-timer
+
+--start-timer nondelta_timing_8
+--aql select * from nondelta_timing@8
+--stop-timer
+
+--start-timer nondelta_timing_9
+--aql select * from nondelta_timing@9
+--stop-timer
+
+--start-timer nondelta_timing_10
+--aql select * from nondelta_timing@10
+--stop-timer
+
+--start-timer nondelta_timing_11
+--aql select * from nondelta_timing@11
+--stop-timer
+
+--start-timer nondelta_timing_12
+--aql select * from nondelta_timing@12
+--stop-timer
+
+--start-timer nondelta_timing_13
+--aql select * from nondelta_timing@13
+--stop-timer
+
+--start-timer nondelta_timing_14
+--aql select * from nondelta_timing@14
+--stop-timer
+
+--start-timer nondelta_timing_15
+--aql select * from nondelta_timing@15
+--stop-timer
+
+--start-timer nondelta_timing_16
+--aql select * from nondelta_timing@16
+--stop-timer
+
+--start-timer nondelta_timing_17
+--aql select * from nondelta_timing@17
+--stop-timer
+
+--start-timer nondelta_timing_18
+--aql select * from nondelta_timing@18
+--stop-timer
+
+--start-timer nondelta_timing_19
+--aql select * from nondelta_timing@19
+--stop-timer
+
+--start-timer nondelta_timing_20
+--aql select * from nondelta_timing@20
+--stop-timer
+
+--start-timer nondelta_timing_21
+--aql select * from nondelta_timing@21
+--stop-timer
+
+--start-timer nondelta_timing_22
+--aql select * from nondelta_timing@22
+--stop-timer
+
+--start-timer nondelta_timing_23
+--aql select * from nondelta_timing@23
+--stop-timer
+
+--start-timer nondelta_timing_24
+--aql select * from nondelta_timing@24
+--stop-timer
+
+--start-timer nondelta_timing_25
+--aql select * from nondelta_timing@25
+--stop-timer
+
+--start-timer nondelta_timing_26
+--aql select * from nondelta_timing@26
+--stop-timer
+
+--start-timer nondelta_timing_27
+--aql select * from nondelta_timing@27
+--stop-timer
+
+--start-timer nondelta_timing_28
+--aql select * from nondelta_timing@28
+--stop-timer
+
+--start-timer nondelta_timing_29
+--aql select * from nondelta_timing@29
+--stop-timer
+
+--start-timer nondelta_timing_30
+--aql select * from nondelta_timing@30
+--stop-timer
+
+--start-timer nondelta_timing_31
+--aql select * from nondelta_timing@31
+--stop-timer
+
+--start-timer nondelta_timing_32
+--aql select * from nondelta_timing@32
+--stop-timer
+
+--start-timer nondelta_timing_33
+--aql select * from nondelta_timing@33
+--stop-timer
+
+--start-timer nondelta_timing_34
+--aql select * from nondelta_timing@34
+--stop-timer
+
+--start-timer nondelta_timing_35
+--aql select * from nondelta_timing@35
+--stop-timer
+
+--start-timer nondelta_timing_36
+--aql select * from nondelta_timing@36
+--stop-timer
+
+--start-timer nondelta_timing_37
+--aql select * from nondelta_timing@37
+--stop-timer
+
+--start-timer nondelta_timing_38
+--aql select * from nondelta_timing@38
+--stop-timer
+
+--start-timer nondelta_timing_39
+--aql select * from nondelta_timing@39
+--stop-timer
+
+--start-timer nondelta_timing_40
+--aql select * from nondelta_timing@40
+--stop-timer
+
+--start-timer nondelta_timing_41
+--aql select * from nondelta_timing@41
+--stop-timer
+
+--start-timer nondelta_timing_42
+--aql select * from nondelta_timing@42
+--stop-timer
+
+--start-timer nondelta_timing_43
+--aql select * from nondelta_timing@43
+--stop-timer
+
+--start-timer nondelta_timing_44
+--aql select * from nondelta_timing@44
+--stop-timer
+
+--start-timer nondelta_timing_45
+--aql select * from nondelta_timing@45
+--stop-timer
+
+--start-timer nondelta_timing_46
+--aql select * from nondelta_timing@46
+--stop-timer
+
+--start-timer nondelta_timing_47
+--aql select * from nondelta_timing@47
+--stop-timer
+
+--start-timer nondelta_timing_48
+--aql select * from nondelta_timing@48
+--stop-timer
+
+--start-timer nondelta_timing_49
+--aql select * from nondelta_timing@49
+--stop-timer
+
+--start-timer nondelta_timing_50
+--aql select * from nondelta_timing@50
+--stop-timer
+
+--start-timer nondelta_timing_51
+--aql select * from nondelta_timing@51
+--stop-timer
+
+--start-timer nondelta_timing_52
+--aql select * from nondelta_timing@52
+--stop-timer
+
+--start-timer nondelta_timing_53
+--aql select * from nondelta_timing@53
+--stop-timer
+
+--start-timer nondelta_timing_54
+--aql select * from nondelta_timing@54
+--stop-timer
+
+--start-timer nondelta_timing_55
+--aql select * from nondelta_timing@55
+--stop-timer
+
+--start-timer nondelta_timing_56
+--aql select * from nondelta_timing@56
+--stop-timer
+
+--start-timer nondelta_timing_57
+--aql select * from nondelta_timing@57
+--stop-timer
+
+--start-timer nondelta_timing_58
+--aql select * from nondelta_timing@58
+--stop-timer
+
+--start-timer nondelta_timing_59
+--aql select * from nondelta_timing@59
+--stop-timer
+
+--start-timer nondelta_timing_60
+--aql select * from nondelta_timing@60
+--stop-timer
+
+--start-timer nondelta_timing_61
+--aql select * from nondelta_timing@61
+--stop-timer
+
+--start-timer nondelta_timing_62
+--aql select * from nondelta_timing@62
+--stop-timer
+
+--start-timer nondelta_timing_63
+--aql select * from nondelta_timing@63
+--stop-timer
+
+--start-timer nondelta_timing_64
+--aql select * from nondelta_timing@64
+--stop-timer
+
+--start-timer nondelta_timing_65
+--aql select * from nondelta_timing@65
+--stop-timer
+
+--start-timer nondelta_timing_66
+--aql select * from nondelta_timing@66
+--stop-timer
+
+--start-timer nondelta_timing_67
+--aql select * from nondelta_timing@67
+--stop-timer
+
+--start-timer nondelta_timing_68
+--aql select * from nondelta_timing@68
+--stop-timer
+
+--start-timer nondelta_timing_69
+--aql select * from nondelta_timing@69
+--stop-timer
+
+--start-timer nondelta_timing_70
+--aql select * from nondelta_timing@70
+--stop-timer
+
+--start-timer nondelta_timing_71
+--aql select * from nondelta_timing@71
+--stop-timer
+
+--start-timer nondelta_timing_72
+--aql select * from nondelta_timing@72
+--stop-timer
+
+--start-timer nondelta_timing_73
+--aql select * from nondelta_timing@73
+--stop-timer
+
+--start-timer nondelta_timing_74
+--aql select * from nondelta_timing@74
+--stop-timer
+
+--start-timer nondelta_timing_75
+--aql select * from nondelta_timing@75
+--stop-timer
+
+--start-timer nondelta_timing_76
+--aql select * from nondelta_timing@76
+--stop-timer
+
+--start-timer nondelta_timing_77
+--aql select * from nondelta_timing@77
+--stop-timer
+
+--start-timer nondelta_timing_78
+--aql select * from nondelta_timing@78
+--stop-timer
+
+--start-timer nondelta_timing_79
+--aql select * from nondelta_timing@79
+--stop-timer
+
+--start-timer nondelta_timing_80
+--aql select * from nondelta_timing@80
+--stop-timer
+
+--start-timer nondelta_timing_81
+--aql select * from nondelta_timing@81
+--stop-timer
+
+--start-timer nondelta_timing_82
+--aql select * from nondelta_timing@82
+--stop-timer
+
+--start-timer nondelta_timing_83
+--aql select * from nondelta_timing@83
+--stop-timer
+
+--start-timer nondelta_timing_84
+--aql select * from nondelta_timing@84
+--stop-timer
+
+--start-timer nondelta_timing_85
+--aql select * from nondelta_timing@85
+--stop-timer
+
+--start-timer nondelta_timing_86
+--aql select * from nondelta_timing@86
+--stop-timer
+
+--start-timer nondelta_timing_87
+--aql select * from nondelta_timing@87
+--stop-timer
+
+--start-timer nondelta_timing_88
+--aql select * from nondelta_timing@88
+--stop-timer
+
+--start-timer nondelta_timing_89
+--aql select * from nondelta_timing@89
+--stop-timer
+
+--start-timer nondelta_timing_90
+--aql select * from nondelta_timing@90
+--stop-timer
+
+--start-timer nondelta_timing_91
+--aql select * from nondelta_timing@91
+--stop-timer
+
+--start-timer nondelta_timing_92
+--aql select * from nondelta_timing@92
+--stop-timer
+
+--start-timer nondelta_timing_93
+--aql select * from nondelta_timing@93
+--stop-timer
+
+--start-timer nondelta_timing_94
+--aql select * from nondelta_timing@94
+--stop-timer
+
+--start-timer nondelta_timing_95
+--aql select * from nondelta_timing@95
+--stop-timer
+
+--start-timer nondelta_timing_96
+--aql select * from nondelta_timing@96
+--stop-timer
+
+--start-timer nondelta_timing_97
+--aql select * from nondelta_timing@97
+--stop-timer
+
+--start-timer nondelta_timing_98
+--aql select * from nondelta_timing@98
+--stop-timer
+
+--start-timer nondelta_timing_99
+--aql select * from nondelta_timing@99
+--stop-timer
+
+--start-timer nondelta_timing_100
+--aql select * from nondelta_timing@100
+--stop-timer
+--stop-igdata
+
+--cleanup
+--aql drop array delta_timing
+--aql drop array dense_delta_timing
+--aql drop array nondelta_timing

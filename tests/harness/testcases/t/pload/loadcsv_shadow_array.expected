@@ -1,0 +1,25 @@
+SCIDB QUERY : <project( array_sm10, a, b, c )>
+{i} a,b,c
+{0} null,1,1
+{1} 1,2,3
+{2} 4,0,6
+{3} 7,8,9
+
+SCIDB QUERY : <project( array_shadow, a, b, c )>
+{i} a,b,c
+{0} 'Assigning NULL to non-nullable attribute',null,null
+{2} null,'Assigning NULL to non-nullable attribute',null
+
+SCIDB QUERY : <project( array_shadow2, a, b, c)>
+{i} a,b,c
+{2} null,'Assigning NULL to non-nullable attribute',null
+
+SCIDB QUERY : <remove(array_shadow)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(array_shadow2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(array_sm10)>
+Query was executed successfully
+

@@ -1,0 +1,33 @@
+
+--test
+--start-query-logging
+
+store(filter(build(<val:double>[i=0:3,4,0,j=0:3,4,0],1),i=j), m3x3_sparse)
+store(build(<val:double null>[i=0:3,4,0,j=0:3,4,0],iif(i=j,1,NULL)),m3x3_dense)  
+--set-format dense
+store(build(<index:int64>[i=0:9,10,0], i*50), A)  
+--start-igdata
+store(build(<val:double>[i=0:9,10,0], random()%2000/2000.0), B)  
+--set-format dcsv
+--stop-igdata
+--start-igdata
+store(join(A,B), test)  
+--stop-igdata
+--start-igdata
+redimension(test, <val:double>[index=0:*, 10,0])  
+--set-format dense
+--stop-igdata
+redimension(apply(build(<v:double>[i1=1:3,3,0,j1=1:3,3,0],5.5), i,iif(i1+j1>4,i1,null), j,iif(i1+j1>4,j1,null)), <v:double>[i=1:3,3,0,j=1:3,3,0])  
+--set-format dcsv
+redimension(apply(build(<v:double>[i1=1:3,3,0,j1=1:3,3,0],5.5), i,iif(i1+j1>4,i1,null), j,iif(i1+j1>4,j1,null)), <v:double>[i=1:3,3,0,j=1:3,3,0])  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m3x3_sparse)
+remove(m3x3_dense)
+remove(A)
+remove(B)
+remove(test)

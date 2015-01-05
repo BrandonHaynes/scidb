@@ -1,0 +1,77 @@
+--setup
+--start-query-logging
+
+create array data_array < A: int64 > [ X=0:9,5,0]
+store(build(data_array, 1+X), data_array)
+create array UB <a:int64>[x=0:*,5,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(UB, '${TEST_DATA_DIR}/unbounded_cross.txt')""
+create array Media < val : double > [ a=1:3,3,0, b=1:3,3,0 ]
+store(build(Media, a*a+b/(1.0)), Media)
+create array two_dimension < age:int32>[ c=1:2,2,0 , d=1:2,2,0]
+store(build(two_dimension, c*c+d/(1.0)),two_dimension)
+create array Media_A < val : double > [ e=1:3,3,1, f=1:3,3,1]
+store(build(Media_A, e*e+f/(1.0)), Media_A)
+create array Media_B < val : double > [ g=1:3,2,1, h=1:3,2,1]
+store(build(Media_B, g*g+h/(1.0)), Media_B)
+create array Media_C < val : double > [ I=1:3,2,1, J=1:3,2,2]
+store(build(Media_C, I*I+J/(1.0)), Media_C)
+create array Media_D <salary : double > [ K=1:3,3,0, L=1:3,3,0 ]
+store(build(Media_D, K*K+L/(1.0)), Media_D)
+create array multiMedia_array_new < name: string, val : double , sal:int32  > [ O=1:3,3,0, P=1:3,3,0 ]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(multiMedia_array_new,'${TEST_DATA_DIR}/multi.txt')""
+create array threeD_array < val : double > [ Q=1:3,3,0, R=1:3,3,0 , S=1:3,3,0]
+store(build(threeD_array, 4.67*cos(Q+R+S)), threeD_array)
+create array threeD_array_A <initial:char, val : double > [ XX=1:3,3,0, YY=1:3,3,0 , ZZ=1:3,3,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(threeD_array_A,'${TEST_DATA_DIR}/threed_cross.txt')""
+create array two_dimension_A < age:int32>[ II=0:1,2,0 , JJ=0:1,2,0]
+store(build(two_dimension_A, II*II+JJ/(1.0)),two_dimension_A)
+create array two_dimension_B < age:int32>[ length=0:1,3,0 , breadth=0:1,3,0]
+store(build(two_dimension_B, length*breadth+breadth-length*length/(1.0)),two_dimension_B)
+
+--test
+cross_join(data_array,UB)
+aggregate(cross_join(data_array,UB),count(*))
+cross_join(data_array,UB,X,x)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(Media,two_dimension,a,c)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(subarray(Media,1,1,2,2),two_dimension_A,b,II)"
+cross_join(two_dimension,two_dimension_A)
+cross_join(subarray(Media,1,1,2,2),two_dimension_B,b,length)
+cross_join(subarray(Media,1,1,2,2),two_dimension_B,a,length)
+cross_join(subarray(Media,1,1,2,2),two_dimension_B,a,breadth)
+store(cross_join(subarray(Media,2,2,3,3),two_dimension_B,a,breadth),crossjoin_result)
+cross_join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2))
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2),a,f)"
+join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2))
+cross_join (multiMedia_array_new, Media,O,a)
+cross_join (multiMedia_array_new, Media,P,b)
+cross_join (Media,multiMedia_array_new,b,O)
+cross_join (threeD_array_A,Media_D,YY,K)
+cross_join (Media_D,threeD_array_A,K,ZZ)
+cross_join (threeD_array,threeD_array_A,R,XX)
+cross_join (subarray(threeD_array,1,1,1,2,2,2),subarray(threeD_array_A,1,1,1,2,2,2),R,XX)
+cross_join (Media_B,Media_C,g,I)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join (Media_B,Media_C,g,J)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(two_dimension_A,two_dimension_B,II,length)"
+cross_join(repart(two_dimension_A,< age:int32>[ II=0:1,3,0 , JJ=0:1,3,0]),two_dimension_B,II,length)
+cross_join(two_dimension_A,repart(two_dimension_B, < age:int32>[ length=0:1,2,0 , breadth=0:1,2,0]),II,length)
+
+
+--cleanup
+remove(data_array)
+remove(UB)
+remove(Media)
+remove(two_dimension)
+remove(Media_A)
+remove(Media_B)
+remove(Media_C)
+remove(Media_D)
+remove(multiMedia_array_new)
+remove(threeD_array)
+remove(threeD_array_A)
+remove(two_dimension_A)
+remove(two_dimension_B)
+remove(crossjoin_result)
+
+--stop-query-logging
+
+

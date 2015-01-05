@@ -1,0 +1,30 @@
+--setup
+
+create array a1 <val:double,val2:double NULL> [x=0:3,3,0,y=0:3,2,0]
+load(a1,'${TEST_DATA_DIR}/analyze3.txt')
+create array a2 <val:double,val2:double> [x=0:3,3,0,y=0:3,2,0]
+load(a2,'${TEST_DATA_DIR}/analyze4.txt')
+create array a3 <val:double,val2:double> [x=0:3,3,0,y=0:3,2,0]
+load(a3,'${TEST_DATA_DIR}/analyze5.txt')
+create array a4 <val:double,val2:double> [x=0:3,3,0,y=0:3,2,0]
+load(a4,'${TEST_DATA_DIR}/analyze6.txt')
+create array a5 <a:double NULL> [x=0:*,10,0]
+
+--test
+analyze(a1)
+analyze(a2)
+analyze(a3)
+analyze(a4)
+analyze(a5)
+load(a5,'${TEST_DATA_DIR}/analyze7.txt')
+analyze(a5)
+load(a5,'${TEST_DATA_DIR}/analyze8.txt')
+analyze(a5)
+
+--cleanup
+remove(a1)
+remove(a2)
+remove(a3)
+remove(a4)
+remove(a5)
+

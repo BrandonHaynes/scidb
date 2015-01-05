@@ -1,0 +1,10 @@
+--setup
+create array a <base:int32> [position=0:19,20,0]
+create array b <base:int32> [position=0:19,10,0]
+
+--test
+load(a,'${TEST_DATA_DIR}/repart_on_empty.txt')
+store(repart(a, b), b)
+--cleanup
+remove(a)
+remove(b)

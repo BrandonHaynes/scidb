@@ -1,0 +1,578 @@
+Query was executed successfully
+
+SCIDB QUERY : <create array sp0_c3_3  <a:double>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array sp1_c3_3  <a:double>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array spI_c3_3   <a:double>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array sp0_c2_2  <a:double>[x=0:2,2,0, y=0:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array sp1_c2_2  <a:double>[x=0:2,2,0, y=0:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array spI_c2_2   <a:double>[x=0:2,2,0, y=0:2,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array sp0_c1_1  <a:double>[x=0:2,1,0, y=0:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array sp1_c1_1  <a:double>[x=0:2,1,0, y=0:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array spI_c1_1   <a:double>[x=0:2,1,0, y=0:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store( filter(build(sp0_c3_3,   1), false),  sp0_c3_3 )>
+{x,y} a
+
+SCIDB QUERY : <store( filter(build(sp0_c2_2,   1), false),  sp0_c2_2 )>
+{x,y} a
+
+SCIDB QUERY : <store( filter(build(sp0_c1_1,   1), false),  sp0_c1_1 )>
+{x,y} a
+
+SCIDB QUERY : <store( filter(build(sp1_c3_3,   1), true),  sp1_c3_3 )>
+{x,y} a
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{1,0} 1
+{1,1} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <store( filter(build(sp1_c2_2,   1), true),  sp1_c2_2 )>
+{x,y} a
+{0,0} 1
+{0,1} 1
+{1,0} 1
+{1,1} 1
+{0,2} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <store( filter(build(sp1_c1_1,   1), true),  sp1_c1_1 )>
+{x,y} a
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{1,0} 1
+{1,1} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <store( filter(build(spI_c3_3,   1), x=y),  spI_c3_3 )>
+{x,y} a
+{0,0} 1
+{1,1} 1
+{2,2} 1
+
+SCIDB QUERY : <store( filter(build(spI_c2_2,   1), x=y),  spI_c2_2 )>
+{x,y} a
+{0,0} 1
+{1,1} 1
+{2,2} 1
+
+SCIDB QUERY : <store( filter(build(spI_c1_1,   1), x=y),  spI_c1_1 )>
+{x,y} a
+{0,0} 1
+{1,1} 1
+{2,2} 1
+
+SCIDB QUERY : <spgemm(sp0_c3_3, sp0_c3_3)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c3_3, sp1_c3_3)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, sp0_c3_3)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, sp1_c3_3)>
+{x,y} multiply
+{0,0} 3
+{0,1} 3
+{0,2} 3
+{1,0} 3
+{1,1} 3
+{1,2} 3
+{2,0} 3
+{2,1} 3
+{2,2} 3
+
+SCIDB QUERY : <spgemm(sp0_c3_3, spI_c3_3)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, spI_c3_3)>
+{x,y} multiply
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{1,0} 1
+{1,1} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <spgemm(spI_c3_3, sp0_c3_3)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c3_3, sp1_c3_3)>
+{x,y} multiply
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{1,0} 1
+{1,1} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <spgemm(sp0_c2_2, sp0_c2_2)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c2_2, sp1_c2_2)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, sp0_c2_2)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, sp1_c2_2)>
+{x,y} multiply
+{0,0} 3
+{0,1} 3
+{1,0} 3
+{1,1} 3
+{0,2} 3
+{1,2} 3
+{2,0} 3
+{2,1} 3
+{2,2} 3
+
+SCIDB QUERY : <spgemm(sp0_c2_2, spI_c2_2)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, spI_c2_2)>
+{x,y} multiply
+{0,0} 1
+{0,1} 1
+{1,0} 1
+{1,1} 1
+{0,2} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <spgemm(spI_c2_2, sp0_c2_2)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c2_2, sp1_c2_2)>
+{x,y} multiply
+{0,0} 1
+{0,1} 1
+{1,0} 1
+{1,1} 1
+{0,2} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <spgemm(sp0_c1_1, sp0_c1_1)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c1_1, sp1_c1_1)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, sp0_c1_1)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, sp1_c1_1)>
+{x,y} multiply
+{0,0} 3
+{0,1} 3
+{0,2} 3
+{1,0} 3
+{1,1} 3
+{1,2} 3
+{2,0} 3
+{2,1} 3
+{2,2} 3
+
+SCIDB QUERY : <spgemm(sp0_c1_1, spI_c1_1)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, spI_c1_1)>
+{x,y} multiply
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{1,0} 1
+{1,1} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <spgemm(spI_c1_1, sp0_c1_1)>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c1_1, sp1_c1_1)>
+{x,y} multiply
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{1,0} 1
+{1,1} 1
+{1,2} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+
+SCIDB QUERY : <spgemm(sp0_c3_3, sp0_c3_3, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c3_3, sp1_c3_3, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, sp0_c3_3, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, sp1_c3_3, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c3_3, spI_c3_3, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, spI_c3_3, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(spI_c3_3, sp0_c3_3, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c3_3, sp1_c3_3, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c2_2, sp0_c2_2, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c2_2, sp1_c2_2, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, sp0_c2_2, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, sp1_c2_2, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{1,0} 2
+{1,1} 2
+{0,2} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c2_2, spI_c2_2, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, spI_c2_2, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{1,0} 2
+{1,1} 2
+{0,2} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(spI_c2_2, sp0_c2_2, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c2_2, sp1_c2_2, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{1,0} 2
+{1,1} 2
+{0,2} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c1_1, sp0_c1_1, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c1_1, sp1_c1_1, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, sp0_c1_1, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, sp1_c1_1, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c1_1, spI_c1_1, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, spI_c1_1, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(spI_c1_1, sp0_c1_1, 'min.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c1_1, sp1_c1_1, 'min.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c3_3, sp0_c3_3, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c3_3, sp1_c3_3, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, sp0_c3_3, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, sp1_c3_3, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c3_3, spI_c3_3, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c3_3, spI_c3_3, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(spI_c3_3, sp0_c3_3, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c3_3, sp1_c3_3, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c2_2, sp0_c2_2, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c2_2, sp1_c2_2, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, sp0_c2_2, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, sp1_c2_2, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{1,0} 2
+{1,1} 2
+{0,2} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c2_2, spI_c2_2, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c2_2, spI_c2_2, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{1,0} 2
+{1,1} 2
+{0,2} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(spI_c2_2, sp0_c2_2, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c2_2, sp1_c2_2, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{1,0} 2
+{1,1} 2
+{0,2} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c1_1, sp0_c1_1, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp0_c1_1, sp1_c1_1, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, sp0_c1_1, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, sp1_c1_1, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(sp0_c1_1, spI_c1_1, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(sp1_c1_1, spI_c1_1, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <spgemm(spI_c1_1, sp0_c1_1, 'max.+')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spI_c1_1, sp1_c1_1, 'max.+')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{0,2} 2
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{2,0} 2
+{2,1} 2
+{2,2} 2
+
+SCIDB QUERY : <remove(sp0_c3_3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(sp1_c3_3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spI_c3_3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(sp0_c2_2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(sp1_c2_2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spI_c2_2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(sp0_c1_1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(sp1_c1_1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spI_c1_1)>
+Query was executed successfully
+

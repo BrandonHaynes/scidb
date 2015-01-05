@@ -1,0 +1,114 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY test <val:double>[i=0:4,6,0, j=0:4,6,0]  
+--set-format csv
+--stop-igdata
+--start-igdata
+list('arrays')  
+--set-format dense
+--stop-igdata
+show(test)  
+scan(test)  
+build(<val:double>[i=0:4,6,0, j=0:4,6,0],1)  
+store(build(<val:double>[i=0:4,6,0, j=0:4,6,0],1),test)  
+--start-igdata
+store(build(<randomVal:int64>[i=0:2,3,0, j=0:3,4,0],random()%90+10),random_100)  
+--stop-igdata
+store(build(<val:double>[i=0:4,6,0, j=0:4,6,0],iif(i=j,1,0)),test)  
+store(build(<val:double>[i=0:4,6,0, j=0:4,6,0],iif(i>j,1,iif(i=1,7,0))),test)  
+--set-format dcsv
+--start-igdata
+create array Aprime <type:string, mpg:double> [x=0:*,10,0]  
+--set-format dense
+--stop-igdata
+store(build(<val:double>[i=0:4,6,0, j=0:4,6,0], i*5 +j+1),test)  
+--set-format dcsv
+subarray(test,1,1,3,3) 
+--set-format dense
+slice(test,j,2)  
+slice(test,i,1)  
+thin(test,0,2,0,2)  
+thin(test,1,3,1,2)  
+--set-format dcsv
+--start-igdata
+list('functions')  
+store(sort(project(filter(list('functions'), library='scidb'),name)),functionsArray)  
+--set-format dense
+--stop-igdata
+--start-igdata
+show(functionsArray)  
+--set-format dcsv
+--stop-igdata
+--start-igdata
+uniq(functionsArray)  
+create array test_array <val:double> [x=1:3,1,0, y=1:3,1,0]  
+create array one_dimensional <val:double, v2:string> [i=0:*,1000000,0]  
+create array dense_matrix <val:double> [x=0:9999,1000,0, y=0:9999,1000,0]  
+create array sparser_matrix <val:double> [x=0:*,100000,0, y=0:*,100000,0]  
+remove(test_array)  
+store(build(<val:double>[x=1:3,1,0,y=1:3,1,0], x+y), test_array)  
+remove(test_array)  
+store(build(<val:double>[x=1:3,1,0,y=1:3,1,0],random()/100000.0), test_array)  
+store(build(test_array, random()/100000.0), test_array)  
+filter(test_array, x>=3 and val<10000)  
+apply(test_array, v_2, val*x, v_sqrt, sqrt(val))  
+filter(apply(test_array, v2, iif(x = y, null, val)), x=y or x=3)  
+project(apply(test_array, v_2, val*x, v_sqrt, sqrt(val)), v_2)  
+between(test_array, 1,null,2,null)  
+subarray(test_array, 1,1,2,2)  
+slice(test_array, x, 2)  
+store(filter(build(<val2:double> [x2=1:3,1,0], x2), x2<>2), test_strip)  
+cross_join(test_array, test_strip, test_array.x, test_strip.x2)  
+project( apply( cross_join( test_array as A, aggregate(test_array, avg(val) as av, y) as B, A.y, B.y ), d, A.val-B.av ), d )  
+merge(filter(test_array, x=y), build(test_array,0))  
+apply(repart(test_array, <v:double>[a=1:3,3,0,b=1:3,3,0]), iid, instanceid())  
+aggregate(test_array, avg(val), sum(val))  
+aggregate(test_array, avg(val), sum(val), x)  
+aggregate(apply(test_array, v2, iif(x = y, null, val)), count(*), count(v2))  
+regrid(test_array, 2,2, avg(val), count(*))  
+window(test_array, 1,1,1,1,avg(val))  
+window(test_array, 0,0,0,1,avg(val), count(*))  
+variable_window(test_array, y, 3, 0, sum(val))  
+cumulate(test_array, sum(val), count(*), y)  
+create array B <val:int64>[i=0:4,5,0]  
+store(build(B,i),C)  
+store( redimension( C, B), B)  
+redimension( apply(test_array, iid, int64(instanceid())), <count:uint64 null> [iid=0:*,10,0], count(*) as count )  
+sort(test_array, val desc)  
+uniq(sort(test_array), 'chunk_size=100')  
+store(build(<val:int64> [x=1:1000,100,0], random()%5000), test_a)  
+store(build(<val:int64> [x=1:1000,100,0], random()%5000), test_b)  
+filter(index_lookup(test_a, test_b, test_a.val, idx), idx is null)  
+load_library('dense_linear_algebra')  
+store(build(<val1:double>[i=0:9,32,0, j=0:9,32,0],random()%100 +1),left)  
+store(build(left,random()%100+1),right)  
+gemm(left, right, build(<val:double>[x=0:9,32,0,y=0:9,32,0], 0))  
+store(build(<val1:double>[i=0:9,32,0, j=0:9,32,0],random()%100 +1),matrix)  
+gesvd(matrix, 'values')  
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(test)
+remove(random_100)
+remove(Aprime)
+remove(functionsArray)
+remove(one_dimensional)
+remove(dense_matrix)
+remove(sparser_matrix)
+remove(test_array)
+remove(test_strip)
+remove(B)
+remove(C)
+remove(test_a)
+remove(test_b)
+remove(left)
+remove(right)
+remove(matrix)

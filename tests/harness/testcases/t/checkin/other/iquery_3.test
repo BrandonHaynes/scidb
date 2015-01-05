@@ -1,0 +1,81 @@
+--setup
+--start-query-logging
+
+create array catalogue <code:int64, type:string, price:double, review:string> [id=0:10,3,0]
+create array catalogue1 <code:int64 null, type:string null, price:double null, review:string null> [id=0:10,3,0]
+create array catalogue2 <code:int64, type:string, price:double, review:string> [id=0:10,3,0]
+create array catalogue3 <code:int64, type:string, price:double, review:string> [id=0:10,3,0]
+create array catalogue4 <code:int64, type:string null, price:double null, review:string> [id=0:10,3,0]
+create array catalogue5 <code:int64 null, type:string, price:double, review:string null> [id=0:10,3,0]
+create array catalogue6 <code:int64 null, type:string, price:double null, review:string> [id=0:10,3,0]
+create array catalogue7 <code:int64 null, type:string, price:double null, review:string> [id=0:10,3,0]
+
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(catalogue,'${TEST_DATA_DIR}/iquery_3.txt')""
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(catalogue1,'${TEST_DATA_DIR}/iquery_3.txt')""
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(catalogue3,'${TEST_DATA_DIR}/iquery_3.txt')""
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(catalogue4,'${TEST_DATA_DIR}/iquery_3.txt')""
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(catalogue5,'${TEST_DATA_DIR}/iquery_3.txt')""
+store(filter(catalogue,true),catalogue2)
+store(filter(catalogue,true),catalogue6)
+store(filter(catalogue,true),catalogue7)
+
+--test
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue )\'')
+--shell  --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue )\'')
+--shell  --store --command " iquery  -o lsparse -aq 'scan ( catalogue )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue1 )\'')
+--shell  --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue1 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue1 )\'')
+--shell  --store --command " iquery  -o lsparse -aq 'scan ( catalogue1 )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue2 )\'')
+--shell  --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue2 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue2 )\'')
+--shell  --store --command " iquery  -o lsparse -aq 'scan ( catalogue2 )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue3 )\'')
+--shell  --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue3 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue3 )\'')
+--shell  --store --command " iquery  -o lsparse -aq 'scan ( catalogue3 )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue4 )\'')
+--shell  --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue4 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue4 )\'')
+--shell  --store --command " iquery  -o lsparse -aq 'scan ( catalogue4 )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue5 )\'')
+--shell  --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue5 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue5 )\'')
+--shell  --store --command " iquery  -o lsparse -aq 'scan ( catalogue5 )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue6 )\'')
+--shell  --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue6 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue6 )\'')
+--shell  --store --command " iquery  -o lsparse -aq 'scan ( catalogue6 )' "
+
+echo ('iquery  -o lcsv+ -aq \'scan ( catalogue7 )\'')
+--shell  --store --command " iquery  -o lcsv+ -aq 'scan ( catalogue7 )' "
+
+echo ('iquery  -o lsparse -aq \'scan ( catalogue7 )\'')
+--shell  --store --command " iquery  -o lsparse -aq 'scan ( catalogue7 )' "
+
+--cleanup
+remove(catalogue)
+remove(catalogue1)
+remove(catalogue2)
+remove(catalogue3)
+remove(catalogue4)
+remove(catalogue5)
+remove(catalogue6)
+remove(catalogue7)
+--stop-query-logging

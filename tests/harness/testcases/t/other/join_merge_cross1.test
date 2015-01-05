@@ -1,0 +1,40 @@
+--setup
+--start-query-logging
+#Ticket number : 1602
+#Testcases for Sparse array-types with similar dimension alignment multiple attributes of differnt types and empty cells and nulls.
+
+create array A <a:char>[x=0:5,3,0]
+create array Z <a:char>[x=0:5,3,0]
+store(filter(build(A,string(x+4)),x<>1),A)
+store(filter(build(Z,string(x+4)),x<>4),Z)
+store(filter(build(Z,string(x)),x<>4),Z1)
+
+
+
+--test
+join(A,Z)
+store(apply(A,b,a+'_s'),A1)
+show(A1)
+join(A,A1)
+join(A1,Z)
+join(Z,A)
+merge(A,Z)
+merge(A,Z1)  
+merge(Z1,A) 
+store(filter(build(A,string(x+4)),x<>2),A2)
+store(filter(build(Z,string(x+1)),x<>2),Z3)
+merge(A2,Z3) 
+merge(Z3,A2)
+cross_join(A,A1)
+
+
+
+--cleanup
+remove(A)
+remove(Z)
+remove(A1)
+remove(Z1)
+remove(A2)
+remove(Z3)
+
+--stop-query-logging

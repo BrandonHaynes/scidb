@@ -1,0 +1,124 @@
+--setup
+create empty array teeth <val:int64 null> [x=0:*,2,0,y=0:*,2,0]
+load(teeth, '../tests/harness/testcases/data/teeth.txt')
+CREATE IMMUTABLE ARRAY xyz_small <a:double compression 'dictionary'> [x=0:1999,100,0, y=0:1999,100,0]
+load(xyz_small,'../tests/harness/testcases/data/xyz_small.txt')
+CREATE IMMUTABLE ARRAY vector_str<x:string, y:double>[i=1:8,4,0]
+load(vector_str, '../tests/harness/testcases/data/vector_str.txt')
+create empty array evec <a:double NOT NULL>[x=0:9,10,0, y=0:0,1,0]
+load(evec, '../tests/harness/testcases/data/evec.txt')
+CREATE IMMUTABLE ARRAY vec <a:int32, b:int32> [i=1:10,10,0]
+load(vec,'../tests/harness/testcases/data/vec.txt')
+CREATE IMMUTABLE ARRAY M4x4 <a:int32, b:int32> [x=0:3,3,0, y=0:3,3,0]
+load(M4x4,'../tests/harness/testcases/data/M4x4.txt')
+CREATE IMMUTABLE ARRAY expr1 <a:int64, b:int64>[x=1:5,2,0, y=1:5,2,0]
+load(expr1, '../tests/harness/testcases/data/expr1.txt')
+create immutable array null_4 <a:int32 null,b:int32 null> [x=0:2,3,0, y=0:2,3,0]
+load(null_4,'../tests/harness/testcases/data/null_4.txt')
+create immutable array mult1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+load(mult1,'../tests/harness/testcases/data/mult1.txt')
+create immutable array mult2 <a:double> [x=0:2,1,0, y=0:2,1,0]
+load(mult2,'../tests/harness/testcases/data/mult2.txt')
+create immutable array A <A:int64>[x=-9:4611686018427387902,5,0]
+create  empty array null_5 <a:bool>	   [x=0:3,2,0]
+create  empty array empty_b	<a:bool null>	   [x=0:3,2,0]
+create  empty array empty_s <a:string null>	   [x=0:3,2,0]
+create  empty array empty_n <a:string null>	   [x=0:3,2,0]
+--aql load null_5 from '../tests/harness/testcases/data/null_5.txt'
+--aql load empty_b from '../tests/harness/testcases/data/empty_b.txt'
+--aql load empty_s from '../tests/harness/testcases/data/empty_s.txt'
+--aql load empty_n from '../tests/harness/testcases/data/empty_n.txt'
+create  array null_6	<a:bool null>	   [x=0:3,2,0]
+create  array null_7	<a:bool null>	   [x=0:3,2,0]
+create  array null_8	<a:bool null>	   [x=0:3,2,0]
+create  array null_9	<a:bool null>	   [x=0:3,2,0]
+create  array null_10	<a:bool null>	   [x=0:3,2,0]
+--aql load null_6 from '../tests/harness/testcases/data/null_6.txt'
+--aql load null_7 from '../tests/harness/testcases/data/null_7.txt'
+--aql load null_8 from '../tests/harness/testcases/data/null_8.txt'
+--aql load null_9 from '../tests/harness/testcases/data/null_9.txt'
+--aql load null_10 from '../tests/harness/testcases/data/null_10.txt'
+create immutable array null_3 <a:int32 null,b:int32 null> [x=0:2,3,0, y=0:2,3,0]
+--aql load null_3 from '../tests/harness/testcases/data/null_3.txt'
+create immutable array null_2 <a:int32,b:int32> [x=0:2,3,0, y=0:2,3,0]
+--aql load null_2 from '../tests/harness/testcases/data/null_2.txt'
+create immutable array null_1 <a:int32 null,b:int32 null> [x=0:2,3,0, y=0:2,3,0]
+load(null_1,'../tests/harness/testcases/data/null_1.txt')
+create immutable array a_join <a:int64, b:int64> [x=0:2,3,0,y=-2:2,4,0]
+--aql load a_join from '../tests/harness/testcases/data/a_join.txt'
+create  array pattern <a:int8,b:int16>[i=1:2,2,0, j=1:2,2,0]
+load(pattern, '../tests/harness/testcases/data/pattern.txt')
+create empty array A_10 <x:double null>[i=1:10,5,0]
+load(A_10, '../tests/harness/testcases/data/A_10.txt')
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense,'../tests/harness/testcases/data/dense.txt')
+create array empty_chunk <a:string default 'test'>[x=1:10,5,0]
+load(empty_chunk,'../tests/harness/testcases/data/empty_chunk.txt')
+--aql create  array expr2 <a:int64, b:int64>[x=1:5,2,0, y=1:5,2,0]
+--aql load expr2 from '../tests/harness/testcases/data/expr2.txt'
+CREATE ARRAY iquery_1 < name : string, chin : string, top : string, head : string, face : string, dorfishness : int64 > [ Offset=0:8,10,0 ]
+load ( iquery_1, '../tests/harness/testcases/data/iquery_1.txt')
+CREATE ARRAY iquery_2 < name : string, item : string, detail : string, qty : double > [ Offset=0:27,28,0 ]
+load ( iquery_2, '../tests/harness/testcases/data/iquery_2.txt')
+create array iquery_3 <code:int64 null, type:string null, price:double null, review:string null> [id=0:10,3,0]
+load(iquery_3,'../tests/harness/testcases/data/iquery_3.txt')
+create empty array iquery_4 <code:int64, type:string, price:double, review:string> [id=0:10,3,0]
+load(iquery_4,'../tests/harness/testcases/data/iquery_4.txt')
+create array iquery_5 <a:int32, b:string, c:string> [x=0:2,3,0,y=4:5,1,0]
+load(iquery_5,'../tests/harness/testcases/data/iquery_5.txt')
+create immutable array mult3 <a:double> [y=0:2,3,0, x=0:3,4,0]
+load(mult3,'../tests/harness/testcases/data/mult3.txt')
+create immutable array mult4 <a:double> [y=0:3,4,0, x=0:2,3,0]
+load(mult4,'../tests/harness/testcases/data/mult4.txt')
+create immutable array mult_sp_1 <a:double> [y=0:3,2,0,x=0:8,2,0]
+load(mult_sp_1,'../tests/harness/testcases/data/mult_sp_1.txt')
+create immutable array mult_sp_2 <a:double> [y=0:8,2,0,x=0:3,2,0]
+load(mult_sp_2,'../tests/harness/testcases/data/mult_sp_2.txt')
+create array null_11 <a:int64 null default 2 compression 'rle'> [x=-2:3,2,1]
+--aql load null_11 from '../tests/harness/testcases/data/null_11.txt'
+create array null_12 <a:int64 null default 2 compression 'rle'> [x=-2:3,2,1]
+--aql load null_12 from '../tests/harness/testcases/data/null_12.txt'
+create immutable empty array null_15 <a:double null compression 'rle'> [x=-2:3,2,1]
+--aql load null_15 from '../tests/harness/testcases/data/null_15.txt'
+create immutable empty array null_16 <a:double null default 1.2 compression 'rle'> [x=-2:3 ,2,1]
+--aql load null_16 from '../tests/harness/testcases/data/null_16.txt'
+create immutable array null_17 <a:int64 null compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+--aql load null_17 from '../tests/harness/testcases/data/null_17.txt'
+create immutable array null_18 <a:int64 null compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+--aql load null_18 from '../tests/harness/testcases/data/null_18.txt'
+create immutable array null_19 <a:string null compression 'rle'> [x=-2:3,2,1,y=0:2,3,0]
+--aql load null_19 from '../tests/harness/testcases/data/null_19.txt'
+create immutable array null_20 <a:string null compression 'rle'> [x=-2:3,2,1,y=0:2,3,0]
+--aql load null_20 from '../tests/harness/testcases/data/null_20.txt'
+CREATE ARRAY overlap <a: double> [x=0:5,3,1, y=0:5,3,1]
+load(overlap, '../tests/harness/testcases/data/overlap.txt')
+create empty array redimension_1 <a:string,b:string> [x=0:*,2,0,y=0:*,2,0]
+load(redimension_1,'../tests/harness/testcases/data/redimension_1.txt')
+create empty array redimension_2 <a:string,b:string null> [x=0:*,2,0,y=0:*,2,0]
+load(redimension_2,'../tests/harness/testcases/data/redimension_2.txt')
+create array timestamps<val:datetimetz null> [x=0:10,10,0]
+load(timestamps, '../tests/harness/testcases/data/timestamps.txt')
+create immutable array unbounded <a:int64>[x=0:*,5,0]
+load(unbounded,'../tests/harness/testcases/data/unbounded.txt')
+create array us_presidents <first_name:string, middle_name: string null, last_name:string, years_in_office: uint8 null, died_in_office:bool null, assassinated: bool> [president_number=1:44,10,0]
+load(us_presidents, '../tests/harness/testcases/data/us_presidents.txt')
+CREATE ARRAY v10 <a: double > [x=1:10,10,0]
+load(v10,'../tests/harness/testcases/data/v10.txt')
+create immutable array vec22 <a:double NOT NULL>[x=0:9,10,0, y=0:0,1,0]
+load(vec22,'../tests/harness/testcases/data/vec22.txt')
+CREATE IMMUTABLE ARRAY vector2_R2<x:double, y:double>[i=1:8,4,0]
+load(vector2_R2, '../tests/harness/testcases/data/vector2_R2.txt')
+create array vector3 <a:int64, b:int64> [i=0:8,9,0]
+load(vector3, '../tests/harness/testcases/data/vector3.txt')
+CREATE IMMUTABLE ARRAY vectorR2<x:double, y:double>[i=1:8,4,0]
+load(vectorR2, '../tests/harness/testcases/data/vectorR2.txt')
+CREATE IMMUTABLE ARRAY vector<x:int64, y:int64>[i=1:4,2,0]
+load(vector, '../tests/harness/testcases/data/vector.txt')
+--aql CREATE  ARRAY simple01a < COL000N: int32,COL001C: char,COL002S: string > [a=0:99,10,0,b=0:1,1,0]
+--aql load simple01a from '../tests/harness/testcases/data/simple01a.txt'
+CREATE  ARRAY simple01b < COL000N: int32,COL001C: char,COL002S: string > [a=0:99,10,0,b=0:1,2,0]
+--aql load simple01b from '../tests/harness/testcases/data/simple01b.txt'
+CREATE  ARRAY simple01c < COL000N: int32,COL001C: char,COL002S: string > [a=0:99,10,0,b=0:2,3,0]
+--aql load simple01c from '../tests/harness/testcases/data/simple01c.txt'
+CREATE  ARRAY simple01h < COL000N: int32,COL001C: char,COL002S: string,COL003G: double,COL004N: int32,COL005C: char,COL006S: string,COL007G: double,COL008N: int32,COL009C: char,COL010S: string,COL011G: double,COL012N: int32,COL013C: char,COL014S: string,COL015G: double,COL016N: int32,COL017C: char,COL018S: string,COL019G: double,COL020N: int32,COL021C: char,COL022S: string,COL023G: double,COL024N: int32,COL025C: char,COL026S: string,COL027G: double,COL028N: int32,COL029C: char,COL030S: string,COL031G: double,COL032N: int32,COL033C: char,COL034S: string,COL035G: double,COL036N: int32,COL037C: char,COL038S: string,COL039G: double,COL040N: int32,COL041C: char,COL042S: string,COL043G: double,COL044N: int32,COL045C: char,COL046S: string,COL047G: double,COL048N: int32,COL049C: char,COL050S: string,COL051G: double,COL052N: int32,COL053C: char,COL054S: string,COL055G: double,COL056N: int32,COL057C: char,COL058S: string,COL059G: double,COL060N: int32,COL061C: char,COL062S: string,COL063G: double,COL064N: int32,COL065C: char,COL066S: string,COL067G: double,COL068N: int32,COL069C: char,COL070S: string,COL071G: double,COL072N: int32,COL073C: char,COL074S: string,COL075G: double,COL076N: int32,COL077C: char,COL078S: string,COL079G: double,COL080N: int32,COL081C: char,COL082S: string,COL083G: double,COL084N: int32,COL085C: char,COL086S: string,COL087G: double,COL088N: int32,COL089C: char,COL090S: string,COL091G: double,COL092N: int32,COL093C: char,COL094S: string,COL095G: double,COL096N: int32,COL097C: char,COL098S: string,COL099G: double > [a=0:99,10,0,b=0:99,10,0]
+--aql load simple01h from '../tests/harness/testcases/data/simple01h.txt'

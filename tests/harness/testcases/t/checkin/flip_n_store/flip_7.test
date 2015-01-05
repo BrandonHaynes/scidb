@@ -1,0 +1,60 @@
+--setup
+--start-query-logging
+create array A <a:int64> [x=0:9,2,0]
+create array B <x:int64> [a=0:14,3,0]
+create array D <a:int64> [x=0:9,3,0]
+store(build(A,x+3),A)
+store(filter(build(D,x+1),x<>1),D)
+
+--test
+redimension(A,B)
+redimension(D,B)
+store(redimension(A,B),B)
+store(redimension(A,B),C)
+scan(B)
+unpack(B,row)
+unpack(C,row)
+redimension(B,D)
+unpack(redimension(D,B),row)
+
+aggregate(B,max(x))
+aggregate(B,min(x))
+aggregate(B,avg(x))
+rename(B,B1)
+rename(B1,B)
+subarray(B,10,11)
+between(B,11,20)
+filter(B,x>1)
+project(B,x)
+join(B,B)
+cross_join(B,B)
+apply(B,z,x-a)
+aggregate(B,count(*))
+aggregate(B,sum(x))
+sort(B,x)
+sort(B,x desc)
+
+aggregate(C,max(x))
+aggregate(C,min(x))
+aggregate(C,avg(x))
+rename(C,C1)
+rename(C1,C)
+subarray(C,10,11)
+between(C,11,20)
+filter(C,x>1)
+project(C,x)
+join(C,C)
+cross_join(C,C)
+apply(C,z,x-a)
+aggregate(C,count(*))
+aggregate(C,sum(x))
+sort(C,x)
+sort(C,x desc)
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+--stop-query-logging

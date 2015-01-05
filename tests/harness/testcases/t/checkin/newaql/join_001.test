@@ -1,0 +1,10 @@
+--setup
+create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+load(mult_1,'${TEST_DATA_DIR}/mult1.txt')
+
+--test
+--aql select * from (select * from mult_1) as m1,(select * from mult_1) as m2
+
+--cleanup
+remove(mult_1)
+

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<chapter id="scidbOperatorReference">
+  <title>SciDB AFL Operator Reference</title>
+
+  <para><indexterm>
+      <primary>operators</primary>
+
+      <secondary>reference</secondary>
+    </indexterm> This reference guide lists the operators available in SciDB's
+  Array Functional Language (AFL). Operators can be used in several ways in
+  SciDB queries.<itemizedlist>
+      <listitem>
+        <para>Operators can be used in AQL in <code> <command>FROM</command>
+        </code> clauses.</para>
+      </listitem>
+
+      <listitem>
+        <para>Operators can be used at the AFL command line or, in some cases,
+        nested with other AFL operators.</para>
+      </listitem>
+    </itemizedlist></para>
+
+  <para>Operator syntaxes generally follow this pattern:<programlisting><replaceable>operator</replaceable>(<replaceable>array</replaceable>|<replaceable>array_expression</replaceable>|<replaceable>anonymous_schema</replaceable>,<replaceable>arguments</replaceable>);</programlisting>The
+  first argument to an operator is generally an array that you have previously
+  created and stored in your current SciDB namespace. However, in many cases,
+  the first argument may also be a SciDB operator. The output of the nested
+  operator serves as the input for the outer operator. This is called an
+  <emphasis>array expression</emphasis>.<programlisting><replaceable>operator_1</replaceable>(<replaceable>operator_2</replaceable>(<replaceable>array</replaceable>,<replaceable>arguments_2</replaceable>),<replaceable>arguments_1</replaceable>);</programlisting>Not
+  all SciDB operators can take another operator as input. These exceptions are
+  noted in the Synopsis section of the operator's reference page. An operator
+  argument that is specified as <replaceable>array</replaceable> can also be
+  an array expression. An operator argument that is specified as
+  <replaceable>named_array</replaceable> can only be an array that you have
+  previously created and stored.</para>
+
+  <para>In addition, some operators can take an array schema as input instead
+  of a named array or array expression. This is called an <emphasis>anonymous
+  schema</emphasis>. An operator that can take an anonymous schema instead of
+  an array will be indicated in the arguments of the Synopsis section.</para>
+
+  <para>To see a categorized listing of the AFL operators, see <xref
+  linkend="scidbAFLCategories"/>.</para>
+
+  <para>You can get a list of all of the available operators by running the
+  following query:<screen>$ iquery -aq "list('operators')"</screen></para>
+
+  <xi:include href="adddim_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="aggregate_op_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="allversions_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="analyze_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="apply_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="attribute_rename_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="attributes_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="avg_rank_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="bernoulli_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="between_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="build_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="build_sparse_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="cancel.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="cast_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="concat_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="consume.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="cross_join_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="cumulate_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="deldim.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="dimensions_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+ <!--
+  These are internal operators: I want to remove them from the user guide. SJM
+
+  <xi:include href="diskinfo.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="echo.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="explain_logical.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+-->
+
+  <xi:include href="filter_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="gemm_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="gesvd_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="help_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="index_lookup_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="input_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="insert_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="join_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="list_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="load_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="load_module.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="load_library.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="lookup_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="merge_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="mpi_init.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="normalize_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="project_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="quantile_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="rank_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="redimension_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+<!--
+  This is an internal operator: I want to remove it from the user guide. SJM
+  <xi:include href="reduce_distro.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+-->
+
+  <xi:include href="regrid_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="remove_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="rename_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="repart_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="reshape_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="reverse_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="sample_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="save_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="scan_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+<!--
+   This is an internal operator: I want to remove it from the user guide. SJM
+  <xi:include href="setopt_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+-->
+
+  <xi:include href="show_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="slice_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="sort_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="store_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="subarray_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="substitute_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+<!-- Deprecated in 13.12
+  <xi:include href="sum_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+-->
+
+  <xi:include href="thin_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="transpose_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="uniq_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="unload_library.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="unpack_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="variable_window_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="versions_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="window_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="xgrid_post.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+</chapter>

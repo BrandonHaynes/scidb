@@ -1,0 +1,72 @@
+Query was executed successfully
+
+{i} schema
+{0} 'A1<a:int32> [i=0:*,1000000,0,j=0:*,1,0,k=0:*,1,0]'
+
+Query was executed successfully
+
+{i} schema
+{0} 'A2<a:int32> [i=0:*,1000000,0]'
+
+Query was executed successfully
+
+{i} schema
+{0} 'A22<a:int32> [i=0:*,1000,0,j=0:*,1000,0]'
+
+Query was executed successfully
+
+{i} schema
+{0} 'A23<a:int32> [i=0:*,99,0,j=0:*,99,0,k=0:*,99,0]'
+
+Query was executed successfully
+
+{i} schema
+{0} 'A3<a:int32> [i=0:*,9223372036854775807,0,j=0:*,1,0,k=0:*,1,0]'
+
+Query was executed successfully
+
+{i} schema
+{0} 'A32<a:int32> [i=0:*,1,0,j=0:*,9223372036854775807,0,k=0:*,1,0]'
+
+Query was executed successfully
+
+{i} schema
+{0} 'A33<a:int32> [i=0:*,1,0,j=0:*,1,0,k=0:*,9223372036854775807,0]'
+
+Query was executed successfully
+
+{i} schema
+{0} 'A4<a:int32> [i=0:*,8234567890123456789,0,j=0:0,1,0,k=0:0,1,0]'
+
+[An error expected at this place for the query "create array AE <a:int32> [i=0:*,8234567890123456789,0,j=0:0,1,0,k=0:0,1,1]". And it failed with error code = scidb::SCIDB_SE_METADATA::SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE. Expected error code = scidb::SCIDB_SE_METADATA::SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE.]
+
+[An error expected at this place for the query "create array AE <a:int32> [i=0:*,9223372036854775808,0,j,k]". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER.]
+
+[An error expected at this place for the query "create array AE <a:int32> [i=0:*,8223372036854775807,0,j=0:9,9,0,k=0:9,9,0]". And it failed with error code = scidb::SCIDB_SE_METADATA::SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE. Expected error code = scidb::SCIDB_SE_METADATA::SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE.]
+
+[An error expected at this place for the query "create array AE <a:int32> [i,j=0:*,9223372036854775808,0,k]". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER.]
+
+[An error expected at this place for the query "create array AE <a:int32> [i=0:*,9223372036854775808,0]". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER.]
+
+[An error expected at this place for the query "create array AE <a:int32> [i,j=0:*,9223372036854775808,1]". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER.]
+
+[An error expected at this place for the query "create array AE <a:int32> [i,j,k=0:*,9223372036854775808,0]". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_BAD_LITERAL_INTEGER.]
+
+[An error expected at this place for the query "show(AE)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

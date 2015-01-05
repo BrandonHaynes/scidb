@@ -1,0 +1,20 @@
+--setup
+
+create array I1 <val1:double> [x=0:4,2,0 ,y=0:4,2,0]
+store(build(I1,x+y),I1)
+create array I2 <val1:double> [x=0:4,2,0]
+store(build(I2,x),I2)
+create array I3 <var:String> [x=0:5,3,0]
+store(build(I3,x+5),I3)
+
+--test
+normalize(I2)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR2 "normalize(I1)"
+
+--cleanup
+
+remove(I1)
+remove(I2)
+remove(I3)
+
+

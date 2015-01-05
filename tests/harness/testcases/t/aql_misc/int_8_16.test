@@ -1,0 +1,50 @@
+--setup
+create array A <a:int8>[x=0:2,3,0]
+create array B <a:int16>[x=0:2,3,0]
+create  array C <a:int8,b:int16>[i=1:2,2,0, j=1:2,2,0]
+store(build(A,x+1),A)
+store(build(B,x+10),B)
+load(C, '${TEST_DATA_DIR}/pattern.txt')
+
+--test
+--aql select * from A
+--aql select a from A
+--aql select a+2 from A
+--aql select * from A where a>2
+
+--aql select * from B
+--aql select a from B
+--aql select a/a from B
+--aql select * from B where a>2
+
+--aql select a from C
+--aql select b from C
+--aql select a+b from C
+--aql select b-a from C
+--aql select * from C where a>1
+--aql select * from C where b<2
+--aql select * from C where a<b
+--aql select * from C where a%b<1
+
+
+--aql update C set a=127 where i=1
+
+--aql update C set a=128 where i=2
+
+--aql update C set a=-128 where i=1
+
+--aql update C set a=-129 where i=1
+
+--aql update C set b=32767 where j=1
+
+--aql update C set a=32768 where i=1
+
+--aql update C set a=-32768 where j=1
+
+--aql update C set a=-32769 where j=1
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

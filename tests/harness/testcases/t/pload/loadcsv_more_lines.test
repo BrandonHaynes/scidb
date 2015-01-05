@@ -1,0 +1,21 @@
+
+#If lines in the CSV file to be more than specified chunk size * number of instances.
+--setup
+--start-query-logging
+
+--test
+
+--start-igdata
+--shell --command " cat ${TEST_DATA_DIR}/sm7.csv | loadcsv.py  -a 'array_sm7_2' -s '<a:int64,b:int64,c:int64>[i=0:*,1,0]' -v -x -c 1 -l -L -b -d 'localhost' -p $IQUERY_PORT "
+
+
+--stop-igdata
+
+sort( array_sm7_2,a )
+
+--cleanup
+
+remove(array_sm7_2)
+
+--stop-query-logging
+

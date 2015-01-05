@@ -1,0 +1,80 @@
+--setup
+--start-query-logging
+# Tests covers non-numerical attributes. Also covers attribute value as null, inf
+# Tests for sort-rank and quantile
+
+create array A <r:string NULL>[x=10:17,2,0]
+store(build(A,20*x+1),A)
+store(apply(A,s, iif(x=13,null,iif(x=16,null,x))),B)
+
+--test
+
+sort(A)
+sort(filter(A, r> '250'))
+sort(filter(A, x<> 15))
+sort(filter(A, x< 15 and x>12))
+sort(filter(A, x< 15 and x>15))
+sort(filter(A, x<> 14 and x<>16),20)
+sort(filter(A, x<> 14 and x<>16))
+sort(reverse(filter(A, x<> 14 and x<>16)),2)
+
+# reported ticket for worng sort result: ticket#1830
+sort(B,s)
+sort(B,r)
+sort(subarray(B,12,14),r)
+sort(subarray(B,12,14),s)
+sort(filter(B, x< 15 and x>12),r)
+sort(filter(B, x< 15 and x>12),s)
+
+rank(A)
+rank(reverse(A))
+rank(filter(A, r> '250'))
+rank(filter(A, x<> 15))
+rank(subarray(A,0,11))
+rank(filter(A, x< 15 and x>12))
+rank(filter(A, x< 15 and x>15))
+project(rank(filter(A, x< 15 and x>12)),r_rank,r)
+
+rank(B)
+rank(B,r)
+rank(B,s)
+rank(filter(B, x< 15 and x>12),s)
+rank(filter(B, x< 15 and x>12),r)
+rank(filter(B, x< 15 and x>15))
+rank(filter(B, x< 15 and x>15),r)
+rank(filter(B, x< 15 and x>15),s)
+rank(sort(filter(A, x<> 14 and x<>16),25))
+
+quantile(A,2)
+quantile(A,4)
+quantile(A,8)
+quantile(A,10)
+quantile(A,12)
+quantile(A,16)
+quantile(A,20)
+quantile(subarray(A,10,14),2)
+quantile(subarray(A,10,14),2,r)
+quantile(subarray(A,10,14),100)
+quantile(filter(A, x< 15 and x>15),2)
+quantile(filter(A, x< 15 and x>15),2,r)
+quantile(rank(sort(filter(A, x<> 14 and x<>16),25)),2)
+
+quantile(B,2)
+quantile(B,2,r)
+quantile(B,2,s)
+quantile(filter(B, x< 15 and x>12),2)
+quantile(filter(B, x< 15 and x>12),4)
+quantile(filter(B, x< 15 and x>12),2,s)
+quantile(filter(B, x< 15 and x>12),4,s)
+quantile(filter(B, x< 15 and x>15),2,s)
+quantile(filter(B, x< 15 and x>15),100,s)
+quantile(filter(B, x< 15 and x>15),100,r)
+
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "quantile(filter(B, x< 15 and x>15),100,s,r)"
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "sort(A,x)"
+
+--cleanup
+remove(A)
+remove(B)
+
+--stop-query-logging

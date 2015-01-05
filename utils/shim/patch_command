@@ -1,0 +1,26 @@
+#!/bin/bash
+################################################################
+# Modify the Makefile taken from GitHub Paradigm4 shim
+#
+# ARGUMENTS
+BOOST_ROOT=$1
+CMAKE_SOURCE_DIR=$2
+CMAKE_BINARY_DIR=$3
+SCIDB_SHORT_VERSION=$4
+################
+# Replace INC=
+#   PROJECT_ROOT is the CMAKE_SOURCE_DIR
+#   Boost include directory is ${BOOST_ROOT}/include
+#   Project include directory is ${CMAKE_SOURCE_DIR}/include
+#
+#                INC=-I. -DPROJECT_ROOT="\"$(SCIDB)\"" -I"$(SCIDB)/3rdparty/boost/include/" -I"$(SCIDB)/include" -DSCIDB_CLIENT
+#
+sed -i "s#INC=.*#INC=-I. -DPROJECT_ROOT=\"\\\\\"${CMAKE_SOURCE_DIR}\"\\\\\" -I\"${BOOST_ROOT}/include\" -I\"${CMAKE_SOURCE_DIR}/include\" -DSCIDB_CLIENT#" Makefile
+################
+# Replace LIBS=
+#   Boost lib directory is ${BOOST_ROOT}/lib
+#   scidbclient library is built into ${CMAKE_BINARY_DIR}/bin
+#
+#                 LIBS=-ldl -lz -lpthread -L"$(SCIDB)/3rdparty/boost/lib" -L"$(SCIDB)/lib" -lscidbclient -lboost_system -lpam -Wl,-rpath,$(SCIDB)/lib:$(RPATH)
+#
+sed -i "s#LIBS=.*#LIBS=-lstdc++ -ldl -lz -lpthread -L\"${BOOST_ROOT}/lib\" -L\"${CMAKE_BINARY_DIR}/bin\" -lscidbclient -lboost_system -lpam -Wl,--enable-new-dtags -Wl,-rpath,'\$\$ORIGIN:\$\$ORIGIN/../lib:\$\$ORIGIN/../../:/opt/scidb/${SCIDB_SHORT_VERSION}/3rdparty/boost/lib:'#" Makefile

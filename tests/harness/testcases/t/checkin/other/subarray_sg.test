@@ -1,0 +1,12 @@
+--setup
+
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense, '${TEST_DATA_DIR}/dense.txt')
+
+--test
+apply(join (subarray(dense, 0,3,2,5), subarray(cast (dense, <a2:double> [x=0:5,3,0,y=0:5,3,0]), 3,3,5,5) as dense2), sum, a+a2)
+apply(join (subarray( sg( dense,4), 0,3,2,5), subarray(cast (sg(dense,3), <a2:double> [x=0:5,3,0,y=0:5,3,0]), 3,3,5,5) as dense2), sum, a+a2)
+aggregate(apply(join(subarray(join(dense as a,dense as b), 3,3,5,5),subarray(dense as c,0,0,2,2)),v,a.a+b.a+c.a),sum(v))
+
+--cleanup
+remove(dense)

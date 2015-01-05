@@ -1,0 +1,1 @@
+filter(count(filter(sample(xyz, 0.1, 2011), a>0.1)), count<40 or count>80)

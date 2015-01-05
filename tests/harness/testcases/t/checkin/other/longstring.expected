@@ -1,0 +1,25 @@
+Query was executed successfully
+
+{Line} I,J,V,W
+{0} 0,0,1,'fool fda;lj flkad;s jldajf l;dsaj fd;lsaf jdl;kfj dlsa;jf dkl;j fd;lasfj dsal;jf das;lf jdslakfj l;dajf ld;ajf dlkaj fldkaj fl;daj fldkajf l;dakj fdl;aj fkldasjf l;dakjf dlkaj flkdasj fiojhiofe hfia;f jidoajgopa jfeq epq jfeqfeiop jfpwq jeoq ha;oif;ajf ;ea ei;a je;a ie;ai je;aj ei;ai e;a i;eaj r;eai e;aji;e ae;'
+{1} 0,1,2,'0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789'
+{2} 0,2,2,'foo'
+{3} 1,0,3,'foo'
+{4} 1,1,4,'bar'
+{5} 1,2,5,'foo'
+
+SCIDB QUERY : <show(LongString)>
+{i} schema
+{0} 'LongString<I:int64,J:int64,V:double NULL DEFAULT null,W:string> [Line=0:*,6,0]'
+
+SCIDB QUERY : <scan(LongString)>
+{Line} I,J,V,W
+{0} 0,0,1,'fool fda;lj flkad;s jldajf l;dsaj fd;lsaf jdl;kfj dlsa;jf dkl;j fd;lasfj dsal;jf das;lf jdslakfj l;dajf ld;ajf dlkaj fldkaj fl;daj fldkajf l;dakj fdl;aj fkldasjf l;dakjf dlkaj flkdasj fiojhiofe hfia;f jidoajgopa jfeq epq jfeqfeiop jfpwq jeoq ha;oif;ajf ;ea ei;a je;a ie;ai je;aj ei;ai e;a i;eaj r;eai e;aji;e ae;'
+{1} 0,1,2,'0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789'
+{2} 0,2,2,'foo'
+{3} 1,0,3,'foo'
+{4} 1,1,4,'bar'
+{5} 1,2,5,'foo'
+
+Query was executed successfully
+

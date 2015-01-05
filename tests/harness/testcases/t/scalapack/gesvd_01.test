@@ -1,0 +1,32 @@
+--setup
+--start-query-logging
+# Tests for gesvd on 1xN and Nx1 arrays
+
+# Note dimensions should have same chunk size
+
+load_library('dense_linear_algebra')
+create array ROWS <x:double>[i=0:3,32,0, j=0:0,32,0]
+store(build(ROWS,pow(i,4)), ROWS)
+
+create array COLUMNS <x:double>[i=0:0,32,0, j=0:3,32,0]
+store(build(COLUMNS, iif(i+j>1,pow(10,j-i), 25)), COLUMNS)
+
+
+
+--test
+gesvd(ROWS, 'values')
+gesvd(ROWS, 'left')
+gesvd(ROWS, 'right')
+
+gesvd(COLUMNS, 'values')
+gesvd(COLUMNS, 'left')
+gesvd(COLUMNS, 'right')
+
+
+--cleanup
+remove(ROWS)
+remove(COLUMNS)
+
+--stop-query-logging
+
+

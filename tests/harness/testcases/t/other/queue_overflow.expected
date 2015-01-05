@@ -1,0 +1,99 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array A <a:int32> [x=0:999,10,0,y=0:999,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(A,iif(x+y=0,1,x+y)),1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+

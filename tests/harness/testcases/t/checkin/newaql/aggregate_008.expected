@@ -1,0 +1,189 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <select sum(a) from A regrid as (partition by x 1)>
+{x} sum
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <select max(a) from A regrid as (partition by x 1)>
+{x} max
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <select min(a) from A regrid as (partition by x 1)>
+{x} min
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <select avg(a) from A regrid as (partition by x 1)>
+{x} avg
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <select count(a) from A regrid as (partition by x 1)>
+{x} count
+{0} 1
+{1} 1
+{2} 1
+{3} 1
+{4} 1
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+
+SCIDB QUERY : <select count(*) from A regrid as (partition by x 1)>
+{x} count
+{0} 1
+{1} 1
+{2} 1
+{3} 1
+{4} 1
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+
+SCIDB QUERY : <select stdev(a) from A regrid as (partition by x 1)>
+{x} stdev
+{0} null
+{1} null
+{2} null
+{3} null
+{4} null
+{5} null
+{6} null
+{7} null
+{8} null
+
+SCIDB QUERY : <select var(a) from A regrid as (partition by x 1)>
+{x} var
+{0} null
+{1} null
+{2} null
+{3} null
+{4} null
+{5} null
+{6} null
+{7} null
+{8} null
+
+SCIDB QUERY : <store(build(A,x-2),A)>
+{x} a
+{0} -2
+{1} -1
+{2} 0
+{3} 1
+{4} 2
+{5} 3
+{6} 4
+{7} 5
+{8} 6
+
+SCIDB QUERY : <select sum(a),max(a) from A regrid as (partition by x 18)>
+{x} sum,max_1
+{0} 18,6
+
+SCIDB QUERY : <select max(a),var(a),stdev(a),count(a),sum(a),min(a) from A regrid as (partition by x 3)>
+{x} max,var_1,stdev_2,count_3,sum_4,min_5
+{0} 0,1,1,3,-3,-2
+{1} 3,1,1,3,6,1
+{2} 6,1,1,3,15,4
+
+SCIDB QUERY : <select min(a),count(*) from A regrid as (partition by x 4)>
+{x} min,count_1
+{0} -2,4
+{1} 2,4
+{2} 6,1
+
+SCIDB QUERY : <select avg(a),count(a) from A regrid as (partition by x 1)>
+{x} avg,count_1
+{0} -2,1
+{1} -1,1
+{2} 0,1
+{3} 1,1
+{4} 2,1
+{5} 3,1
+{6} 4,1
+{7} 5,1
+{8} 6,1
+
+SCIDB QUERY : <select count(a),count(*) from A regrid as (partition by x 2)>
+{x} count,count_1
+{0} 2,2
+{1} 2,2
+{2} 2,2
+{3} 2,2
+{4} 1,1
+
+SCIDB QUERY : <select count(*),sum(a) from A regrid as (partition by x 3)>
+{x} count,sum_1
+{0} 3,-3
+{1} 3,6
+{2} 3,15
+
+SCIDB QUERY : <select stdev(a),avg(a) from A regrid as (partition by x 5)>
+{x} stdev,avg_1
+{0} 1.58114,0
+{1} 1.29099,4.5
+
+SCIDB QUERY : <select var(a),stdev(a) from A regrid as (partition by x 9)>
+{x} var,stdev_1
+{0} 7.5,2.73861
+
+SCIDB QUERY : <select sum(a)+max(a) from A regrid as (partition by x 18)>
+{x} expr
+{0} 24
+
+SCIDB QUERY : <select sum(a + 1)*max(a + 2) from A regrid as (partition by x 18)>
+{x} expr
+{0} 216
+
+SCIDB QUERY : <select x, sum(a + 1)*max(a + 2) from A regrid as (partition by x 18)>
+{x} expr,expr_1
+{0} 0,216
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

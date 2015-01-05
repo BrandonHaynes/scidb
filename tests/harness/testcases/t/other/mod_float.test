@@ -1,0 +1,15 @@
+# ticket #1916
+#
+# Modulo operator supports floating point number as well
+
+--setup
+create array A <a:int32> [x=0:0,1,0]
+store(build(A,x+1),A)
+
+--test
+--aql select 1.5%1.5 from A
+--aql select 1.6%1.5 from A
+
+--cleanup
+remove(A)
+

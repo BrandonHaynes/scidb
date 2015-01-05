@@ -1,0 +1,27 @@
+SCIDB QUERY : <store(build(<val1:double>[i=0:3,4,0],1),indices1)>
+[(1),(1),(1),(1)]
+
+SCIDB QUERY : <store(build(<val1:double>[i=0:3,4,0],i),indices2)>
+[(0),(1),(2),(3)]
+
+SCIDB QUERY : <store(join(indices1,indices2),pattern_array)>
+{i} val1,val1_2
+{0} 1,0
+{1} 1,1
+{2} 1,2
+{3} 1,3
+
+SCIDB QUERY : <store(build(<val:double>[i=0:3,4,0,j=0:3,4,0],i*4+j+100),source_array)>
+[[(100),(101),(102),(103)],[(104),(105),(106),(107)],[(108),(109),(110),(111)],[(112),(113),(114),(115)]]
+
+SCIDB QUERY : <lookup(pattern_array,source_array)>
+[(104),(105),(106),(107)]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

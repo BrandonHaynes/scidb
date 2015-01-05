@@ -1,0 +1,21 @@
+--setup
+--start-query-logging
+
+--set-format dense
+create array quantile3dtmp <x:int64, y:int64, z:int64, a:int64>[dummy=0:*,1,0]
+create array quantile3d <a:int64 null> [x=0:1,1,0, y=0:3,2,0, z=0:3,2,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odense -aq "load(quantile3dtmp, '${TEST_DATA_DIR}/quantile_3d.txt')""
+store(redimension(quantile3dtmp, quantile3d), quantile3d)
+--reset-format
+
+--test
+--set-format csv+
+quantile(quantile3d, 2, a, y, z)
+quantile(quantile3d, 2, a, z, y, x)
+quantile(quantile3d, 3, a, z, x)
+--reset-format
+
+--cleanup
+remove(quantile3d)
+remove(quantile3dtmp)
+--stop-query-logging

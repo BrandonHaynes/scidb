@@ -1,0 +1,14 @@
+SCIDB QUERY : <sort(array_sm10,a)>
+{n} a,b,c
+{0} 31,32,33
+{1} 34,35,36
+{2} 37,38,39
+{3} 40,41,42
+{4} 43,44,45
+{5} 46,47,48
+{6} 49,50,51
+{7} 52,53,54
+
+SCIDB QUERY : <remove( array_sm10 )>
+Query was executed successfully
+

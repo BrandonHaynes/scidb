@@ -1,0 +1,27 @@
+--setup
+--start-query-logging
+
+create array unbounded <a:int64>[x=0:*,5,0]
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(unbounded,'${TEST_DATA_DIR}/unbounded.txt')""
+
+
+
+--test
+
+## ../../tests/basic/update/append.aql
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "store(input(unbounded,  '${TEST_DATA_DIR}/append.txt'), unbounded)""
+
+## ../../tests/basic/update/append2.aql
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "store(input(unbounded,  '${TEST_DATA_DIR}/append2.txt'), unbounded)""
+
+## ../../tests/basic/update/append3.aql
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "store(input(unbounded,  '${TEST_DATA_DIR}/append3.txt'), unbounded)""
+  
+## ../../tests/basic/update/append4.aql
+scan(unbounded)  
+
+--cleanup
+
+remove(unbounded) 
+
+--stop-query-logging

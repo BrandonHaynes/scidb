@@ -1,0 +1,833 @@
+<html>
+<head>
+<title>SciDB operators</title>
+<ul>
+<li><a href="#adddim">adddim</a></li>
+<li><a href="#aggregate">aggregate</a></li>
+<li><a href="#allversions">allversions</a></li>
+<li><a href="#apply">apply</a></li>
+<li><a href="#attributes">attributes</a></li>
+<li><a href="#average">average</a></li>
+<li><a href="#bernoulli">bernoulli</a></li>
+<li><a href="#between">beetwen</a></li>
+<li><a href="#build">build</a></li>
+<li><a href="#build_sparse">build_sparse</a></li>
+<li><a href="#cancel">cancel</a></li>
+<li><a href="#cast">cast</a></li>
+<li><a href="#concat">concat</a></li>
+<li><a href="#count">count</a></li>
+<li><a href="#create_array">create array</a></li>
+<li><a href="#cross">cross</a></li>
+<li><a href="#cross_join">cross_join</a></li>
+<li><a href="#deldim">deldim</a></li>
+<li><a href="#dimensions">dimensions</a></li>
+<li><a href="#diskinfo">diskinfo</a></li>
+<li><a href="#echo">echo</a></li>
+<li><a href="#explain_logical">explain_logical</a></li>
+<li><a href="#explain_physical">explain_physical</a></li>
+<li><a href="#input">input</a></li>
+<li><a href="#filter">filter</a></li>
+<li><a href="#redimension">redimension</a></li>
+<li><a href="#redimension_store">redimension_store</a></li>
+<li><a href="#join">join</a></li>
+<li><a href="#list">list</a></li>
+<li><a href="#load_library">load library</a></li>
+<li><a href="#load">load</a></li>
+<li><a href="#lookup">lookup</a></li>
+<li><a href="#match">match</a></li>
+<li><a href="#materialize">materialize</a></li>
+<li><a href="#max">max</a></li>
+<li><a href="#merge">merge</a></li>
+<li><a href="#min">min</a></li>
+<li><a href="#multiply">multiply</a></li>
+<li><a href="#norm">norm</a></li>
+<li><a href="#project">project</a></li>
+<li><a href="#regrid">regrid</a></li>
+<li><a href="#remove">remove</a></li>
+<li><a href="#rename">rename</a></li>
+<li><a href="#repart">repart</a></li>
+<li><a href="#reshape">reshape</a></li>
+<li><a href="#reverse">reverse</a></li>
+<li><a href="#sample">sample</a></li>
+<li><a href="#save">save</a></li>
+<li><a href="#scan">scan</a></li>
+<li><a href="#setopt">setopt</a></li>
+<li><a href="#sg">scatter/gather</a></li>
+<li><a href="#slice">slice</a></li>
+<li><a href="#sort">sort</a></li>
+<li><a href="#store">store</a></li>
+<li><a href="#subarray">subarray</a></li>
+<li><a href="#substitute">substitute</a></li>
+<li><a href="#sum">sum</a></li>
+<li><a href="#thin">thin</a></li>
+<li><a href="#transpose">transpose</a></li>
+<li><a href="#unpack">unpack</a></li>
+<li><a href="#versions">versions</a></li>
+<li><a href="#window">window</a></li>
+<li><a href="#xgrid">xgrid</a></li>
+<li><a href="#mstat">mstat</a></li>
+</ul>
+</head>
+<body>
+<h2><a name="adddim">adddim</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Add dimension to array. Prepend dimensions list with new dimension with given name and size equal to one and chunk interval equal to one.
+<dt><b>Syntax</b></dt>
+<dd>
+    <u>adddim</u> ( <i>input-array</i>, <i>new-dimension-name-1</i> )
+ </dd>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "adddim(matrix, timestamp)"</code></dd>
+</dl>
+<h2><a name="aggregate">aggregate</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Calculate aggregates for the specified dimensions. 
+This operator takes a list of aggregate calls and a list of dimension names by which grouping is performed and calculates
+the aggregates for the remaining dimensions. Result is an array with shape corresponding to the specified dimensions
+and one attribute for each specified aggregate. </dd> 
+<dt><b>Syntax</b></dt>
+<dd>
+    <u>aggregate</u> ( <i>input-array</i>, <i>aggregate-1</i>,...<i>aggregate-N</i>, <i>dimension-1</i>,... <i>dimension-N</i> )
+ </dd>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "aggregate(Reads, POSITION, sum(a), count(*) as num_values)"</code></dd>
+</dl>
+<h2><a name="allversions">allversions</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get all versions of updatable array using version number as additional (first) dimension.</dd>
+<dt><b>Syntax</b></dt>
+<dd><u>allversions</u> ( <i>updatable-array-name</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "allversions(updarr)"</code></dd><br>
+</dl>
+<h2><a name="apply">apply</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Evaluate expression for each element of the input array. The result is represented as a separate attribute added to the input array.</dd>
+<dt><b>Syntax</b></dt>
+<dd><u>apply</u> ( <i>input-array</i>, <i>result-attribute</i>, <i>applied-expression</i> )<br>
+<i>input-array</i> { <i>result-attribute-1</i> : <i>applied-expression-1</i> , <i>result-attribute-2</i> : <i>applied-expression-2</i> , ... }<br>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "apply(testarr, sum, a+b)"</code></dd><br>
+</dl>
+<h2><a name="attributes">attributes</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get list of array attributes. Returns array with the following attributes: <b>name</b>, <b>type</b>.
+<dt><b>Syntax</b></dt>
+<dd><u>attributes</u> ( <i>array-reference</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "attributes(testarr)"</code></dd>
+</dl>
+<h2><a name="average">average</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Calculate average value of the specified attribute in the array. The result is an array with single element containing average value.
+If input array contains only one attribute, then attribute name can be omitted.
+<dt><b>Syntax</b></dt>
+<dd><u>average</u> ( <i>input-array</i> [ , <i>attribute</i> [ , <i>group-by-dimension-1</i>, <i>group-by-dimension-2</i>, ... ] ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "average(testarr, A)"</code><br>
+<code>iquery -aq "average(matrix)"</code><br>
+<code>iquery -aq "average(Reads, Read, OFFSET)"</code><br>
+</dd>
+</dl>
+</dl>
+<h2><a name="bernoulli">bernoulli</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Sample input array by selecting random number of cells from it. The marginal probability that a cell is included in the sample is provided in the second argument. If users desire a repeatable sample, they can provide an initializing seed value for the internal random number genertor. 
+<dt><b>Syntax</b></dt>
+<dd><u>bernoulli</u> ( <i>input-array</i> , <i>probability</i> [ , <i>seed</i> ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "max(bernoulli(testarr, 0.01))"</code></dd>
+</dl>
+<h2><a name="between">between</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get subarray of the input array specified by low and high boundaries preserving shape of the input array.
+<dt><b>Syntax</b></dt>
+<dd><u>between</u> ( <i>input-array</i>, <i>low-boundary-coordinate-1</i>, ..., <i>low-boundary-coordinate-N</i>, <i>high-boundary-coordinate-1</i>, ..., <i>high-boundary-coordinate-N</i>  )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "between(testarr, 0, 1, 1, 2)"</code>
+</dd>
+</dl>
+<h2><a name="build">build</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Construct single-attribute array, assigning values to its elements using a specified expression.
+This expression can access any of the array coordinates.
+First example below initializes a matrix with sequential values 1, 2, 3, ...
+Second example creates identity matrix.
+<dt><b>Syntax</b></dt>
+<dd><u>build</u> ( <i>array-reference</i>, <i>expression</i> )
+<dt><b>Example</b></dt>
+<dd><code> iquery -q "create array M3x3 &lt;val:float&gt; [x=0:2,3,0, y=0:2,3,0]"</code><br>
+<code>iquery -aq "build(M3x3, 0)"</code><br>
+<code>iquery -aq "build(M3x3, y*3 + x)"</code><br>
+<code>iquery -aq "build(M3x3, if x = y then 1 else 0)"</code><br></dd>
+</dl>
+<h2><a name="build_sparse">build_sparse</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Construct single-attribute sparse array, assigning values to its elements selected by predicate
+using specified expression.
+This expression can access any of the array coordinates.
+The following example initializes spars diagonal matrix:
+<dt><b>Syntax</b></dt>
+<dd><u>build_sparse</u> ( <i>array-reference</i>, <i>expression</i>, <i>predicate</i> )
+<dt><b>Example</b></dt>
+<dd><code> iquery -q "create array M3x3 &lt;val:float&gt; [x=0:2,3,0, y=0:2,3,0]"</code><br>
+<code>iquery -aq "build_sparse(M3x3, 1, x = y)"</code><br></dd>
+</dl>
+<h2><a name="cast">cast</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Cast array type. This operator converts input array to the specified array type.
+The input array and target array descriptor should have the same number of attributes
+with the same types and also shape of the input and output arrays should be the same.
+So this operator just allows to rename array and its attributes and dimensions.
+<dt><b>Syntax</b></dt>
+<dd><u>cast</u> ( <i>input-array</i>, <i>output-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "cast(testarr1, M4x4)"</code></dd>
+</dl>
+<h2><a name="concat">concat</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Concatenate two arrays. Array should have the the name number of dimensions.
+Concatenation is performed by the left-most coordinate. All other dimensions should be the same.
+And left-most dimension of both arrays should have fixed size and same chunking schema.
+Also arrays should have the same attributes. 
+<dt><b>Syntax</b></dt>
+<dd><u>concat</u> ( <i>left-array</i>, <i>right-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "concat(testarr1, testarr2)"</code></dd>
+</dl>
+<h2><a name="count">count</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Count non-empty elements of the input array. Group-by dimensions
+are optional in the count operator. If one or more group-by dimensions
+are specified, the input array elements are first grouped by these dimensions and the count is performed on the resulting groups. 
+<dt><b>Syntax</b></dt>
+<dd><u>count</u> ( <i>input-array</i>  [ , <i>group-by-dimension-1</i>, <i>group-by-dimension-2</i>, ... ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "count(testarr)"</code><br>
+<dd><code>iquery -aq "count(Reads, OFFSET)"</code><br>
+</dd>
+</dl>
+<h2><a name="create_array">create array</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Create an array. 
+<dt><b>Syntax</b></dt>
+<dd><u>create array</u> <i>array-name</i> &lt; <i>attribute-name</i> : <i>type</i>, ... &gt; [ <i>dimension-name</i> = <i>from</i> : <i>till</i>, <i>chunk-interval</i>, <i>chunk-overlap</i> , ... ] 
+<dt><b>Example</b></dt>
+<dd><code>iquery -q "CREATE ARRAY test &lt;a: int32, b: int32&gt;  [x=0:2,3,0, y=0:2,3,0]"</code></dd>
+</dl>
+<h2><a name="cross">cross</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Produces cross product of two arrays
+<dt><b>Syntax</b></dt>
+<dd>
+    <u>cross</u> ( <i>left-array</i>, <i>right-array</i> )
+ </dd>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "cross(matrix, vector)"</code></dd>
+</dl>
+<h2><a name="cross_join">cross_join</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Performs cross join on specified dimensions. Pairs of dimension names (one from the left
+array, another from the right array) are specified as parameter of JOIN operator.
+Number of dimensions of result array is equals to sum of dimensions of input arrays minus 
+number of pairs of matched coordinates.<p>
+In case the attribute name is not unique it can be qualified using array name (A.x) or 
+operand number ($2.y). In the first case attribute "x" of input array "A" is taken.
+And second case refer to the attribute "y" of second input array.
+<dt><b>Syntax</b></dt>
+<dd><u>cross_join</u> ( <i>input-array-1</i>, <i>input-array-2</i>, <i>dim-array-1</i>, <i>dim-array-2</i>, ... )<br>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "cross_join(testarr1, testarr2, i, j)"</code></dd><br>
+</dl>
+<h2><a name="deldim">deldim</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Delete left-most dimension from the array. Deleted dimension should have size 1.
+<dt><b>Syntax</b></dt>
+<dd>
+    <u>deldim</u> ( <i>input-array</i> )
+ </dd>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "deldim(subarray(matrix, 1, 100, 1, 200))"</code></dd>
+</dl>
+<h2><a name="dimensions">dimensions</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get list of array dimensions. Returns array with the following attributes: <b>name</b>, <b>start</b>, <b>length</b>, <b>chunk_interval</b>, <b>chunk-overlap</b>.
+<dt><b>Syntax</b></dt>
+<dd><u>dimensions</u> ( <i>array-reference</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "dimensions(testarr)"</code></dd>
+</dl>
+<h2><a name="diskinfo">diskinfo</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get information about storage space. Returns array with the following attributes: <b>used</b>, <b>available</b>, <b>clusterSize</b>, <b>nFreeClusters</b>, <b>nSegments</b>.
+<dt><b>Syntax</b></dt>
+<dd><u>diskinfo</u> ()
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "diskinfo()"</code></dd>
+</dl>
+<h2><a name="echo">echo</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Print text to the output and to the log
+<dt><b>Syntax</b></dt>
+<dd><u>echo</u> ( <i>any-text</i> ) 
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "echo('Hello world')"</code></dd>
+</dl>
+<h2><a name="explain_logical">explain_logical</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Output a textual representation of the logical plan for the given query. 
+<dt><b>Syntax</b></dt>
+<dd><u>explain_logical</u> ( <i> query-string </i> [ <i>, language-string </i> ] ) 
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "explain_logical('select * from foo','aql')"</code></dd>
+</dl>
+<h2><a name="explain_physical">explain_physical</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Output a textual representation of the physical plan for the given query. 
+<dt><b>Syntax</b></dt>
+<dd><u>explain_physical</u> ( <i> query-string </i> [ <i>, language-string </i> ] ) 
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "explain_physical('select * from foo','aql')"</code></dd>
+</dl>
+<h2><a name="input">input</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Incremental input of array from input text file. Unlike LOAD operator, input doesn't store result in the database
+<dt><b>Syntax</b></dt>
+<dd><u>input</u> ( <i>array-name</i>, <i>input-file-path</i> [ [ [ [ <i>, instance-id</i> [ <i>, input-format</i> [ <i>, max-errors</i> [ <i>, shadow-array</i> ] ] ] ] )
+<dd><i>instance-id</i> - instanceID or -1 (all instances) or -2 (coordinator). Default -2</dd>
+<dd><i>input-format</i> - "opaque", "text" or binary loader template, for example: "(int32,dummy(4),string)". Default "text"</dd>
+<dd><i>max-errors</i> - maximal number of conversion error which can be ignored. Default 0</dd>
+<dd><i>shadow-array</i> - name of shadow array containing information about conversion errors. It contains the same attributes as original array + position of  error in imported file. Attributes of shadow array contains text of error message or null if correspondent attribute was successfully loaded</dd>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "store(input(testarr, 'data.dmp'), testarr2)"</code></dd>
+<dd><code>iquery -aq "store(input(testarr, 'data.binary', -2, '(int32 null,float null,string null)', 10, foo_shadow), testarr2)"</code></dd>
+</dl>
+<h2><a name="filter">filter</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Filter array elements not matching specified condition. Mark as empty the elements of the array for which <i>filter-expression</i> is not evaluated to true. 
+If input array already has empty-tag attribute, then it is used, otherwise it will be added.
+<dt><b>Syntax</b></dt>
+<dd><u>filter</u> ( <i>input-array</i>, <i>filter-expression</i> )<br>
+<i>input-array</i> ? <i>filter-expression</i><br>
+
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "filter(testarr, A &gt; B)"</code></dd>
+</dl>
+<h2><a name="redimension">redimension</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Exchange specified dimensions and attributes of the source array. Mapping between attributes and dimensions 
+is specified using definition of the destination array.
+<dt><b>Syntax</b></dt>
+<dd><u>redimension</u> ( <i>source-array</i>, <i>destination-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "join(A, redimension(B, A))"</code></dd>
+</dl>
+<h2><a name="redimension_store">redimension_store</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Exchange specified dimensions and attributes of the source array and store result to the disk. 
+  Mapping between attributes and dimensions is specified using definition of the destination array.
+<dt><b>Syntax</b></dt>
+<dd><u>redimension</u> ( <i>source-array</i>, <i>destination-array</i> { ',' <i>aggregation-expression</i> } )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "redimension_store(B, A)"</code></dd>
+</dl>
+<h2><a name="join">join</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Perfroms natural join of two arrays with the same shape. 
+Array should have the same dimensions and the same chunks size.
+Result is array with the same shape containing attributes from both arrays.
+<dt><b>Syntax</b></dt>
+<dd><u>join</u> ( <i>input-array-1</i>, <i>input-array-2</i> )<br>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "join(testarr1, testarr2)"</code></dd><br>
+</dl>
+<h2><a name="list">list</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get list of operators, functions, aggregates, types, arrays names, current query IDs or loaded libraries.
+Returns array with single attribute <b>name</b>.
+For queries returns array with fields (query: string, id: int64).
+For libraries returns array with fields (name: string, major: int32, minor: int32, patch: int32, build: int32).
+When called without parameters returns list of arrays.
+<dt><b>Syntax</b></dt>
+<dd><u>list</u> ( <code>'arrays'</code> <b>|</b> <code>'types'</code> <b>|</b> <code>'operators'</code> <b>|</b> <code>'functions'</code> <b>|</b> <code>'queries'</code> <b>|</b> <code>'libraries'</code>)
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "list()"</code><br>
+<code>iquery -aq "list('arrays')"</code><br>
+<code>iquery -aq "list('operators')"</code><br>
+<code>iquery -aq "list('types')"</code><br>
+<code>iquery -aq "list('functions')"</code><br>
+<code>iquery -aq "list('aggregates')"</code><br>
+<code>iquery -aq "list('queries')"</code><br>
+<code>iquery -aq "list('libraries')"</code><br>
+</dd>
+</dl>
+<h2><a name="load">load</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Load an array from input text file. This is shorthand for <u>store</u>( <u>input</u>(<i>array-name</i>, <i>input-file-name</i>), <i>array-name</i>).
+<dt><b>Syntax</b></dt>
+<dd><u>load</u> ( <i>array-name</i>, <i>input-file-path</i> [ [ [ [ <i>, instance-id</i> [ <i>, input-format</i> [ <i>, max-errors</i> [ <i>, shadow-array</i> ] ] ] ] )
+<dd><i>instance-id</i> - instanceID or -1 (all instances) or -2 (coordinator). Default -2</dd>
+<dd><i>input-format</i> - "opaque", "text" or binary loader template, for example: "(int32,dummy(4),string)". Default "text"</dd>
+<dd><i>max-errors</i> - maximal number of conversion error which can be ignored. Default 0</dd>
+<dd><i>shadow-array</i> - name of shadow array containing information about conversion errors. It contains the same attributes as original array + position of  error in imported file. Attributes of shadow array contains text of error message or null if correspondent attribute was successfully loaded</dd>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "load(testarr, 'data.dmp')"</code></dd>
+<dd><code>iquery -aq "load(testarr, 'data.binary', -2, '(int32 null,float null,string null)', 10, foo_shadow)"</code></dd>
+</dl>
+<h2><a name="lookup">lookup</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Map elements from the second array using attributes of the first array as coordinates in the second array.
+Result array has the same shape as first array and the same attributes as second array.
+<dt><b>Syntax</b></dt>
+<dd><u>lookup</u> ( <i>pattern-array</i>, <i>source-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "lookup(pattern, dense)"</code></dd>
+</dl>
+<h2><a name="match">match</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Match pattern array with catalog array. For each cell in pattern array find closest non-empty cell in catalog array distance to which doesn't exceed specified error. Result array has the same shape as pattern array and combined list of attributes pattern and catalog attrbiutes + dimensiones of matched catalog element. Attributes and coordinates of matched catalog entry have "match_" prefix. 
+<dt><b>Syntax</b></dt>
+<dd><u>match</u> ( <i>pattern-array</i>, <i>catalog-array</i>, <i>error</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "match(sky_snaphot, stars_catalog, 50)"</code><br>
+</dd>
+</dl>
+<h2><a name="materialize">materialize</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Materialize chunks of input array, converting them to the specified format (0 - preserve format of the input chunk, 1 - RLE format, 2 - dense format)
+<dt><b>Syntax</b></dt>
+<dd><u>materialize</u> ( <i>input-array</i>, <i>format</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "materilize(apply(A, x2, x*x), 0)"</code><br>
+</dd>
+</dl>
+<h2><a name="max">max</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Calculate maximum of the specified attribute in the array. Result is an array with single element containing maximum of specified attribute.
+If input array contains only one attribute, then attribute name can be omitted.
+<dt><b>Syntax</b></dt>
+<dd><u>max</u> ( <i>input-array</i> [ , <i>attribute</i> [ , <i>group-by-dimension-1</i>, <i>group-by-dimension-2</i>, ... ] ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "max(testarr, A)"</code><br>
+<code>iquery -aq "max(matrix)"</code><br>
+<code>iquery -aq "max(Reads, Read, POS)"</code><br>
+</dd>
+</dl>
+<h2><a name="merge">merge</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Merge two or more arrays. All arrays should have the same attributes and dimensions.
+Merge operator combines elements from the input array in such way: if element of first array is non empty, then
+it is taken, otherwise correspondent element of the second array is inspected and so on.
+<dt><b>Syntax</b></dt>
+<dd><u>merge</u> ( <i>input-array-1</i>, <i>input-array-2</i>, ... )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "merge(main_results, supplementary_results)"</code></dd>
+</dl>
+<h2><a name="min">min</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Calculate minimum of the specified attribute in the array. Result is an array with single element containing minimum of specified attribute.
+If input array contains only one attribute, then attribute name can be missed.
+<dt><b>Syntax</b></dt>
+<dd><u>min</u> ( <i>input-array</i> [ , <i>attribute</i> [ , <i>group-by-dimension-1</i>, <i>group-by-dimension-2</i>, ... ] ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "min(testarr, A)"</code><br>
+<code>iquery -aq "min(matrix)"</code><br>
+<code>iquery -aq "min(Reads, Read, OFFSET)"</code><br>
+</dd>
+</dl>
+<h2><a name="multiply">multiply</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Multiply two matrices. Matrices should have two dimensions and single attribute.
+<dt><b>Syntax</b></dt>
+<dd><u>multiply</u> ( <i>left-matrix</i>, <i>right-matrix</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "multiply(matrix1, matrix2)"</code></dd>
+</dl>
+<h2><a name="norm">norm</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Normalize vector (divide each element on length of the vector)
+<dt><b>Syntax</b></dt>
+<dd><u>norm</u> ( <i>input-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "norm(testarr, A)"</code></dd>
+</dl>
+<h2><a name="project">project</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Project specified attributes of the input array
+<dt><b>Syntax</b></dt>
+<dd><u>project</u> ( <i>input-array</i>, <i>attribute-1</i>, ..., <i>attribute-N</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "project(testarr, A)"</code></dd>
+</dl>
+<h2><a name="regrid">regrid</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Split the  input array into grids of specified dimensions and calculate one or more aggregates for each grid.
+Results array has the same number of dimensions as in the input array but the length of each dimension is divided by the size of the corresponding grid dimension. 
+Result array contains one attribute for every specified aggregate.
+<dt><b>Syntax</b></dt>
+<dd><u>regrid</u> ( <i>input-array</i>, <i>grid-interval-1</i>, ... <i>grid-interval-N</i>, <i>aggregate-1</i>,... <i>aggregate-N</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "regrid(testarr, 2, 2, sum(A) as sum, avg(A), count(*) as numvalues)"</code></dd>
+</dl>
+<h2><a name="remove">remove</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Remove array from the storage. Currently only metadata of array is removed, but its chunks are still 
+present in repository. So it can be considered as a resource leak.
+<dt><b>Syntax</b></dt>
+<dd><u>remove</u> ( <i>array-reference</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "remove(testarr)"</code></dd>
+</dl>
+<h2><a name="rename">rename</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Rename existing array in the database. 
+<dt><b>Syntax</b></dt>
+<dd><u>rename</u> ( <i>old-array-reference</i>, <i>new-array-reference</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "rename(testarr, testarr_v1)"</code></dd>
+</dl>
+<h2><a name="repart">repart</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Change partitioning (chunking) of the array. Target array should have the same number of attributes
+and dimensions, but chunk size may be different. Target array should be previously created using "create array" operator.
+Repart takes definition of attributes from the source array and definition of dimensions from the target array.
+<dt><b>Syntax</b></dt>
+<dd><u>repart</u> ( <i>input-array</i>, <i>target-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "repart(testarr, testarr2)"</code></dd>
+</dl>
+<h2><a name="reshape">reshape</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Change array shape. Target array should have the same number of attributes
+and fixed size dimensions (unbounded arrays are not allowed). Size of the input and target array should be the same.
+So it is possible to reshape 2x2x2 array to 4x2, but not 3x3 to 2x2. Target array should be previously created using "create array" operator.
+Reshape takes definition of attributes from the source array and definition of dimensions from the target array.
+<dt><b>Syntax</b></dt>
+<dd><u>reshape</u> ( <i>input-array</i>, <i>target-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "reshape(testarr, testarr2)"</code></dd>
+</dl>
+<h2><a name="reverse">reverse</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Invert order of array elements.
+<dt><b>Syntax</b></dt>
+<dd><u>reverse</u> ( <i>input-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "reverse(testarr)"</code></dd>
+</dl>
+<h2><a name="sample">sample</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Sample input array by selecting random number of chunks from it
+<dt><b>Syntax</b></dt>
+<dd><u>sample</u> ( <i>input-array</i> , <i>probability</i> [ , <i>seed</i> ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "max(sample(testarr, 0.01))"</code></dd>
+</dl>
+<h2><a name="save">save</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Save array in specified file in text format. This operator is the opposite of the load() operator.
+<dt><b>Syntax</b></dt>
+<dd><u>save</u> ( <i>array-reference</i> , <i>file-path</i> [ [ <i>, instance-id</i> [ <i>, store-format</i>  ] ] )
+<dd><i>instance-id</i> - instanceID or -1 (all instances) or -2 (coordinator). Default -2</dd>
+<dd><i>store-format</i> - "opaque", "store", "sparse", "dense", "csv", "csv+", "lcsv+"  or binary loader template, for example: "(int32,dummy(4),string)". Default "store"</dd>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "save(testarr, '/data/testarr.dat')"</code></dd>
+<dd><code>iquery -aq "save(testarr, '/data/testarr.dat', -2, '(int32,float,string)')"</code></dd>
+</dl>
+<h2><a name="scan">scan</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Read array. Array with the specified name should be previously created and loaded in the database using <code>load</code> operator.
+<dt><b>Syntax</b></dt>
+<dd><u>scan</u> ( <i>array-reference</i> [ , <i>timestamp</i> ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "scan(testarr)"</code><br>
+<code>iquery -aq "scan(testarr, '10/28/2010')"</code><br>
+<code>iquery -aq "scan(testarr, now() - 5*24*3600)"</code><br>
+</dd>
+</dl>
+<h2><a name="setopt">setopt</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Set/get configuration option value at runtime. 
+Option value should be specified as string.
+If new value is not specified, then values of this configuration option at all nodes are printed. 
+If new value is specified, then value of option is updated at all odes and result array contains old and new values of the option at all nodes.
+<dt><b>Syntax</b></dt>
+<dd><u>setopt</u> ( <i>option-name</i> [ , <i>new-option-value</i> ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "setopt('threads', '4')"</code>
+</dd>
+</dl>
+<h2><a name="slice">slice</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get slice of the array. Result is slice of the input array corresponding to the given coordinates. Number of dimensions of the result array is
+equal to the number of dimension of input array minus number of specified coordinates (which should be less than number of dimensions of the input array). 
+<dt><b>Syntax</b></dt>
+<dd><u>slice</u> ( <i>input-array</i>, <i>dimension-1</i>, <i>coordinate-value-1</i> , ... , <i>dimension-N</i>, <i>coordinate-value-N</i>  )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "slice(testarr, x, 2)"</code></dd>
+</dl>
+<h2><a name="sort">sort</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Sort one-dimensional array by one or more attributes.
+Attributes are specified either by name, either by position (1-based). To sort in descending order prepend attribute
+name with - or use negative value of attribute position. 
+<dt><b>Syntax</b></dt>
+<dd><u>sort</u> ( <i>input-array</i>, { <i>attribute-name</i> | [-] <i>attribute-position</i> } )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "sort(testarr, A)"</code><br>
+<code>iquery -aq "sort(testarr, -1)"</code><br>
+</dd>
+</dl>
+<h2><a name="store">store</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Store input array in the database under specified name.
+<dt><b>Syntax</b></dt>
+<dd><u>store</u> ( <i>input-array</i>, <i>destination</i> )<br>
+<i>destination-array</i> = <i>input-array</i><br>
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "store(multiply(arr1, arr2), result)"</code><br>
+</dd>
+</dl>
+<h2><a name="subarray">subarray</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get subarray of the input array specified by low and high boundaries.
+<dt><b>Syntax</b></dt>
+<dd><u>subarray</u> ( <i>input-array</i>, <i>low-boundary-coordinate-1</i>, ..., <i>low-boundary-coordinate-N</i>, <i>high-boundary-coordinate-1</i>, ..., <i>high-boundary-coordinate-N</i>  )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "subarray(testarr, 0, 1, 1, 2)"</code>
+</dd>
+</dl>
+<h2><a name="substitute">substitute</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Substitute null vakues in the input array, using thier missing reasons as index in the second (substituion) array.
+<dt><b>Syntax</b></dt>
+<dd><u>substitute</u> ( <i>input-array</i> , <i>substitute-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "substitute(nullableArray, substNulls)"</code></dd>
+</dl>
+<h2><a name="sum">sum</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Calculate sum of the specified attribute in the array. Result is an array with single element containing sum of specified attribute.
+If input array contains only one attribute, then attribute name can be omitted.
+<dt><b>Syntax</b></dt>
+<dd><u>sum</u> ( <i>input-array</i> [ , <i>attribute</i> [ , <i>group-by-dimension-1</i>, <i>group-by-dimension-2</i>, ... ] ] )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "sum(testarr, A)"</code><br>
+<code>iquery -aq "sum(matrix)"</code><br>
+<code>iquery -aq "sum(Reads, Read, OFFSET)"</code><br>
+</dd>
+</dl>
+<h2><a name="thin">thin</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Operator inverse to xgrid: leave only each k-th element of input array.
+<dt><b>Syntax</b></dt>
+<dd><u>thin</u> ( <i>input-array</i>, <i>from-1</i>, <i>step-1</i>,  <i>from-2</i>, <i>step-2</i>, ..., <i>from-N</i>, <i>step-N</i>,  )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "thin(window(A, 1, 2, 1, 2)"</code></dd>
+</dl>
+<h2><a name="transpose">transpose</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Transpose matrix. Input array should have two dimensions.
+<dt><b>Syntax</b></dt>
+<dd><u>transpose</u> ( <i>input-array</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "transpose(testarr)"</code></dd>
+</dl>
+<h2><a name="unpack">unpack</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Unpack array to single dimensional array treating coordinates as attributes.
+Result array has single zero-based dimension and arguments combining attributes of the input array.
+<dt><b>Syntax</b></dt>
+<dd><u>unpack</u> ( <i>input-array</i>, <i>dimension</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "unpack(testarr, no)"</code></dd>
+</dl>
+<h2><a name="versions">versions</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Get list of updatable array versions. Returns array with the following attributes: <b>version_id</b>, <b>time_stamp</b>.
+<dt><b>Syntax</b></dt>
+<dd><u>versions</u> ( <i>array-reference</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "versions(updarr)"</code></dd>
+</dl>
+<h2><a name="window">window</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Move specified window through the input array and calculate one or more aggregates.
+The shape of of result array is the same as shape of input array. 
+Result array contains one attribute for each specified aggregate.
+<dt><b>Syntax</b></dt>
+<dd><u>window</u> ( <i>input-array</i>, <i>window-size-1</i>, ... <i>widow-size-N</i>, <i>aggregate-1</i>,... <i>aggregate-N</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "window(testarr, 3, 3, sum(A), stdev(A) as standard_deviation)"</code></dd>
+</dl>
+<h2><a name="xgrid">xgrid</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Scale input array by repeating cells of the original array specified number of times.
+This operator can be considered as inverse to regrid operator: regrid
+splits input array in "hypercubes" and calculates aggregate function
+for them and xgrid produces hypercube from the single element
+of the input array.
+<dt><b>Syntax</b></dt>
+<dd><u>xgrid</u> ( <i>input-array</i>, <i>scale-1</i>, ..., <i>scale-N</i> )
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "xgrid(matrix, 2, 2)"</code></dd>
+</dl>
+
+<h2><a name="mstat">mstat</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>Collect mallinfo outputs on every instance. Contains 10 attributes with parameters.
+<ul>
+<li>arena - non-mmapped space allocated from system
+<li>ordblks - number of free chunks
+<li>smblks - number of fastbin blocks
+<li>hblks - number of mmapped regions
+<li>hblkhd - space in mmapped regions
+<li>usmblks - maximum total allocated space
+<li>fsmblks - space available in freed fastbin blocks
+<li>uordblks - total allocated space
+<li>fordblks - total free space
+<li>keepcost - top-most, releasable (via malloc_trim) space
+</ul>
+Read <code>man mallinfo</code> for more details.
+<dt><b>Syntax</b></dt>
+<dd><u>mstat</u> ()
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "mstat()"</code></dd>
+</dl>
+
+<h2><a name="sg">scatter/gather</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>scatter/gather operator redistributes chunks of the input array across cluster nodes according to a specified policy.
+sg is not a user-visible operator, but it is heavily used by the system internally. 
+It is a physical operator for data movement within the system and users are not expected to invoke it directly.  The scidb
+optimizer inserts an sg operator after load() to redistribute array data using round robin distribution.
+The optimizer may also insert sg operators to assist with aggregations, operators that don't preserve shape or operators that don't preserve
+distribution.
+</dd>
+<dt><b>Syntax</b></dt>
+<dd><u>sg</u> ( <i>input-array</i>, [ <i>partitioning schema</i> [, <i>node number</i> [, <i>result array name</i>  [, <i>store_flag</i> [,<i>offset_x, offset_y,...</i> ] ] ] ] ])
+<dd><i>input-array</i> - array to be redistributed. May also be the output of another operator like scan, filter, etc.</dd>
+<dd><i>partitioning schema</i> - integer constant specifying partitioning schema. Possible values:<br>
+0 - psReplication - replicate array on every node of cluster,<br>
+1 - psRoundRobin - distribute chunks by round robin,<br>
+2 - psLocalNode - send every local chunk to specified node,<br>
+3 - psByRow - distribute every chunk to node according to chunk coordinate of dimension 0,<br>
+4 - psByCol - distribute every chunk to node according to chunk coordinate of dimension 1<br>
+</dd>
+<dd><i>node number</i> - a node number to send all chunks. Used only with psLocalNode. Ignored for other partitioning schemas.</dd>
+<dd><i>result array name</i> - a name of result array. If omitted, the result of sg is nameless and temporary with query duration. 
+If present, and store_flag is either omitted or true, the result of sg is persisted as a new array with given name. 
+If present, and store_flag is false, the result is temporary but may be aliased by this given name elsewhere in the query.</dd>
+<dd><i>store_flag</i> - a boolean indicator used to specify whether sg should store the result as a new array. 
+By default, true if result array name is given.</dd>
+<dd><i>offset</i> - a distribution offset vector. For internal use.
+<dt><b>Example</b></dt>
+<dd>Query to distribute array by round robin onto every node:</dd>
+<dd><code>iquery -aq "sg(seq_info, 1, -1, seq_info_sg)"</code></dd>
+<dd>Query to gather whole array on node 0 in memory array (will not be stored on disk):</dd>
+<dd><code>iquery -aq "sg(seq_info_sg, 2, 0)"</code></dd>
+</dl>
+<h2><a name="load_library">load library</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>
+
+</dd>
+<dt><b>Syntax</b></dt>
+
+<dd>AQL: <u>load library</u> <i>library name</i>
+<dd>AFL: <u>load_library</u>(<i>library name</i>)
+
+<dd><i>library name</i> - a string constant with name of .so library that should be loaded</dd>
+SciDB instance will search library in plugins folder of current directory of instance.
+Example of point library will be linked there authomatically if you build it from the sources.
+
+<dt><b>Example</b></dt>
+<dd>Loading library from examples folder - libpoint.so:</dd>
+<dd><code>iquery -aq "load library 'libpoint.so'"</code></dd>
+<dd>The use of user defined objects from libpoint.so:</dd>
+<dd><code>iquery -aq "apply(dense, b, point2str( str2point('(1,1)') + str2point('(2,2)') ))"</code></dd>
+</dl>
+
+<h2><a name="cancel">cancel</a></h2>
+<dl>
+<dt><b>Description</b></dt>
+<dd>
+
+</dd>
+<dt><b>Syntax</b></dt>
+
+<dd>AQL: Not available
+<dd>AFL: <u>cancel</u>(<i>query id</i>)
+
+<dd><i>query id</i> - a int64 number with query id you want to cancel.
+Use list('queries') operator to know current query ids.
+
+<dt><b>Example</b></dt>
+<dd><code>iquery -aq "cancel(1299016933)"</code></dd>
+</dl>
+
+</body>
+</html>

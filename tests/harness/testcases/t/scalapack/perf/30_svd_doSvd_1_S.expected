@@ -1,0 +1,137 @@
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,1,1 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 1 to 1 (if any)
+../../bin/doSvd.sh: verbose svd test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+../../bin/doSvd.sh: verbose U test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+../../bin/doSvd.sh: verbose VT test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+../../bin/doSvd.sh: verbose S test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+
+0,0,1
+r,c,multiply
+
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 2 to 1 (if any)
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,1,1 end
+
+
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,-1,1 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 1 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 1 to 1 (if any)
+../../bin/doSvd.sh: U-only test @ 1 x 1 csize 32 x 32
+Query was executed successfully
+i,count
+0,1
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 1,-1,1 end
+
+
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 2,-1,8 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 2 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 2 to 8 (if any)
+../../bin/doSvd.sh: U-only test @ 2 x 2 csize 32 x 32
+Query was executed successfully
+i,count
+0,4
+
+../../bin/doSvd.sh: U-only test @ 3 x 3 csize 32 x 32
+Query was executed successfully
+i,count
+0,9
+
+../../bin/doSvd.sh: U-only test @ 4 x 4 csize 32 x 32
+Query was executed successfully
+i,count
+0,16
+
+../../bin/doSvd.sh: U-only test @ 5 x 5 csize 32 x 32
+Query was executed successfully
+i,count
+0,25
+
+../../bin/doSvd.sh: U-only test @ 6 x 6 csize 32 x 32
+Query was executed successfully
+i,count
+0,36
+
+../../bin/doSvd.sh: U-only test @ 7 x 7 csize 32 x 32
+Query was executed successfully
+i,count
+0,49
+
+../../bin/doSvd.sh: U-only test @ 8 x 8 csize 32 x 32
+Query was executed successfully
+i,count
+0,64
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 2,-1,8 end
+
+
+../../bin/doSvd.sh: =====================================
+../../bin/doSvd.sh: ../../bin/doSvd.sh 16,-1,1024 begin
+Query was executed successfully
+../../bin/doSvd.sh: **********************************************************************
+../../bin/doSvd.sh: ****** verbose, remultiplied svd('U'), svd('VT'), svd('values') 
+../../bin/doSvd.sh: ****** from 16 to -1 (if any)
+../../bin/doSvd.sh: *****************************************************************************
+../../bin/doSvd.sh: ****** quick test, svd('U') only
+../../bin/doSvd.sh: ****** from 16 to 1024 (if any)
+../../bin/doSvd.sh: U-only test @ 16 x 16 csize 32 x 32
+Query was executed successfully
+i,count
+0,256
+
+../../bin/doSvd.sh: U-only test @ 32 x 32 csize 32 x 32
+Query was executed successfully
+i,count
+0,1024
+
+../../bin/doSvd.sh: U-only test @ 64 x 64 csize 32 x 32
+Query was executed successfully
+i,count
+0,4096
+
+../../bin/doSvd.sh: U-only test @ 128 x 128 csize 32 x 32
+Query was executed successfully
+i,count
+0,16384
+
+../../bin/doSvd.sh: U-only test @ 256 x 256 csize 32 x 32
+Query was executed successfully
+i,count
+0,65536
+
+../../bin/doSvd.sh: U-only test @ 512 x 512 csize 32 x 32
+Query was executed successfully
+i,count
+0,262144
+
+../../bin/doSvd.sh: U-only test @ 1024 x 1024 csize 32 x 32
+Query was executed successfully
+i,count
+0,1048576
+
+../../bin/doSvd.sh: ../../bin/doSvd.sh 16,-1,1024 end
+
+

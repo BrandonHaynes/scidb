@@ -1,0 +1,25 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+create array SAleft <a:double>[x=0:10,3,0, y=0:8,3,0]
+create array SAright <b:double>[x=0:8,3,0, y=0:1,1,0]
+
+--test
+store( filter(build(SAleft, x+y), true), SAleft )
+store( filter(build(SAright, x*1.0/(y+1)), true), SAright )
+spgemm(SAleft, SAright)
+spgemm(SAleft, SAright, 'min.+')
+spgemm(SAleft, SAright, 'max.+')
+
+store( filter(build(SAleft, x), x=y), SAleft )
+store( filter(build(SAright, 1), true), SAright )
+spgemm(SAleft, SAright)
+spgemm(SAleft, SAright, 'min.+')
+spgemm(SAleft, SAright, 'max.+')
+
+--cleanup
+remove(SAleft)
+remove(SAright)
+
+--stop-query-logging

@@ -1,0 +1,58 @@
+--setup
+--start-query-logging
+# Ticket nummber: 1688
+# Tests for the binary load-save on 2D arrays.
+
+create array AB <a:int32,b:string,c:double> [x=0:3,4,0,y=0:3,4,0]
+create array ABC <a:int32,b:string,c:double> [x=0:3,4,0,y=0:3,4,0]
+create array ABC_null <a: int32 null ,b:string null,c: double null> [x=0:3,4,0,y=0:3,4,0]
+create array ABC2_null <a: int32 null ,b:string null,c: double null> [x=0:3,4,0,y=0:3,4,0]
+create array AB1 <a:int32,b:string,c:double> [x=0:3,4,0,y=0:3,4,0]
+create array AB2 <a:int32,b:string,c:double> [x=0:3,4,0,y=0:3,4,0]
+create array PQR <a:int64,b:string,c:double> [x=0:3,4,0,y=0:3,4,0]
+create array PQR1 <a:int64,b:string> [x=0:3,4,0,y=0:3,4,0]
+
+
+
+--test
+--set-format csv+
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -ocsv+ -aq "load(AB, '${TEST_DATA_DIR}/abc.txt')""
+save(AB, 'abc.out', 0, '(int32,string,double)')
+load(AB, 'abc.out', 0, '(int32,string,double)')
+load(ABC, 'abc.out', 0, '(int32,string,double)')
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -ocsv+ -aq "load(ABC_null, '${TEST_DATA_DIR}/abc_null.txt')""
+save(ABC_null, 'abc_null.out', 0, '(int32 null,string null,double null)')
+save(ABC_null, 'abc_null.txt')
+load(ABC2_null, 'abc_null.txt')
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(AB1, 'abc_null.out', 0, '(int32 null,string null ,double null)')"
+--igdata "load(AB1, 'abc_null.out', 0, '(int32 null,string null ,double null)',10)"
+--igdata "load(AB1, 'abc_null.out', 0, '(int32 null,string null ,double null)',14,AB1_shadow)"
+aggregate(versions(AB1_shadow),count(*))
+load(AB2, 'abc_null.txt', 0, 'text',16)
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(AB2, 'abc_null.txt', 0, 'text')"
+--igdata "load(AB2, 'abc_null.txt', 0, 'text',12)"
+load(PQR, 'abc.out', 0, '(int32,string,double)')
+save(AB, 'abc_dummy.out', 0, '(int32,string,dummy)')
+load(PQR1, 'abc_dummy.out', 0, '(int32,string)')
+load(PQR1, 'abc.out', 0, '(int32,string,dummy(8))')
+
+--reset-format
+
+
+
+--cleanup
+remove(AB)
+remove(ABC)
+remove(ABC_null)
+remove(ABC2_null)
+remove(AB1)  
+remove(AB2)
+remove(PQR)
+remove(PQR1)
+remove(AB1_shadow)
+
+--stop-query-logging
+
+
+

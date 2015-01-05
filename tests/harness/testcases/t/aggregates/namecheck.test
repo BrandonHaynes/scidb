@@ -1,0 +1,89 @@
+# ticket no. 1040
+
+--setup
+--start-query-logging
+--aql create array A <a:int32> [x=0:2,3,0]
+--aql select * into A from build(A,x+1)
+
+
+--test
+
+--aql select * into Tcount from aggregate(A,count(*))
+show(Tcount)
+--aql select count(*) into Tcount_s from A
+show(Tcount_s)
+--aql select count(a) into Tcount_a from A
+show(Tcount_a)
+
+--aql select * into Tsum from aggregate(A,sum(a))
+show(Tsum)
+--aql select sum(a) into Tsum_a from A
+show(Tsum_a)
+
+--aql select * into Tmax from aggregate(A,max(a))
+show(Tmax)
+--aql select max(a) into Tmax_a from A
+show(Tmax_a)
+
+--aql select * into Tmin from aggregate(A,min(a))
+show(Tmin)
+--aql select min(a) into Tmin_a from A
+show(Tmin_a)
+
+--aql select * into Tavg from aggregate(A,avg(a))
+show(Tavg)
+--aql select avg(a) into Tavg_a from A
+show(Tavg_a)
+
+--aql select * into Tvar from aggregate(A,var(a))
+show(Tvar)
+--aql select var(a) into Tvar_a from A
+show(Tvar_a)
+
+--aql select * into Tstdev from aggregate(A,stdev(a))
+show(Tstdev)
+--aql select stdev(a) into Tstdev_a from A
+show(Tstdev_a)
+
+
+store(window(A,1,0,count(*),count(a)),Wcount)
+show(Wcount)
+store(window(A,1,0,sum(a)),Wsum)
+show(Wsum)
+store(window(A,1,0,max(a)),Wmax)
+show(Wmax)
+store(window(A,1,0,min(a)),Wmin)
+show(Wmin)
+store(window(A,1,0,avg(a)),Wavg)
+show(Wavg)
+store(window(A,1,0,var(a)),Wvar)
+show(Wvar)
+store(window(A,1,0,stdev(a)),Wstdev)
+show(Wstdev)
+
+
+--cleanup
+remove(A)
+remove(Tcount)
+remove(Tcount_s)
+remove(Tcount_a)
+remove(Tsum)
+remove(Tsum_a)
+remove(Tmax)
+remove(Tmax_a)
+remove(Tmin)
+remove(Tmin_a)
+remove(Tavg)
+remove(Tavg_a)
+remove(Tvar)
+remove(Tvar_a)
+remove(Tstdev)
+remove(Tstdev_a)
+remove(Wcount)
+remove(Wsum)
+remove(Wmax)
+remove(Wmin)
+remove(Wavg)
+remove(Wvar)
+remove(Wstdev)
+--stop-query-logging

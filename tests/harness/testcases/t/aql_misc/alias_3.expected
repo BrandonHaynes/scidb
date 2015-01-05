@@ -1,0 +1,138 @@
+Query was executed successfully
+
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+{x} a
+{0} 100
+{1} 101
+{2} 102
+
+{x} a,a_2
+{0} 10,100
+{1} 11,101
+{2} 12,102
+
+{x} a,a_2
+{1} 11,101
+
+{x} a,a_2
+{0} 10,100
+
+{x} a,a_2
+{2} 12,102
+
+{x} expr
+{0} 0
+
+{x} expr
+{2} 2
+
+{x} a,a_2,a,a_2
+{0} 10,100,10,100
+{1} 11,101,11,101
+{2} 12,102,12,102
+
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+{x} a,a_2
+{0} 20,200
+{1} 21,201
+{2} 22,202
+
+{x} a,a_2,a
+{0} 20,200,10
+{1} 21,201,11
+{2} 22,202,12
+
+{x} a,a_2,a
+{1} 21,201,11
+
+{x} expr
+{1} 1
+
+{x} expr
+{0} 0
+{1} 1
+{2} 2
+
+{x} expr
+{0} 0
+{1} 1
+{2} 2
+
+{x} expr
+{2} 2
+
+{x} a,a_2,a,a,a_2,a
+{0} 20,200,10,20,200,10
+
+{x} expr
+{0} 70
+{1} 71
+{2} 72
+
+{x} a,a_2,a,expr
+{2} 22,202,12,72
+
+{x} a,a_2,a,expr
+{2} 22,202,12,72
+
+{x} a,a_2,a,expr
+{1} 21,201,11,71
+
+{x} a,a_2,a,expr
+{0} 20,200,10,70
+
+{x} a,a_2,a,expr
+{0} 20,200,10,70
+
+{x} a
+{0} 20
+
+{x} a,a_2,a,expr
+{1} 21,201,11,71
+
+{x} a,a_2,a,expr
+{0} 20,200,10,70
+
+{x} a,a_2,a,expr
+{0} 20,200,10,70
+
+{x} expr_1
+{2} 2
+
+{x} expr_1
+{2} 2
+
+{x} expr_1
+{0} 0
+{1} 1
+{2} 2
+
+{x} expr_1
+{0} 0
+{1} 1
+{2} 2
+
+{x} expr_1
+{2} 2
+
+{x} expr_1
+{0} 0
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,101 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'full'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+
+SCIDB QUERY : <store(build(full, x), full)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'full'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+10
+10
+10
+10
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'full_redimension_store'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+
+SCIDB QUERY : <store(redimension(full, full_redimension_store), full_redimension_store)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'full_redimension_store'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+10
+10
+10
+10
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+
+SCIDB QUERY : <store(filter(build(half, x), x % 2 = 0), half)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+5
+5
+5
+5
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half_redimension_store'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+
+SCIDB QUERY : <store(redimension(half, half_redimension_store), half_redimension_store)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half_redimension_store'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+10
+10
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+5
+5
+5
+5
+
+SCIDB QUERY : <insert(full, half)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'half'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn), nelem), nelem)>
+nelem
+10
+10
+10
+10
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'us_presidents'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn and attid = 0), nelem), nelem)>
+nelem
+
+SCIDB QUERY : <load(us_presidents, '../tests/harness/testcases/data/us_presidents.txt')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <sort(project(filter(cross_join(aggregate(filter(cross_join(filter(list('arrays'), name = 'us_presidents'), list('chunk map')), uaid = id), max(arrid) as array_last_version_id), list('chunk map')), array_last_version_id=arrid and inst=instn and attid = 0), nelem), nelem)>
+nelem
+4
+10
+10
+10
+10
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

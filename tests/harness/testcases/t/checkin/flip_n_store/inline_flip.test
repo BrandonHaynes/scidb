@@ -1,0 +1,25 @@
+# ( ticket no. 794, 936)
+
+--setup
+--start-query-logging
+create array A <a:int64> [x=0:2,3,0]
+store(build(A,x+5),A)
+create array B <a:int64,b:int64> [x=0:2,3,0,y=13:16,1,0]
+store(join(build(<a:int64>[x=0:2,3,0,y=13:16,1,0],(x+1)*y),build(<a:int64>[x=0:2,3,0,y=13:16,1,0],(x+1)*(y-1))),B)
+
+--test
+redimension(A,<x:int64>[a=0:9,5,0])
+aggregate(redimension(B, <a:int64> [x=0:2,3,0]),count(*))
+redimension(B,<a:int64 null, count:uint64 null> [x=0:2,3,0], sum(a) as a, count(a) as count)
+aggregate(redimension(B, <b:int64> [x=0:2,3,0]),count(*))
+redimension(B,<b:int64 null, count:uint64 null> [x=0:2,3,0], sum(b) as b, count(b) as count)
+aggregate(redimension(B, <b:int64> [y=13:16,1,0]),count(*))
+redimension(B,<b:int64 null, count:uint64 null> [y=13:16,1,0], sum(b) as b, count(*) as count)
+redimension(B,<b:int64,a:int64> [y=13:16,1,0,x=0:2,3,0])
+redimension(B,<a:int64,b:int64> [x=0:2,3,0,y=13:16,1,0])
+redimension(B,<x:int64,y:int64> [a=0:50,5,0,b=0:50,1,0])
+
+--cleanup
+remove(A)
+remove(B)
+--stop-query-logging

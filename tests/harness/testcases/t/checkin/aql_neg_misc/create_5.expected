@@ -1,0 +1,2 @@
+[An error expected at this place for the query "create array A <b:int64>[b=1:5,5,0]". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME.]
+

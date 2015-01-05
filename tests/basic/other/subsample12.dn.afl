@@ -1,0 +1,1 @@
+subarray(reshape(dense, dense_shift), 2, 2, 5, 5)

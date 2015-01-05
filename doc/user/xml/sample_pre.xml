@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="sampleOperator">
+  <refnamediv>
+    <refname>sample</refname>
+
+    <refpurpose><indexterm>
+        <primary>sample</primary>
+      </indexterm><indexterm>
+        <primary>chunks</primary>
+
+        <secondary>sampling</secondary>
+      </indexterm>Produces a result array by selecting random chunks of a
+    source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>sample(<replaceable>array</replaceable>,<replaceable>probability</replaceable><optional>,<replaceable>seed</replaceable></optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The sample operator selects chunks from an array at random, subject
+    to a probability you supply. Use the optional, integer
+    <replaceable>seed</replaceable> parameter to reproduce results; each run
+    using the same seed returns identical results.</para>
+
+    <para>To select random cells, as opposed to random chunks, use the <link
+    linkend="bernoulliOperator">bernoulli</link> operator.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example selects random chunks from a 1-dimensional 8-chunk
+      array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 2-dimensional array with dimension sizes of 6, and
+          chunk sizes of 2 and 3: <programlisting language="test">--afl CREATE ARRAY vector1&lt;val:double&gt;[i=0:5,2,0, j=0:5,3,0]; --show-query=yes --show-output=no
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put values of 0–35 into vector1: <programlisting
+          language="test">--afl store(build(vector1,i*6+j),vector1); --show-query=yes --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Sample chunks from the array with the probability of .30 that
+          a chunk is included: <programlisting language="test">--afl sample(vector1,0.3); --show-query=yes --output-format=dense --show-output-in-test-file=no
+</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

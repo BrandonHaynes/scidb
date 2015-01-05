@@ -1,0 +1,10 @@
+# ticket no. 1938
+
+--setup
+create array A <a:double> [x=0:2,3,0]
+
+--test
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql "SELECT * FROM array ( < a : double >[x=0:2,3,0], '[(1.0),(2,0),(3.0)]')"
+
+--cleanup
+remove(A)

@@ -1,0 +1,33 @@
+--setup
+--start-query-logging
+
+CREATE  ARRAY simple01h < COL000N: int32,COL001C: char,COL002S: string,COL003G: double,COL004N: int32,COL005C: char,COL006S: string,COL007G: double,COL008N: int32,COL009C: char,COL010S: string,COL011G: double,COL012N: int32,COL013C: char,COL014S: string,COL015G: double,COL016N: int32,COL017C: char,COL018S: string,COL019G: double,COL020N: int32,COL021C: char,COL022S: string,COL023G: double,COL024N: int32,COL025C: char,COL026S: string,COL027G: double,COL028N: int32,COL029C: char,COL030S: string,COL031G: double,COL032N: int32,COL033C: char,COL034S: string,COL035G: double,COL036N: int32,COL037C: char,COL038S: string,COL039G: double,COL040N: int32,COL041C: char,COL042S: string,COL043G: double,COL044N: int32,COL045C: char,COL046S: string,COL047G: double,COL048N: int32,COL049C: char,COL050S: string,COL051G: double,COL052N: int32,COL053C: char,COL054S: string,COL055G: double,COL056N: int32,COL057C: char,COL058S: string,COL059G: double,COL060N: int32,COL061C: char,COL062S: string,COL063G: double,COL064N: int32,COL065C: char,COL066S: string,COL067G: double,COL068N: int32,COL069C: char,COL070S: string,COL071G: double,COL072N: int32,COL073C: char,COL074S: string,COL075G: double,COL076N: int32,COL077C: char,COL078S: string,COL079G: double,COL080N: int32,COL081C: char,COL082S: string,COL083G: double,COL084N: int32,COL085C: char,COL086S: string,COL087G: double,COL088N: int32,COL089C: char,COL090S: string,COL091G: double,COL092N: int32,COL093C: char,COL094S: string,COL095G: double,COL096N: int32,COL097C: char,COL098S: string,COL099G: double > [a=0:99,10,0,b=0:99,10,0]
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load simple01h from '${TEST_DATA_DIR}/simple01h.txt'""
+
+
+--test
+--aql update simple01h set COL002S = 'zz' where tan (COL000N) < 0
+
+--aql update simple01h set COL002S = 'zz' where sqrt(COL000N) between 1 and 2
+
+--aql update simple01h set COL006S = 'col6update' where sin(COL000N) between 0 and .2
+
+--aql update simple01h set COL038S = 'ceiling test' where COL000N between ceil(10) and ceil(20)
+
+--aql update simple01h set COL094S = 'abs(tan)' where abs(tan(COL000N)) > 5
+
+--aql update simple01h set COL054S = 'sin(qrt(sin(abs(tan)))' where sin(sqrt(abs(tan(COL000N)))) > .9
+
+--aql update simple01h set COL079G = sin(sqrt(abs(tan(COL000N)))) where sin(sqrt(abs(tan(COL000N)))) > .9
+
+--aql update simple01h set COL054S = COL002S + ':concat test' where COL000N between 100 and 120
+
+--aql update simple01h set COL054S = COL002S + COL086S + COL090S + COL082S + ':concat 002S 086S 09S 082S', COL008N = COL012N + COL016N + COL020N + COL024N where COL000N between 150 and 160
+	
+
+
+--cleanup
+--aql drop array simple01h
+
+--stop-query-logging

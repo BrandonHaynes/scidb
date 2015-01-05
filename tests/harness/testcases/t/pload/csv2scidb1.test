@@ -1,0 +1,23 @@
+#Testing csv2scidb:
+# Case 1:   With values for the optional parameters set to 0 for instance ID and 1 for number of instances
+
+# WARNING: This test is sensitive to SCIDB_INSTANCE_NUM and prefers "4"!!!
+
+ --setup
+ --start-query-logging
+
+  CREATE array Raw_CSVLoad_1 < symbl : string, time : string, price : double, qty : int64 > [ Offset=0:*,10,0 ]
+
+ --test
+ --start-igdata
+ --shell --command " cat ${TEST_DATA_DIR}/csv2scidb_1.csv |csv2scidb -c 100 -s 1 -n 1 > /tmp/csv2scidb_test_1.txt  " 
+  load ( Raw_CSVLoad_1, '/tmp/csv2scidb_test_1.txt' )
+ --stop-igdata
+ sort( Raw_CSVLoad_1,symbl )
+ --cleanup
+remove ( Raw_CSVLoad_1 )
+
+ --shell --store --command "rm -rf /tmp/csv2scidb_test_1.txt"
+
+ --stop-query-logging
+

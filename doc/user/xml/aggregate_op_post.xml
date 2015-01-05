@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="aggregateOperator">
+    <refname>aggregate</refname>
+
+    <refpurpose><indexterm>
+        <primary>aggregate operator</primary>
+      </indexterm>The aggregate operator takes as input a set of 1 or more
+    values and returns a SciDB array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>aggregate(<replaceable>array</replaceable>, <replaceable>aggregate_call_1</replaceable>
+<optional>, <replaceable>aggregate_call_2</replaceable>,... <replaceable>aggregate_call_N</replaceable></optional>
+<optional>,<replaceable>dimension_1</replaceable>, <replaceable>dimension_2</replaceable>,...</optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>SciDB aggregates are functions of several values that produce a
+    scalar value. They are used together with the
+    <literal>aggregate</literal> and
+    <literal>redimension</literal> operators to compute data aggregations,
+    optionally grouped along a specified dimension or dimensions.</para>
+
+    <para>The aggregate operator takes the following arguments:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><emphasis role="bold">Array name</emphasis>: the aggregation is
+        performed on data from the named array.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">Aggregating functions</emphasis>: this is
+        the aggregation to be performed. You can list one or more aggregating
+        functions. For a list of SciDB aggregates, see <link linkend="aggregateList">Aggregates</link>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">Dimensions</emphasis> (optional): most
+        aggregates allow aggregation along one or more dimensions. You can
+        list zero or more dimensions along which the aggregation is
+        performed.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>result names</secondary>
+      </indexterm><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>generated names</secondary>
+      </indexterm><indexterm>
+        <primary>generated variable names</primary>
+      </indexterm>The aggregate operator returns a SciDB array, which contains
+    the aggregation result as a new attribute. The name of this attribute is
+    constructed as follows:
+    <replaceable>inputAttribute_aggregateFunction</replaceable> , where
+    <replaceable>inputAttribute</replaceable> is the name of the attribute
+    being aggregated on, and <replaceable>aggregateFunction</replaceable> is
+    the name of the aggregate function called. For example, assume an array
+    <emphasis role="bold">A</emphasis> with an attribute <emphasis role="bold">sales</emphasis>. The name for the result attribute of
+    <command>aggregate(A,sum(sales));</command> is 'sales_sum'.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example creates a sparse array and then performs some
+      aggregation on it.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array containing values along the diagonal, and
+          empty cells everywhere else.<para><programlisting>AFL% store(redimension (
+         apply (
+             build(&lt;val:double&gt;[i1=0:3,4,0, j1=0:3,4,0], i1),
+         i, iif(i1=j1, i1,null), j, iif(i1=j1,i1,null)),
+      &lt;val:double&gt;[i=0:3,4,0, j=0:3,4,0]),A);  </programlisting><screen>[
+[(0),(),(),()],
+[(),(1),(),()],
+[(),(),(2),()],
+[(),(),(),(3)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the aggregate operator to count the number of non-empty
+          cells.<para><programlisting>AFL% aggregate(A, count(val));  </programlisting><screen>val_count
+4
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the aggregate operator to calculate the sum of all cells
+          in the array.<para><programlisting>AFL% aggregate(A, sum(val));  </programlisting><screen>val_sum
+6
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,41 @@
+--setup
+--start-query-logging
+create array A <a:int32>[x=0:2,3,0]
+create array B <b:string>[x=0:2,3,0]
+create array C <b:string,a:int32> [x=0:2,3,0]
+create array D <b:string> [x=0:2,3,0]
+create array E <a:int32> [x=0:2,3,0]
+create array F <b:string> [a(int32)=3,3,0]
+create array G <a:int32> [b(string)=3,3,0]
+store(filter(build(A,x+10),x<>1),A)
+store(filter(build(B,string(x+10)),x<>1),B)
+
+--test
+--aql select * into C from A,B
+--aql select * into D from A,B
+--aql select * into E from A,B
+--aql select * into F from A,B
+--aql select * into G from A,B
+
+--aql select * into C from A,B where x=0
+--aql select * into D from A,B where x<>0
+--aql select * into E from A,B where x<=1
+--aql select * into F from A,B where x>=1
+--aql select * into G from A,B where x<>3
+
+--aql select * into C from A,B where a=10
+--aql select * into D from A,B where b<>'11'
+--aql select * into E from A,B where a<11 or b>'11'
+--aql select * into F from A,B where a<>10 and b<>'11'
+--aql select * into G from A,B where a=10 or b='13' and a=12
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+remove(F)
+remove(G)
+--stop-query-logging

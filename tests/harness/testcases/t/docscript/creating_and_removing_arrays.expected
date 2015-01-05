@@ -1,0 +1,223 @@
+SCIDB QUERY : <CREATE ARRAY A <x: double, err: double> [i=0:99,10,0, j=0:99,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<index:int64>[i=0:9,10,0], i*50), A)>
+[(0),(50),(100),(150),(200),(250),(300),(350),(400),(450)]
+
+SCIDB QUERY : <store(build(<val:double>[i=0:9,10,0], random()%2000/2000.0), B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(A,B), test)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <redimension(test, <val:double>[index=0:*, 50,0])>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <redimension(apply(build(<v:double>[i1=1:3,3,0,j1=1:3,3,0],5.5), i,iif(i1+j1>4,i1,null), j,iif(i1+j1>4,j1,null)), <v:double>[i=1:3,3,0,j=1:3,3,0])>
+[[(),(),()],[(),(),(5.5)],[(),(5.5),(5.5)]]
+
+SCIDB QUERY : <redimension( apply (build(<v:double>[i1=1:3,3,0,j1=1:3,3,0],5.5), i, iif(i1+j1>4,i1,null), j, iif(i1+j1>4,j1,null)), <v:double>[i=1:3,3,0,j=1:3,3,0])>
+{i,j} v
+{2,3} 5.5
+{3,2} 5.5
+{3,3} 5.5
+
+SCIDB QUERY : <DROP ARRAY A>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array default_1 <v:int64>[i]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(default_1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE ARRAY products <name:string,price:float default float(100.0),sold:datetime> [i=0:*,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE ARRAY product_null <name:string NULL,price:float NULL,sold:datetime NULL> [i=0:*,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE ARRAY product_dflt <name:string, price:float default float(100.0), sold:datetime> [i=0:*,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create_array(m4x4_first,<val1:double>[x=0:3,4,0, y=0:3,4,0])>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(m4x4_first, '[[0,1,2,3],[4,5,6,7],[8,9,(),11],[12,13,14,15]]',true), m4x4_first)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create_array(m4x4_second,<val2:int32>[x=0:3,4,0, y=0:3,4,0])>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(m4x4_second,'[[100,99,98,97],[0,95,94,93],[92,91,(),89],[88,0,86,85]]',true),m4x4_second)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(m4x4_first, m4x4_second),m4x4_missing)>
+[[(0,100),(1,99),(2,98),(3,97)],[(4,0),(5,95),(6,94),(7,93)],[(8,92),(9,91),(),(11,89)],[(12,88),(13,0),(14,86),(15,85)]]
+
+SCIDB QUERY : <store(build(m4x4_second,'[[100,99,98,97],[5468,95,94,93],[92,91,(),89],[88,5468,86,85]]',true),m4x4_second)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(m4x4_first, m4x4_second),m4x4_missing)>
+[[(0,100),(1,99),(2,98),(3,97)],[(4,5468),(5,95),(6,94),(7,93)],[(8,92),(9,91),(),(11,89)],[(12,88),(13,5468),(14,86),(15,85)]]
+
+SCIDB QUERY : <create array D<val1:char default 'a', val2:int32 default 1, val3:int64 null default missing(30)> [i=0:9,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(D)>
+[('D<val1:char DEFAULT \'a\',val2:int32 DEFAULT 1,val3:int64 NULL DEFAULT ?30> [i=0:9,10,0]')]
+
+SCIDB QUERY : <store(build(<val:double null> [i=0:4,5,0], '[47.0, ?, -21.1, ?100, ?50]',true), A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(A)>
+[(47),(null),(-21.1),(?100),(?50)]
+
+SCIDB QUERY : <apply(A,MRcode, missing_reason(val))>
+{i} val,MRcode
+{0} 47,-1
+{1} null,0
+{2} -21.1,-1
+{3} ?100,100
+{4} ?50,50
+
+SCIDB QUERY : <store(build(<val:int32 null default null> [i=0:5,6,0], '[-1,47,23,0,127,-1]',true), arrayB)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(arrayB)>
+[(-1),(47),(23),(0),(127),(-1)]
+
+SCIDB QUERY : <apply(arrayB,MRcode, missing(val))>
+{i} val,MRcode
+{0} -1,<void>
+{1} 47,?47
+{2} 23,?23
+{3} 0,null
+{4} 127,?127
+{5} -1,<void>
+
+SCIDB QUERY : <CREATE ARRAY open <val:double>[I=0:9,10,0,J=0:*,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE ARRAY default_1 <val:double>[i]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(default_1)>
+{i} schema
+{0} 'default_1<val:double> [i=0:*,1000000,0]'
+
+SCIDB QUERY : <CREATE ARRAY default_2 <val:double>[i=0:999,200,0, j,k]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(default_2)>
+{i} schema
+{0} 'default_2<val:double> [i=0:999,200,0,j=0:*,70,0,k=0:*,70,0]'
+
+SCIDB QUERY : <CREATE ARRAY winners <person:string, time:double, event:string> [year=1996:2008,1000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array event <event:string> [i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array year <year:int64>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array person <person:string>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array country <country:string>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array time <time:double>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(event,iif(i<4,'dash',iif(i<8,'steeplechase','marathon'))),event)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(year,1996+(i%4 * 4)),year)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,Kemboi,Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,Kenya,Kenya,USA,Ethiopia,Italy,Kenya]',true),country)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),(503.17),(485.81),(490.34),(7956),(7811),(7855),(7596)]',true),time)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(event,join(person,join(year,join(country,time)))),winnersFlat)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(winnersFlat,winners),winners)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(winners)>
+{i} schema
+{0} 'winners<person:string,time:double,event:string> [year=1996:2008,1000,0]'
+
+SCIDB QUERY : <rename(winners, OlympicWinners)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(OlympicWinners)>
+{i} schema
+{0} 'OlympicWinners<person:string,time:double,event:string> [year=1996:2008,1000,0]'
+
+SCIDB QUERY : <SELECT * INTO winnerGrid FROM cast(OlympicWinners, < LastName: string, elapsedTime: double, event:string> [x=1996:2008,1000,0] )>
+{x} LastName,elapsedTime,event
+{1996} 'Bailey',9.84,'dash'
+{2000} 'Greene',9.87,'dash'
+{2004} 'Gatlin',9.85,'dash'
+{2008} 'Bolt',9.69,'dash'
+
+SCIDB QUERY : <show(winnerGrid)>
+{i} schema
+{0} 'winnerGrid<LastName:string,elapsedTime:double,event:string> [x=1996:2008,1000,0]'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

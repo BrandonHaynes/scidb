@@ -1,0 +1,78 @@
+SCIDB QUERY : <load_library('misc')>
+Query was executed successfully
+
+SCIDB QUERY : <store (build (<v : int32> [I=0:7,1,0], I), NODE_ID)>
+{I} v
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+
+SCIDB QUERY : <create array NODE_ID_REDIM < I: int64> [v=0:7,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(NODE_ID, NODE_ID_REDIM), NODE_ID_REDIM)>
+{v} I
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+
+SCIDB QUERY : <subarray(apply (NODE_ID, foo, injectError (1, 4)),0,1)>
+{I} v,foo
+{0} 0,-1
+{1} 1,4
+
+SCIDB QUERY : <store(redimension(NODE_ID, NODE_ID_REDIM), NODE_ID_REDIM)>
+[An error expected at this place for the query "store(redimension(NODE_ID, NODE_ID_REDIM), NODE_ID_REDIM)". And it failed.]
+
+SCIDB QUERY : <subarray(apply (NODE_ID, foo, injectError (0, 4)),0,0)>
+{I} v,foo
+{0} 0,4
+
+SCIDB QUERY : <store(redimension(NODE_ID, NODE_ID_REDIM), NODE_ID_REDIM)>
+[An error expected at this place for the query "store(redimension(NODE_ID, NODE_ID_REDIM), NODE_ID_REDIM)". And it failed.]
+
+"Check for orphans..."
+SCIDB QUERY : <../utils/find_leaked_nids.sh ${DB_HOST:=localhost} ${DB_PORT:=5432} ${DB_NAME:=mydb} ${DB_USER:=mydb} ${DB_PASSWD:=mydb}>
+ name 
+------
+(0 rows)
+
+
+SCIDB QUERY : <scan(NODE_ID)>
+{I} v
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+
+SCIDB QUERY : <scan(NODE_ID_REDIM)>
+{v} I
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+
+SCIDB QUERY : <remove(NODE_ID)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(NODE_ID_REDIM)>
+Query was executed successfully
+

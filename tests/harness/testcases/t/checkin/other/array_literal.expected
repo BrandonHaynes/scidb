@@ -1,0 +1,67 @@
+SCIDB QUERY : <build(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]', true)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <build(<a:int32, b:string> [x=0:2,3,0], '[(1, "a"),(2, "b"),(3, "c")]', true)>
+{x} a,b
+{0} 1,'a'
+{1} 2,'b'
+{2} 3,'c'
+
+SCIDB QUERY : <build(<a:int32> [x=0:2,3,0], 'blah', true)>
+[An error expected at this place for the query "build(<a:int32> [x=0:2,3,0], 'blah', true)". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <build(<a:int32> [x=0:2,3,0], 1, true)>
+[An error expected at this place for the query "build(<a:int32> [x=0:2,3,0], 1, true)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_INVALID_ARRAY_LITERAL. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_INVALID_ARRAY_LITERAL.]
+
+SCIDB QUERY : <build(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]', false)>
+[An error expected at this place for the query "build(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]', false)". And it failed with error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_FAILED_PARSE_STRING.]
+
+SCIDB QUERY : <select * from array(<a:int32> [x=0:2,3,0], '[(1),(2),(3)]')>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <select * from array(<a:int32, b:string> [x=0:2,3,0], '[(1, "a"),(2, "b"),(3, "c")]')>
+{x} a,b
+{0} 1,'a'
+{1} 2,'b'
+{2} 3,'c'
+
+SCIDB QUERY : <select * from array(<a:int32> [x=0:2,3,0], 'blah')>
+[An error expected at this place for the query "select * from array(<a:int32> [x=0:2,3,0], 'blah')". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <select * from array(<a:int32> [x=0:2,3,0], 1)>
+[An error expected at this place for the query "select * from array(<a:int32> [x=0:2,3,0], 1)". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <store(build(<val:int64> [x=1:10,5,0], '[(1),(2),(3),(4),(5),(6),(7),(8),(9),(10)]', true), foo)>
+{x} val
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+{9} 9
+{10} 10
+
+SCIDB QUERY : <store(merge(build(<val:int64> [x,y], '[[{1000,1000}(1)]]', true), build(<val:int64> [x,y], '[[{10000,10000}(2)]]', true)), bar)>
+{x,y} val
+{1000,1000} 1
+{10000,10000} 2
+
+SCIDB QUERY : <show(bar)>
+{i} schema
+{0} 'bar<val:int64> [x=0:*,1000,0,y=0:*,1000,0]'
+
+SCIDB QUERY : <remove(foo)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(bar)>
+Query was executed successfully
+

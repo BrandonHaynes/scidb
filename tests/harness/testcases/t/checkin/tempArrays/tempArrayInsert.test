@@ -1,0 +1,12 @@
+--test
+--start-query-logging
+create temp array tempC <d:int64> [ X=0:5000,1000,0]
+create temp array tempB <d:int64> [ X=0:5000,1000,0]
+--shell --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "store(filter(build(tempB, random()), X > 2500), tempB)""
+--shell --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "store(filter(build(tempC, random()), X < 2500), tempC)""
+
+--shell --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "insert(tempB, tempC)""
+
+--cleanup
+remove(tempB)
+remove(tempC)

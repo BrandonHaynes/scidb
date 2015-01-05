@@ -1,0 +1,218 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="trigonometricFunctions">
+  <refnamediv>
+    <refname>Transcendental functions</refname>
+
+    <refpurpose><indexterm>
+        <primary>trigonometric functions</primary>
+      </indexterm><indexterm>
+        <primary>logarithmic functions</primary>
+      </indexterm>Perform mathematical functions in a query
+    expression</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis><command>SELECT</command> <replaceable>expression1</replaceable> <command>FROM</command> <replaceable>array</replaceable> <command>WHERE</command> <replaceable>expression2</replaceable>;</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>These functions perform non-algebraic functions including
+    trigonometry and logarithmic functions.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="4">
+        <colspec colname="c1" colwidth="10*"/>
+
+        <colspec colname="c2" colwidth="30*"/>
+
+        <colspec colname="c3" colwidth="15*"/>
+
+        <colspec colname="cgen1" colwidth="15*"/>
+
+        <thead>
+          <row>
+            <entry>Function Name</entry>
+
+            <entry>Description</entry>
+
+            <entry>Syntax</entry>
+
+            <entry>Datatypes</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>acos</entry>
+
+            <entry><indexterm>
+                <primary>inverse cosine</primary>
+              </indexterm>Inverse (arc) cosine in radians</entry>
+
+            <entry>acos(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+
+          <row>
+            <entry>asin</entry>
+
+            <entry><indexterm>
+                <primary>inverse sine</primary>
+              </indexterm>Inverse (arc) sine in radians</entry>
+
+            <entry>asin(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+
+          <row>
+            <entry>atan</entry>
+
+            <entry><indexterm>
+                <primary>inverse tangent</primary>
+              </indexterm>Inverse (arc) tangent in radians</entry>
+
+            <entry>atan(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+
+          <row>
+            <entry>cos</entry>
+
+            <entry>Cosine (input in radians)</entry>
+
+            <entry>cos(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+
+          <row>
+            <entry>exp</entry>
+
+            <entry>Exponential</entry>
+
+            <entry>exp(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+
+          <row>
+            <entry>log</entry>
+
+            <entry>Base-<emphasis role="italic">e</emphasis> logarithm</entry>
+
+            <entry>log(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+
+          <row>
+            <entry>log10</entry>
+
+            <entry>Base-10 logarithm</entry>
+
+            <entry>log10(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+
+          <row>
+            <entry>sin</entry>
+
+            <entry>Sine (input in radians)</entry>
+
+            <entry>sin(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+
+          <row>
+            <entry>tan</entry>
+
+            <entry>Tangent (input in radians)</entry>
+
+            <entry>tan(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example calculates the sine, cosine, and tangent of a set of
+      values.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-dimensional array, <literal>trig_1</literal>, and
+          store values of 0, <symbol role="symbolfont">π</symbol>/3, 2<symbol role="symbolfont">π</symbol>/3, <symbol role="symbolfont">π</symbol>, 4/3<symbol role="symbolfont">π</symbol>, and 5/3<symbol role="symbolfont">π</symbol>.<para><programlisting>AFL% store(build(trig_1,(2.0/3.0)*acos(0)*x),trig_1);  </programlisting><screen>[(0),(1.0472),(2.0944),(3.14159),(4.18879),(5.23599)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the trigonometric functions for array
+          <literal>values</literal>.<para><programlisting>AQL% <command>SELECT</command> cos(val) <command>FROM</command> trig_1;  </programlisting><screen>[(1),(0.5),(-0.5),(-1),(-0.5),(0.5)]
+</screen><programlisting>AQL% <command>SELECT</command> sin(val) <command>FROM</command> trig_1;  </programlisting><screen>[(0),(0.866025),(0.866025),(-8.74228e-08),(-0.866025),(-0.866025)]
+</screen><programlisting>AQL% <command>SELECT</command> tan(val) <command>FROM</command> trig_1;  </programlisting><screen>[(0),(1.73205),(-1.73205),(8.74228e-08),(1.73205),(-1.73205)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example calculates the arcsine, arccosine, and arctangent of
+      a set of values.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-dimensional array, <literal>trig_2</literal>, and
+          store values between 0 and 1.<para><programlisting>AFL% store(build(trig_2,1.0/(x+1)),trig_2);  </programlisting><screen>[(1),(0.5),(0.333333),(0.25),(0.2),(0.166667)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the inverse trigonometric functions for array
+          <literal>values</literal>.<para><programlisting>AQL% <command>SELECT</command> acos(val) <command>FROM</command> trig_2;  </programlisting><screen>[(0),(1.0472),(1.23096),(1.31812),(1.36944),(1.40335)]
+</screen><programlisting>AQL% <command>SELECT</command> asin(val) <command>FROM</command> trig_2;  </programlisting><screen>[(1.5708),(0.523599),(0.339837),(0.25268),(0.201358),(0.167448)]
+</screen><programlisting>AQL% <command>SELECT</command> atan(val) <command>FROM</command> trig_2;  </programlisting><screen>[(0.785398),(0.463648),(0.321751),(0.244979),(0.197396),(0.165149)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example calculates the exp, log, and natural log of a set of
+      values.</para>
+
+      <procedure>
+        <step>
+          <para>Calculate the exponential function
+          (<emphasis>e</emphasis><superscript>x</superscript>) for a set of
+          values.<para><programlisting>AFL% store(build(logs,(1.7*(x+0.01))),logs);  </programlisting><screen>[(0.017),(1.717),(3.417),(5.117),(6.817),(8.517)]
+</screen><programlisting>AQL% <command>SELECT</command> exp(val) <command>FROM</command> logs;  </programlisting><screen>[(1.01715),(5.5678),(30.4778),(166.834),(913.241),(4999.04)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Calculate the log and natural log for a set of
+          values.<para><programlisting>AFL% store(build(logs, pow(10,x)),logs);  </programlisting><screen>[(1),(10),(100),(1000),(10000),(100000)]
+</screen><programlisting>AQL% <command>SELECT</command> log(val) <command>FROM</command> logs;  </programlisting><screen>[(0),(2.30259),(4.60517),(6.90776),(9.21034),(11.5129)]
+</screen><programlisting>AQL% <command>SELECT</command> log10(val) <command>FROM</command> logs;  </programlisting><screen>[(0),(1),(2),(3),(4),(5)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

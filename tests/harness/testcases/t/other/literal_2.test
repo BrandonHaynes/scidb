@@ -1,0 +1,65 @@
+--setup
+--start-query-logging
+# Ticket number: 1646
+# Tests covers 1D arrays with special values like nan, null, inf.
+# Build literals nested in other ops like save & aggregates
+# Tests cover AFL & AQL syntax
+
+--test
+build(<a:double> [x=0:3,4,0],   '[(nan),(NaN),(nan),()]', true)
+build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1)
+build(<a:double> [x=10:13,4,0], '[(nan),(-inf),(inf),(2.5)]', 1)
+build(<a:double, b:float> [x=110:112,1,0], '[(nan,inf),(-inf,inf),(inf,nan)]', 1)
+build(<a:double, b:float, c:string> [x=110:112,1,0], '[(nan,inf,Bio),(-inf,inf,Phy),(inf,nan,Math)]', 1)
+
+aggregate(build(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),()]', 1),min(a))
+aggregate(build(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),()]', 1),max(a))
+aggregate(build(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),()]', 1),avg(a))
+
+--aql select * from array(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),(234.56)]')
+--aql select * from array(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),()]')
+--aql select * from array(<a:double, b:float, c:string> [x=110:112,1,0], '[(nan,inf,Bio),(-inf,inf,Phy),(inf,nan,Math)]')
+--aql select max(a),min(a),avg(a) from array(<a:double> [x=0:3,4,0], '[(nan),(nan),(nan),(234.56)]')
+--aql select max(a),max(b),min(a),min(b) from array(<a:double, b:float, c:string> [x=110:112,2,0], '[(nan,inf,Bio),(-inf,inf,Phy),(inf,nan,Math)]')
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "save(build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1), '${TEST_DATA_DIR}/literal.txt')""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "save(build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1), '${TEST_DATA_DIR}/literal.txt')""
+
+store(build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1),Test1)
+sort(Test1)
+
+sort(build(<a:double> [x=10:12,3,0], '[(nan),(inf),(inf)]', 1))
+sort(build(<a:double> [x=10:12,3,0], '[(4),(3.5),(7.9)]', 1))
+
+build(<a:datetime, days: string default 'Thursday'> [x=0:2,3,0], '[("2012-07-13 18:41:14",Sunday),("2011-12-13 18:41:14",),("2012-12-13 18:41:14",)]', true)
+build(<a:datetime , days: string default 'Thursday'> [x=0:2,3,0], '[(),("2011-12-13 18:41:14",),("2012-12-13 18:41:14",)]', true)
+
+# some variants on the names nan, inf that are not recognized by the lexer:
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default NAN>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default nAN>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default NAn>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default nAN>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default Nan>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default naN>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default Inf>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default iNf>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default inF>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default iNf>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default INF>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default InF>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default iNF>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default INf>[i=1:1,1,0]"
+
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default nanabc>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default NaNabc>[i=1:1,1,0]"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR   "create array bad<x:double default infabc>[i=1:1,1,0]"
+
+--start-igdata
+build(<a:datetime default now() , days: string default 'Thursday'> [x=0:2,3,0], '[(),("2011-12-13 18:41:14",),("2012-12-13 18:41:14",)]', true)
+--stop-igdata
+
+
+--cleanup
+remove(Test1)
+
+--stop-query-logging

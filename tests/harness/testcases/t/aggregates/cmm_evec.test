@@ -1,0 +1,11 @@
+--setup
+create array evec <a:double NOT NULL>[x=0:9,10,0, y=0:0,1,0]
+
+load(evec, '${TEST_DATA_DIR}/evec.txt')
+
+--test
+aggregate(evec, count(a), min(a), max(a), avg(a), x)
+
+
+--cleanup
+remove(evec)

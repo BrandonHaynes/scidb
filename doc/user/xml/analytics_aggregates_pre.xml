@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<section id="aggregateList">
+  <title>Aggregates</title>
+
+  <para><indexterm>
+      <primary>aggregates</primary>
+    </indexterm>SciDB offers the following aggregate methods that calculate
+  summaries over groups of values in an array.</para>
+
+  <informaltable frame="none">
+    <tgroup cols="2">
+      <colspec colname="c1" colwidth="20*"/>
+
+      <colspec colname="c2" colwidth="60*"/>
+
+      <tbody>
+        <row>
+          <?dbfo keep-together="auto" ?>
+
+          <entry><para><emphasis
+          role="bold">Aggregate</emphasis></para></entry>
+
+          <entry><para><emphasis
+          role="bold">Definition</emphasis></para></entry>
+        </row>
+
+        <row>
+          <entry><para><code>approxdc</code></para></entry>
+
+          <entry><para>Approximate count of distinct values</para></entry>
+        </row>
+
+        <row>
+          <entry><para><code>avg</code></para></entry>
+
+          <entry><para>Average value</para></entry>
+        </row>
+
+        <row>
+          <entry><para><code>count</code></para></entry>
+
+          <entry><para>Number of nonempty elements (array count) and non-null
+          elements <?linebreak ?>(attribute count).</para></entry>
+        </row>
+
+        <row>
+          <entry><para><code>max</code></para></entry>
+
+          <entry><para>Largest value</para></entry>
+        </row>
+
+        <row>
+          <entry><para><code>min</code></para></entry>
+
+          <entry><para>Smallest value</para></entry>
+        </row>
+
+        <row>
+          <entry><para><code>sum</code></para></entry>
+
+          <entry><para>Sum of all elements</para></entry>
+        </row>
+
+        <row>
+          <entry><para><code>stdev</code></para></entry>
+
+          <entry><para>Standard deviation</para></entry>
+        </row>
+
+        <row>
+          <entry><para><code>var</code></para></entry>
+
+          <entry><para>Variance</para></entry>
+        </row>
+      </tbody>
+    </tgroup>
+  </informaltable>
+
+  <para><indexterm>
+      <primary>context, aggregates</primary>
+    </indexterm>These aggregates appear within the context of one of the
+  following SciDB operators or query types. We classify these aggregating
+  operators based on how they divide data within the input array into
+  subgroups.</para>
+
+  <itemizedlist>
+    <listitem>
+      <para>A <emphasis>Grand aggregate</emphasis> computes an aggregate over
+      an entire array or an arbitrary subset of an array specified via
+      filtering or other data preparation.</para>
+    </listitem>
+
+    <listitem>
+      <para>A <emphasis>Group-by aggregate</emphasis> computes summaries by
+      grouping array data by dimension value.</para>
+    </listitem>
+
+    <listitem>
+      <para>A <emphasis>Grid aggregate</emphasis> computes summaries for
+      non-overlapping grids of the input array. Hence each group or grid is a
+      multidimensional subarray of the input array.</para>
+    </listitem>
+
+    <listitem>
+      <para>A <emphasis>Window aggregate</emphasis> computes summaries over a
+      moving window in an array. SciDB supports two types of window operators:
+      fixed boundary windows and variable boundary windows. Variable boundary
+      windows are identified by the VARIABLE WINDOW clause in AQL and their
+      size depends on the number of nonempty elements. These window aggregates
+      are described in depth later in this chapter.</para>
+    </listitem>
+  </itemizedlist>
+
+  <para>We describe these different types of array aggregates in more detail
+  in the following sections, as well as in <xref
+  linkend="Aggregates"/>.</para>
+
+  <para>Most examples in this chapter use the following example arrays:
+  <code>m4x4</code> and <code>m4x4_2attr</code>, which have the following
+  schemas and contain the following values:<programlisting language="test">--afl store(build(&lt;attr1:int32&gt; [x=0:3,4,0, y=0:3,4,0], x*4+y),m4x4);  --show-query=no --show-output=no
+--schema m4x4 --show-query=no
+--afl scan(m4x4) --output-format=auto --chunkify=yes
+--afl store(build(&lt;attr2:int32&gt; [x=0:3,4,0, y=0:3,4,0], x*8+y*2),B);  --show-query=no --show-output=no
+
+--afl store(join(m4x4,B),m4x4_2attr); --show-query=no --show-output=no
+--schema m4x4_2attr --show-query=no
+--afl scan(m4x4_2attr) --output-format=auto --chunkify=yes</programlisting></para>
+
+  <section>
+    <title>Grand Aggregates</title>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>grand</secondary>
+      </indexterm><indexterm>
+        <primary>grand aggregates</primary>
+      </indexterm><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>where</secondary>
+      </indexterm>A grand aggregate in SciDB calculates aggregates or
+    summaries of attributes across an entire array or across an arbitrary
+    subset of an array you specify via filtering or other preparation with
+    array operators.. You calculate grand aggregates with the AQL<code>
+    <command>SELECT</command> </code>statement conforming to this syntax:
+    <programlisting>AQL% <command>SELECT</command> <replaceable>aggregate</replaceable><replaceable>(attribute</replaceable>)[,<replaceable>aggregate</replaceable><replaceable>(attribute</replaceable>)]...
+[<command> INTO</command> <replaceable>dst-array</replaceable>]
+<command>FROM</command> <replaceable>src-array</replaceable> | <replaceable>array-expression</replaceable> 
+[<command>WHERE</command> <replaceable>where-expression</replaceable>]
+</programlisting></para>
+
+    <para>The output is a SciDB array with one attribute named for each
+    summary type in the query, whose dimensions are determined by the size and
+    shape of the result.</para>
+
+    <para>For example, to select the maximum and the minimum values of the
+    attribute <code>attr1</code> of the array <code>m4x4</code>:
+    <programlisting language="test">--aql SELECT max(attr1),min(attr1) FROM m4x4;  --output-format=auto 
+</programlisting> You can store the output of a query into a destination
+    array, <code>m4x4_max_min</code> with the <code><command>INTO</command>
+    </code> clause: <programlisting language="test">--afl create array m4x4_max_min &lt;max:int32 NULL DEFAULT null,
+      min:int32 NULL DEFAULT null&gt; [i=0:0,1,0]; --show-query=no --show-output=no
+--aql SELECT max(attr1),min(attr1) INTO m4x4_max_min FROM m4x4; --output-format=auto 
+</programlisting> The destination array <code>m4x4_max_min</code> has the
+    following schema: <programlisting language="test">--schema m4x4_max_min --show-query=no --show-output=yes
+</programlisting></para>
+
+    <para>To select the maximum value from the attribute attr1 of
+    <code>m4x4_2attr</code> and the minimum value from the attribute
+    <code>attr2</code> of <code>m4x4_2attr</code>: <programlisting
+    language="test">
+--aql SELECT max(attr2), min(attr2) FROM m4x4_2attr; --show-query=yes --show-output=yes  --output-format=auto
+</programlisting></para>
+
+    <note>
+      <para>In the case of a one-attribute array, you may omit the attribute
+      name. For example, to select the maximum value from the attribute
+      <code>attr1</code> of the array <code>m4x4</code>, use the AQL <code>
+      <command>SELECT</command> </code> statement: <programlisting
+      language="test">--aql SELECT max(m4x4); --show-query=yes --show-output=yes
+</programlisting></para>
+    </note>
+
+    <para>The AFL <code>aggregate</code> operator also computes grand
+    aggregates. To select the maximum value from the attribute attr1 of
+    <code>m4x4_2attr</code> and the minimum value from the attribute
+    <code>attr2</code> of <code>m4x4_2attr</code>: <programlisting
+    language="test">
+--afl aggregate(m4x4_2attr, max(attr2),min(attr1)); --show-query=yes --show-output=yes  --output-format=auto
+</programlisting></para>
+
+    <para>In most cases, SciDB aggregates exclude null-valued data. For
+    example, consider the following array <code>m4x4_null</code>:
+    <programlisting language="test">--afl CREATE ARRAY m4x4_null&lt; attr1: int32 NULL&gt;[i=1:4,4,0, j=1:4,4,0]; --show-output=no --show-query=no
+--afl store(build(m4x4_null,iif(i=2,0,null)),m4x4_null); --output-format=dense --chunkify=yes
+</programlisting>The commands <code>count(attr1)</code> and
+    <code>count(*)</code> return different results because the first ignores
+    null values, while the second does not: <programlisting language="test">--aql SELECT count(attr1) AS a, count(*) AS b FROM m4x4_null; 
+</programlisting></para>
+
+    <para><indexterm>
+        <primary>special values</primary>
+
+        <secondary>aggregates</secondary>
+      </indexterm><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>special values</secondary>
+      </indexterm>The rules for aggregates concerning missing values and empty
+    cells:<itemizedlist>
+        <listitem>
+          <para>All aggregate operators and functions exclude empty
+          cells.</para>
+        </listitem>
+
+        <listitem>
+          <para>Except for <code>count(*)</code>, aggregate operators and
+          functions exclude missing values.</para>
+        </listitem>
+
+        <listitem>
+          <para><code>count(*)</code> includes missing values.</para>
+        </listitem>
+      </itemizedlist></para>
+  </section>
+
+  <section>
+    <title>Group-By Aggregates</title>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>group-by</secondary>
+      </indexterm><indexterm>
+        <primary>group-by aggregates</primary>
+      </indexterm><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>where</secondary>
+      </indexterm>Group-by aggregates group array data by array dimensions and
+    summarize the data in those groups.</para>
+
+    <para>AQL <code> <command>GROUP BY</command> </code> aggregates take a
+    list of dimensions as the grouping criteria and compute the aggregate
+    function for each group. The result is an array containing only the
+    dimensions specified in the <code> <command>GROUP BY</command> </code>
+    clause and a single attribute per specified aggregate call. The syntax of
+    the <code> <command>SELECT</command> </code> statement for a group-by
+    aggregate is:<programlisting><command>SELECT</command> <replaceable>expression1</replaceable> [,<replaceable>expression2</replaceable>]... 
+  [ <command>INTO</command> <replaceable>dst-array</replaceable> ]
+  <command>FROM</command> <replaceable>src-array</replaceable> | <replaceable>array-expression</replaceable>
+  [ <command>WHERE</command> <replaceable>where-expression</replaceable> ]
+  <command>GROUP BY</command> <replaceable>dimension1</replaceable> [,<replaceable>dimension2</replaceable>]... ;</programlisting></para>
+
+    <para>AQL expressions in the SELECT list are expressions containing
+    attributes or dimensions of the array (also referred to as variables of
+    the array), scalar functions and aggregates. For example, this query
+    selects the largest value of <code>attr1</code> from each row of
+    <code>m4x4</code>: <programlisting language="test">
+--aql SELECT max(attr1) FROM m4x4 GROUP BY x;
+</programlisting> The output has the following schema: <programlisting
+    language="test">
+--aql SELECT max(attr1) INTO tmp1 FROM m4x4 GROUP BY x; --show-query=no --show-output=no
+--schema tmp1 --show-query=no --show-output=yes --anon=yes
+</programlisting></para>
+
+    <note>
+      <para><indexterm>
+          <primary>attributes</primary>
+
+          <secondary>generated names</secondary>
+        </indexterm><indexterm>
+          <primary>generated variable names</primary>
+        </indexterm>You will notice that the new attributes generated by
+      applying the aggregates have special suffixes, for example,
+      <code>min_1</code> and <code>max_1</code> . This is done when
+      calculating aggregates to keep attribute names unique, especially during
+      intermediate stages of array processing.</para>
+    </note>
+
+    <para>This query selects the maximum value of <code>attr1</code> from each
+    column of array <code>m4x4</code> <programlisting language="test">
+--aql SELECT max(attr1) FROM m4x4 GROUP BY y;
+</programlisting></para>
+
+    <para><indexterm>
+        <primary>aggregate operator</primary>
+      </indexterm>The AFL <literal>aggregate</literal> operator takes
+    dimension arguments to support group-by functionality. This query selects
+    the largest value from each column <code>y</code> from the array
+    <code>m4x4</code> using AFL: <programlisting language="test">
+--afl aggregate(m4x4, max(attr1), y); 
+</programlisting></para>
+  </section>
+
+  <section>
+    <title>Grid Aggregates</title>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>grid</secondary>
+      </indexterm><indexterm>
+        <primary>grid aggregates</primary>
+      </indexterm><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>where</secondary>
+      </indexterm>A grid aggregate selects non-overlapping subarrays from an
+    existing array and calculates an aggregate of each subarray. For example,
+    if you have a 4x4 array, you can create 4 non-overlapping 2x2 regions and
+    calculate an aggregate for those regions. The array <code>m4x4</code>
+    would be divided into 2x2 grids as follows:<informalfigure>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="../graphics/grid_aggregates.png" scale="50"/>
+          </imageobject>
+        </mediaobject>
+      </informalfigure>The syntax of a grid aggregate statement is:
+    <programlisting>AQL% <command>SELECT</command> <replaceable>aggregate(attribute</replaceable>) [,<replaceable>aggregate(attribute</replaceable>)] ...
+<command> INTO</command> <replaceable>dst-array</replaceable>
+<command> FROM</command> <replaceable>src-array</replaceable> | <replaceable>array-expression</replaceable>
+<command> WHERE</command> <replaceable>where-expression</replaceable>
+<command> REGRID AS </command>
+        (<command> PARTITION BY </command> <replaceable>dimension1</replaceable> <replaceable>dimension1-size
+         </replaceable> [, <replaceable>dimension2</replaceable> <replaceable>dimension2-size</replaceable>]... ) ;
+</programlisting></para>
+
+    <para>For example, this statement finds the maximum and minimum values for
+    each of the four grids in the previous figure: <programlisting
+    language="test">--aql 
+SELECT max(attr1), min(attr1) 
+FROM m4x4 
+REGRID AS (PARTITION BY x 2, y 2); --show-output=yes --show-query=yes  --output-format=auto --chunkify=yes
+--aql 
+SELECT max(attr1), min(attr1) INTO tmp2 
+FROM m4x4 
+REGRID AS (PARTITION BY x 2, y 2); --show-output=no --show-query=no 
+</programlisting>This output has schema: <programlisting language="test">
+--schema tmp2 --anon=yes --show-query=no --show-output=yes
+</programlisting></para>
+
+    <para>In AFL, you can use the <code>regrid</code> operator to get the same
+    result: <programlisting language="test">
+--afl regrid(m4x4, 2, 2, max(attr1), min(attr1)); --show-output=yes --output-format=auto --chunkify=yes
+</programlisting></para>
+  </section>
+
+  <section>
+    <title>Window Aggregates</title>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>window</secondary>
+      </indexterm><indexterm>
+        <primary>window aggregates</primary>
+      </indexterm><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>where</secondary>
+      </indexterm><indexterm>
+        <primary>data windows</primary>
+      </indexterm>Window aggregates allow you to specify groups with a moving
+    window. The window is defined by a size in each dimension. The window
+    centroid starts at the first array element. The moving window starts at
+    the first element of the array and moves in stride-major order from the
+    lowest to highest value in each dimension. The AQL syntax for window
+    aggregates is: <programlisting>
+AQL% <command>SELECT</command> <replaceable>aggregate</replaceable> <replaceable>(attribute</replaceable>)[, <replaceable>aggregate</replaceable> <replaceable>(attribute</replaceable>)]...
+    <command>INTO</command> <replaceable>dst-array</replaceable>
+    <command>FROM</command> <replaceable>src-array</replaceable> | <replaceable>array-expression</replaceable> 
+    <command>WHERE</command> <replaceable>where-expression</replaceable> 
+    <command>FIXED</command> | <command>VARIABLE</command> <command>WINDOW AS </command>
+    (<command>PARTITION BY</command> <replaceable>dimension1</replaceable> <replaceable>dim1-low</replaceable> <command>PRECEDING</command> <command>AND</command> <replaceable>dim1-high</replaceable> <command>FOLLOWING</command> 
+               [, <replaceable>dimension2</replaceable> <replaceable>dim2-low</replaceable> <command>PRECEDING</command> <command> AND</command> <replaceable>dim2-high</replaceable> <command>FOLLOWING</command> ]... );
+</programlisting></para>
+
+    <para>SciDB supports two types of window aggregates, identified by the
+    keywords FIXED WINDOW and VARIABLE WINDOW as shown in the synopsis above.
+    Both types of window aggregates calculate an aggregate over a window
+    surrounding each array element. A fixed boundary window aggregate uses an
+    exact size for each of its dimensions. Each dimension specifies both the
+    number of preceding values and the number of following values relative to
+    the center. Window dimension sizes include empty cells. SciDB supports
+    multi-dimensional windows, hence, to calculate a fixed window query on a
+    3-dimensional array, one must define a window with 3 dimensions.</para>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>window</secondary>
+
+        <tertiary>fixed</tertiary>
+      </indexterm>For example, you can use fixed window to calculate a running
+    sum for a 3x3 window on array <code>m4x4</code>.</para>
+
+    <informalfigure>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="../graphics/window_aggregates.png" scale="60"/>
+        </imageobject>
+      </mediaobject>
+    </informalfigure>
+
+    <para><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>fixed window</secondary>
+      </indexterm>In AQL, you would use this statement: <programlisting
+    language="test">
+--aql 
+    SELECT sum(attr1) 
+    FROM m4x4 
+    FIXED WINDOW AS 
+    (PARTITION BY x 1 PRECEDING AND 1 FOLLOWING, 
+    y 1 PRECEDING AND 1 FOLLOWING);  --output-format=auto --chunkify=yes
+
+</programlisting> The output has the following schema: <programlisting
+    language="test">
+--aql 
+    SELECT sum(attr1) 
+    INTO tmp3 
+    FROM m4x4 
+    FIXED WINDOW AS 
+    (PARTITION BY x 1 PRECEDING AND 1 FOLLOWING, 
+    y 1 PRECEDING AND 1 FOLLOWING); --show-output=no --show-query=no 
+--schema tmp3 --anon=yes --show-query=no --show-output=yes
+</programlisting></para>
+
+    <para>In AFL, you can use the <code>window</code> operator to achieve the
+    same result: <programlisting language="test">
+--afl window (m4x4,1,1,1,1,sum(attr1)); --show-query=yes --show-output=yes  --output-format=auto --chunkify=yes
+</programlisting></para>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>window</secondary>
+
+        <tertiary>variable</tertiary>
+      </indexterm>In contrast, the boundary of a variable window can vary
+    since the window size includes only nonempty values. Both the number of
+    preceding (nonempty) values and following (nonempty) values relative to
+    the center must appear in the query. SciDB supports only a one-dimensional
+    variable window operator, and this dimension appears in the query. This
+    special dimension defines the "axis" of this type of window along which
+    the window boundary is calculated and along which the window center moves
+    during the query.</para>
+
+    <para>One can think of the (one dimensional) variable window aggregate to
+    be a special case where all the unspecified dimensions have unit length.
+    The following examples show how to use variable windows.</para>
+
+    <para>Consider the array <code>m4x4_empty</code>:</para>
+
+    <programlisting language="test">--afl create array A &lt;val:double&gt; [i=0:3,4,0, j=0:3,4,0]; --show-query=no --show-output=no
+--afl store(build(A,'[[(0),(),(),()],[(4),(),(6),(7)],[(8),(),(),()],[(),(13),(14),()]]',true),A);
+      --show-output=no --show-query=no
+--afl create array C &lt;label:string NULL default NULL&gt;[i=0:3,4,0, j=0:3,4,0];
+      --show-query=no --show-output=no
+--afl store(build(C,NULL),C); --show-query=no --show-output=no
+--afl create array m4x4_empty&lt;val:double, label:string NULL&gt;[i=0:3,4,0, j=0:3,4,0]; --show-output=no
+--afl store(join(A,C),m4x4_empty); --show-query=no --show-output=no
+--afl scan(m4x4_empty); --output-format=auto --chunkify=yes</programlisting>
+
+    <para>The following variable window aggregate query along dimension
+    <code>i</code> is shown here. This query uses a window with one value
+    preceding and one value following the window center after excluding empty
+    cells.</para>
+
+    <programlisting language="test">
+--aql 
+SELECT sum(val)
+FROM m4x4_empty
+VARIABLE WINDOW AS 
+(PARTITION BY 
+i 1 PRECEDING AND 1 FOLLOWING); --show-output=yes --show-query=yes
+</programlisting>
+
+    <para>In AFL, you can specify the same query as follows:</para>
+
+    <programlisting language="test">
+--afl variable_window(m4x4_empty, i, 1, 1, sum(val)); --show-output=yes --show-query=yes --output-format=auto --chunkify=yes
+</programlisting>
+  </section>
+
+  <section>
+    <title>Aggregation During Redimension</title>
+
+    <para><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>in-line</secondary>
+      </indexterm><indexterm>
+        <primary>redimension</primary>
+
+        <secondary>aggregation</secondary>
+      </indexterm>The preceding sections of this chapter describe those
+    features of SciDB that were designed exclusively to calculate aggregates.
+    You can also calculate aggregates "in-line" as part of other data
+    management or rearrangement steps: the redimension operator supports this
+    type of usage. The redimension operator is used to transform a source
+    array into a result array with different schema or dimensions. In those
+    cases, aggregates can be useful in summarizing multiple elements from the
+    source array that are mapped to a single element in the destination
+    array.</para>
+
+    <para>For example, suppose you have an array describing some recent
+    Olympic champions, and you want to produce an array that shows the
+    gold-medal count for each country.</para>
+
+    <para>The schema of the array, <emphasis role="bold">winners</emphasis>,
+    appears below:</para>
+
+    <programlisting language="test">--afl create array event &lt;event:string&gt; [i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array year &lt;year:int64&gt;[i=0:11,12,0];  --show-query=no --show-output=no
+--afl create array person &lt;person:string&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array country &lt;country:string&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array time &lt;time:double&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl store(build(event,iif(i&lt;4,'dash',iif(i&lt;8,'steeplechase','marathon'))),event); --show-query=no --show-output=no
+--afl store(build(year,1996+(i%4 * 4)),year); --show-query=no --show-output=no
+--afl store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,Kemboi,Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person);
+      --show-query=no --show-output=no
+--afl store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,Kenya,Kenya,USA,Ethiopia,Italy,Kenya]',true),country);
+      --show-query=no --show-output=no
+--afl store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),(503.17),(485.81),(490.34),(7956),(7811),(7855),(7596)]',true),time);
+      --show-query=no --show-output=no
+--afl store(join(event,join(person,join(year,join(country,time)))),winners_temp); --show-query=no --show-output=no
+--afl store(uniq(sort(project(winners_temp,country)),'chunk_size=12'),country_index); --show-query=no --show-output=no
+--afl store(apply(country_index,country_id, i),countries); --show-query=no --show-output=no
+--afl store(project(filter(cross_join(winners_temp,countries),winners_temp.country=countries.country),
+      event,person,year,time,winners_temp.country,country_id),winners); --show-query=no --show-output=no
+--afl store(project(unpack(winners,i),event,person,year,time,country,country_id),Farquar); --show-query=no --show-output=no
+--afl remove(winners); --show-query=no --show-output=no
+--afl rename(Farquar,winners); --show-query=no --show-output=no
+--schema winners</programlisting>
+
+    <para>To examine the data in the <emphasis role="bold">winners
+    </emphasis>array, use the following AFL statement: <programlisting
+    language="test">--afl scan(winners);</programlisting></para>
+
+    <para>To create the schema for the desired array, execute the following
+    statement:<programlisting language="test">--afl CREATE ARRAY perCountryMedalCount &lt;country:string, medalCount: uint64 null&gt; [country_id=0:*,20,0];
+      --show-output=no --show-query=yes
+</programlisting></para>
+
+    <para>Notice that the sole dimension is the country ID (<emphasis
+    role="bold">country_id</emphasis>), which is an attribute (not a
+    dimension) of the original<emphasis role="bold"> winners </emphasis>array.
+    To populate the desired array with data, use the following AFL
+    statement:<programlisting language="test">--afl store(redimension(winners, perCountryMedalCount, count(*) as medalCount),perCountryMedalCount); --output-format=dcsv</programlisting></para>
+
+    <para>The result of this redimension operation is the desired array.
+    Notice that the sum of the counts is 12, the number of nonempty cells in
+    the <emphasis role="bold">winners </emphasis>array.</para>
+  </section>
+</section>

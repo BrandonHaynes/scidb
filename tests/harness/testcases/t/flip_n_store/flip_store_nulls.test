@@ -1,0 +1,11 @@
+--setup
+CREATE ARRAY source < a : double NULL > [ b=0:1000,100,0 ]
+store(build(source, iif(b%3=0, null, 10000 - double(b)*3.2)), source)
+CREATE ARRAY dest < b: int64 > [a(double) = 1000,100,0]
+
+--test
+store(redimension(source,dest),dest)
+
+--cleanup
+remove(source)
+remove(dest)

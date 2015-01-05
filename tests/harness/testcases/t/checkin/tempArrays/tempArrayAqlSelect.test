@@ -1,0 +1,18 @@
+--setup
+--aql create temp array A <a:int32, b:string> [x=0:3,3,0,y=0:2,3,0]
+--aql create temp array T <a:int32> [x=0:3,3,0,y=0:2,3,0]
+--aql create temp array TS <a:string> [x=0:3,3,0,y=0:2,3,0]
+
+--test
+--start-query-logging
+--aql rename array A to B
+--aql select * into B from build(T,x+5),build(TS,string(x+1))
+--aql select * from dimensions(B)
+
+--cleanup 
+remove(B)
+remove(T)
+remove(TS)
+
+
+

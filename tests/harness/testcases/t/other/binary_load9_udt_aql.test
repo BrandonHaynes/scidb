@@ -1,0 +1,65 @@
+--setup
+--start-query-logging
+# Ticket number : 1688
+# Tests for the binary load-save on Arrays with UDT as point and rational
+# Tests cover AQL syntax
+
+load_library('point')
+create array A <a:int32>[x=0:2,3,0]
+create array B <b:point>[x=0:2,3,0]
+create array C <c:rational>[x=0:2,3,0]
+create array Z <a:int32,b:point,c:point> [x=0:2,3,0]
+create array Y <a:int32,b:point,c:rational> [x=0:2,3,0]
+
+store(build(A,x+1),A)
+store(apply(apply(A,b,point2str(str2point('(1,1)'))) As N1,c,point2str(str2point('(3,2)'))) As N2,ZZ)
+store(apply(apply(A,b,point2str(str2point('(1,1)'))) As N1,c,str(rational(x+3,2))) As N2,YY)
+
+
+--test
+
+--aql select * from show(ZZ)
+--aql select * from show(YY)
+
+--aql save ZZ into current instance 'zzz.txt' as 'text'
+--aql load Z from current instance 'zzz.txt' as 'text'
+--aql save YY into current instance 'yyy.txt' as 'text'
+--aql load Y from current instance 'yyy.txt' as 'text'
+
+--aql save ZZ into current instance 'mathio.bin' as '(int32,point,point)'
+--aql load Z from  current instance 'mathio.bin' as '(int32,point,point)'
+--aql save YY into current instance 'trigno.bin' as '(int32,point,rational)'
+--aql load Y from current instance 'trigno.bin' as '(int32,point,rational)'
+
+--aql save ZZ into current instance 'mat.dmp' as '(int32,string,string)'
+--aql save YY into current instance 'tri.dmp' as '(int32,string,string)'
+--aql load Z from  current instance 'mathio.bin' as '(int32,point,point)'
+--aql load Z from  current instance 'mat.dmp' as '(int32,string,string)'
+
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql="load Y from  current instance 'mat.dmp' as '(int32,string,string)'"
+--aql load Y from  current instance 'mat.dmp' as '(int32,string,string)' errors 100 shadow array Y_shad
+--aql load Y from current instance 'tri.dmp' as '(int32,string,string)'
+--aql load B from  current instance 'mat.dmp' as '(dummy(4),string,dummy(10))'
+--aql load B from  current instance 'mat.dmp' as '(dummy(4),dummy(10),string)'
+
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql="load C from  current instance 'tri.dmp' as '(dummy(4),string,dummy(10))'"
+--aql load C from  current instance 'tri.dmp' as '(dummy(4),string,dummy(10))' errors 100 shadow array C_shad
+--aql load C from  current instance 'tri.dmp' as '(dummy(4),dummy(10),string)'
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql="load C from  current instance 'tri.dmp' as '(dummy(4),dummy(10),rational)'"
+
+--aql load B from  current instance 'mathio.bin' as '(dummy(4),dummy(16),point)'
+--aql load C from current instance 'trigno.bin' as '(dummy(4),dummy(16),rational)'
+--aql load B from current instance 'trigno.bin' as '(dummy(4),point,dummy(16))'
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(Z)
+remove(Y)
+remove(ZZ)
+remove(YY)
+remove(Y_shad)
+remove(C_shad)
+
+--stop-query-logging

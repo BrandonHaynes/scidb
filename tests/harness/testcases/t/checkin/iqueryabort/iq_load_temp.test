@@ -1,0 +1,32 @@
+--setup
+--start-query-logging
+create temp array ABRLOAD1 <v : int64> [I=0:2000,20,0, J=0:1000,20,0]
+create temp array ABRLOAD2 <v : int64> [I=0:2000,20,0, J=0:1000,20,0]
+--igdata "store(build(ABRLOAD1,I+J),ABRLOAD1)"
+--igdata "store(build(ABRLOAD2,I+J),ABRLOAD2)"
+--test
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2  2 $'load(ABRLOAD1, \'${TEST_DATA_DIR}/abrload.txt\' ) ' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+# check that the data in the arrays is not altered:
+aggregate(filter(apply(join(ABRLOAD1,ABRLOAD2),attrDiff,ABRLOAD1.v - ABRLOAD2.v), attrDiff<>0),count(*))
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 15 2 $'load(ABRLOAD1, \'${TEST_DATA_DIR}/abrload.txt\' ) ' 1> /tmp/${HPID}_2.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_2.stdout"
+# check that the data in the arrays is not altered:
+aggregate(filter(apply(join(ABRLOAD1,ABRLOAD2),attrDiff,ABRLOAD1.v - ABRLOAD2.v), attrDiff<>0),count(*))
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9  2 $'load(ABRLOAD1, \'${TEST_DATA_DIR}/abrload.txt\' ) ' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+# check that the data in the arrays is not altered:
+aggregate(filter(apply(join(ABRLOAD1,ABRLOAD2),attrDiff,ABRLOAD1.v - ABRLOAD2.v), attrDiff<>0),count(*))
+
+--stop-query-logging
+--cleanup
+remove(ABRLOAD1)
+remove(ABRLOAD2)
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_3.stdout 2>/dev/null"

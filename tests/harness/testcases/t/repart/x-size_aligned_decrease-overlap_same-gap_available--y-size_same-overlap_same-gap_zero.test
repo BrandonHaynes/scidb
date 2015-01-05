@@ -1,0 +1,12 @@
+--setup
+create array source <a: int32 DEFAULT 100> [x=-2:20,6,1,y=-2:13,4,1]
+create array result <a: int32 DEFAULT 100> [x=-2:20,4,1,y=-2:13,4,1]
+store(build(source, (x)*16+y), source)
+--test
+scan(source)
+repart(source, result)
+store(repart(source, result), result)
+scan(result)
+--cleanup
+remove(source)
+remove(result)

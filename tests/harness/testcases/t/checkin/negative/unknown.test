@@ -1,0 +1,8 @@
+
+--setup
+
+--test
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "scan(unknown)"
+
+--cleanup
+

@@ -1,0 +1,112 @@
+Query was executed successfully
+
+SCIDB QUERY : <create array spA <a:double>[x=0:5,2,0, y=0:5,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array spC <v:double>[row=1:10,2,0, col=1:10,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store( filter(build(spA, x+y), x=y), spA )>
+{x,y} a
+{0,0} 0
+{1,1} 2
+{2,2} 4
+{3,3} 6
+{4,4} 8
+{5,5} 10
+
+SCIDB QUERY : <spgemm(spA, spA)>
+{x,y} multiply
+{1,1} 4
+{2,2} 16
+{3,3} 36
+{4,4} 64
+{5,5} 100
+
+SCIDB QUERY : <spgemm(spA, spA, 'min.+')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spA, 'max.+')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <store( spA, spB)>
+{x,y} a
+{0,0} 0
+{1,1} 2
+{2,2} 4
+{3,3} 6
+{4,4} 8
+{5,5} 10
+
+SCIDB QUERY : <spgemm(spA, spB)>
+{x,y} multiply
+{1,1} 4
+{2,2} 16
+{3,3} 36
+{4,4} 64
+{5,5} 100
+
+SCIDB QUERY : <spgemm(spA, spB, 'min.+')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spB, 'max.+')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <store( filter(build(spC, row-1), row=col), spC )>
+{row,col} v
+{1,1} 0
+{2,2} 1
+{3,3} 2
+{4,4} 3
+{5,5} 4
+{6,6} 5
+{7,7} 6
+{8,8} 7
+{9,9} 8
+{10,10} 9
+
+SCIDB QUERY : <spgemm(spC, spC)>
+{row,col} multiply
+{2,2} 1
+{3,3} 4
+{4,4} 9
+{5,5} 16
+{6,6} 25
+{7,7} 36
+{8,8} 49
+{9,9} 64
+{10,10} 81
+
+SCIDB QUERY : <remove(spA)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spB)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(spC)>
+Query was executed successfully
+

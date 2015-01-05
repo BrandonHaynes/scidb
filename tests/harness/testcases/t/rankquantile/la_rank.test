@@ -1,0 +1,15 @@
+--setup
+create array teeth <val:int64 null> [x=0:*,2,0,y=0:*,2,0]
+load( teeth, '${TEST_DATA_DIR}/teeth.txt', 0)
+
+--test
+rank(teeth)
+avg_rank(apply(teeth, v2, string(val)), v2)
+
+rank(apply(teeth, v2, double(val)), v2, x)
+avg_rank(apply(teeth, v2, uint8(val)), v2, y)
+rank(apply(teeth, v2, int16(val)), v2, x, y)
+
+--cleanup
+remove(teeth)
+

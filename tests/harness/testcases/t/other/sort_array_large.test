@@ -1,0 +1,41 @@
+# sort a large enough array that multiple sorted runs are created
+
+--setup
+--start-query-logging
+--start-igdata
+
+create array A <d:int64> [ X=0:40000000,1000000,0]
+store(build(A, random()), A)
+
+--test
+
+store(sort(A, d), ASort)
+store(subarray(ASort, 1000, 1100), ASortSlice1)
+store(subarray(ASort, 100000, 100100), ASortSlice2)
+store(subarray(ASort, 500000, 500100), ASortSlice3)
+store(window(ASortSlice1, 0, 1, min(d)), ASortWindow1)
+store(window(ASortSlice2, 0, 1, min(d)), ASortWindow2)
+store(window(ASortSlice3, 0, 1, min(d)), ASortWindow3)
+
+--stop-igdata
+
+aggregate(filter(join(ASortSlice1, ASortWindow1), d!=d_min), count(*))
+aggregate(filter(join(ASortSlice2, ASortWindow2), d!=d_min), count(*))
+aggregate(filter(join(ASortSlice3, ASortWindow3), d!=d_min), count(*))
+
+--cleanup
+
+remove(A)
+remove(ASort)
+remove(ASortSlice1)
+remove(ASortSlice2)
+remove(ASortSlice3)
+remove(ASortWindow1)
+remove(ASortWindow2)
+remove(ASortWindow3)
+
+--stop-query-logging
+
+
+
+

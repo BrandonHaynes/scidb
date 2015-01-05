@@ -1,0 +1,11 @@
+--setup
+create array xyz <a:double> [x=0:1999,100,0, y=0:1999,100,0]
+create array xyz_plain <a:double> [pos=1:4000000,10000,0]
+load(xyz,'${TEST_DATA_DIR}/xyz_small.txt')
+
+--test
+reshape(xyz, xyz_plain)
+
+--cleanup
+remove (xyz)
+remove (xyz_plain)

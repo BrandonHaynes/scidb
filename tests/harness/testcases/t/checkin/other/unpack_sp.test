@@ -1,0 +1,10 @@
+--setup
+--aql create array xyz <a:double> [x=0:1999,100,0, y=0:1999,100,0]
+load(xyz,'${TEST_DATA_DIR}/xyz_small.txt')
+
+--test
+unpack(subarray(xyz, 0, 0, 99, 99), row)
+
+--cleanup
+remove (xyz)
+

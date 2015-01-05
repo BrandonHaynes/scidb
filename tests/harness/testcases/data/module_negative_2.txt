@@ -1,0 +1,1 @@
+f(x) = g(x) where {g = 78}; // 'g' not applicable

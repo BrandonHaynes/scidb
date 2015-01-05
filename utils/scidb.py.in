@@ -1,0 +1,2133 @@
+#!/usr/bin/python
+
+# Initialize, start and stop scidb in a cluster.
+#
+# BEGIN_COPYRIGHT
+#
+# This file is part of SciDB.
+# Copyright (C) 2008-2014 SciDB, Inc.
+#
+# SciDB is free software: you can redistribute it and/or modify
+# it under the terms of the AFFERO GNU General Public License as published by
+# the Free Software Foundation.
+#
+# SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+# INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+# NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+# the AFFERO GNU General Public License for the complete license terms.
+#
+# You should have received a copy of the AFFERO GNU General Public License
+# along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+#
+# END_COPYRIGHT
+#
+
+import subprocess
+import sys
+import time
+import os
+import pwd
+import string
+import signal
+import errno
+import socket
+import fcntl
+import struct
+import array
+from ConfigParser import *
+from ConfigParser import RawConfigParser
+from ConfigParser import SafeConfigParser
+from glob import glob
+import paramiko
+import datetime
+import select
+import argparse
+import traceback
+import functools
+import getpass
+
+def printError(string):
+   print >> sys.stderr, "%s: ERROR: %s" % (sys.argv[0], string)
+   sys.stderr.flush()
+
+def printWarn(string):
+   print >> sys.stderr, "%s: WARNING: %s" % (sys.argv[0], string)
+   sys.stderr.flush()
+
+def printDebug(string):
+   global _DBG
+   if _DBG:
+      print >> sys.stderr, "%s: DEBUG: %s" % (sys.argv[0], string)
+      sys.stderr.flush()
+
+def removeInstDir(srv, liid, dt):
+        ldir = getInstanceDataPath(srv, liid)
+        print "Removing data directory %s on server %d (%s), local instance %d "%\
+              (ldir, srv[0],srv[1],liid)
+        if len(ldir) > 0 and len(ldir) > ldir.count('/'):
+                cmdList = [ 'rm', '-rf', ldir+'/*']
+                executeIt(cmdList, srv, liid, nocwd=True, useConnstr=False,
+                          ignoreError=False, useShell=True)
+        else:
+                print  >> sys.stderr, \
+                    "Not removing data directory %s on server %d (%s), local instance %d\
+                     because it appears to be the root directory"%\
+                    (ldir, srv[0],srv[1],liid)
+                raise Exception("Unexpected data directory %s for server %d (%s) local instance %d" %\
+                                        (ldir,srv[0],srv[1],liid))
+# end def removeInstDir
+
+# get the path for a srv (parent) directory
+def getSrvDataPath(srv, liid):
+   global gCtx
+   return "%s/%03d"%(gCtx._baseDataPath, srv[0])
+# end def getSrvDataPath
+
+# get the path for a specific instance
+def getInstanceFS(srv, liid):
+        global gCtx
+        perInstanceKey = "data-dir-prefix-%d-%d"%(srv[0],liid)
+        if perInstanceKey in gCtx._configOpts.keys():
+           return gCtx._configOpts[perInstanceKey]
+
+        if (gCtx._dataDirPrefix == None):
+                return ""
+        # end if
+        if (srv[0] == 0 and liid == 0):
+                suffix=""
+        else:
+                suffix="%s"%(liid)
+        # end if
+        return "%s%s"%(gCtx._dataDirPrefix, suffix)
+# end def getInstanceFS
+
+# get the path for a specific instance
+def getInstanceDataPath( srv, liid):
+   global gCtx
+   return "%s/%03d/%d"%(gCtx._baseDataPath, srv[0], liid)
+# end def getInstanceDataPath
+
+def getInstanceCount(servers):
+   nInstances = 0
+   for srv in servers:
+      if srv[0] == 0: #coordinator
+         nInstances += 1
+      nInstances += srv[2]
+   return nInstances
+
+# Get IP address of an interface
+def get_ip_address(ifname):
+   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+   return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15]))[20:24])
+
+# Connection string
+def createConnstr(remote=False):
+   global gCtx
+   coordinator = gCtx._srvList[gCtx._coordSrvId] #coordinator
+   connstr="host=" + coordinator[1] + " port=" + gCtx._pgPort + " dbname=" + gCtx._configOpts.get('db_name') + \
+       " user=" + gCtx._configOpts.get('db_user') + " password=" + gCtx._configOpts.get('db_passwd')
+   if remote:
+      connstr = "'"+connstr+"'"
+   return connstr
+
+def runRemoteCommands(clients,cmds,timeout=600):
+    channels = map(lambda client: client.get_transport().open_session(),clients)
+    _ = map(lambda client: client.get_transport().set_keepalive(0),clients)
+    _ = map(lambda channel: channel.settimeout(timeout),channels)
+    _ = map(lambda chCmdZip: chCmdZip[0].exec_command(chCmdZip[1]),zip(channels,cmds))
+    return channels
+
+def trackRemoteCommandExecution(
+    clients,
+    remoteChannels,
+    cmds,
+    auto_close=False,
+    wait=True,
+    timeout=600,
+    read_max=10*1024*1024
+    ):
+    #...............................................................
+    read_max = int(read_max / 2)
+    stdins = map(lambda x: x.makefile('wb', -1),remoteChannels)
+    validStdins = [x for x in stdins if x]
+
+    # Send shutdown to valid stdin descriptors and close them:
+    map(lambda x: x.channel.shutdown_write(),validStdins)
+    map(lambda x: x.close(), validStdins)
+
+    stdouts = map(lambda x: x.makefile('rb', -1),remoteChannels)
+    stderrs = map(lambda x: x.makefile_stderr('rb', -1),remoteChannels)
+
+    # Set up status-checking functions for stdouts:
+    stdoutsDone = [False for i in range(len(remoteChannels))]
+    stderrsDone = [False for i in range(len(remoteChannels))]
+    statusDone = [False for i in range(len(remoteChannels))]
+
+    stdoutsText = ['' for i in range(len(stdouts))]
+    stderrsText = ['' for i in range(len(stderrs))]
+    exits = [-1 for i in range(len(remoteChannels))]
+
+    # No wait + auto_close: close clients (ssh connections).
+    if (not wait):
+       if (auto_close):
+          map(lambda x: x.close(),clients)
+       return exits,stdoutsText,stderrsText
+
+    start_time = time.time()
+    activeChannels = list(remoteChannels)
+
+    getExitFunctions = [lambda i: exits[i],lambda i: remoteChannels[i].recv_exit_status()]
+    getStatusFunctions = [lambda i: statusDone[i],lambda i: True]
+
+    while (len(activeChannels) > 0):
+        stderrsStatus = map(
+            lambda x: getStreamStatus(x[0],x[1],x[2],x[3],x[2].channel.recv_stderr_ready,read_max),
+            zip(stderrsDone,statusDone,stderrs,stderrsText)
+            )
+        stdoutsStatus = map(
+            lambda x: getStreamStatus(x[0],x[1],x[2],x[3],x[2].channel.recv_ready,read_max),
+            zip(stdoutsDone,statusDone,stdouts,stdoutsText)
+            )
+
+        # Update lists:
+        stderrsDone = [x[0] for x in stderrsStatus]
+        stderrsText = [x[1] for x in stderrsStatus]
+        stdoutsDone = [x[0] for x in stdoutsStatus]
+        stdoutsText = [x[1] for x in stdoutsStatus]
+
+        # Check channels exit status:
+        exitsStatus = [
+            ((not statusDone[i]) and remoteChannels[i].exit_status_ready()) for i in range(len(remoteChannels))
+            ]
+
+        exits = [getExitFunctions[exitsStatus[i]](i) for i in range(len(exitsStatus))]
+        statusDone = [getStatusFunctions[exitsStatus[i]](i) for i in range(len(exitsStatus))]
+
+        activeChannels = [
+            remoteChannels[i] for i in range(len(remoteChannels)) if (not statusDone[i]) or (not stdoutsDone[i]) or (not (stderrsDone[i]))
+            ]
+
+        # Timeouts handling
+        time2wait = (int(start_time) + (timeout*len(remoteChannels))) - int(time.time())
+        if (time2wait <= 0):
+            timeoutIndices = [x for i in range(len(cmds)) if not statusDone[i]]
+            for i in timeoutIndices:
+                printError( "remote_exec(%s) timed out" % (cmds[i]))
+                stderrsText[i] += "\nexit_status("+str(exits[i])+") after timeout ("+str(timeout)+")"
+            break
+
+        if (len(activeChannels) > 0):
+            select.select(activeChannels,activeChannels,[],time2wait)
+
+    map(lambda x: x.close(),stdins)
+    map(lambda x: x.close(),stdouts)
+    map(lambda x: x.close(),stderrs)
+
+    if (auto_close):
+       map(lambda client: client.close(),clients)
+
+    return exits,stdoutsText,stderrsText
+
+def parallelRemoteExec(
+    clients,
+    cmds,
+    waitFlag=True,
+    ignoreError=False,
+    silent=False
+    ):
+    global _DBG
+    cmds = [prepareRemoteShellCmd(cmd) for cmd in cmds]
+    channels = runRemoteCommands(clients,cmds,timeout=600)
+    try:
+        exits,outputs,errors = trackRemoteCommandExecution(clients,channels,cmds,wait=waitFlag)
+        if (waitFlag):
+            abExitIndices = [i for i in range(len(exits)) if exits[i] != 0 ]
+            if (len(abExitIndices) > 0):
+                index = abExitIndices[0]
+                raise Exception("Abnormal return code: %s stderr: %s" % (exits[index],errors[index]))
+    except Exception, e1:
+        if _DBG:
+            traceback.print_exc()
+        printDebug( 'Remote command exceptions:\n%s\n%s'%(str(cmds),str(e1)) )
+        if (not silent):
+            printError( 'Remote command exceptions:\n%s'%(str(e1)) )
+        if (ignoreError):
+            pass
+        else:
+            sshclose(clients)
+            sys.exit(1)
+    return exits,outputs,errors
+
+# Run remote command over SSH
+def remote_exec(client, lcmd, auto_close=False, wait=True, tmo=600, read_max=10*1024*1024):
+        output = ''
+        err = ''
+        read_max = int(read_max/2)
+        exit_status = -1
+
+        chan = client.get_transport().open_session()
+        client.get_transport().set_keepalive(0)
+        chan.settimeout(tmo)
+        chan.exec_command(lcmd)
+
+        stdin = chan.makefile('wb', -1)
+        if stdin:
+                stdin.channel.shutdown_write()
+                stdin.close()
+        # end if
+        stdout = chan.makefile('rb', -1)
+        stderr = chan.makefile_stderr('rb', -1)
+
+        start_time = time.time()
+
+        if (not wait):
+                if (auto_close):
+                        client.close
+                # end if
+                return (exit_status, output, err)
+        # end if
+
+        stdoutDone=False
+        stderrDone=False
+        statusDone=False
+
+        # Wait for status
+        while True:
+                stderrDone, err = getStreamStatus(
+                        stderrDone,
+                        statusDone,
+                        stderr,
+                        err,
+                        stderr.channel.recv_stderr_ready,
+                        read_max
+                        )
+                stdoutDone, output = getStreamStatus(
+                        stdoutDone,
+                        statusDone,
+                        stdout,
+                        output,
+                        stdout.channel.recv_ready,
+                        read_max
+                        )
+
+                # Start the remote command, but only wait for stdout and stderr.
+                if (not statusDone) and chan.exit_status_ready():
+                        exit_status = chan.recv_exit_status()
+                        statusDone=True
+                # end if
+                # print "Exit status %s" % (format(exit_status))
+
+                if (statusDone and stdoutDone and stderrDone):
+                        break
+                # end if
+
+                time2wait = (int(start_time) + tmo) - int(time.time())
+                if time2wait <= 0:
+                        printError("remote_exec(%s) timed out" % (lcmd))
+                        err += "exit_status("+str(exit_status)+") after timeout ("+str(tmo)+")"
+                        break
+                # end if
+
+                select.select([chan], [chan], [], time2wait)
+        # end while
+
+        stdin.close()
+        stdout.close()
+        stderr.close()
+
+        if auto_close:
+                client.close()
+        # end if
+
+        return (exit_status, output, err)
+# end def remote_exec
+#.............................................................................
+# getStreamStatus: returns whether or not a given stream has any more bytes
+# in it along with the current (appended) output text.
+def getStreamStatus(
+        streamDone, # Flag indicating if this stream is finished or not.
+        statusDone, # Flag indicating if the stream parent has all of its streams exhausted.
+        stream,     # I/O stream for reading.
+        streamText, # Current text from the stream in string form.
+        readyFunction, # Callable function to check if stream has bytes in it for reading.
+        read_max  # Maximum number of bytes to read from the stream.
+        ):
+        outText = [streamText]
+        sDone = streamDone
+        if (not streamDone) and (statusDone or readyFunction()):
+                try:
+                        ret = stream.read(read_max)
+                        if ret:
+                                outText.append(ret)
+                                # print "Reading stderr ..."
+                        else:
+                                # print "Closing stderr ..."
+                                stream.close()
+                                sDone=True
+                # end if
+                except socket.timeout:
+                        pass
+                # end try
+        # end if
+        return sDone,''.join(outText)
+#.............................................................................
+# Use globals sshPort, keyFilenameList
+def sshconnect( srv, username=None, password=None):
+        global gCtx
+        global _DBG
+        sshc = paramiko.SSHClient()
+        sshc.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+                sshc.connect(srv[1], port=gCtx._sshPort,
+                             username=username, password=password,
+                             key_filename=gCtx._keyFilenameList, timeout=10)
+        except Exception, s:
+                printError("ssh failure: server=%s port=%d %s" % (srv[1], gCtx._sshPort, s))
+                if _DBG:
+                   traceback.print_exc()
+                sys.exit(1)
+        # end try
+        return sshc
+
+def sshclose(conns):
+   if not conns:
+      return
+   for con in conns:
+      try: con.close()
+      except: pass
+
+def confirm(prompt=None, resp=False):
+    """prompts for yes or no response from the user. Returns True for yes and
+    False for no.
+    """
+    if prompt is None:
+        prompt = 'Confirm'
+
+    if resp:
+        prompt = '%s [%s]|%s: ' % (prompt, 'y', 'n')
+    # end if
+    else:
+        prompt = '%s [%s]|%s: ' % (prompt, 'n', 'y')
+
+    while True:
+        ans = raw_input(prompt)
+        if not ans:
+            return resp
+        # end if
+        if ans not in ['y', 'Y', 'n', 'N']:
+            print 'please enter y or n.'
+            continue
+        # end if
+        if ans == 'y' or ans == 'Y':
+            return True
+        # end if
+        if ans == 'n' or ans == 'N':
+            return False
+        # end if
+    # end while
+
+# end def confirm
+## end of http://code.activestate.com/recipes/541096/ }}}
+
+# Local/Remote Execution Module
+# by the identity of the srv, it decides whether to run locally or remotely
+# also if supplied with an existing connection, it uses it
+def executeLocal( cmdList,
+                  dataDir,
+                  waitFlag=True,
+                  nocwd=False,
+                  useConnstr=True,
+                  sout=None,
+                  serr=None,
+                  stdoutFile=None,
+                  stderrFile=None,
+                  useShell=False,
+                  ignoreError=False,
+                  silent=False):
+        ret = 0
+        out = ''
+        err = ''
+
+        if nocwd:
+                currentDir = None
+        else:
+                currentDir = dataDir
+
+        if sout==None:
+                if stdoutFile!=None:
+                        sout=open(dataDir+"/"+stdoutFile,"a+")
+                elif not waitFlag:
+                        sout=open("/dev/null","a")
+
+        if serr==None:
+                if stderrFile!=None:
+                        serr=open(dataDir+"/"+stderrFile,"a+")
+                elif not waitFlag:
+                        serr=open("/dev/null","a")
+
+        if useConnstr:
+                cmdList.append('-c')
+                if useShell:
+                        cmdList.append("'"+createConnstr()+"'")
+                else:
+                        cmdList.append(createConnstr())
+
+        global gCtx
+
+        # print 'Using modified cmdList: ', cmdList
+        my_env = os.environ
+        if gCtx._configOpts.get('malloc_check_'):
+                my_env["MALLOC_CHECK_"] = gCtx._configOpts.get('malloc_check_')
+                # end if
+        if gCtx._configOpts.get('malloc_arena_max'):
+                my_env["MALLOC_ARENA_MAX"] = gCtx._configOpts.get('malloc_arena_max')
+                # end if
+        if gCtx._configOpts.get('gcov_prefix'):
+                my_env["GCOV_PREFIX"] = dataDir
+                print "gcov_prefix = %s" % (dataDir)
+        # end if
+
+        if (gCtx._configOpts.get('tcmalloc') in  ['true', 'True', 'on', 'On']):
+                if "LD_LIBRARY_PATH" in my_env:
+                        my_env["LD_LIBRARY_PATH"] = gCtx._installPath+"/lib:" + my_env["LD_LIBRARY_PATH"]
+                else:
+                        my_env["LD_LIBRARY_PATH"] = gCtx._installPath+"/lib:"
+                        my_env["LD_PRELOAD"] = "libtcmalloc.so"
+                        my_env["HEAPPROFILE"] = "/tmp/heapprof"
+                # end if
+        # end if
+
+        executable=None
+        if useShell:
+           cmdList=[" ".join(cmdList)]
+           executable="/bin/bash"
+        # end if
+        try:
+
+                # print currentDir, cmdList, sout, useShell
+                p = subprocess.Popen(cmdList, env=my_env, cwd=currentDir, stderr=serr, stdout=sout, shell=useShell, executable=executable)
+
+                if waitFlag:
+                        p.wait()
+                        ret = p.returncode
+                        if ret != 0 :
+                                raise Exception("Abnormal return code: %s" % (ret))
+                        if (sout != None):
+                                sout.flush()
+                                sout.seek(0)
+                                out = sout.read()
+
+                        if (serr != None):
+                                serr.flush()
+                                serr.seek(0)
+                                err = serr.read()
+                 # end if
+        except Exception, e1:
+                if (ignoreError):
+                        pass
+                else:
+                        if (not silent):
+                                printError(str(e1))
+                                printError("command %s: " % (" ".join(cmdList)))
+                                logs = ""
+                                if (stderrFile):
+                                        logs = logs + stderrFile
+                          # end if
+                                if (stdoutFile):
+                                        logs = logs + " " + stdoutFile
+                          # end if
+                                if (logs != ""):
+                                        printError("Check logs in %s"%(logs))
+                        # end if
+                        # end if
+                        sys.exit(1)
+                  # end if
+        # end try
+        #       print ret, out, err
+        return (ret, out, err)
+# end def executeIt
+
+# Make sure the command is executed by bash
+def prepareRemoteShellCmd(cmdString):
+   cmdString = cmdString.replace("'","\\'")
+   cmdString = "exec /bin/bash -c $'"+cmdString+"'"
+
+   printDebug("Remote command="+cmdString)
+   return cmdString
+
+# Remote Execution
+# by the identity of the srv, it decides whether to run locally or remotely
+# also if supplied with an existing connection, it uses it
+def executeRemote( cmdList, srv, liid,
+                   waitFlag=True,
+                   nocwd=False,
+                   useConnstr=True,
+                   sshc=None,
+                   stdoutFile=None,
+                   stderrFile=None,
+                   ignoreError=False,
+                   silent=False):
+        ret = 0
+        out = ''
+        err = ''
+
+        dataDir = getInstanceDataPath( srv,liid)
+        if nocwd:
+                currentDir = None
+        else:
+                currentDir = dataDir
+        # end if
+
+        needsClose = False
+        if sshc == None:
+                sshc = sshconnect( srv)
+                needsClose = True
+        # end if
+        if useConnstr:
+                cmdList.append('-c')
+                cmdList.append(createConnstr(True))
+        # end if
+        # print 'Using modified cmdList: ', cmdList
+        if stdoutFile != None:
+                cmdList.append('1>')
+                cmdList.append(stdoutFile)
+        # end if
+        if stderrFile != None:
+                cmdList.append('2>')
+                cmdList.append(stderrFile)
+        # end if
+
+        if currentDir:
+                cmdString = "cd "+currentDir+";"+(" ".join(cmdList))
+        else:
+                cmdString = " ".join(cmdList)
+        # end if
+
+        cmdString = prepareRemoteShellCmd(cmdString)
+
+        # print "cmdString: ",cmdString
+        try:
+                (ret,out,err) = remote_exec(sshc, cmdString, wait=waitFlag)
+                if needsClose:
+                        sshc.close()
+                # end if
+                if waitFlag:
+                   if ret != 0 or err :
+                      raise Exception("Abnormal return code: %s stderr: %s" % (ret,err))
+
+        except Exception, e1:
+                if (not silent):
+                   printError("Remote command exception:\n%s\n%s"%(cmdString,str(e1)))
+                # end if
+                if ignoreError:
+                   pass
+                else:
+                   if needsClose: sshclose([sshc])
+                   sys.exit(1)
+                # end if
+        # end try
+        return (ret, out, err)
+# end def executeIt
+
+# Local/Remote Execution Module
+# by the identity of the srv, it decides whether to run locally or remotely
+# also if supplied with an existing connection, it uses it
+def executeIt( cmdList, srv, liid,
+               waitFlag=True, nocwd=False,
+               useConnstr=True, executable=None,
+               sshc=None, stdoutFile=None, stderrFile=None,
+               useSSH4Local=False, useShell=False,
+               ignoreError=False, silent=False):
+
+        if srv[0] == 0 and not useSSH4Local :
+                dataDir = getInstanceDataPath( srv,liid)
+                return executeLocal(cmdList,
+                                    dataDir=dataDir,
+                                    waitFlag=waitFlag,
+                                    nocwd=nocwd,
+                                    useConnstr=useConnstr,
+                                    stdoutFile=stdoutFile,
+                                    stderrFile=stderrFile,
+                                    useShell=useShell,
+                                    ignoreError=ignoreError,
+                                    silent=silent)
+        else:
+                return executeRemote(cmdList, srv, liid,
+                                     waitFlag=waitFlag,
+                                     nocwd=nocwd,
+                                     useConnstr=useConnstr,
+                                     sshc=sshc,
+                                     stdoutFile=stdoutFile,
+                                     stderrFile=stderrFile,
+                                     ignoreError=ignoreError,
+                                     silent=silent)
+
+# end def executeIt
+
+ # Cleanup logs/storage files and initialize storage file.
+def cleanup(srv, liid, dt):
+   print "Cleaning up old logs and storage files."
+   try:
+         removeInstDir(srv, liid, dt)
+   except OSError, detail:
+         if detail.errno != errno.ENOENT:
+            printError("OSError:"+str(detail))
+            sys.exit(detail.errno)
+         # end if
+   # end try
+# end def cleanup
+
+# Instance specific SciDB binary name
+def binFile( srv, liid):
+   global gCtx
+   return "SciDB-%03d-%d-%s"%(srv[0],liid,gCtx._scidb_name)
+# end def binFile
+
+# create directories and link bin
+def createDirsAndLinks( srv, liid):
+   ndir = getSrvDataPath(srv,liid)
+
+   # create the directories for this instance
+   cmdList = ['mkdir', '-p', ndir]
+   executeIt(cmdList, srv, liid, nocwd=True, useConnstr=False)
+
+   ddir = getInstanceFS(srv, liid)
+   ldir = getInstanceDataPath( srv, liid)
+
+   # create/link directories and add symlink for executable
+   if (ddir != ""):
+      cmdList = ['ls', ddir+'/*', '1>/dev/null', '2>/dev/null']
+      (ret,out,err) = executeIt( cmdList, srv, liid, nocwd=True, useConnstr=False, ignoreError=True, useShell=True, silent=True)
+      if ret == 0:
+         print "Data directory %s for server %d (%s) local instance %d must be empty" % (ddir,srv[0],srv[1],liid)
+         sys.exit(1)
+      cmdList = ['rm', '-rf', ldir]
+      executeIt(cmdList, srv, liid, nocwd=True, useConnstr=False)
+      cmdList = ['ln', '-s', ddir, ldir]
+      executeIt(cmdList, srv, liid, nocwd=True, useConnstr=False)
+   else:
+         cmdList = ['mkdir', '-p', ldir]
+         executeIt( cmdList, srv, liid, nocwd=True, useConnstr=False)
+   # end if
+
+   relink_binary(srv, liid)
+# end def createDirsAndLinks
+
+# XXX
+def relink_binary(srv, liid):
+   global gCtx
+   cmdList = ['rm', '-f', binFile(srv, liid)]
+   executeIt(cmdList, srv, liid, useConnstr=False, ignoreError=True, silent=True)
+   cmdList = ['ln', '-fs', gCtx._installPath + "/bin/scidb", binFile(srv, liid)]
+   executeIt(cmdList, srv, liid, useConnstr=False)
+# end def relink_binary
+
+def get_scidb_pids(srv, liid):
+   cmdList = [ getScidbPidsCmd(srv, liid) ]
+   (ret,out,err)=executeIt(cmdList, srv, liid, useSSH4Local=True, useConnstr=False,
+                           useShell=True, ignoreError=True, silent=True, nocwd=True,
+                           stdoutFile=None, stderrFile=None)
+
+   # Drop additional whitespace characters
+   ports = []
+   if (out != ''):
+           ports = out.splitlines()
+   # end if
+   print "checking (server %d (%s) local instance %d) %s... " % (srv[0], srv[1], liid, " ".join(ports))
+   return ports
+# end def get_scidb_pids
+#............................................................................
+# getAllScidbInstancePids: return all of the process ids of scidb instances on a
+#                     given server.
+def getAllScidbInstancePids(
+    srv, # List structure describing a scidb server.
+    liid, # Number of a running scidb instance (unused here).
+    sshConn=None # Optional ssh connection object.
+    ):
+    cmdList = [ getAllScidbPidsCmd(srv) ]
+    (ret,out,err)=executeIt(cmdList, srv, liid, sshc=sshConn,useSSH4Local=True, useConnstr=False,
+                           useShell=True, ignoreError=True, silent=True, nocwd=True,
+                           stdoutFile=None, stderrFile=None)
+
+    # Drop additional whitespace characters
+    ports = []
+    if (out != ''):
+        ports = out.splitlines()
+    # end if
+    print "checking (server %d (%s) local instance %d) %s... " % (srv[0], srv[1], liid, " ".join(ports))
+    return ports
+
+#............................................................................
+# init dirs and links and initialize/register all instances. Assumes
+# that syscat init script was already run.
+def initAll(force=False):
+   # Timestamp for backup directory
+   if (check_scidb_running() > 0):
+         printError("SciDB is still running.")
+         sys.exit(1)
+
+   try:
+      checkMaxPostgresConns()
+   except Exception as pgException:
+      if (not force):
+         raise pgException
+      else:
+         printError(pgException)
+
+   if (not force):
+           if (confirm('This will delete all data and reinitialize storage', False) == False):
+                   sys.exit(1)
+           # end if
+   # end if
+
+   checkRedundancy()
+
+   now = datetime.datetime.now()
+   dt = now.strftime("%Y%m%d-%H%M%S")
+   global gCtx
+   for srv in gCtx._srvList:
+         if srv[0]==0: #coordinator
+           #print 'Init master on ', n
+           init(srv,0,dt)
+         # end if
+         for i in range(1, srv[2]+1):
+           #print 'Register worker srv ',n,' liid ',i
+           init(srv,i,dt)
+         # end for
+   # end for
+# end def initAll
+
+def purgeBackupAll():
+   global gCtx
+   purgeDays = "2"
+   if (gCtx._configOpts.get('purge-days')):
+      purgeDays = gCtx._configOpts.get('purge-days')
+
+   print "Purge backups older than " + purgeDays
+
+   for srv in gCtx._srvList:
+      if srv[0] == 0: #coordinator
+         purgeBackup(srv, 0, purgeDays)
+      for i in range(1, srv[2]+1):
+         purgeBackup(srv, i, purgeDays)
+# end def purgeBackupAll
+
+ # Run the syscat init script on coordinator.
+def init_syscat(srv, liid):
+   global gCtx
+   # print "sudo privileges are required to configure the postgres database."
+   # Check for sudo priv?
+   user   = gCtx._configOpts.get('db_user')
+   db     = gCtx._configOpts.get('db_name')
+   passwd = gCtx._configOpts.get('db_passwd')
+   cmdList = [gCtx._installPath + "/bin/init-db.sh", user, db, passwd, gCtx._pgPort]
+   (ret,out,err)=executeIt(cmdList, srv, liid, useConnstr=False, nocwd=True,
+                           stdoutFile=None, stderrFile=None)
+   if (err):
+      printError(str(err))
+      sys.exit(1)
+# end def init_syscat
+
+# Register this instance (single/master)
+def init( srv, liid, dt):
+         print "init(server %d (%s) local instance %d)"%(srv[0],srv[1],liid)
+         print "Initializing local scidb instance/storage.\n"
+
+         cleanup(srv,liid,dt)
+
+         createDirsAndLinks(srv, liid)
+
+         global gCtx
+         coordinator = gCtx._srvList[gCtx._coordSrvId] #coordinator
+         os.chdir(getInstanceDataPath( coordinator,0)) #XXXX need this ?
+
+         cmdList = [gCtx._installPath + "/bin/scidb", "--register"]
+
+         if srv[0]==0 and liid==0:
+                 initFlag = "--initialize"
+                 cmdList.extend(["-p", str(gCtx._basePort+liid), initFlag])
+         else:
+                 cmdList.extend(["-p", str(gCtx._basePort+liid)])
+         # end if
+
+         logconf = gCtx._configOpts.get('logconf')
+         cmdList.extend(["-i", srv[1], #get_ip_address(gCtx._configOpts.get('interface')),
+                                         "-s", getInstanceDataPath(srv,liid) + '/storage.cfg',
+                                         "-l", logconf])
+
+         ## XXX temp setting for trac #.
+         if gCtx._configOpts.get('enable-delta-encoding') in ['true', 'True', 'on', 'On']:
+                 deltaClause = "--enable-delta-encoding"
+                 cmdList.extend([deltaClause])
+         # end if
+
+         if gCtx._configOpts.get('daemon-mode') in ['true', 'True', 'on', 'On']:
+                 daemonClause = "--daemon"
+                 cmdList.extend([daemonClause])
+         # end if
+
+         if gCtx._configOpts.get('chunk-reserve'):
+                 reserveClause = "--chunk-reserve=%s" % gCtx._configOpts.get('chunk-reserve')
+                 cmdList.extend([reserveClause])
+         # end if
+
+         if gCtx._configOpts.get('install_root'):
+                 installPathClause = "--install_root=%s" % gCtx._configOpts.get('install_root')
+                 cmdList.extend([installPathClause])
+         # end if
+
+         executeIt(cmdList, srv, liid,
+                   stdoutFile="init-stdout.log", stderrFile="init-stderr.log")
+# end def init
+
+def check_scidb_ready(coordinator,liid):
+   global gCtx
+   # listing queries should very cheap
+   cmdList = [gCtx._installPath + "/bin/iquery", "-c", coordinator[1], "-p", str(gCtx._basePort),
+              "-naq", "\"list(\'queries\')\"", "1>/dev/null", "2>/dev/null"]
+   (ret,out,err)=executeIt(cmdList, coordinator, liid,
+                           useConnstr=False,
+                           nocwd=True,
+                           ignoreError=True,
+                           useShell=True)
+   return (ret==0)
+#..................................................................
+# check_scidb_running: check if scidb is running on the specified
+#                      servers.
+def check_scidb_running(
+   sshConns=None, # Optional list of ssh connections to servers.
+   servers=None, # Optionsl list of servers (must match connections).
+   ):            # even one scidb process found on one server.
+
+   if sshConns and not servers:
+      raise Exception("Connections dont match servers")
+
+   global gCtx
+   if not servers:
+      servers = gCtx._srvList
+
+    # Prepare some default return values.
+   c = 0
+   pids = []
+   # Sort the server list: currently, passed in servers must be
+   # sorted in the exact same way; otherwise their optional ssh
+   # connection objects will be mismatched.
+   sortedSrvList = sorted(list(servers),key=lambda x: x[0])
+
+   # Prepare the ssh connections.
+   needToCloseSSH = False
+   if not sshConns:
+      needToCloseSSH = True
+      sshConns=[]
+
+   try:
+      if (needToCloseSSH):
+         sshConns = [sshconnect( srv) for srv in sortedSrvList]
+
+      if len(sshConns) != len(servers) or len(sshConns) != len(sortedSrvList):
+         raise Exception("Connections dont match servers %d != %d" % (len(sshConns),len(servers)))
+
+      # Gather a list of pid-collection commands for every server.
+      cmds = [getAllScidbPidsCmd(srv) for srv in sortedSrvList]
+
+      # Run all of the server pid-collecting commands in parallel.
+      (ret,out,err) = parallelRemoteExec(sshConns,cmds)
+
+      # Analyze the results.
+      pids = [o.splitlines() for o in out]
+      c = sum([len(p) for p in pids])
+      if (c > 0):
+         msgs = [ "checking (server %d (%s)) %s..." % (tpl[0][0], tpl[0][1], " ".join(tpl[1])) for tpl in zip(sortedSrvList,pids) ]
+         print '\n'.join(msgs)
+
+      if (needToCloseSSH): map(lambda x: x.close(),sshConns)
+   finally:
+      if (needToCloseSSH): sshclose(sshConns)
+
+   print "Found %d scidb processes" % (c)
+   # Can modify the function to return pids also:
+   # this would enable more targeted calls to this function
+   # (only check servers that had running pids from the
+   # previous call).
+   return c
+
+# Check that all instances are running the same version.
+def check_scidb_version(srv, liid):
+   global gCtx
+   cmdList=[gCtx._installPath+"/bin/scidb", "--version"]
+   (ret,out,err) = executeIt(cmdList, srv, liid,
+                             useSSH4Local=True, useConnstr=False,
+                             useShell=False, ignoreError=False,
+                             silent=True, nocwd=True,
+                             stdoutFile=None, stderrFile=None)
+   return out
+# end def check_scidb_version
+
+def check_scidb_versions_all():
+   global gCtx
+   coordinator = gCtx._srvList[gCtx._coordSrvId]
+   coordver=check_scidb_version(coordinator, 0)
+
+   print "SciDB version of (server %d (%s)) is %s"% (coordinator[0],coordinator[1],coordver)
+
+   # Check for any mismatched version strings.
+   for srv in gCtx._srvList:
+      if (srv[0] == coordinator[0]):
+         continue
+      wrkver = check_scidb_version(srv, 1)
+      if (wrkver != coordver):
+         printError("SciDB version mismatch, (server %d (%s) is at %s) "% (srv[0],srv[1],wrkver))
+# end def check_scidb_versions_all
+
+#............................................................................
+# Separately create shell commands to first unlink and then re-link all of
+# the paths to scidb binary files on all servers.
+def makeRelinkBinaryCommands(coordinator,workers):
+    global gCtx
+    crdRange = range(0,coordinator[2]+1)
+    workerRmLinkCmds = [
+        ['rm -f '+ os.path.join(getInstanceDataPath(worker,i_id),binFile(worker,i_id)) for i_id in range(1,worker[2]+1)] for worker in workers
+        ]
+    workerLinkCmds = [
+        ['ln -fs '+ gCtx._installPath + '/bin/scidb ' + os.path.join(getInstanceDataPath(worker,i_id),binFile(worker,i_id)) for i_id in range(1,worker[2]+1)] for worker in workers
+        ]
+    allWorkerCommands = [
+        [cmdZip[0] + ' && ' + cmdZip[1] for cmdZip in zip(listZip[0],listZip[1])] for listZip in zip(workerRmLinkCmds,workerLinkCmds)
+        ]
+    coordinatorRmLinkCmds = [
+        'rm -f '+ os.path.join(getInstanceDataPath(coordinator,i_id),binFile(coordinator,i_id)) for i_id in crdRange
+        ]
+    coordinatorLinkCmds = [
+        'ln -fs '+ gCtx._installPath + '/bin/scidb ' + os.path.join(getInstanceDataPath(coordinator,i_id),binFile(coordinator,i_id)) for i_id in crdRange
+        ]
+    allCoordinatorCommands = [
+        coordCmdZip[0] + ' && ' + coordCmdZip[1] for coordCmdZip in zip(coordinatorRmLinkCmds,coordinatorLinkCmds)
+        ]
+    allCommands = [allCoordinatorCommands]
+    allCommands.extend(allWorkerCommands)
+    return allCommands
+
+
+#............................................................................
+# Put together commands to start all scidb instances on all servers in
+# config.ini.
+def startAllServers():
+    startSomeServers(gCtx._srvList)
+#............................................................................
+# Put together commands to start all scidb instances on given servers in
+# config.ini.
+def startSomeServers( servers):
+    #........................................................................
+    # Allegedly, list comprehensions are faster than the equivalent explicit
+    # for-loops.  Hence, the command lists and commands themselves are
+    # constructed via the list comprehensions.
+    #
+    # First, we sort the server list in ascending order: the greater the
+    # sequential number of the server, the further down the list it will be
+    # placed.
+    sortedSrvList = sorted(servers,key=lambda x: x[0])
+    sshConnections = []
+    try:
+    #........................................................................
+       # Establish ssh connections with all servers (possibly including the
+       # local coordinator machine).
+       sshConnections = [sshconnect( x) for x in sortedSrvList]
+    #........................................................................
+    # Check if the scidb is already running: the "cached" ssh connections
+    # are used to communicate with all of the scidb servers.
+       pidCounts = check_scidb_running(sshConnections,servers=sortedSrvList)
+       if (pidCounts > 0):
+          printError("SciDB is still running. Try the stopall command before starting.")
+          sshclose(sshConnections)
+          sys.exit(1)
+
+       checkRedundancy()
+    #........................................................................
+    # XXX TODO: coordinator = gCtx._srvList[gCtx._coordSrvId] #coordinator
+       coordinator = sortedSrvList[0] # Master (coordinator) is the first item in the
+                              # sorted list.
+       workers = sortedSrvList[1:] # The rest of the entries are worker servers.
+    #........................................................................
+    # Create the re-linking commands "on the side": these remove and recreate
+    # links to the scidb executables on all servers (will be inserted into
+    # command lists at a later time).
+       relinkCmds = makeRelinkBinaryCommands(coordinator,workers)
+    #........................................................................
+    # Then, we set up argument lists to startCommandOnly function for the
+    # coordinator server scidb instances.
+    # The resulting list should look like this:
+    # [
+    #  [<server info list>,<instance id1>],
+    #  [<server info list>,<instance id2>],
+    #   ...
+    #  [<server info list>,<instance idN>]
+    # ]
+    # Here, server item is the same - coordinator server structure from srvList.
+       coordinatorArgsList = [[coordinator,i] for i in range(0,coordinator[2]+1)]
+    #........................................................................
+    # Next, we set up the same startCommandOnly arguments for the worker
+    # servers.  This list is for multiple servers, so it will look as folows:
+    # [ [
+    #    [<server info list1>,<instance id1>],
+    #    [<server info list1>,<instance id2>],
+    #     ...
+    #    [<server info list1>,<instance idN>]
+    #   ],
+    #   [
+    #    [<server info list2>,<instance id1>],
+    #    [<server info list2>,<instance id2>],
+    #     ...
+    #    [<server info list2>,<instance idM>]
+    #   ],
+    #   ...
+    # ]
+       workerArgsLists = [[[n,i] for i in range(1,n[2]+1)] for n in workers]
+       allArgsLists = [coordinatorArgsList]
+       allArgsLists.extend(workerArgsLists)
+    #........................................................................
+    # Now the "real" work begins: startCommandOnly is called repeatedly to
+    # obtain the "real" command-line arguments to start each instance of
+    # scidb server on the server machines.  The command arguments are
+    # grouped by server. The resulting list looks as the following comment:
+    # [ [ # server 0 (coordinator)
+    #    <command-line args list for instance1>,
+    #    <command-line args list for instance2>,
+    #     ...
+    #    <command-line args list for instanceN>
+    #   ],
+    #   [ # server 1
+    #    <command-line args list for instance1>,
+    #    <command-line args list for instance2>,
+    #     ...
+    #    <command-line args list for instanceM>
+    #   ],
+    #    ...
+    # ]
+    #........................................................................
+       allCmds = [[startCommandOnly(*y) for y in x] for x in allArgsLists]
+    # Create CD commands for each instance:
+       cdCmds = [['cd ' + getInstanceDataPath(*y) for y in x] for x in allArgsLists]
+    #........................................................................
+    # Strip out blank command-line args: when command-line argument lists
+    # are put together in the statement above, they contain quite a few
+    # "blank" options.
+       allCmds = [ [[z for z in y if len(z) > 0] for y in x] for x in allCmds]
+    #........................................................................
+    # Convert all of the commands into strings.
+       allCmds = [[' '.join(y) for y in x] for x in allCmds]
+    #........................................................................
+    # Append binary relinking commands to instance-spawning commands.
+       allCmds = [
+          [y[0] + ' && ' + y[1] for y in zip(x[0],x[1])] for x in zip(relinkCmds,allCmds)
+          ]
+    # Finally, append the CD commands to all instances
+       allCmds = [
+          [y[0] + ' && ' + y[1] for y in zip(x[0],x[1])] for x in zip(cdCmds,allCmds)
+          ]
+       allCmds = [['(' + y + ' ) &' for y in x] for x in allCmds]
+    #........................................................................
+    # Lump all of the instance starting commands for each server into strings:
+    # one string with all of the instances per one server.
+       allCmds = [' '.join(x) for x in allCmds]
+    #........................................................................
+    # Run all of the commands.
+       exits,outputs,errors = parallelRemoteExec(sshConnections,allCmds,waitFlag=False)
+       map(lambda x: x.close(),sshConnections)
+    finally:
+    #........................................................................
+       # Close down all of the ssh connections.
+       sshclose(sshConnections)
+
+ # Start this liid (single/cluster).
+def start(srv, liid, dryRun=False):
+   global gCtx
+   print "start(server %d (%s) local instance %d)"%(srv[0],srv[1],liid)
+   db = gCtx._configOpts.get('db_name')
+   pluginsdir = gCtx._configOpts.get('pluginsdir')
+   logconf = gCtx._configOpts.get('logconf')
+   threadsClause = ''
+
+   if gCtx._configOpts.get('redundancy'):
+          redundancy = "--redundancy=%s" % gCtx._configOpts.get('redundancy')
+   else:
+          redundancy = ''
+   # end if
+
+   if gCtx._configOpts.get('tmp-path'):
+          tmpPathClause = "--tmp-path=%s" % gCtx._configOpts.get('tmp-path')
+   else:
+          tmpPathClause = ''
+   # end if
+
+   if gCtx._configOpts.get('install_root'):
+          installPathClause = "--install_root=%s" % gCtx._configOpts.get('install_root')
+   else:
+          installPathClause = ''
+   # end if
+
+   if gCtx._configOpts.get('merge-sort-buffer'):
+          mergeSortClause = "--merge-sort-buffer=%s" % gCtx._configOpts.get('merge-sort-buffer')
+   else:
+          mergeSortClause = ''
+   # end if
+
+   if gCtx._configOpts.get('merge-sort-nstreams'):
+           mergeSortNstreamClause = "--merge-sort-nstreams=%s" % gCtx._configOpts.get('merge-sort-nstreams')
+   else:
+           mergeSortNstreamClause = ''
+   # end if
+
+   if gCtx._configOpts.get('merge-sort-pipeline-limit'):
+           mergeSortPipelineLimitClause = "--merge-sort-pipeline-limit=%s" % gCtx._configOpts.get('merge-sort-pipeline-limit')
+   else:
+           mergeSortPipelineLimitClause = ''
+   # end if
+
+   if gCtx._configOpts.get('redimension-chunksize'):
+          redimChunksizeClause = "--redimension-chunksize=%s" % gCtx._configOpts.get('redimension-chunksize')
+   else:
+          redimChunksizeClause = ''
+   # end if
+
+   if gCtx._configOpts.get('max-open-fds'):
+      maxOpenFdsClause = "--max-open-fds=%s" % gCtx._configOpts.get('max-open-fds')
+   else:
+      maxOpenFdsClause = ''
+
+   if gCtx._configOpts.get('smgr-cache-size'):
+      smgrCacheSize = gCtx._configOpts.get('smgr-cache-size')
+   else:
+      smgrCacheSize = '256'
+
+   if gCtx._configOpts.get('mem-array-threshold'):
+          memArrayClause = "--mem-array-threshold=%s" % gCtx._configOpts.get('mem-array-threshold')
+   else:
+          memArrayClause = ''
+   # end if
+
+   if gCtx._configOpts.get('network-buffer'):
+          netbuffClause = "--network-buffer=%s" % gCtx._configOpts.get('network-buffer')
+   else:
+          netbuffClause = ''
+   # end if
+
+   if gCtx._configOpts.get('daemon-mode') in ['true', 'True', 'on', 'On']:
+          daemonClause = "--daemon"
+   else:
+          daemonClause = ''
+   # end if
+
+   if gCtx._configOpts.get('liveness-timeout'):
+          liveness = "--liveness-timeout=%s" % gCtx._configOpts.get('liveness-timeout')
+   else:
+          liveness = ''
+   # end if
+
+   if gCtx._configOpts.get('deadlock-timeout'):
+          deadlock = "--deadlock-timeout=%s" % gCtx._configOpts.get('deadlock-timeout')
+   else:
+          deadlock = ''
+   # end if
+
+ # Shared pool
+   if gCtx._configOpts.get('execution-threads'):
+          threadsClause = threadsClause + " -j %s" % gCtx._configOpts.get('execution-threads')
+   # end if
+
+ # Per instantiation of an operator (only for multi-threaded ops)
+   if gCtx._configOpts.get('operator-threads'):
+          threadsClause = threadsClause + " -x %s" % gCtx._configOpts.get('operator-threads')
+   # end if
+
+ # Shared pool
+   if gCtx._configOpts.get('result-prefetch-threads'):
+          threadsClause = threadsClause + " -t %s" % gCtx._configOpts.get('result-prefetch-threads')
+   # end if
+
+ # Per-query queue of chunks, will consume memory
+   if gCtx._configOpts.get('result-prefetch-queue-size'):
+          threadsClause = threadsClause + " -q  %s" % gCtx._configOpts.get('result-prefetch-queue-size')
+   # end if
+
+   if gCtx._configOpts.get('chunk-reserve'):
+          reserveClause = "--chunk-reserve=%s" % gCtx._configOpts.get('chunk-reserve')
+   else:
+          reserveClause = ''
+   # end if
+
+   no_watchdog = (gCtx._configOpts.get('no-watchdog') in ['true', 'True', 'on', 'On'])
+   if no_watchdog:
+          noWatchDogClause = "--no-watchdog"
+   else:
+          noWatchDogClause = ''
+   # end if
+
+   if gCtx._configOpts.get('sync-io-interval'):
+          sitClause = "--sync-io-interval=%s" % gCtx._configOpts.get('sync-io-interval')
+   else:
+          sitClause = ''
+   # end if
+
+   if gCtx._configOpts.get('io-log-threshold'):
+          wrtClause = "--io-log-threshold=%s" % gCtx._configOpts.get('io-log-threshold')
+   else:
+          wrtClause = ''
+   # end if
+
+   if gCtx._configOpts.get('max-memory-limit'):
+          memLimit = "--max-memory-limit=%s" % gCtx._configOpts.get('max-memory-limit')
+   else:
+          memLimit = ''
+   # end if
+
+   if gCtx._configOpts.get('small-memalloc-size'):
+          malloc_mmap_threshold = "--small-memalloc-size=%s" % gCtx._configOpts.get('small-memalloc-size')
+   else:
+          malloc_mmap_threshold = ''
+   # end if
+
+   if gCtx._configOpts.get('large-memalloc-limit'):
+          mmap_count_limit = "--large-memalloc-limit=%s" % gCtx._configOpts.get('large-memalloc-limit')
+   else:
+          mmap_count_limit = ''
+   # end if
+
+   if gCtx._configOpts.get('replication-send-queue-size'):
+          repSendQSize = "--replication-send-queue-size=%s" % gCtx._configOpts.get('replication-send-queue-size')
+   else:
+          repSendQSize = ''
+   # end if
+
+   if gCtx._configOpts.get('replication-receive-queue-size'):
+          repRecvQSize = "--replication-receive-queue-size=%s" % gCtx._configOpts.get('replication-receive-queue-size')
+   else:
+          repRecvQSize = ''
+   # end if
+
+
+   if gCtx._configOpts.get('sg-send-queue-size'):
+          sgSendQSize = "--sg-send-queue-size=%s" % gCtx._configOpts.get('sg-send-queue-size')
+   else:
+          sgSendQSize = ''
+   # end if
+
+   if gCtx._configOpts.get('sg-receive-queue-size'):
+          sgRecvQSize = "--sg-receive-queue-size=%s" % gCtx._configOpts.get('sg-receive-queue-size')
+   else:
+          sgRecvQSize = ''
+   # end if
+
+
+   if gCtx._configOpts.get('requests'):
+           requests = "--requests=%s" % gCtx._configOpts.get('requests')
+   else:
+           requests = ''
+   # end if
+
+   if gCtx._configOpts.get('enable-delta-encoding') in ['true', 'True', 'on', 'On']:
+          deltaClause = "--enable-delta-encoding"
+   else:
+          deltaClause = ''
+   # end if
+
+   if gCtx._configOpts.get('load-scan-buffer'):
+          lsbClause = "--load-scan-buffer=%s" % gCtx._configOpts.get('load-scan-buffer')
+   else:
+          lsbClause = ''
+   # end if
+
+   if gCtx._configOpts.get('mpi-dir'):
+          mpiClause = "--mpi-dir=%s" % gCtx._configOpts.get('mpi-dir')
+   else:
+          mpiClause = ''
+   # end if
+
+   if gCtx._configOpts.get('mpi-type'):
+          mpiTypeClause = "--mpi-type=%s" % gCtx._configOpts.get('mpi-type')
+   else:
+          mpiTypeClause = ''
+   # end if
+
+   if gCtx._configOpts.get('preallocate-shared-mem') in ['false', 'False', 'off', 'Off']:
+          preallocateShmClause = "--preallocate-shared-mem=False"
+   else:
+          preallocateShmClause = ""
+   # end if
+
+   if gCtx._configOpts.get('materialized-window-threshhold'):
+          materializeWindowThreshholdTypeClause = "--materialized-window-threshhold=%s" % gCtx._configOpts.get('materialized-window-threshhold')
+   else:
+          materializeWindowThreshholdTypeClause = ''
+   # end if
+
+   if gCtx._configOpts.get('enable-catalog-upgrade') in  ['true', 'True', 'on', 'On']:
+      upgradeClause = "--enable-catalog-upgrade"
+   else:
+      upgradeClause = ''
+   # end if
+
+   want_valgrind = None
+   @CONFIGURE_SCIDB_PY_VALGRIND@
+
+   #relink_binary(srv, liid)
+   print "Starting SciDB server%s."%(" with valgrind" if want_valgrind else "")
+   libDir = gCtx._installPath+"/lib"
+   cmdList = [ ''.join(("LD_LIBRARY_PATH=",
+                        libDir, ":",
+                        libDir, "/scidb/plugins:",
+                        os.environ.get("LD_LIBRARY_PATH", ""),
+                        " ")),
+               "exec" ]
+
+   if want_valgrind:
+      assert os.path.exists('/usr/bin/valgrind'), "Missing /usr/bin/valgrind"
+      if not noWatchDogClause:
+         noWatchDogClause = '--no-watchdog'
+      # Name compatibility for z_valgrind test, which expects only 1 instance.
+      vg_log = ('/tmp/valgrind.%s.log' % liid) if liid else '/tmp/valgrind.log'
+      # WARNING: Place only tool-agnostic options here!  See below.
+      vg_cmd = [ '/usr/bin/valgrind',
+                 '-v',
+                 '--num-callers=50',
+                 '--log-file=%s' % vg_log
+                 ]
+      # If config.ini contains 'vg-foo-bar = baz', then add
+      # '--foo-bar=baz' option to valgrind.
+      for key in gCtx._configOpts.keys():
+         if key[:3] == 'vg-':
+            vg_opt = key[3:]
+            vg_val = gCtx._configOpts.get(key)
+            vg_cmd.append('--%s=%s' % (vg_opt, vg_val))
+      # Not all valgrind tools allow all options, be careful!
+      # E.g. only memcheck allows --track-origins.
+      vg_tool = gCtx._configOpts.get('vg-tool')
+      if not vg_tool or vg_tool.lower() == 'memcheck':
+         if 'vg-track-origins' not in gCtx._configOpts:
+            vg_cmd.append('--track-origins=yes')
+      cmdList += vg_cmd
+
+   cmdList += [ getInstanceDataPath(srv,liid)+'/'+binFile(srv, liid),
+                "-i", srv[1],
+                "-p", str(gCtx._basePort+liid),
+                mergeSortClause,
+                mergeSortNstreamClause,
+                mergeSortPipelineLimitClause,
+                redimChunksizeClause,
+                maxOpenFdsClause,
+                "--cache", smgrCacheSize,
+                noWatchDogClause,
+                "-k", "-l", logconf,
+                sitClause,
+                wrtClause,
+                "--plugins", pluginsdir,
+                redundancy,
+                tmpPathClause,
+                installPathClause,
+                mpiClause,
+                mpiTypeClause,
+                preallocateShmClause,
+                materializeWindowThreshholdTypeClause,
+                memArrayClause] + threadsClause.split() + [ netbuffClause,
+                reserveClause,
+                liveness,
+                deadlock,
+                memLimit,
+                repSendQSize,
+                repRecvQSize,
+                sgSendQSize,
+                sgRecvQSize,
+                requests,
+                malloc_mmap_threshold,
+                mmap_count_limit,
+                deltaClause,
+                lsbClause,
+                upgradeClause,
+                daemonClause,
+                "-s", getInstanceDataPath(srv,liid) + '/storage.cfg']
+
+   if (not dryRun):
+       cmdList=[" ".join(cmdList)]
+       executeIt(cmdList, srv, liid, waitFlag=False,
+                         stdoutFile="scidb-stdout.log", stderrFile="scidb-stderr.log", useShell=True)
+       return None
+   else:
+       return cmdList
+
+# end def start
+def startCommandOnly(srv, liid):
+   cmdList = start(srv,liid,dryRun=True)
+   cmdList.extend(['-c',createConnstr(True)])
+   cmdList.extend(['1>',os.path.join(getInstanceDataPath(srv,liid),'scidb-stdout.log')])
+   cmdList.extend(['2>',os.path.join(getInstanceDataPath(srv,liid),'scidb-stderr.log')])
+   return cmdList
+
+ # stop the whole system
+ # loop through all srvs and liids, coordinator last
+def stopAll(force=False):
+   global gCtx
+   stopSomeServers(gCtx._srvList, force)
+
+# stop instances on given servers
+def stopSomeServers(servers,force=False):
+   kwargs = {'force':force}
+   map(lambda x: stop(x,**kwargs),servers)
+
+ # Collect debug
+ # loop through all srvs and instances, coordinator last
+def collectDbgAll(mode='full'):
+   global gCtx
+   now = datetime.datetime.now()
+   dt = now.strftime("%Y%m%d-%H%M%S")
+   for srv in sorted(gCtx._srvList, reverse=True):
+      for i in range(srv[2],0,-1):
+         collectDbg(srv, i, dt, mode)
+         # end for
+      if srv[0] == 0: #coordinator
+         collectDbg(srv, 0, dt, mode)
+
+def collectDbg( srv, liid, dt, mode='full'):
+
+   subdir = dt
+   if (mode == 'stacksonly'):
+      filelist='`ls *.log* mpi_*/* '+subdir+'/stack* 2> /dev/null`'
+   else:
+      filelist='`ls *.log* mpi_*/* core* '+subdir+'/stack* 2> /dev/null`'
+   conn = sshconnect(srv)
+   try:
+      # this is called after all other liids.
+      print "collect logs, cores, install files (srv %d (%s) local instance %d)"%(srv[0],srv[1],liid)
+      global gCtx
+      if (srv[0] == 0 and liid == 0): #coordinator
+         name        = "coord-"   + dt + ".tgz"
+         tgzname     = subdir+"/" + name
+         instgzname  = subdir+"/install-" + name
+         instlsname  = subdir+"/install-" + dt + ".txt"
+         tgzfiles    = subdir+"/*"+ dt +"*.tgz"
+         remote_tgzs = "*"+         dt +"*.tgz"
+         allname     = "all-"+      dt +".tar"
+         installRoot = gCtx._configOpts.get('install_root')
+
+         cmdList0 = ['mkdir', '-p', subdir]
+         cmdList00 = ['mv', remote_tgzs, subdir]
+
+         if (mode != 'stacksonly'):
+            cmdList01 = ["tar", "cvPfz", instgzname, installRoot]
+         else:
+            cmdList01 = ["(find "+installRoot+" | xargs ls -l 1> "+instlsname+")"]
+            cmdList02  = ["tar", "cvPfz", instgzname, installRoot+"/"+"etc ", installRoot+"/"+"share ", instlsname]
+
+         cmdList1 = [gCtx._installPath + "/bin/" + "scidb_cores", dt]
+         cmdList2 = ["tar", "cvPfz", tgzname, filelist]
+
+         cmdList3 = ['tar', 'cvPf', allname, tgzfiles]
+         cmdList4 = ['rm', "-rf", subdir]
+
+         try:
+            executeIt(cmdList0, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile='/dev/null', ignoreError=False)
+            executeIt(cmdList00, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile='/dev/null', ignoreError=True)
+            executeIt(cmdList01, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile='/dev/null', ignoreError=True)
+            if (mode == 'stacksonly'):
+               executeIt(cmdList02, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile='/dev/null', ignoreError=True)
+            executeIt(cmdList1, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile='/dev/null', ignoreError=True)
+            executeIt(cmdList2, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+            executeIt(cmdList3, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+            executeIt(cmdList4, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+         except IOError, detail:
+            if detail.errno != errno.ENOENT:
+               printError(str(detail))
+               raise
+      else:
+         coordinator = gCtx._srvList[gCtx._coordSrvId]
+         name = "srv-" + "%03d" % srv[0] + "-" + "%d" % liid + "-" + dt + ".tgz"
+         instname = "install-" + name
+         tgzname     = subdir+"/"+name
+         instgzname  = subdir+"/"+instname
+         instlsname  = subdir+"/install-" + dt + ".txt"
+         installRoot = gCtx._configOpts.get('install_root')
+
+         cmdList0 = ['mkdir', '-p', subdir]
+         cmdList1 = ["(find "+installRoot+" | xargs ls -l 1> "+instlsname+")"]
+         cmdList2 = ["tar", "cvPfz", instgzname, installRoot+"/"+"etc", installRoot+"/"+"share", instlsname]
+         cmdList3 = [gCtx._installPath + "/bin/" + "scidb_cores", dt]
+         cmdList4 = ["tar", "cvPfz", tgzname, filelist]
+         cmdList5 = ['rm', "-rf", subdir]
+         prefix = getInstanceDataPath(srv, liid)
+
+         try:
+            executeIt(cmdList0, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+            executeIt(cmdList1, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+            executeIt(cmdList2, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+            executeIt(cmdList3, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+            executeIt(cmdList4, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+
+            sftp = None
+            sftp = paramiko.SFTPClient.from_transport(conn.get_transport())
+
+            remotep = prefix + "/" + tgzname
+            localp = getInstanceDataPath(coordinator, 0) + "/" + name
+
+            print "Running sftp remote: %s -> local: %s" % (remotep, localp)
+            sftp.get(remotep, localp)
+
+            remotep = prefix + "/" + instgzname
+            localp = getInstanceDataPath(coordinator, 0) + "/" + instname
+
+            print "Running sftp remote: %s -> local: %s" % (remotep, localp)
+            sftp.get(remotep, localp)
+
+            sftp.close()
+            sftp = None
+            executeIt(cmdList5, srv, liid, sshc=conn, useConnstr=False, useSSH4Local=True, stdoutFile="/dev/null", ignoreError=True)
+         except IOError, detail:
+            if detail.errno != errno.ENOENT:
+               printError(str(detail))
+               raise
+         finally:
+            if sftp: sshclose([sftp])
+         conn.close()
+         conn=None
+   finally:
+      if conn: sshclose([conn])
+# end def collectDbg
+
+# We use a unique data directory for each SciDB instance,
+# and all of the process names started by that instance have the unique directory prefix.
+# So, we use ps to find all the processes with that prefix.
+def getScidbPidsCmd(srv, liid):
+   return ('ps --no-headers -e -o pid,cmd | awk \'{print $1 \" \" $2}\' | grep ' +
+           getInstanceDataPath(srv, liid)+'/' + ' | awk \'{print $1}\'')
+
+#.............................................................................
+# getAllScidbPidsCmd: returns a "ps"-type command to get pids of all running
+#                     scidb processes.  The returned command is for one
+#                     server: it finds all scidbs running on that machine.
+#
+#                     Returned value is a string that does *not* end
+#                     in a newline (since caller typically wants to
+#                     pipe this into xargs or whatever).
+def getAllScidbPidsCmd(srv):
+   global gCtx
+   path = "%s/%03d/"%(gCtx._baseDataPath, srv[0])
+   want_valgrind = None
+   @CONFIGURE_SCIDB_PY_VALGRIND@
+   if want_valgrind:
+      # When using valgrind, 'path' will not match the first cmd token... so
+      # the awk script searches for 'path' anywhere in the line.
+      return ''.join(('ps --no-headers -e -o pid,cmd |',
+                      '''awk 'BEGIN { pat = "''', path, '''" ;
+                                      gsub("/", "\\/", pat) }
+                              /awk/ { next }
+                              $0 ~ pat { print $1 }' ''')) # No newline!
+   else:
+      # Easy, the 'path' is the first cmd token so return that pid.
+      return ('ps --no-headers -e -o pid,cmd | awk \'{print $1 \" \" $2}\' | grep "' +
+              path +'*"' + ' | awk \'{print $1}\'')
+
+# stop a particular server
+def stop(srv, force=False):
+   if (not force):
+         print "stop(server %d (%s))"%(srv[0],srv[1])
+         cmdList = [getAllScidbPidsCmd(srv) + ' | xargs kill']
+   else:
+         cmdList = [getAllScidbPidsCmd(srv) + ' | xargs kill -9']
+   # end if
+   liid = srv[2] # any valid liid would do, we stop all liids on srv
+   executeIt(cmdList, srv, liid, waitFlag=False, useConnstr=False, nocwd=True, useShell=True, useSSH4Local=True)
+   return
+
+ # check the system status. at the moment a trivial view into the postgres Srv table.
+def checkSystemStatus():
+   global gCtx
+   coordinator = gCtx._srvList[gCtx._coordSrvId]
+   cmdList = [ 'export PGPASSWORD=%s;psql -h localhost --username %s --dbname %s -c "select instance_id,host,port,online_since from instance order by instance_id"' % (
+                   gCtx._configOpts.get('db_passwd'), gCtx._configOpts.get('db_user'), gCtx._configOpts.get('db_name'))]
+   executeIt(cmdList, coordinator, 0, useConnstr=False, nocwd=True, useShell=True)
+
+def checkLocks():
+   global gCtx
+   coordinator = gCtx._srvList[gCtx._coordSrvId]
+   cmdList = [ 'export PGPASSWORD=%s;psql -h localhost --username %s --dbname %s -c "select array_name,query_id,instance_id,instance_role,lock_mode from array_version_lock"' % (
+           gCtx._configOpts.get('db_passwd'), gCtx._configOpts.get('db_user'), gCtx._configOpts.get('db_name'))]
+   executeIt(cmdList, coordinator, 0, useConnstr=False, nocwd=True, useShell=True)
+
+def checkMaxPostgresConns():
+   """checkMaxPostgresConns: test if user requested more scidb instances than
+   max number of connections allowed by Postgres.  The function will raise an
+   exception in these situations:
+   1) Postgres is unreachable/not running
+   2) it cannot determine Postgres max_connections setting by querying Postgres
+   3) max_connections value is less than the total number of scidb instances
+      requested in config.ini
+   """
+   global gCtx
+   coordinator = gCtx._srvList[gCtx._coordSrvId]
+   coordinatorHost = coordinator[1]
+   cmd_list = [ 'export PGPASSWORD=%s;psql -h <coordinator> -p <pgport> --username %s --dbname %s -t -c "SELECT * FROM pg_settings WHERE name = \'max_connections\';"' % (
+           gCtx._configOpts.get('db_passwd'), gCtx._configOpts.get('db_user'), gCtx._configOpts.get('db_name'))]
+
+   cmd_list[0] = cmd_list[0].replace('<coordinator>',coordinatorHost) # Insert coordinator hostname into the command.
+   cmd_list[0] = cmd_list[0].replace('<pgport>',str(gCtx._pgPort)) # Insert Postgres port into the command.
+
+   postgresErrMsgs = [
+      'Please make sure that Postgres max_connections value is ' + \
+       'greater than the total number of scidb instances in config.ini.',
+      'To modify max number of Postgres connections, locate postgresql.conf file and alter max_connections value there.',
+      'For more information please consult this Postgres web site: https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server.',
+      'Note that after changing the max_connections setting, Postgres service must be restarted.'
+      ]
+   postgresErrMsg = '\n'.join(postgresErrMsgs)
+
+   ret,out,err = executeIt( # Run Postgres query command.
+      cmd_list,
+      coordinator,
+      0,
+      useConnstr=False,
+      useSSH4Local=True,
+      nocwd=True,
+      useShell=True,
+      silent=True
+      )
+
+   if (ret != 0):
+      msgs = [
+         'Error: Postgres max_connections query failed!',
+         postgresErrMsg
+         ]
+      raise Exception('\n'.join(msgs))
+
+   line = out.split('\n')[0] # Take the first line from the output.
+   line = line.strip()
+
+   if (len(line) <= 0):
+      msgs = [
+         'Error: cannot extract result of Postgres max_connections query!',
+         postgresErrMsg
+         ]
+      raise Exception('\n'.join(msgs))
+
+   tokens = [t.strip() for t in line.split('|')] # Split the line into individual values.
+
+   if (tokens[0] != 'max_connections'):
+      msgs = [
+         'Error: could not extract value for Postgres max_connections!',
+         postgresErrMsg
+         ]
+      raise Exception('\n'.join(msgs))
+
+   max_conns = -1
+
+   try:
+      max_conns = int(tokens[1]) # Convert the max_connections value into a number.
+   except:
+      msgs = [
+         'Error: non-integer value found in Postgres max_connections - {0}!'.format(tokens[1]),
+         postgresErrMsg
+         ]
+      raise Exception('\n'.join(msgs))
+
+   # Sum up the number of instances requested in config.ini for all hosts (servers).
+   n_instances = sum([srv[2] for srv in gCtx._srvList])
+   n_instances += 1 # Increment the sum because coordinator instance number is off by one.
+
+   if (max_conns < n_instances):
+      msgs = [
+         "Cannot create {0} scidb instances: Postgres (max_connections) currently allows only {1} connections!".format(n_instances,max_conns),
+         postgresErrMsg
+         ]
+      raise Exception('\n'.join(msgs))
+
+def checkRedundancy():
+   global gCtx
+   if gCtx._configOpts.get('redundancy'):
+      nInstances = getInstanceCount(gCtx._srvList)
+
+      red = int(gCtx._configOpts.get('redundancy'))
+      if not 0 <= red < nInstances:
+         printError("Error: redundancy (%d) must be >= 0 and < number of nodes (%d)" % (red, nInstances))
+         sys.exit(1)
+
+# Add ts to purge.txt.
+def purgeBackup(srv, inst, ndays):
+   if (getSrvDataPath(srv, inst) != ""):
+      print "purge backups (server %d (%s) local instance %d)" % (srv[0], srv[1], inst)
+      instPrefix = "'%s-*'" % (inst)
+
+      # Purge all backups more than ndays old.
+      cmdList = ["find", getSrvDataPath(srv, inst)+"/", "-maxdepth", "1", "-type", "d", "-mtime",
+                 ndays, "-name", instPrefix, "-exec", "/bin/rm -rf {} \;", "-print"]
+
+      print " ".join(cmdList), " on ", srv," (",inst,")"
+      executeIt(cmdList, srv, inst, useConnstr=False, stdoutFile='purge-out.log', nocwd=False,
+                useShell=True, stderrFile='purge-err.log', useSSH4Local=True)
+
+ # Display SciDB installation version
+def displayVersion():
+   global gCtx
+   cmdList = [ os.path.join(gCtx._installPath, "bin", "scidbconf"), '-A' ]
+   p = subprocess.Popen(cmdList)
+   p.wait()
+   if p.returncode != 0 :
+      raise Exception("Abnormal return code: %s" % (p.returncode))
+
+class Context:
+   def __init__(self,
+                config_file='',
+                scidb_name='',
+                srvList=[],
+                configOpts={},
+                coordSrvId = 0,
+                installPath='',
+                baseDataPath='',
+                dataDirPrefix='',
+                basePort = 1239,
+                sshPort = 22,
+                pgPort = "5432",
+                keyFilenameList = [],
+                args=sys.argv):
+      self._config_file = config_file;
+      self._scidb_name = scidb_name;
+      self._srvList = srvList
+      self._configOpts = configOpts
+      self._coordSrvId = coordSrvId
+      self._installPath = installPath
+      self._baseDataPath = baseDataPath
+      self._dataDirPrefix = dataDirPrefix
+      self._basePort = basePort
+      self._sshPort = sshPort
+      self._pgPort = pgPort
+      self._keyFilenameList = keyFilenameList
+      self._args = args
+
+class CmdExecutor:
+    def __init__(self, ctx):
+       self._ctx = ctx
+
+    def waitToStop(self, servers, errorStr):
+       attempts=0
+       conns = []
+       try:
+          conns = [sshconnect(srv) for srv in servers]
+          pidCount = check_scidb_running(sshConns=conns,servers=servers)
+          while pidCount > 0:
+             attempts += 1
+             if attempts>5:
+                stopSomeServers(servers,force=True)
+             if attempts>10:
+                raise Exception(errorStr)
+             time.sleep(1)
+             pidCount = check_scidb_running(sshConns=conns,servers=servers)
+          map(lambda x: x.close(),conns)
+       finally:
+          sshclose(conns)
+
+    def version(self):
+       displayVersion()
+
+    def init_syscat(self):
+       coordinator=self._ctx._srvList[self._ctx._coordSrvId]
+       init_syscat(coordinator, 0)
+
+    def init_all(self):
+       initAll(force=self._ctx._args.force)
+
+    def init_all_force(self):
+       initAll(force=True)
+
+    def start_all(self):
+       startAllServers()
+       attempts=0
+       coordinator=self._ctx._srvList[self._ctx._coordSrvId]
+       while not check_scidb_ready(coordinator,0):
+          attempts += 1
+          if attempts>30:
+             printError("Failed to start SciDB!")
+             sys.exit(1)
+          time.sleep(1)
+
+    def stop_all(self):
+       stopAll() # plumb connections into stopAll()
+       serversToStop = self._ctx._srvList
+       self.waitToStop(serversToStop, "Failed to stop SciDB!")
+
+    def dbginfo(self):
+       mode = "full"
+       if self._ctx._args.light:
+          mode="stacksonly"
+       collectDbgAll(mode)
+
+    def dbginfo_lt(self):
+       collectDbgAll(mode='stacksonly')
+    def status(self):
+       checkSystemStatus()
+    def check_pids(self):
+       check_scidb_running()
+    def check_version(self):
+       check_scidb_versions_all()
+    def purge(self):
+       purgeBackupAll()
+    def metadata(self):
+       checkLocks()
+
+# Parse a ini file
+def parseOptions(ctx):
+   config = RawConfigParser()
+   try:
+      config.readfp(open(ctx._config_file, 'r'))
+   except Exception, e:
+      printError("Cannot read config file: %s" % str(e))
+      sys.exit(1)
+   section_name = ctx._scidb_name
+
+   # First process the "global" section.
+   try:
+      #print "Parsing %s section." % (section_name)
+      for (key, value) in config.items(section_name):
+         ctx._configOpts[key] = value
+         # make a srv & instance list
+         # srv 0 hosts the coordinator
+         # format: server-N=ip, number of local workers
+         #         (server0 always has a coordinator)
+         if (key[0:7] == 'server-'):
+            srv = [ int(key[7:]) ]
+            srv.extend(value.split(','))
+            if len(srv) != 3:
+               raise Exception("Invalid server specification for coordinator %s = %s" % (str(key),str(value)))
+            srv[2] = int(srv[2])
+            if srv[0]<0 or srv[2]<0:
+               raise Exception("Invalid server specification for coordinator %s = %s" % (str(key),str(value)))
+            ctx._srvList.append(srv)
+
+   except Exception, e:
+      printError("config file parser error in file %s: %s" % (ctx._config_file,str(e)))
+      sys.exit(1)
+
+   ctx._srvList.sort()
+   ctx._configOpts['db_name'] = ctx._scidb_name
+
+def getContext(args):
+   ctx = Context()
+   ctx._args=args
+
+   installPath = os.path.dirname(os.path.abspath(os.path.dirname(sys.argv[0])))
+
+   if args.subparser_name == "service_add" or \
+          args.subparser_name == "service_remove" or \
+          args.subparser_name == "version":
+      ctx._installPath = installPath
+      printDebug("Installation path: %s"%(ctx._installPath))
+      return ctx
+
+   if not args.config_file:
+      ctx._config_file = os.path.join(installPath, "etc", "config.ini")
+   else:
+      ctx._config_file = args.config_file
+   ctx._scidb_name = args.scidb_name
+
+   parseOptions(ctx)
+
+   if ctx._configOpts.get('install_root'):
+      ctx._installPath = ctx._configOpts.get('install_root')
+   else:
+      ctx._installPath = installPath
+      printWarn(str("Missing specification for %s"%('install-root')))
+
+   if ctx._installPath != installPath:
+      printWarn("\'install_root\' configuration option: \'%s\' does not match the location of \'%s\': \'%s\'" %
+                (ctx._installPath, sys.argv[0], installPath))
+
+   if not ctx._configOpts.get('base-path'):
+      raise Exception(str("Missing specification for %s"%('base-path')))
+   ctx._baseDataPath = ctx._configOpts.get('base-path')
+
+   ctx._dataDirPrefix = ctx._configOpts.get('data-dir-prefix')
+
+   if not ctx._configOpts.get('base-port'):
+      raise Exception(str("Missing specification for %s"%('base-port')))
+   ctx._basePort = int(ctx._configOpts.get('base-port'))
+
+   if ctx._configOpts.get('ssh-port'):
+      ctx._sshPort = int(ctx._configOpts.get('ssh-port'))
+
+   if ctx._configOpts.get('pg-port'):
+      ctx._pgPort = ctx._configOpts.get('pg-port')
+
+   if ctx._configOpts.get('key-file-list'):
+      ctx._keyFilenameList = ctx._configOpts.get('key-file-list').split(',')
+
+   if not ctx._srvList or len(ctx._srvList)<1:
+      raise Exception(str("Missing specification for servers %s"%('server-#')))
+
+   ctx._srvList = sorted(ctx._srvList,key=lambda s: s[0])
+   ctx._coordSrvId = 0 #coordinator host
+   if ctx._srvList[ctx._coordSrvId][0] != 0:
+      raise Exception("Invalid specification for coordinator host %d" %
+                      (ctx._srvList[ctx._coordSrvId][0]))
+   return ctx
+
+#### scidb global context
+_DBG = False
+gCtx = Context()
+
+def handle(superParser, superArgs, cmdArgs=[]):
+   global _DBG
+   _DBG = superArgs.verbose
+
+   global gCtx
+   cmdExec = CmdExecutor(gCtx)
+   modName="scidb"
+   parser = argparse.ArgumentParser(prog=superParser.prog+" -m "+modName)
+
+   subparsers = parser.add_subparsers(dest='subparser_name',
+                                      title="Module \'%s\'"%(modName),
+                                      description="SciDB administration and configuration. "+
+                                      "Use -h/--help with a particular subcommand from the list below to learn its usage")
+
+   subParser = subparsers.add_parser('version', description="Check SciDB version")
+   subParser.set_defaults(func=cmdExec.version)
+
+   subParser = subparsers.add_parser('init_syscat', description="Initialize system catalog")
+   subParser.add_argument('scidb_name', help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.init_syscat)
+
+   subParser = subparsers.add_parser('init_all', description="Initialize SciDB instances")
+   subParser.add_argument('scidb_name', help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.add_argument('-f','--force', action='store_true', help="automatically confirm any old state/directory cleanup")
+   subParser.set_defaults(func=cmdExec.init_all)
+
+   subParser = subparsers.add_parser('initall', description="Initialize SciDB instances. DEPRECATED, use init_all")
+   subParser.add_argument('scidb_name', help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.add_argument('-f','--force', action='store_true', help="automatically confirm any old state/directory cleanup")
+   subParser.set_defaults(func=cmdExec.init_all)
+
+   subParser = subparsers.add_parser('initall-force', description="Initialize SciDB instances. DEPRECATED, use init_all")
+   subParser.add_argument('scidb_name', help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.init_all_force)
+
+   subParser = subparsers.add_parser('start_all', description="Start all SciDB instances")
+   subParser.add_argument('scidb_name', help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.start_all)
+
+   subParser = subparsers.add_parser('startall', description="Start all SciDB instances. DEPRECATED, use start_all")
+   subParser.add_argument('scidb_name', help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.start_all)
+
+   subParser = subparsers.add_parser('stop_all', description="Stop all SciDB instances")
+   subParser.add_argument('scidb_name', help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.stop_all)
+
+   subParser = subparsers.add_parser('stopall', description="Stop all SciDB instances. DEPRECATED, use stop_all")
+   subParser.add_argument('scidb_name', help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.stop_all)
+
+
+   subParser = subparsers.add_parser('dbginfo', description=
+                                     "Collect debug information form all SciDB instances and deposit it on the coordinator (instance=0)")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.add_argument('-l','--light', action='store_true', help="skip large objects such as binaries & cores")
+   subParser.set_defaults(func=cmdExec.dbginfo)
+
+   subParser = subparsers.add_parser('dbginfo-lt', description=
+                                     "Collect debug information from all SciDB instances and deposit it on the coordinator (instance=0)"+
+                                     "while skipping large objects such as binaries & cores. DEPRECATED, use dbginfo")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.dbginfo_lt)
+
+   subParser = subparsers.add_parser('status', description="Display the status of all SciDB instances")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.status)
+
+   subParser = subparsers.add_parser('check_pids', description="Display pids of runing SciDB instances")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.check_pids)
+
+   subParser = subparsers.add_parser('check-pids', description="Display pids of runing SciDB instances. DEPRECATED, use check_pids")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.check_pids)
+
+   subParser = subparsers.add_parser('check_version', description="Check that all SciDB instances are on the same version")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.check_version)
+
+   subParser = subparsers.add_parser('check-version', description="Check that all SciDB instances are on the same version. DEPRECATED, use check_version")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.check_version)
+
+   subParser = subparsers.add_parser('purge', description="Purge backup directories")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.purge)
+
+   subParser = subparsers.add_parser('metadata', description="Display metadata lock table")
+   subParser.add_argument('scidb_name',  help="SciDB name as specified in config.ini")
+   subParser.add_argument('config_file', default=None, nargs='?', help="config.ini file to use, default is /opt/scidb/<version>/etc/config.ini")
+   subParser.set_defaults(func=cmdExec.metadata)
+
+   args = parser.parse_args(cmdArgs)
+
+   gCtx = getContext(args)
+   cmdExec._ctx = gCtx
+
+   try:
+      args.func()
+   except Exception, e:
+      printError("Command %s failed: %s\n"% (args.subparser_name,str(e)))
+      if _DBG:
+         traceback.print_exc()
+         sys.stderr.flush()
+      raise
+
+def main():
+   parser = argparse.ArgumentParser(add_help=False, usage="%(prog)s [-m MODULE] [-v] module-specific-options")
+   parser.add_argument('-m','--module', help="module for requested functionality, default is scidb")
+   parser.add_argument('-v','--verbose', action='store_true', help="display verbose output")
+   (args, modArgs) = parser.parse_known_args()
+
+   if (not args.module) and len(modArgs)<1:
+      parser.print_help()
+      sys.exit(1)
+
+   if not args.module:
+      args.module="scidb"
+
+   global _DBG
+   _DBG = args.verbose
+
+   try:
+      func = handle
+      modName = args.module
+      if modName != "scidb":
+         module = __import__(modName)
+         func = module.handle
+      func(parser, args, modArgs)
+   except ImportError, ie:
+      printError("Module %s: %s\n"% (args.module, str(ie)))
+      if _DBG:
+         traceback.print_exc()
+         sys.stderr.flush()
+      sys.exit(1)
+   except Exception, e:
+      if _DBG:
+         printError("Module %s command %s failed: %s\n"% (args.module, modArgs,str(e)))
+         traceback.print_exc()
+         sys.stderr.flush()
+      sys.exit(1)
+   sys.exit(0)
+### MAIN
+if __name__ == "__main__":
+   main()
+### end MAIN

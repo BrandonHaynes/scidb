@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="quantileOperator">
+  <refnamediv>
+    <refname>quantile</refname>
+
+    <refpurpose>Returns the quantiles of the specified array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>quantile(<replaceable>srcArray</replaceable>,<replaceable>q-num</replaceable><optional>,<replaceable>attribute</replaceable><optional>[, <replaceable>dimension...</replaceable></optional></optional>])</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>quantile</primary>
+      </indexterm>A q-quantile is a point taken at a specified interval on a
+    sorted data set that divides the data set into q subsets. The quantiles
+    are the data values marking the boundaries between consecutive
+    subsets.</para>
+
+    <para>You specify the source array and the number of quantiles.
+    Optionally, you can specify an attribute and a dimension for grouping. If
+    you want to group by a dimension, you <emphasis>must</emphasis> specify
+    the attribute.</para>
+
+    <para>Note the following:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The quantile operator returns <replaceable>q-num</replaceable>+1
+        values, which correspond to the lower and upper bounds for each
+        subset.</para>
+      </listitem>
+
+      <listitem>
+        <para>The quantile operator returns the same datatype as the
+        attribute.</para>
+      </listitem>
+
+      <listitem>
+        <para>The <replaceable>q-num</replaceable> argument must be a positive
+        integer. Otherwise sciDB returns an error.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The <literal>quantile</literal> operator takes the following
+    arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">array</emphasis>: a source array with
+          one or more attributes and one or more dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">q-num</emphasis>: the number of
+          quantiles.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis
+          role="bold">attribute_</emphasis><replaceable>n</replaceable>: An
+          optional attribute to use for the quantiles. If no attributes are
+          specified, the first one is used.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis
+          role="bold">dimension</emphasis>_<replaceable>n</replaceable>: An
+          optional list of dimensions to group by.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example calculates the 2-quantile for a 1-dimensional
+      array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-dimensional array called
+          quantile_array:<programlisting language="test"> --afl create array quantile_array &lt;val:int64&gt;[i=0:10,11,0];</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put eleven numerical values between 0 and 11 into
+          quantile_array:</para>
+
+          <programlisting language="test"> --afl load(quantile_array,'../tests/harness/testcases/data/doc/11numbers.scidb'); --output-format=dense --show-query=no</programlisting>
+        </step>
+
+        <step>
+          <para>Find the 2-quantile of quantile_array:</para>
+
+          <programlisting language="test"> --afl quantile(quantile_array,2); --output-format=dense</programlisting>
+        </step>
+      </procedure>
+
+      <para>This example demonstrates the group-by-dimension parameter.</para>
+
+      <procedure>
+        <step>
+          <para>We start with a 5x5 array, with a single, integer
+          attribute:<programlisting language="test"> --afl create array m25 &lt;val:int32&gt;[i=0:24,25,0]; --show-query=no --show-output=no
+ --afl create array m5x5 &lt;val:int32&gt;[i=0:4,5,0, j=0:4,5,0]; --show-query=no --show-output=no
+ --afl load(m25,'../tests/harness/testcases/data/doc/25ints.scidb'); --show-query=no --show-output=no
+ --afl show(m5x5) --show-query=no
+ --afl store(reshape(m25,m5x5),m5x5) --show-query=no --output-format=dense --chunkify=yes
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Find the 2-quantile of the array, and then by the first
+          dimension, and then by the second dimension.</para>
+
+          <programlisting language="test"> --afl quantile(m5x5,2);
+ --afl quantile(m5x5,2,val,i) --output-format=dense --chunkify=yes
+ --afl quantile(m5x5,2,val,j) --output-format=dense --chunkify=yes</programlisting>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

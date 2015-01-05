@@ -1,0 +1,43 @@
+SCIDB QUERY : <create array quantile_array <val:int64>[i=0:10,11,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odense -aq "load(quantile_array,'${TEST_DATA_DIR}/doc/11numbers.scidb')">
+[(10),(3),(0),(3),(4),(5),(9),(11),(7),(3),(3)]
+
+SCIDB QUERY : <quantile(quantile_array,2)>
+[(0,0),(0.5,4),(1,11)]
+
+SCIDB QUERY : <create array m25 <val:int32>[i=0:24,25,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array m5x5 <val:int32>[i=0:4,5,0, j=0:4,5,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -naq "load(m25,'${TEST_DATA_DIR}/doc/25ints.scidb')">
+Query was executed successfully
+
+SCIDB QUERY : <show(m5x5)>
+{i} schema
+{0} 'm5x5<val:int32> [i=0:4,5,0,j=0:4,5,0]'
+
+SCIDB QUERY : <store(reshape(m25,m5x5),m5x5)>
+[[(16),(13),(22),(7),(13)],[(11),(19),(23),(21),(24)],[(16),(21),(15),(7),(16)],[(10),(19),(0),(23),(23)],[(12),(7),(18),(7),(8)]]
+
+SCIDB QUERY : <quantile(m5x5,2)>
+{quantile} percentage,val_quantile
+{0} 0,0
+{1} 0.5,16
+{2} 1,24
+
+SCIDB QUERY : <quantile(m5x5,2,val,i)>
+[[(0,7),(0.5,13),(1,22)],[(0,11),(0.5,21),(1,24)],[(0,7),(0.5,16),(1,21)],[(0,0),(0.5,19),(1,23)],[(0,7),(0.5,8),(1,18)]]
+
+SCIDB QUERY : <quantile(m5x5,2,val,j)>
+[[(0,10),(0.5,12),(1,16)],[(0,7),(0.5,19),(1,21)],[(0,0),(0.5,18),(1,23)],[(0,7),(0.5,7),(1,23)],[(0,8),(0.5,16),(1,24)]]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

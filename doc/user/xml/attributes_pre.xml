@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="attributesOperator">
+  <refnamediv>
+    <refname>attributes</refname>
+
+    <refpurpose><indexterm>
+        <primary>attributes operator</primary>
+      </indexterm>Produces a 1-dimensional result array where each cell
+    describes one attribute of a stored array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>attributes(<replaceable>named_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The attributes operator produces a result array where each cell
+    describes an attribute of the named array.</para>
+
+    <para>Each output cell includes the following information:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">No:</emphasis> the sequence number of
+          the attribute as it appears in the input array</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">name:</emphasis> the attribute
+          name</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">type_id:</emphasis> the attribute data
+          type</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">nullable:</emphasis> a boolean flag
+          representing whether or not the attribute can be null</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example first shows a stored array, then creates a result
+      array describing its attributes, then creates a result array describing
+      each of its nullable attributes.</para>
+
+      <procedure>
+        <step>
+          <para>Show the source_array:<programlisting language="test">--afl create array event &lt;event:string&gt; [i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array year &lt;year:int64 null&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array person &lt;person:string&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array country &lt;country:string null&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array time &lt;time:double&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl store(build(event,iif(i&lt;4,'dash',iif(i&lt;8,'steeplechase','marathon'))),event);
+      --show-query=no --show-output=no  
+--afl store(build(year,1996+(i%4 * 4)),year); --show-query=no --show-output=no
+--afl store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,Kemboi,
+      Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person);
+      --show-query=no --show-output=no
+--afl store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,Kenya,Kenya,
+      USA,Ethiopia,Italy,Kenya]',true),country); --show-query=no --show-output=no
+--afl store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),(503.17),(485.81),
+      (490.34),(7956),(7811),(7855),(7596)]',true),time); --show-query=no --show-output=no
+--afl store(join(event,join(person,join(year,join(country,time)))),winnersFlat); --show-query=no --show-output=no
+--afl scan(winnersFlat); --show-query=no --output-format=dcsv
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Create a result array describing the attributes of the named
+          array:<programlisting language="test">--afl attributes(winnersFlat); --output-format=dcsv</programlisting></para>
+        </step>
+
+        <step>
+          <para>Create a result array describing the nullable attributes of
+          the named array:<programlisting language="test">--afl filter(attributes(winnersFlat),nullable=true); --output-format=dcsv</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

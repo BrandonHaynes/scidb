@@ -1,0 +1,33 @@
+# To test AQL translation for store(redimension(..),..)
+
+--setup
+create array A <a:int32, b:string> [x=0:2,3,0]
+create array A2 <a:int32, b:string> [x=0:2,3,0, y=-2:4,2,1]
+create array B <b:string> [a=0:*,3,0]
+create array C <x:int32> [a=10:12,3,0]
+create array D <x:int64> [a=10:12,2,1]
+create array E <y:int64 null, x:int64 null> [a=0:19,4,1]
+create array F <x:int64 null> [a=9:14,3,0]
+
+--test
+--start-query-logging
+
+--aql select * into A from build(<a:int32> [x=0:2,3,0],x+10),build(<b:string> [x=0:2,3,0],string(x+10))
+--aql select * into A2 from build(<a:int32> [x=0:2,3,0, y=-2:4,2,1],x+y+10),build(<b:string> [x=0:2,3,0, y=-2:4,2,1],string(x)+string(y))
+--aql select * into B from A
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_CAN_NOT_STORE --aql "select * into C from A"
+--aql select * into D from A
+#--igdata --aql "select * into E from A2"
+--aql select sum(y) as y, sum(x) as x into E from A2 redimension by [a=0:19,4,1]
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_INVALID_REDIMENSION_POSITION --aql "select max(x) as x into F from A2 redimension by [a=9:14,3,0]"
+
+--stop-query-logging
+
+--cleanup
+remove(A)
+remove(A2)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+remove(F)

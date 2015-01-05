@@ -1,0 +1,235 @@
+SCIDB QUERY : <create array A1 < v : double null > [ x=0:9,5,0, y=0:9,5,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A2 < v : double null > [ x=0:9,5,2, y=0:9,5,2 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build( A1, x+10*y), x <> y ), A1 )>
+{x,y} v
+{0,1} 10
+{0,2} 20
+{0,3} 30
+{0,4} 40
+{1,0} 1
+{1,2} 21
+{1,3} 31
+{1,4} 41
+{2,0} 2
+{2,1} 12
+{2,3} 32
+{2,4} 42
+{3,0} 3
+{3,1} 13
+{3,2} 23
+{3,4} 43
+{4,0} 4
+{4,1} 14
+{4,2} 24
+{4,3} 34
+{0,5} 50
+{0,6} 60
+{0,7} 70
+{0,8} 80
+{0,9} 90
+{1,5} 51
+{1,6} 61
+{1,7} 71
+{1,8} 81
+{1,9} 91
+{2,5} 52
+{2,6} 62
+{2,7} 72
+{2,8} 82
+{2,9} 92
+{3,5} 53
+{3,6} 63
+{3,7} 73
+{3,8} 83
+{3,9} 93
+{4,5} 54
+{4,6} 64
+{4,7} 74
+{4,8} 84
+{4,9} 94
+{5,0} 5
+{5,1} 15
+{5,2} 25
+{5,3} 35
+{5,4} 45
+{6,0} 6
+{6,1} 16
+{6,2} 26
+{6,3} 36
+{6,4} 46
+{7,0} 7
+{7,1} 17
+{7,2} 27
+{7,3} 37
+{7,4} 47
+{8,0} 8
+{8,1} 18
+{8,2} 28
+{8,3} 38
+{8,4} 48
+{9,0} 9
+{9,1} 19
+{9,2} 29
+{9,3} 39
+{9,4} 49
+{5,6} 65
+{5,7} 75
+{5,8} 85
+{5,9} 95
+{6,5} 56
+{6,7} 76
+{6,8} 86
+{6,9} 96
+{7,5} 57
+{7,6} 67
+{7,8} 87
+{7,9} 97
+{8,5} 58
+{8,6} 68
+{8,7} 78
+{8,9} 98
+{9,5} 59
+{9,6} 69
+{9,7} 79
+{9,8} 89
+
+SCIDB QUERY : <store(redimension( A1, A2 ), A2 )>
+{x,y} v
+{0,1} 10
+{0,2} 20
+{0,3} 30
+{0,4} 40
+{1,0} 1
+{1,2} 21
+{1,3} 31
+{1,4} 41
+{2,0} 2
+{2,1} 12
+{2,3} 32
+{2,4} 42
+{3,0} 3
+{3,1} 13
+{3,2} 23
+{3,4} 43
+{4,0} 4
+{4,1} 14
+{4,2} 24
+{4,3} 34
+{0,5} 50
+{0,6} 60
+{0,7} 70
+{0,8} 80
+{0,9} 90
+{1,5} 51
+{1,6} 61
+{1,7} 71
+{1,8} 81
+{1,9} 91
+{2,5} 52
+{2,6} 62
+{2,7} 72
+{2,8} 82
+{2,9} 92
+{3,5} 53
+{3,6} 63
+{3,7} 73
+{3,8} 83
+{3,9} 93
+{4,5} 54
+{4,6} 64
+{4,7} 74
+{4,8} 84
+{4,9} 94
+{5,0} 5
+{5,1} 15
+{5,2} 25
+{5,3} 35
+{5,4} 45
+{6,0} 6
+{6,1} 16
+{6,2} 26
+{6,3} 36
+{6,4} 46
+{7,0} 7
+{7,1} 17
+{7,2} 27
+{7,3} 37
+{7,4} 47
+{8,0} 8
+{8,1} 18
+{8,2} 28
+{8,3} 38
+{8,4} 48
+{9,0} 9
+{9,1} 19
+{9,2} 29
+{9,3} 39
+{9,4} 49
+{5,6} 65
+{5,7} 75
+{5,8} 85
+{5,9} 95
+{6,5} 56
+{6,7} 76
+{6,8} 86
+{6,9} 96
+{7,5} 57
+{7,6} 67
+{7,8} 87
+{7,9} 97
+{8,5} 58
+{8,6} 68
+{8,7} 78
+{8,9} 98
+{9,5} 59
+{9,6} 69
+{9,7} 79
+{9,8} 89
+
+SCIDB QUERY : <window ( Array_Does_Not_Exist, 1, 1, sum ( v ) )>
+[An error expected at this place for the query "window ( Array_Does_Not_Exist, 1, 1, sum ( v ) )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST.]
+
+SCIDB QUERY : <window ( A1, 1, 1, sum ( v ) )>
+[An error expected at this place for the query "window ( A1, 1, 1, sum ( v ) )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <window ( A1, 1, 1, 1, 1, 1, 1, sum ( v ) )>
+[An error expected at this place for the query "window ( A1, 1, 1, 1, 1, 1, 1, sum ( v ) )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <window ( A1, 1, 1, 1, 1, sum ( v_doesnt_exist ) )>
+[An error expected at this place for the query "window ( A1, 1, 1, 1, 1, sum ( v_doesnt_exist ) )". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST.]
+
+SCIDB QUERY : <window ( A1, -1, 1, 1, 1, sum ( v ) )>
+[An error expected at this place for the query "window ( A1, -1, 1, 1, 1, sum ( v ) )". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3.]
+
+SCIDB QUERY : <window ( A1, 1, -1, 1, 1, sum ( v ) )>
+[An error expected at this place for the query "window ( A1, 1, -1, 1, 1, sum ( v ) )". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3.]
+
+SCIDB QUERY : <window ( A1, 1, 1, -1, 1, sum ( v ) )>
+[An error expected at this place for the query "window ( A1, 1, 1, -1, 1, sum ( v ) )". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3.]
+
+SCIDB QUERY : <window ( A1, 1, 1, 1, -1, sum ( v ) )>
+[An error expected at this place for the query "window ( A1, 1, 1, 1, -1, sum ( v ) )". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR3.]
+
+SCIDB QUERY : <window ( A1, 1, 1, 1, 1, sum ( v ), I )>
+[An error expected at this place for the query "window ( A1, 1, 1, 1, 1, sum ( v ), I )". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2.]
+
+SCIDB QUERY : <window ( A1, 1, 1, 1, 1, sum ( v ), 'must_be_probe_or_materialize' )>
+[An error expected at this place for the query "window ( A1, 1, 1, 1, 1, sum ( v ), 'must_be_probe_or_materialize' )". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR5. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR5.]
+
+SCIDB QUERY : <window ( A1, 1, 1, 1, 1, sum ( v ), A1.v * 2 )>
+[An error expected at this place for the query "window ( A1, 1, 1, 1, 1, sum ( v ), A1.v * 2 )". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_AGGREGATE_ARGUMENTS_COUNT. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_AGGREGATE_ARGUMENTS_COUNT.]
+
+SCIDB QUERY : <aggregate ( filter ( join ( window ( A1, 1, 1, 1, 1, sum ( v ) as sum_v, count ( * ) as cnt_v ) AS B1, window ( A2, 1, 1, 1, 1, sum ( v ) as sum_v, count ( * ) as cnt_v ) AS B2), B1.sum_v <> B2.sum_v OR B1.cnt_v <> B2.cnt_v ), count ( * ) as diffs )>
+{i} diffs
+{0} 0
+
+SCIDB QUERY : <remove(A1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2)>
+Query was executed successfully
+

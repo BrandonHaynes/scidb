@@ -1,0 +1,20 @@
+SCIDB QUERY : <create array A <val:double NULL default NULL> [i=0:2,3,0, j=0:2,3,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(A, iif(i=j, i, null)),A)>
+[[(0),(null),(null)],[(null),(1),(null)],[(null),(null),(2)]]
+
+SCIDB QUERY : <apply(A,missing_value,is_null(val))>
+i,j,val,missing_value
+0,0,0,false
+0,1,null,true
+0,2,null,true
+1,0,null,true
+1,1,1,false
+1,2,null,true
+2,0,null,true
+2,1,null,true
+2,2,2,false
+
+Query was executed successfully
+

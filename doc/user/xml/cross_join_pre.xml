@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="crossJoinOperator">
+  <refnamediv>
+    <refname>cross_join</refname>
+
+    <refpurpose><indexterm>
+        <primary>cross join</primary>
+      </indexterm><indexterm>
+        <primary>join</primary>
+      </indexterm><indexterm>
+        <primary>binary operators</primary>
+
+        <secondary>cross join</secondary>
+      </indexterm>Cross-product join with equality predicates</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>cross_join(<replaceable>left_array</replaceable>,<replaceable>right_array</replaceable>,<replaceable>left_dim1</replaceable>,<replaceable>right_dim1</replaceable>,...);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Calculates the cross product join of two arrays, say A
+    (m-dimensional array) and B (n-dimensional array) with equality predicates
+    applied to pairs of dimensions, one from each input. Predicates can only
+    be computed along dimension pairs that are aligned in their type, size,
+    and chunking.</para>
+
+    <para>Assume p such predicates in the cross_join, then the result is an
+    m+n-p dimensional array in which each cell is computed by concatenating
+    the attributes as follows:</para>
+
+    <blockquote>
+      <para>For a 2-dimensional array A with dimensions i, j, and a
+      1-dimensional array B with dimension k, cross_join(A, B, j, k) results
+      in a 2-dimensional array with coordinates {i, j} in which the cell at
+      coordinate position {i, j} of the output is computed as the
+      concatenation of cells {i, j} of A with cell at coordinate {k=j} of
+      B.</para>
+    </blockquote>
+
+    <para>If the join dimensions are different lengths, the cross-join will
+    return the smaller dimension for the join points.</para>
+
+    <note>
+      <para>The <literal>cross_join</literal> operator is sensitive to the
+      order of arguments: always pass the larger array as the first
+      argument.</para>
+    </note>
+
+    <para>Note the following:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">cross_join </emphasis>performs an inner
+          join on selected dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para>Dimensions are not matched by order (as in <emphasis
+          role="bold">join</emphasis>) nor by name, but by pairings that you
+          explicitly provide.</para>
+        </listitem>
+
+        <listitem>
+          <para>Array operands can have unmatched dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para>Matching dimensions must have the same:<itemizedlist>
+              <listitem>
+                <para>Chunk size</para>
+              </listitem>
+
+              <listitem>
+                <para>Chunk overlap</para>
+              </listitem>
+
+              <listitem>
+                <para>Data type</para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example returns the cross-join of a 3<symbol
+      role="symbolfont">×</symbol>3 array with a vector of length 3.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called left_array:<programlisting
+          language="test">--afl CREATE ARRAY left_array&lt;val:double&gt;[i=0:2,3,0, j=0:2,3,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Store values of 0–8 into left array:<programlisting
+          language="test">--afl store(build(left_array,i*3+j),left_array); --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Create an array called right_array:<programlisting
+          language="test">--afl CREATE ARRAY right_array&lt;val:double&gt;[k=0:5,3,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Store values of 101–106 into right_array:</para>
+
+          <programlisting language="test">--afl store(build(right_array,k+101),right_array); --output-format=dense</programlisting>
+        </step>
+
+        <step>
+          <para>Perform a cross-join on left_array and right_array along
+          dimension j of left_array:<programlisting language="test">--afl cross_join(left_array,right_array,j,k); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

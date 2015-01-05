@@ -1,0 +1,159 @@
+/*
+**
+* BEGIN_COPYRIGHT
+*
+* This file is part of SciDB.
+* Copyright (C) 2008-2014 SciDB, Inc.
+*
+* SciDB is free software: you can redistribute it and/or modify
+* it under the terms of the AFFERO GNU General Public License as published by
+* the Free Software Foundation.
+*
+* SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+* INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+* NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+* the AFFERO GNU General Public License for the complete license terms.
+*
+* You should have received a copy of the AFFERO GNU General Public License
+* along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+*
+* END_COPYRIGHT
+*/
+
+/**
+ *  @file       prelude.txt
+ *
+ *  @brief      Defines 'built-in' macros that ship with SciDB.
+ *
+ *  @details    This text file defines a suite of macros that are 'built into'
+ *              SciDB and that are automatically loaded into every coordinator
+ *              instance whenever it starts up or restarts anew.
+ *
+ *              Engine code generally assumes that these macros loaded and are
+ *              defined as below,  so it is bad idea to edit, hide, rename, or
+ *              change in any other way the meaning of these entities.
+ */
+
+/**
+ * Return the number of non empty cells in the _ARRAY_ array. A simple alias
+ * for the deprecated count() aggregate.
+ *
+ *   eg. op_count ( list('instances') );
+ */
+op_count ( _ARRAY_ ) = aggregate ( _ARRAY_, count(*));
+
+/**
+ * Return the sum of values in the _ATTR_ attribute of the _ARRAY_ array. A
+ * simple alias for the deprecated sum() aggregate.
+ *
+ *   eg. op_sum ( list('instances'), instance_id );
+ */
+op_sum ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, sum( _ATTR_ ));
+
+/**
+ * Return the arithmetic mean of values in the _ATTR_ attribute of the
+ * _ARRAY_ array. A simple alias for the deprecated avg() aggregate.
+ * 
+ *   eg. op_avg ( list('instances'), instance_id );
+ */
+op_avg ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, avg( _ATTR_ ));
+
+/**
+ * Return the stdev of values in the _ATTR_ attribute of the
+ * _ARRAY_ array. A simple alias for the deprecated stdev() aggregate.
+ * 
+ *   eg. op_stdev ( list('instances'), instance_id );
+ */
+op_stdev ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, stdev( _ATTR_ ));
+
+/**
+ * Return the smallest value in the _ATTR_ attribute of the _ARRAY_ array. A
+ * simple alias for the now deprecated min() aggregate.
+ * 
+ *   eg. op_min ( list('instances'), name );
+ */
+op_min ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, min( _ATTR_ ));
+
+/**
+ * Return the greatest value in the _ATTR_ attribute of the _ARRAY_ array. A
+ * simple alias for the now deprecated max() aggregate.
+ * 
+ *   eg. op_max ( list('instances'), name );
+ */
+op_max ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, max( _ATTR_ ));
+
+/**
+ * Returns smallest and largest values in the _ATTR_ attribute of the
+ * _ARRAY_ array, and the range ... the ( max - min ) value. That is, the
+ * difference between these max and min values.
+ *
+ *   eg. op_range(apply(list('instances'),DT,datetime(online_since)),DT)
+ */
+op_range ( _ARRAY_, _ATTR_ ) = apply (
+  aggregate ( _ARRAY_,
+             min( _ATTR_ ) AS min,
+             max( _ATTR_ ) AS max
+            ) AS _OP_RANGE_AGGR_,
+  range, _OP_RANGE_AGGR_.max - _OP_RANGE_AGGR_.min
+);
+
+/**
+ * Returns the precise count of the number of distinct values in the _ATTR_
+ * attribute of the _ARRAY_ array.
+ *
+ *   eg. op_distinct_count ( list('instances'), instance_id );
+ */
+op_distinct_count ( _ARRAY_, _ATTR_ ) = op_count (
+  uniq ( sort ( project ( _ARRAY_, _ATTR_ ), _ATTR_ ) )
+);
+
+/**
+ *  Returns a 1D array with 1 cell and a single datetime attribute containing
+ *  the current, local date time and timezone offset. This macro is 
+ *  useful for timing queries using an interactive tool like iquery.
+ *
+ *   eg.  op_now();
+ *
+ */
+op_now() = build(<when : datetimetz>[R=0:0,1,0], tznow());
+
+/**
+ *  Macro functions that return the larger, or the smaller, of their two 
+ *  inputs.
+ *
+ *   eg. project(apply(list('instances'),MX,func_max(port,instance_id)),MX);
+ */
+func_max ( _FIRST_, _SECOND_ ) = iif ( _FIRST_ > _SECOND_, _FIRST_, _SECOND_ );
+func_min ( _FIRST_, _SECOND_ ) = iif ( _FIRST_ < _SECOND_, _FIRST_, _SECOND_ );
+
+/**
+ *  Macros to set the values of a particular attribute in a named array at 
+ *  the specified array coordinates. 
+ *
+ *  NOTE: Undocmented. Included here as an example of what's possible. 
+ */
+op_set_cell_attr_1D( _ARRAY_, _DIM_NAME_, _DIM_COORD_VALUE_, _ATTR_NAME_, _ATTR_VALUE_ ) = insert(
+  redimension(
+    apply(
+      build( < _randomDummyXXXXX_ : bool > [ dummy13841random=0:0,1,0], true ),
+      _DIM_NAME_, int64(_DIM_COORD_VALUE_),
+      _ATTR_NAME_, _ATTR_VALUE_ ),
+    _ARRAY_
+  ),
+  _ARRAY_
+);
+
+op_set_cell_attr_2D( _ARRAY_, _DIM_NAME_1_, _DIM_COORD_VALUE_1_, _DIM_NAME_2_, _DIM_COORD_VALUE_2_,  _ATTR_NAME_, _ATTR_VALUE_ ) = insert(
+  redimension(
+    apply(
+      build( < _randomDummyXXXXX_ : bool > [ dummy13841random=0:0,1,0], true ),
+      _DIM_NAME_1_, int64(_DIM_COORD_VALUE_1_),
+      _DIM_NAME_2_, int64(_DIM_COORD_VALUE_2_),
+      _ATTR_NAME_, _ATTR_VALUE_ ),
+    _ARRAY_
+  ),
+  _ARRAY_
+);
+
+
+/****************************************************************************/

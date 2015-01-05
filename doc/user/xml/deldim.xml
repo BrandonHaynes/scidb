@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="delDim">
+  <refnamediv>
+    <refname>deldim</refname>
+
+    <refpurpose>Produces a result array with one fewer dimension than a given
+    source array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>deldim(<replaceable>array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>deleting</secondary>
+      </indexterm>The deldim operator deletes the left-most dimension from the
+    array. The to-be-deleted dimension must have size = 1. See the <link
+    linkend="adddim">adddim</link> operator reference for details of creating
+    a dimension of size = 1.</para>
+
+    <para>You can use the deldim operator in the FROM clause of an AQL SELECT
+    statement, as a stand-alone operator in a AFL statement, or as an operand
+    within other SciDB operators.</para>
+  </refsect1>
+</refentry>

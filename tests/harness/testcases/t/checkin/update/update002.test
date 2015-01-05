@@ -1,0 +1,26 @@
+--setup
+CREATE  ARRAY simple01c < COL000N: int32,COL001C: char,COL002S: string > [a=0:99,10,0,b=0:2,3,0]
+--sleep 2
+CREATE  ARRAY simple01b < COL000N: int32,COL001C: char,COL002S: string > [a=0:99,10,0,b=0:1,2,0]
+--sleep 2
+--aql load simple01c from '${TEST_DATA_DIR}/simple01c.txt'
+--sleep 4
+--aql load simple01b from '${TEST_DATA_DIR}/simple01b.txt'
+--sleep 4
+
+--test
+--aql update simple01c set COL002S = 'aaa' where substr(COL002S,1, 1) = 'B'
+--sleep 2
+--aql update simple01b set COL000N = 99 where COL002S between 'H' and 'S'
+--sleep 2
+--aql update simple01b set COL002S = 'XXX' where COL000N between 30 and 50
+--sleep 2
+--aql update simple01b set COL002S = 'zzz' where (COL000N < ((COL000N % 9) * 2) and COL001C between 'A' and 'M')
+--sleep 2
+--aql update simple01b set COL002S = 'fff' where COL000N <= log10(((100  %  9 ) * 5))
+--sleep 2 
+
+--cleanup
+--aql drop array simple01c
+--sleep 1
+--aql drop array simple01b

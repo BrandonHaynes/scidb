@@ -1,0 +1,241 @@
+--setup
+--start-query-logging
+load_library('dense_linear_algebra')
+
+# NOTE: some notation for the array names
+#
+# the first part of the name identifies the contents it holds,
+# such as ident for the identity matrix, or intRows for a matrix
+# with values that increase monotonically in row-major order.
+#
+# The following codes describe the matrices under test, in a short hand that makes
+# the file quicker to read.  In each case, upper-case letters represent digits,
+# lower-case letters are literals, and in this file, all sizes are less than 10,
+# and only square chunksizes are permitted, so they are represented by a single digit
+#
+# <R><C>c<I> means size R x C, chunksize I x I.  Example: 12c3, means 1 row, 1 column, chunksize 3x3
+# <R><C>nzc<I> is the same, but with dimensions that do not start at 0 ("nz" means non-zero)
+#              [ not supported, but tested ]
+#              note that the behavior is subject to change, we stated in the manual, and discouraged its use
+#              however, we want to be aware if the values of the interim behavior were to change
+#              so we do have some limited testing of this. finishing this correctly depends on
+#              completing #2202, titled "Create rules of math operations on NaN, nan, null, empty" but which
+#              also requires a careful specification of the behaviors of arrays which are not numbered like matrices
+#              when used by matrix operators.
+# <R><C>nnzc<I> would be the same as that, but with a negative number ("nnz" means negative non-zero) [ not supported, not tested]
+#
+
+# identity: 11c32 22c32
+create array ident11c32<a: double >   [r=0:0,32,0, c=0:0,32,0]
+create array ident22c32<a: double >   [r=0:1,32,0, c=0:1,32,0]
+store(build(ident11c32, IIF(r=c, 1, 0)), ident11c32)
+store(build(ident22c32, IIF(r=c, 1, 0)), ident22c32)
+
+# identity: with non-zero-based dimensions
+create array ident11nzc32<a: double >   [r=3:3,32,0, c=5:5,32,0]
+create array ident22nzc32<a: double >   [r=3:4,32,0, c=5:6,32,0]
+store(build(ident11nzc32, IIF(r+2=c, 1, 0)), ident11nzc32)
+store(build(ident22nzc32, IIF(r+2=c, 1, 0)), ident22nzc32)
+
+# integers by rows, 11c32 22c32
+create array intRows11c32<a: double > [r=0:0,32,0, c=0:0,32,0]
+create array intRows22c32<a: double > [r=0:1,32,0, c=0:1,32,0]
+store(build(intRows11c32, 1+r*1+c),      intRows11c32)
+store(build(intRows22c32, 1+r*2+c),      intRows22c32)
+
+# integers by rows, 11c32 22c32, nz-based
+create array intRows11nzc32<a: double > [r=7:7,32,0, c=11:11,32,0]
+create array intRows22nzc32<a: double > [r=7:8,32,0, c=11:12,32,0]
+store(build(intRows11nzc32, 1+(r-7)*1+(c-11)),      intRows11nzc32)
+store(build(intRows22nzc32, 1+(r-7)*2+(c-11)),      intRows22nzc32)
+
+# integers by rows, nonsquare, 21&22 c32
+create array intRows12c32<a: double > [r=0:0,32,0, c=0:1,32,0]
+create array intRows21c32<a: double > [r=0:1,32,0, c=0:0,32,0]
+store(build(intRows12c32, 1+r*2+c),      intRows12c32)
+store(build(intRows21c32, 1+r*1+c),      intRows21c32)
+
+# integers by rows, nonsquare, 21&22 c32 nz-based
+create array intRows12nzc32<a: double > [r=13:13,32,0, c=17:18,32,0]
+create array intRows21nzc32<a: double > [r=13:14,32,0, c=17:17,32,0]
+store(build(intRows12nzc32, 1+(r-13)*2+(c-17)),      intRows12nzc32)
+store(build(intRows21nzc32, 1+(r-13)*1+(c-17)),      intRows21nzc32)
+
+# load same array as SciDB mutliply() test uses
+create array fileDense66c33 <a: double >   [r=0:5,3,0, c=0:5,3,0]
+--shell  --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(fileDense66c33,'${TEST_DATA_DIR}/dense.txt')""
+
+# and to make it output list in order
+create array output66c66 <a: double > [r=0:5,6,0, c=0:5,6,0]
+
+# subarray and gemm testing
+create array sub_test <val:double> [x=0:63,32,0,y=0:63,32,0]
+--igdata "store(build(sub_test, x+y), sub_test)"
+--igdata "store(gemm(sub_test, sub_test, sub_test), sub_expected)"
+
+load_library('dense_linear_algebra')
+
+--test
+
+# simplest case: I * I + 0 -> I
+gemm(ident11c32,   ident11c32, build(ident11c32,0))
+
+# also demonstrate result has a fully-defined schema (by storing into un-created array),
+# that it does not have the "not emptyable" attribute, and that it can be scanned.
+--justrun "remove(tmp)"
+store(gemm(ident11c32,   ident11c32, build(ident11c32,0)), tmp)
+show(tmp)
+scan(tmp)
+remove(tmp)
+
+# M * I -> M ; I * M -> M ; M * M -> M^2
+# 11c32
+gemm(intRows11c32,   ident11c32, build(ident11c32,0))
+gemm(ident11c32,   intRows11c32, build(ident11c32,0))
+gemm(intRows11c32, intRows11c32, build(ident11c32,0))
+# TEMPORARY all non-zero starting index cases are
+#           temporarily errors ... ScaLAPACK DLA_ERROR44
+#           will be fixed by #2200 and/or #2202
+#
+## 11ncz1
+#gemm(intRows11nzc32,   ident11nzc32, build(ident11c32,0))
+#gemm(ident11nzc32,   intRows11nzc32, build(ident11c32,0))
+#gemm(intRows11nzc32, intRows11nzc32, build(ident11c32,0))
+
+# 22c32
+gemm(intRows22c32,   ident22c32, build(ident22c32,0))
+gemm(ident22c32,   intRows22c32, build(ident22c32,0))
+gemm(intRows22c32, intRows22c32, build(ident22c32,0))
+# TEMPORARY all non-zero starting index cases are
+#           temporarily errors ... ScaLAPACK DLA_ERROR44
+#           will be fixed by #2200 and/or #2202
+#
+## 22nzc32
+#--echo next three should have same answers as prior 3
+#gemm(intRows22nzc32,   ident22nzc32, build(ident22c32,0))
+#gemm(ident22nzc32,   intRows22nzc32, build(ident22c32,0))
+#gemm(intRows22nzc32, intRows22nzc32, build(ident22c32,0))
+
+# a larger square test
+# M66c33 * M66c33
+# use the same array as the multiply() test and repart it so it is not output with sub-chunks
+# for the human to have to decipher.
+# NOT YET -- not supporting chunksize < min(size,32) yet
+#repart(gemm(fileDense66c33, fileDense66c33, build(fileDense66c33,0)), output66c66)
+
+# nonsquare matrices
+# 12 * 21 -> 11
+--echo next 4 results should be identical -- the number 5
+gemm(intRows12c32, intRows21c32, build(ident11c32,0))
+# same computation with transposeA flag
+gemm(intRows21c32, intRows21c32, build(ident11c32,0),'TRANSA=1')
+# same computation with transposeB flag
+gemm(intRows12c32, intRows12c32, build(ident11c32,0),'TRANSB=1')
+# same computation with both transposeA and B flags
+gemm(intRows21c32, intRows12c32, build(ident11c32,0),'TRANSA=1;TRANSB=1')
+
+#--echo next 2 results should be identical -- the number 5
+# TEMPORARY all non-zero starting index cases are
+#           temporarily errors ... ScaLAPACK DLA_ERROR44
+#           will be fixed by #2200 and/or #2202
+## nonsquare matrices, non 0-based indices for input
+## 12 * 21 -> 11
+##gemm(intRows12nzc32, intRows21nzc32, build(ident11c32,0))
+#
+## nonsquare matrices, non 0-based indices for output,too
+## 12 * 21 -> 11
+##gemm(intRows12nzc32, intRows21nzc32, build(ident11nzc32,0))
+
+## nonsquare matrices, reverse order
+# 21 * 12 -> 22
+--echo next 4 results should be identical -- the matrix [[1,2],[2,4]]
+gemm(intRows21c32, intRows12c32, build(ident22c32,0))
+# same computation with transposeA flag
+gemm(intRows12c32, intRows12c32, build(ident22c32,0),'TRANSA=1')
+# same computation with transposeB flag
+gemm(intRows21c32, intRows21c32, build(ident22c32,0),'TRANSB=1')
+# same computation with transposeA and B flags
+gemm(intRows12c32, intRows21c32, build(ident22c32,0),'TRANSA=1;TRANSB=1')
+
+# TEMPORARY all non-zero starting index cases are
+#           temporarily errors ... ScaLAPACK DLA_ERROR44
+#           will be fixed by #2200 and/or #2202
+## nonsquare matrices, reverse order, non 0-based indices for input
+## 21 * 12 -> 22
+##gemm(intRows21nzc32, intRows12nzc32, build(ident22c32,0))
+#
+## nonsquare matrices, reverse order, non 0-based indices for output,too
+## 21 * 12 -> 22
+##gemm(intRows21nzc32, intRows12nzc32, build(ident22nzc32,0))
+
+#
+#                  t  t
+# demo full alpha A  B  + beta C functionality
+#
+
+# the result of the following should be:
+#   2*([1,2]t * [1,2]) + 3*1
+# = 2*5 + 3*1 = 13
+--echo next output should be [13]
+gemm(intRows21c32, intRows12c32, build(ident11c32,1), 'TRANSA=1;TRANSB=1;ALPHA=2.0;BETA=3.0')
+#
+# the result of the following should be
+#    2 * [[1,2],[2,4]] + 3 [[1,1],[1,1]]
+#     =  [[2,4],[4,8]] +   [[3,3],[3,3]]
+#     =  [[5,7],[7,11]]
+--echo next output should be [[5,7],[7,11]]
+gemm(intRows12c32, intRows21c32, build(ident22c32,1), 'TRANSA=1;TRANSB=1;ALPHA=2.0;BETA=3.0')
+
+# TODO: TEMPORARY all non-zero starting index cases are errors
+#       when that is fixed, repeat the test above
+
+
+
+# show that gemm's output has RANDOM access
+# (transpose() is an example that currently requires RANDOM access)
+--echo next output (by rows) should be 7, 15, 10, 22
+transpose(gemm(intRows22c32, intRows22c32, build(ident22c32,0)))
+
+# make sure we can cascade gemm operators
+join(join(gemm(intRows22c32, intRows22c32, build(ident22c32,0)), gemm(intRows22c32, intRows22c32, build(ident22c32,0))), join(gemm(intRows22c32, intRows22c32, build(ident22c32,0)), gemm(intRows22c32, intRows22c32, build(ident22c32,0))))
+
+# combine gemm with joins and subarray
+filter(join(project(join(sub_test as A, subarray(gemm(sub_test,sub_test,sub_test), null, null, null, null) as B), gemm) as C, sub_expected as D), C.gemm<>D.gemm)
+filter(join(project(join(subarray(gemm(sub_test,sub_test,sub_test), 1, 2, null, null) as B, sub_test as A), gemm) as C, subarray(sub_expected, 1,2,null,null) as D), C.gemm<>D.gemm)
+subarray(gemm(sub_test, sub_test, sub_test), 1, 2, 50, 60)
+sg(subarray(gemm(sub_test, sub_test, sub_test), 1, 2, 50, 60), 1, -1)
+
+--cleanup
+
+# identity-squares
+remove(ident11c32)
+remove(ident22c32)
+
+# identity-squares, non-zero-based indices
+remove(ident11nzc32)
+remove(ident22nzc32)
+
+# row-major numberings, squares
+remove(intRows11c32)
+remove(intRows22c32)
+
+# row-major-numberings, squares, non-zero-based
+remove(intRows11nzc32)
+remove(intRows22nzc32)
+
+# row-major numberings, rectangular
+remove(intRows12c32)
+remove(intRows21c32)
+
+# row-major numberings, rectangular non-zero based
+remove(intRows12nzc32)
+remove(intRows21nzc32)
+
+# one oddball test
+remove(fileDense66c33)
+remove(output66c66)
+
+# subarray
+remove(sub_test)
+remove(sub_expected)
+

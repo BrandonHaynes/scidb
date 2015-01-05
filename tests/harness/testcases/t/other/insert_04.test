@@ -1,0 +1,67 @@
+--setup
+--start-query-logging
+# Ticket number: 1950
+# Test covers INSERT on dense filled arrays with overlaps, 2D/3D types and complex queries.
+# Test covers INSERT from build literal into arrays
+
+create array A <a:int64> [x=-3:0,4,2 , y=0:3,4,2]
+store(build(A,100*x-19*y),A)
+
+create array B <fact: bool> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0]
+store(build(B,iif(x+y+z<=4,true, false)),B)
+
+store(repart(apply(B,enroll, 2000*x-y), <fact: bool, enroll: int64> [x=1:2,2,1, y=1:2,2,1, z=1:2,2,0]),C)
+create array D < a: bool, b: int64> [x=1:2,2,1, y=1:2,2,1, z=1:2,2,0]
+show(C)
+
+
+
+
+--test
+insert(filter(build(A,2000*x+10000),x>-2 and y=1) As Q1,A)
+insert(between(build(A,2000*x+10000),0,0,0,3),A)
+insert(filter( build(A,2000*x+10000),x=0 and y=2),A)
+
+store(sort(insert(filter( build(A,2000*x+10000),x=0 and y=2),A)),ZZ)
+show(ZZ)
+insert(sort(insert(filter( build(A,2000*x+10000),x=0 and y=2),A),a desc),ZZ)
+
+insert(build(<a:int64 default 99> [x=-3:0,4,2, y=0:3,4,2], '[[(),(),(),(0)],[(1),(),(),()],[(0),(0),(0),(-157)],[(),(),(),()]]', true),A)
+build(<a:int64 NULL> [x=-3:0,4,2, y=0:3,4,2], '[[(),(),(),(0)],[(1),(),(),()],[(0),(0),(0),(-157)],[(),(),(),()]]', true)
+
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_FLAGS "insert(build(<a:int64 NULL> [x=-3:0,4,2, y=0:3,4,2], '[[(),(),(),(0)],[(1),(),(),()],[(0),(0),(0),(-157)],[(),(),(),()]]', true),A)"
+
+store(build(<a:int64 NULL> [x=-3:0,4,2, y=0:3,4,2], '[[(),(),(),(0)],[(1),(),(),()],[(0),(0),(0),(-157)],[(),(),(),()]]', true),MIB)
+insert(build(<a:int64 NULL> [x=-3:0,4,2, y=0:3,4,2], '[[(),(0),(0),(0)],[(1),(0),(0),(0)],[(0),(0),(0),(0)],[(0),(1),(),()]]', true),MIB)
+show(MIB)
+scan(MIB)
+aggregate(versions(MIB),count(*))
+insert(between(filter(build(MIB,null),a is null),-3,0,-1,2), MIB)
+aggregate(versions(MIB),count(*))
+
+--error --code scidb::SCIDB_SE_SYSCAT::SCIDB_LE_PG_QUERY_EXECUTION_FAILED "insert(filter(insert(build(MIB,null), MIB),a is null),MIB)"
+--error --code scidb::SCIDB_SE_SYSCAT::SCIDB_LE_PG_QUERY_EXECUTION_FAILED "insert(insert(build(MIB,null), MIB),MIB)"
+
+insert(build(B,true),B)
+insert(build(B,iif((x+y+z)%2=0,true, false)),B)
+insert(filter(B, 0),B)
+
+# Trying to change only the second attribute of C, I guess it's not possible to change only 1 of the attrbutes with INSERT
+--aql update C set enroll=0 where enroll%2=0
+--aql update C set fact=false where enroll=0
+insert(C,D)
+
+
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(ZZ)
+remove(MIB)
+
+--stop-query-logging
+
+

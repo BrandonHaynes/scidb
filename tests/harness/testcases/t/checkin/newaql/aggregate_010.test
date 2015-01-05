@@ -1,0 +1,22 @@
+--setup
+--start-query-logging
+--aql select * into B from array(<a:int64>[x=0:4,5,0], '[(1),(2),(3),(4),(5)]')
+
+--test
+--aql select a, sum(a) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select a as b, sum(a) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select a as b, a as c, sum(a) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select a+1, sum(a) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select sum(a)+a from B fixed window as (partition by x 1 preceding and 0 following)
+
+--aql select x, sum(a) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select sum(x) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select x as y, sum(x) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select x+1, sum(x+1) from B fixed window as (partition by x 1 preceding and 0 following)
+--aql select sum(x+1)+x from B fixed window as (partition by x 1 preceding and 0 following)
+
+--cleanup
+--aql drop array B
+
+--stop-query-logging
+

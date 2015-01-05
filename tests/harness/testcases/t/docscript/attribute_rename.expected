@@ -1,0 +1,62 @@
+SCIDB QUERY : <create array event <event:string>[i=0:12,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(event, '[("dash"),("dash"),("steeplechase"),("marathon"),("marathon"),("marathon")]', true),event)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array year <year:int64>[i=0:12,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(year, '[1996,2000,2000,1996,2000,2008]',true),year)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array person <person:string>[i=0:12,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(person, '[("Bailey"),("Greene"),("Kosgei"),("Thugwane"),("Abera"),("Wanjiru")]', true),person)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array country <country:string>[i=0:12,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(country, '[("Canada"),("USA"),("Kenya"),("Kenya"),("Ethiopia"),("Kenya")]', true),country)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array time <time:double>[i=0:12,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(time, '[9.84,9.87,503.17,7956,7811,7596]', true),time)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(year, join(event, join(person, join(country,time)))),winnersFlat)>
+{i} year,event,person,country,time
+{0} 1996,'dash','Bailey','Canada',9.84
+{1} 2000,'dash','Greene','USA',9.87
+{2} 2000,'steeplechase','Kosgei','Kenya',503.17
+{3} 1996,'marathon','Thugwane','Kenya',7956
+{4} 2000,'marathon','Abera','Ethiopia',7811
+{5} 2008,'marathon','Wanjiru','Kenya',7596
+
+SCIDB QUERY : <store(attribute_rename(project(winnersFlat,year, event, country, time), time,time_in_seconds),result)>
+{i} year,event,country,time_in_seconds
+{0} 1996,'dash','Canada',9.84
+{1} 2000,'dash','USA',9.87
+{2} 2000,'steeplechase','Kenya',503.17
+{3} 1996,'marathon','Kenya',7956
+{4} 2000,'marathon','Ethiopia',7811
+{5} 2008,'marathon','Kenya',7596
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

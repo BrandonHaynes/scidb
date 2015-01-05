@@ -1,0 +1,516 @@
+SCIDB QUERY : <create array B<j:int8>[i=0:14,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(B, '[(),(1),(2),(3),(4),(5),(6)]', true), B)>
+{i} j
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+
+SCIDB QUERY : <project(dimensions(B),low,high)>
+{No} low,high
+{0} 1,6
+
+SCIDB QUERY : <create array A<j:int8>[i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(B, A)>
+{i} j
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+
+SCIDB QUERY : <project(dimensions(A),low,high)>
+{No} low,high
+{0} 1,6
+
+SCIDB QUERY : <store(build(B, '[(),(),(),(),(),(),(),(),(),(),(),(),(12),(13),(14)]', true), B)>
+{i} j
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(B),low,high)>
+{No} low,high
+{0} 12,14
+
+SCIDB QUERY : <store(B, A)>
+{i} j
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(A),low,high)>
+{No} low,high
+{0} 12,14
+
+SCIDB QUERY : <store(between(B,12,13),B)>
+{i} j
+{12} 12
+{13} 13
+
+SCIDB QUERY : <project(dimensions(B),low,high)>
+{No} low,high
+{0} 12,13
+
+SCIDB QUERY : <store(between(B,12,13),A)>
+{i} j
+{12} 12
+{13} 13
+
+SCIDB QUERY : <project(dimensions(A),low,high)>
+{No} low,high
+{0} 12,13
+
+SCIDB QUERY : <insert(build(B, '[(),(),(2),(3)]', true), B)>
+{i} j
+{2} 2
+{3} 3
+{12} 12
+{13} 13
+
+SCIDB QUERY : <project(dimensions(B),low,high)>
+{No} low,high
+{0} 2,13
+
+SCIDB QUERY : <insert(build(B, '[(),(),(2),(3)]', true), A)>
+{i} j
+{2} 2
+{3} 3
+{12} 12
+{13} 13
+
+SCIDB QUERY : <project(dimensions(A),low,high)>
+{No} low,high
+{0} 2,13
+
+SCIDB QUERY : <save(A, '/tmp/scidb_array_a.out', 0)>
+{i} j
+{2} 2
+{3} 3
+{12} 12
+{13} 13
+
+SCIDB QUERY : <create array AL<j:int8>[i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(AL, '/tmp/scidb_array_a.out', 0)>
+{i} j
+{2} 2
+{3} 3
+{12} 12
+{13} 13
+
+SCIDB QUERY : <project(dimensions(AL),low,high)>
+{No} low,high
+{0} 2,13
+
+SCIDB QUERY : <create array BI<j:int8>[i=0:14,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(BI, '[(),(1),(2),(3),(4),(5),(6)]', true), BI)>
+{i} j
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+
+SCIDB QUERY : <project(dimensions(BI),low,high)>
+{No} low,high
+{0} 1,6
+
+SCIDB QUERY : <create array AI<j:int8>[i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(BI, AI)>
+{i} j
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+
+SCIDB QUERY : <project(dimensions(AI),low,high)>
+{No} low,high
+{0} 1,6
+
+SCIDB QUERY : <store(build(BI, '{10}[(),(),(12),(13),(14)]', true), BI)>
+{i} j
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(BI),low,high)>
+{No} low,high
+{0} 12,14
+
+SCIDB QUERY : <store(build(BI, '{10}[(),(),(12),(13),(14)]', true), AI)>
+{i} j
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(AI),low,high)>
+{No} low,high
+{0} 12,14
+
+SCIDB QUERY : <save(AI, '/tmp/scidb_array_a.out', 0)>
+{i} j
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <create array AIL<j:int8>[i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(AIL, '/tmp/scidb_array_a.out', 0)>
+{i} j
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(AIL),low,high)>
+{No} low,high
+{0} 12,14
+
+SCIDB QUERY : <create array BN<j:int8>[i=0:14,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(BN, '[(),(1),(2),(3),(4),(5),(6)]', true), BN)>
+{i} j
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 0
+{8} 0
+{9} 0
+
+SCIDB QUERY : <project(dimensions(BN),low,high)>
+{No} low,high
+{0} 0,9
+
+SCIDB QUERY : <create array AN<j:int8>[i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(BN, AN)>
+{i} j
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 0
+{8} 0
+{9} 0
+
+SCIDB QUERY : <project(dimensions(AN),low,high)>
+{No} low,high
+{0} 0,9
+
+SCIDB QUERY : <store(build(BN, '[(),(),(),(),(),(),(),(),(),(),(),(),(12),(13),(14)]', true), BN)>
+{i} j
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+{5} 0
+{6} 0
+{7} 0
+{8} 0
+{9} 0
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(BN),low,high)>
+{No} low,high
+{0} 0,14
+
+SCIDB QUERY : <store(BN, AN)>
+{i} j
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+{5} 0
+{6} 0
+{7} 0
+{8} 0
+{9} 0
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(AN),low,high)>
+{No} low,high
+{0} 0,14
+
+SCIDB QUERY : <store(filter(AN, i>3 and i<9), ANF)>
+{i} j
+{4} 0
+{5} 0
+{6} 0
+{7} 0
+{8} 0
+
+SCIDB QUERY : <project(dimensions(ANF),low,high)>
+{No} low,high
+{0} 4,8
+
+SCIDB QUERY : <insert(build(<j:int8>[i=0:19,5,0],'{15}[(15),(16),(17)]',true),AN)>
+{i} j
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+{5} 0
+{6} 0
+{7} 0
+{8} 0
+{9} 0
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+{16} 16
+{17} 17
+{18} 0
+{19} 0
+
+SCIDB QUERY : <project(dimensions(AN),low,high)>
+{No} low,high
+{0} 0,19
+
+SCIDB QUERY : <save(AN, '/tmp/scidb_array_a.out', 0)>
+{i} j
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+{5} 0
+{6} 0
+{7} 0
+{8} 0
+{9} 0
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+{16} 16
+{17} 17
+{18} 0
+{19} 0
+
+SCIDB QUERY : <create array ANL<j:int8>[i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(ANL, '/tmp/scidb_array_a.out',0)>
+{i} j
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+{5} 0
+{6} 0
+{7} 0
+{8} 0
+{9} 0
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+{15} 15
+{16} 16
+{17} 17
+{18} 0
+{19} 0
+
+SCIDB QUERY : <project(dimensions(ANL), low, high)>
+{No} low,high
+{0} 0,19
+
+SCIDB QUERY : <create array BNI<j:int8>[i=0:14,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(BNI, '[(),(1),(2),(3),(4),(5),(6)]', true), BNI)>
+{i} j
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 0
+{8} 0
+{9} 0
+
+SCIDB QUERY : <project(dimensions(BNI),low,high)>
+{No} low,high
+{0} 0,9
+
+SCIDB QUERY : <create array ANI<j:int8>[i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(BNI, ANI)>
+{i} j
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 0
+{8} 0
+{9} 0
+
+SCIDB QUERY : <project(dimensions(ANI),low,high)>
+{No} low,high
+{0} 0,9
+
+SCIDB QUERY : <store(build(BNI, '{10}[(),(),(12),(13),(14)]', true), BNI)>
+{i} j
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(BNI),low,high)>
+{No} low,high
+{0} 10,14
+
+SCIDB QUERY : <store(build(BNI, '{10}[(),(),(12),(13),(14)]', true), ANI)>
+{i} j
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(ANI),low,high)>
+{No} low,high
+{0} 10,14
+
+SCIDB QUERY : <save(ANI, '/tmp/scidb_array_a.out', 0)>
+{i} j
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <create array ANIL<j:int8>[i=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(ANIL, '/tmp/scidb_array_a.out',0)>
+{i} j
+{10} 0
+{11} 0
+{12} 12
+{13} 13
+{14} 14
+
+SCIDB QUERY : <project(dimensions(ANIL), low, high)>
+{No} low,high
+{0} 10,14
+
+SCIDB QUERY : <create array target <j:int8> [x=-10:*,2,0, y(string)=*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(apply(join(A,variable_window(A,i, 3,0, count(*) as count)),x, int64(count*3), y, 'abc_'+string(count)), target), target)>
+{x,y} j
+{3,'abc_1'} 2
+{6,'abc_2'} 3
+{9,'abc_3'} 12
+{12,'abc_4'} 13
+
+SCIDB QUERY : <project(dimensions(target), low,high)>
+{No} low,high
+{0} 3,12
+{1} 0,3
+
+SCIDB QUERY : <store(redimension(filter(apply(join(A,variable_window(A,i, 3,0, count(*) as count)),x, int64(count*3), y, 'abc_'+string(count)), count%2<>0), target), target)>
+{x,y} j
+{3,'abc_1'} 2
+{9,'abc_3'} 12
+
+SCIDB QUERY : <project(dimensions(target), low,high)>
+{No} low,high
+{0} 3,9
+{1} 0,1
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AL)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(BI)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AI)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AIL)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(BN)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AN)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ANF)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ANL)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(BNI)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ANI)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ANIL)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(target)>
+Query was executed successfully
+
+SCIDB QUERY : <rm /tmp/scidb_array_a.out>
+

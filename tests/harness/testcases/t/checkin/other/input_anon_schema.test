@@ -1,0 +1,10 @@
+--setup
+
+--test
+sg(input(<a:int32, b:int32> [x=0:3,3,0, y=0:3,3,0], '${TEST_DATA_DIR}/M4x4.txt'), 0)
+#--error --igdata --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "load(<a:int32, b:int32> [x=0:3,3,0, y=0:3,3,0], '${TEST_DATA_DIR}/M4x4.txt')"
+#--shell --command "${TEST_UTILS_DIR}/expect_error_on_load.sh '<a:int32, b:int32> [x=0:3,3,0, y=0:3,3,0]' ${TEST_DATA_DIR}/M4x4.txt SCIDB_LE_ARRAY_DOESNT_EXIST" --store
+--shell --store-all --command "(iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(<a:int32, b:int32> [x=0:3,3,0, y=0:3,3,0], '${TEST_DATA_DIR}/M4x4.txt')" 2>&1) | grep SCIDB_LE_ARRAY_DOESNT_EXIST"
+
+--cleanup
+

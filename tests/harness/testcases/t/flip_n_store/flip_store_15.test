@@ -1,0 +1,21 @@
+--setup
+create array A <a:string,b:string null> [x=0:*,2,0,y=0:*,2,0]
+create array B <b:string null> [a(string)=*,2,0]
+create array C <b:string null> [a(string)=2,2,0]
+load(A,'${TEST_DATA_DIR}/redimension_2.txt')
+
+--test
+store(redimension(A,B),B)
+apply(B,z,a)
+store(redimension(A,C),C)
+apply(C,z,a)
+--aql update A set b=b+'_v2', a=a+'v2'
+store(redimension(A,B),B)
+apply(B,z,a)
+store(redimension(A,C),C)
+apply(C,z,a)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

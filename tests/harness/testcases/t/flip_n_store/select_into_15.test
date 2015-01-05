@@ -1,0 +1,60 @@
+--setup
+--start-query-logging
+create array A <a:int32>[x=0:2,3,0,y=-2:2,1,0]
+create array B <b:string>[x=0:2,3,0,y=-2:2,1,0]
+create array C <b:string,a:int32> [x=0:2,3,0,y=-2:2,1,0]
+create array D <b:string> [x=0:2,3,0,y=-2:2,1,0]
+create array E <a:int32> [x=0:2,3,0,y=-2:2,1,0]
+#create array F <b:string> [a(int32)=15,2,0]
+create array G <a:int32> [b(string)=15,2,0]
+store(C,C1)
+store(D,D1)
+store(E,E1)
+#store(F,F1)
+store(G,G1)
+store(C,C2)
+store(D,D2)
+store(E,E2)
+#store(F,F2)
+store(G,G2)
+store(filter(build(A,x+y+10),y%2=1),A)
+store(filter(build(B,string(x)+'_'+string(y)),y%2=1),B)
+
+--test
+--aql select * into C from A,B
+--aql select * into D from A,B
+--aql select * into E from A,B
+#--aql select * into F from A,B
+--aql select * into G from A,B
+
+--aql select * into C1 from A,B where x=0
+--aql select * into D1 from A,B where x<>0
+--aql select * into E1 from A,B where x<=1
+#--aql select * into F1 from A,B where x>=1
+--aql select * into G1 from A,B where x<>3
+
+--aql select * into C2 from A,B where a=10
+--aql select * into D2 from A,B where b<>'2_1'
+--aql select * into E2 from A,B where a<11 or b>'1_'
+#--aql select * into F2 from A,B where a<>10 and b<>'2_-2'
+--aql select * into G2 from A,B where a=11 or b='2_1' and a=13
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+#remove(F)
+remove(G)
+remove(C1)
+remove(D1)
+remove(E1)
+#remove(F1)
+remove(G1)
+remove(C2)
+remove(D2)
+remove(E2)
+#remove(F2)
+remove(G2)
+--stop-query-logging

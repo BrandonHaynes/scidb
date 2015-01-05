@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd" []>
+<refentry>
+  <refnamediv>
+    <refname>setopt</refname>
+    <refpurpose>Set/get configuration option value at runtime. </refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <synopsis>setopt(<replaceable>option-name</replaceable> [ ,<replaceable>new-option-value</replaceable> ] )</synopsis>
+    <para>This operator is designed for internal use.</para>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>Summary</title>
+    <para>Set/get configuration option value at runtime. Option value should be specified as string. If new value is not
+specified, then values of this configuration option at all instances are printed. If new value is specified, then value
+of option is updated at all instances and result array contains old and new values of the option at all instances.
+
+</para>
+  </refsect1>
+</refentry>

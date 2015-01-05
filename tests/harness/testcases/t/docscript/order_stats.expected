@@ -1,0 +1,114 @@
+SCIDB QUERY : <create array A <val:double> [i=0:3,4,0, j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(A,'[[(13),(),(),()],[(8),(),(6),(7)],[(4),(),(7),()],[(),(0),(14),()]]',true),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array C <label:string NULL default NULL>[i=0:3,4,0, j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(C,'[[(sand),(),(first),()],[(peanut),(),(pastry),(doc)],[(four),(),(carl),()],[(),(livia),(Apostrophe),()]]',true),C)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array m4x4_empty<val:double, label:string NULL>[i=0:3,4,0, j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(A,C),m4x4_empty)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(m4x4_empty)>
+[[(13,'sand'),(),(),()],[(8,'peanut'),(),(6,'pastry'),(7,'doc')],[(4,'four'),(),(7,'carl'),()],[(),(0,'livia'),(14,'Apostrophe'),()]]
+
+SCIDB QUERY : <SELECT * FROM sort(m4x4_empty, val)>
+{n} val,label
+{0} 0,'livia'
+{1} 4,'four'
+{2} 6,'pastry'
+{3} 7,'doc'
+{4} 7,'carl'
+{5} 8,'peanut'
+{6} 13,'sand'
+{7} 14,'Apostrophe'
+
+SCIDB QUERY : < SELECT * FROM sort(m4x4_empty, val, label)>
+{n} val,label
+{0} 0,'livia'
+{1} 4,'four'
+{2} 6,'pastry'
+{3} 7,'carl'
+{4} 7,'doc'
+{5} 8,'peanut'
+{6} 13,'sand'
+{7} 14,'Apostrophe'
+
+SCIDB QUERY : < SELECT * FROM sort(m4x4_empty, val desc)>
+{n} val,label
+{0} 14,'Apostrophe'
+{1} 13,'sand'
+{2} 8,'peanut'
+{3} 7,'doc'
+{4} 7,'carl'
+{5} 6,'pastry'
+{6} 4,'four'
+{7} 0,'livia'
+
+SCIDB QUERY : <CREATE ARRAY m4x4_double < val:double >[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -naq "load(m4x4_double, '${TEST_DATA_DIR}/doc/m4x4_double.scidb')">
+Query was executed successfully
+
+SCIDB QUERY : <show(m4x4_double)>
+{i} schema
+{0} 'm4x4_double<val:double> [i=0:3,4,0,j=0:3,4,0]'
+
+SCIDB QUERY : <scan(m4x4_double)>
+[[(0),(10.0977),(10.9116),(1.69344)],[(9.08163),(11.5071),(3.35299),(7.88384)],[(11.8723),(4.94542),(6.52825),(11.9999)],[(6.43888),(5.042),(11.8873),(7.80345)]]
+
+SCIDB QUERY : <SELECT * FROM rank(m4x4_double,val,j)>
+[[(0,1),(10.0977,3),(10.9116,3),(1.69344,1)],[(9.08163,3),(11.5071,4),(3.35299,1),(7.88384,3)],[(11.8723,4),(4.94542,1),(6.52825,2),(11.9999,4)],[(6.43888,2),(5.042,2),(11.8873,4),(7.80345,2)]]
+
+SCIDB QUERY : < SELECT floor(val) INTO m4x4_floor FROM m4x4_double>
+[[(0),(10),(10),(1)],[(9),(11),(3),(7)],[(11),(4),(6),(11)],[(6),(5),(11),(7)]]
+
+SCIDB QUERY : < SELECT * FROM rank(m4x4_floor,expr,j)>
+[[(0,1),(10,3),(10,3),(1,1)],[(9,3),(11,4),(3,1),(7,2)],[(11,4),(4,1),(6,2),(11,4)],[(6,2),(5,2),(11,4),(7,2)]]
+
+SCIDB QUERY : < SELECT * FROM avg_rank(m4x4_floor,expr,j)>
+[[(0,1),(10,3),(10,3),(1,1)],[(9,3),(11,4),(3,1),(7,2.5)],[(11,4),(4,1),(6,2),(11,4)],[(6,2),(5,2),(11,4),(7,2.5)]]
+
+SCIDB QUERY : <show(m4x4_floor)>
+{i} schema
+{0} 'm4x4_floor<expr:int64> [i=0:3,4,0,j=0:3,4,0]'
+
+SCIDB QUERY : <scan(m4x4_floor)>
+[[(0),(10),(10),(1)],[(9),(11),(3),(7)],[(11),(4),(6),(11)],[(6),(5),(11),(7)]]
+
+SCIDB QUERY : < SELECT * FROM quantile(m4x4_floor,2)>
+{quantile} percentage,expr_quantile
+{0} 0,0
+{1} 0.5,7
+{2} 1,11
+
+SCIDB QUERY : < SELECT * FROM quantile(m4x4_floor,8)>
+{quantile} percentage,expr_quantile
+{0} 0,0
+{1} 0.125,1
+{2} 0.25,4
+{3} 0.375,6
+{4} 0.5,7
+{5} 0.625,9
+{6} 0.75,10
+{7} 0.875,11
+{8} 1,11
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

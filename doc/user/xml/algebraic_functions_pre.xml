@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="algebraicFunctions">
+  <refnamediv>
+    <refname>Algebraic functions</refname>
+
+    <refpurpose>Perform basic arithmetic in a query expression.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis><command>SELECT</command> <replaceable>expression1</replaceable> <command>FROM</command> <replaceable>array</replaceable> <command>WHERE</command> <replaceable>expression2</replaceable>;</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>These functions perform basic arithmetic.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="4">
+        <colspec colname="c1" colwidth="10*"/>
+
+        <colspec align="left" colname="c2" colwidth="20*"/>
+
+        <colspec colname="c3" colwidth="20*"/>
+
+        <colspec colname="cgen1" colwidth="30*"/>
+
+        <thead>
+          <row>
+            <entry>Function Name</entry>
+
+            <entry>Description</entry>
+
+            <entry>Syntax</entry>
+
+            <entry>Datatypes</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>%</entry>
+
+            <entry><indexterm>
+                <primary>modulo</primary>
+              </indexterm><indexterm>
+                <primary>remainder function</primary>
+              </indexterm><indexterm>
+                <primary>functions</primary>
+
+                <secondary>modulo</secondary>
+              </indexterm><indexterm>
+                <primary>functions</primary>
+
+                <secondary>remainder</secondary>
+              </indexterm>Remainder</entry>
+
+            <entry>scalar % scalar</entry>
+
+            <entry>int8, int16, int32, int64, uint8, uint16, uint32,
+            uint64</entry>
+          </row>
+
+          <row>
+            <entry>*</entry>
+
+            <entry>Multiplication</entry>
+
+            <entry>scalar * scalar</entry>
+
+            <entry>double, float, int8, int16, int32, int64, uint8, uint16,
+            uint32, uint64</entry>
+          </row>
+
+          <row>
+            <entry>+</entry>
+
+            <entry>Addition</entry>
+
+            <entry>scalar + scalar</entry>
+
+            <entry>(datetime, int64), double, float, string, int8, int16,
+            int32, int64, uint8, uint16, uint32, uint64</entry>
+          </row>
+
+          <row>
+            <entry>-</entry>
+
+            <entry>Subtraction or additive inverse</entry>
+
+            <entry>scalar - scalar<para/>-scalar</entry>
+
+            <entry>(datetime, int64), datetime, double, float, string, int8,
+            int16, int32, int64, uint8, uint16, uint32, uint64</entry>
+          </row>
+
+          <row>
+            <entry>/</entry>
+
+            <entry>Division</entry>
+
+            <entry>scalar/scalar</entry>
+
+            <entry>double, float, string, int8, int16, int32, int64, uint8,
+            uint16, uint32, uint64</entry>
+          </row>
+
+          <row>
+            <entry>abs</entry>
+
+            <entry>Absolute value</entry>
+
+            <entry>abs(scalar)</entry>
+
+            <entry>double, int32</entry>
+          </row>
+
+          <row>
+            <entry>ceil</entry>
+
+            <entry>Round to next-highest value</entry>
+
+            <entry>ceil(scalar)</entry>
+
+            <entry>double</entry>
+          </row>
+
+          <row>
+            <entry>floor</entry>
+
+            <entry>Round to next-lowest integer</entry>
+
+            <entry>floor(scalar)</entry>
+
+            <entry>double</entry>
+          </row>
+
+          <row>
+            <entry>pow</entry>
+
+            <entry>Raise to a power</entry>
+
+            <entry>pow(base,exponent)</entry>
+
+            <entry>double</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>random number generator</primary>
+              </indexterm>random</entry>
+
+            <entry>Generate random positive integer. The maximum value is the
+            maximum, unsigned, 32-bit integer: 2147483647.</entry>
+
+            <entry>random()</entry>
+
+            <entry>Output default is uint32</entry>
+          </row>
+
+          <row>
+            <entry>sqrt</entry>
+
+            <entry>Square root</entry>
+
+            <entry>sqrt(scalar)</entry>
+
+            <entry>double,float</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example illustrates a few of the algebraic functions.</para>
+    </informalexample>
+
+    <informalexample>
+      <procedure>
+        <step>
+          <para>Construct an array that contains a random set of values
+          between 0 and 1. <programlisting language="test">--afl create array C &lt;val:double&gt; [i=0:4,5,0]; --show-output=no</programlisting><programlisting
+          language="test">--afl store(build(C,random() /  2147483647.0),C); --show-output-in-test-file=no</programlisting>The
+          largest value that random() can produce is 2,147,483,647. So we
+          divide the output by a double that is equivalent; this returns a
+          double value between 0 and 1.</para>
+        </step>
+
+        <step>
+          <para>Try out the square root and power functions. <programlisting
+          language="test">--aql select sqrt(i) as root, pow(2.0,i) as power from C;</programlisting></para>
+        </step>
+
+        <step>
+          <para>Try out the "simple" math functions, such as plus and
+          minus.</para>
+
+          <programlisting language="test">--afl store(build(&lt;val:double&gt; [i=0:1,2,0, j=0:1,2,0],i*2 +j+1),A); --output-format=dense --chunkify=yes
+--afl store(build(A,-i*4-j -1),B); --output-format=dense --chunkify=yes
+--aql select A.val + B.val from A,B; --output-format=dense --chunkify=yes
+--aql select A.val - B.val from A,B; --output-format=dense --chunkify=yes
+--aql select A.val * B.val from A,B; --output-format=dense --chunkify=yes
+--aql select A.val / B.val from A,B; --output-format=dense --chunkify=yes</programlisting>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

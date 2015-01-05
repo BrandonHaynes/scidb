@@ -1,0 +1,1 @@
+[("binary","scidb"),("bool","scidb"),("char","scidb"),("datetime","scidb"),("datetimetz","scidb"),("double","scidb"),("float","scidb"),("indicator","scidb"),("int16","scidb"),("int32","scidb"),("int64","scidb"),("int8","scidb"),("string","scidb"),("uint16","scidb"),("uint32","scidb"),("uint64","scidb"),("uint8","scidb"),("void","scidb")]

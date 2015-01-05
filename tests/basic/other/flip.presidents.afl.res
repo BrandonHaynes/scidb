@@ -1,0 +1,1 @@
+[(1,4,true),(2,12,false),(1,null,false),(1,4,false),(1,6,false),(1,4,false),(1,8,false),(2,16,false),(3,20,false),(1,3,false),(2,8,false),(1,8,false),(1,4,false),(6,28,true),(4,14,true),(1,6,false),(1,4,false),(1,3,false),(1,5,false),(1,8,false),(1,4,false),(1,8,false),(1,8,false),(1,8,false),(1,2,false),(4,16,true),(1,8,false),(1,1,false),(),()]

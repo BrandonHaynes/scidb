@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv>
+    <refname>cancel</refname>
+
+    <refpurpose>Cancel a query</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>cancel(query_id);</synopsis>
+
+    <para>This operator is designed for internal use.</para>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Cancel a currently running query by query id.</para>
+
+    <para>The query id can be obtained from the SciDB log or via the
+    list('queries') command. SciDB maintains query context information for
+    each completed and in-progress query in the server. If the user issues a
+    "ctrl-C" or abort from the client, the query is cancelled and its context
+    is removed from the server.</para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,77 @@
+SCIDB QUERY : <create array A <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <x:int64> [a=-9:9,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x-5),A)>
+[(-5),(-4),(-3)]
+
+SCIDB QUERY : <redimension(A,B)>
+[{-4}(1)];
+[{-3}(2)]
+
+SCIDB QUERY : <store(redimension(A,B),C)>
+[{-4}(1)];
+[{-3}(2)]
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+{-6}[(),(0),(1),(2),(),()]
+
+SCIDB QUERY : <max(B)>
+[(2)]
+
+SCIDB QUERY : <min(B)>
+[(0)]
+
+SCIDB QUERY : <avg(B)>
+[(1)]
+
+SCIDB QUERY : <rename(B,B1)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(B1,B)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(B,-4,7)>
+[(1),(2),(),(),(),()]
+
+SCIDB QUERY : <between(B,-4,7)>
+{-6}[(),(),(1),(2),(),()]
+
+SCIDB QUERY : <filter(B,x>1)>
+{-6}[(),(),(),(2),(),()]
+
+SCIDB QUERY : <project(B,x)>
+{-6}[(),(0),(1),(2),(),()]
+
+SCIDB QUERY : <join(B,B)>
+{-6}[(),(0,0),(1,1),(2,2),(),()]
+
+SCIDB QUERY : <cross_join(B,B)>
+{-6,-6}[[(),(),()],[(),(0,true,0),(0,true,1)],[(),(1,true,0),(1,true,1)]];[[(),(),()],[(0,true,2),(),()],[(1,true,2),(),()]];{-3,-6}[[(),(2,true,0),(2,true,1)],[(),(),()],[(),(),()]];[[(2,true,2),(),()],[(),(),()],[(),(),()]]
+
+SCIDB QUERY : <apply(B,z,x-a)>
+{-6}[(),(0,5),(1,5),(2,5),(),()]
+
+SCIDB QUERY : <count(B)>
+[(3)]
+
+SCIDB QUERY : <sum(B)>
+[(3)]
+
+SCIDB QUERY : <sort(B,x)>
+[(0),(1),(2)]
+
+SCIDB QUERY : <sort(B,x desc)>
+[(2),(1),(0)]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+

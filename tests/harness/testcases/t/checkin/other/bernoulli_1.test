@@ -1,0 +1,10 @@
+--setup
+create array xyz <a:double> [x=0:1999,100,0, y=0:1999,100,0]
+--igdata "load(xyz,'${TEST_DATA_DIR}/xyz_small.txt')"
+
+--test
+filter(aggregate(filter(bernoulli(xyz, 0.1, 2011), a <> 0),avg(a)), a_avg<0.4 or a_avg>0.7)
+filter(aggregate(filter(bernoulli(xyz, 0.1, 2011), a>0.1),count(*)), count<50)
+
+--cleanup
+remove(xyz)

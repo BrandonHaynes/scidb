@@ -1,0 +1,16 @@
+--setup
+
+create array join1 <a:int64,b:string> [i=0:6,3,0, j=0:1,1,0]
+CREATE ARRAY mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+
+load(join1,'${TEST_DATA_DIR}/join1.txt')
+load(mult_1,'${TEST_DATA_DIR}/mult1.txt')
+
+--test
+
+--aql select * from join1 as J1 join mult_1 as J2 ON J1.a = J2.a
+
+
+--cleanup
+remove(join1)
+remove(mult_1)

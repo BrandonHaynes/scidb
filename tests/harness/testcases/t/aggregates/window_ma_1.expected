@@ -1,0 +1,248 @@
+SCIDB QUERY : <create array A <a:int32,b:int64> [x=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T1 <a:int32> [x=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T2 <b:int64> [x=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(T1,x+10),x<>2 and x<>5),T1)>
+{x} a
+{0} 10
+{1} 11
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <store(filter(build(T2,x+12),x<>2 and x<>5),T2)>
+{x} b
+{0} 12
+{1} 13
+{3} 15
+{4} 16
+{6} 18
+{7} 19
+{8} 20
+
+SCIDB QUERY : <store(join(T1,T2),A)>
+{x} a,b
+{0} 10,12
+{1} 11,13
+{3} 13,15
+{4} 14,16
+{6} 16,18
+{7} 17,19
+{8} 18,20
+
+SCIDB QUERY : <store(filter(build(T1,x-10),x<>2 and x<>5),T1)>
+{x} a
+{0} -10
+{1} -9
+{3} -7
+{4} -6
+{6} -4
+{7} -3
+{8} -2
+
+SCIDB QUERY : <store(filter(build(T2,x-12),x<>2 and x<>5),T2)>
+{x} b
+{0} -12
+{1} -11
+{3} -9
+{4} -8
+{6} -6
+{7} -5
+{8} -4
+
+SCIDB QUERY : <store(join(T1,T2),A)>
+{x} a,b
+{0} -10,-12
+{1} -9,-11
+{3} -7,-9
+{4} -6,-8
+{6} -4,-6
+{7} -3,-5
+{8} -2,-4
+
+SCIDB QUERY : <window(A,8,9,sum(a),max(a))>
+{x} a_sum,a_max
+{0} -41,-2
+{1} -41,-2
+{3} -41,-2
+{4} -41,-2
+{6} -41,-2
+{7} -41,-2
+{8} -41,-2
+
+SCIDB QUERY : <window(A,1,1,max(a),var(a),stdev(a),count(a),sum(a),min(a))>
+{x} a_max,a_var,a_stdev,a_count,a_sum,a_min
+{0} -9,0.5,0.707107,2,-19,-10
+{1} -9,0.5,0.707107,2,-19,-10
+{3} -6,0.5,0.707107,2,-13,-7
+{4} -6,0.5,0.707107,2,-13,-7
+{6} -3,0.5,0.707107,2,-7,-4
+{7} -2,1,1,3,-9,-4
+{8} -2,0.5,0.707107,2,-5,-3
+
+SCIDB QUERY : <window(A,1,2,min(a),count(*))>
+{x} a_min,count
+{0} -10,2
+{1} -10,3
+{3} -7,2
+{4} -7,3
+{6} -4,3
+{7} -4,3
+{8} -3,2
+
+SCIDB QUERY : <window(A,0,1,count(a),count(*))>
+{x} a_count,count
+{0} 2,2
+{1} 1,1
+{3} 2,2
+{4} 1,1
+{6} 2,2
+{7} 2,2
+{8} 1,1
+
+SCIDB QUERY : <window(A,1,1,count(*),sum(a))>
+{x} count,a_sum
+{0} 2,-19
+{1} 2,-19
+{3} 2,-13
+{4} 2,-13
+{6} 2,-7
+{7} 3,-9
+{8} 2,-5
+
+SCIDB QUERY : <window(A,2,2,stdev(a),avg(a))>
+{x} a_stdev,a_avg
+{0} 0.707107,-9.5
+{1} 1.52753,-8.66667
+{3} 1.52753,-7.33333
+{4} 1.52753,-5.66667
+{6} 1.70783,-3.75
+{7} 1,-3
+{8} 1,-3
+
+SCIDB QUERY : <window(A,4,4,var(a),stdev(a))>
+{x} a_var,a_stdev
+{0} 3.33333,1.82574
+{1} 3.33333,1.82574
+{3} 7.5,2.73861
+{4} 9.14286,3.02372
+{6} 4.3,2.07364
+{7} 4.3,2.07364
+{8} 2.91667,1.70783
+
+SCIDB QUERY : <store(filter(build(T1,x+10),x<>2 and x<>5),T1)>
+{x} a
+{0} 10
+{1} 11
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <store(filter(build(T2,x+12),x<>2 and x<>5),T2)>
+{x} b
+{0} 12
+{1} 13
+{3} 15
+{4} 16
+{6} 18
+{7} 19
+{8} 20
+
+SCIDB QUERY : <store(join(T1,T2),A)>
+{x} a,b
+{0} 10,12
+{1} 11,13
+{3} 13,15
+{4} 14,16
+{6} 16,18
+{7} 17,19
+{8} 18,20
+
+SCIDB QUERY : <window(A,8,9,sum(b),max(b))>
+{x} b_sum,b_max
+{0} 113,20
+{1} 113,20
+{3} 113,20
+{4} 113,20
+{6} 113,20
+{7} 113,20
+{8} 113,20
+
+SCIDB QUERY : <window(A,1,1,max(a),var(b),stdev(a),count(a),sum(b),min(a))>
+{x} a_max,b_var,a_stdev,a_count,b_sum,a_min
+{0} 11,0.5,0.707107,2,25,10
+{1} 11,0.5,0.707107,2,25,10
+{3} 14,0.5,0.707107,2,31,13
+{4} 14,0.5,0.707107,2,31,13
+{6} 17,0.5,0.707107,2,37,16
+{7} 18,1,1,3,57,16
+{8} 18,0.5,0.707107,2,39,17
+
+SCIDB QUERY : <window(A,1,2,min(a),count(*))>
+{x} a_min,count
+{0} 10,2
+{1} 10,3
+{3} 13,2
+{4} 13,3
+{6} 16,3
+{7} 16,3
+{8} 17,2
+
+SCIDB QUERY : <window(A,0,1,count(b),count(*))>
+{x} b_count,count
+{0} 2,2
+{1} 1,1
+{3} 2,2
+{4} 1,1
+{6} 2,2
+{7} 2,2
+{8} 1,1
+
+SCIDB QUERY : <window(A,1,1,count(*),sum(a))>
+{x} count,a_sum
+{0} 2,21
+{1} 2,21
+{3} 2,27
+{4} 2,27
+{6} 2,33
+{7} 3,51
+{8} 2,35
+
+SCIDB QUERY : <window(A,2,2,stdev(a),avg(b))>
+{x} a_stdev,b_avg
+{0} 0.707107,12.5
+{1} 1.52753,13.3333
+{3} 1.52753,14.6667
+{4} 1.52753,16.3333
+{6} 1.70783,18.25
+{7} 1,19
+{8} 1,19
+
+SCIDB QUERY : <window(A,4,4,var(b),stdev(a))>
+{x} b_var,a_stdev
+{0} 3.33333,1.82574
+{1} 3.33333,1.82574
+{3} 7.5,2.73861
+{4} 9.14286,3.02372
+{6} 4.3,2.07364
+{7} 4.3,2.07364
+{8} 2.91667,1.70783
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T2)>
+Query was executed successfully
+

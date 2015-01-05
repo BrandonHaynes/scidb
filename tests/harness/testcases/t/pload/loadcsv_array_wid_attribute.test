@@ -1,0 +1,26 @@
+# 4. Specifying both an array name and attributes (should try to delete any array with the specified name and recreate it using the given attributes).
+
+--setup
+--start-query-logging
+
+--test
+
+--start-igdata
+
+#--shell --command " cat ${TEST_DATA_DIR}/sm10.csv | loadcsv.py  -a 'array_sm10' -s '<a:int64,b:int64,c:int64>[i=0:*,3,0]' -v -b -c 3 -d 'localhost' -p $IQUERY_PORT "
+
+--shell --command " cat ${TEST_DATA_DIR}/sm10.csv | loadcsv.py -a 'array_sm10' -s '<a:int64,b:int64,c:int64>[i=0:*,3,0]' -v -x -c 3 -l -L -b -d 'localhost' -p $IQUERY_PORT  "
+--stop-igdata
+
+#unpack(array_sm10,a)
+sort(array_sm10,a)
+#scan( array_sm10 )
+
+
+#scan( array_sm10 )
+--cleanup
+
+remove(array_sm10)
+
+--stop-query-logging
+

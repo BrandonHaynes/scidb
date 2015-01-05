@@ -1,0 +1,340 @@
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <create array ROWS <x:double>[i=0:3,32,0, j=0:0,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(ROWS,pow(i,4)), ROWS)>
+{i,j} x
+{0,0} 0
+{1,0} 1
+{2,0} 16
+{3,0} 81
+
+SCIDB QUERY : <create array COLUMNS <x:double>[i=0:0,32,0, j=0:3,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(COLUMNS, iif(i+j>1,pow(10,j-i), 25)), COLUMNS)>
+{i,j} x
+{0,0} 25
+{0,1} 25
+{0,2} 100
+{0,3} 1000
+
+SCIDB QUERY : <create array M1x1C4 <mul:double> [i=0:0,32,0,j=0:0,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array M4x4C4 <mul:double> [i=0:3,32,0,j=0:3,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <gemm(COLUMNS, ROWS, build(M1x1C4, 0))>
+{i,j} gemm
+{0,0} 82625
+
+SCIDB QUERY : <gemm(COLUMNS, ROWS, build(M1x1C4, 2))>
+{i,j} gemm
+{0,0} 82627
+
+SCIDB QUERY : <gemm(COLUMNS, ROWS, build(M1x1C4, 10))>
+{i,j} gemm
+{0,0} 82635
+
+SCIDB QUERY : <gemm(ROWS, COLUMNS, build(M4x4C4, 0))>
+{i,j} gemm
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 25
+{1,1} 25
+{1,2} 100
+{1,3} 1000
+{2,0} 400
+{2,1} 400
+{2,2} 1600
+{2,3} 16000
+{3,0} 2025
+{3,1} 2025
+{3,2} 8100
+{3,3} 81000
+
+SCIDB QUERY : <gemm(ROWS, COLUMNS, build(M4x4C4, iif(i=j, 1,0 )))>
+{i,j} gemm
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 25
+{1,1} 26
+{1,2} 100
+{1,3} 1000
+{2,0} 400
+{2,1} 400
+{2,2} 1601
+{2,3} 16000
+{3,0} 2025
+{3,1} 2025
+{3,2} 8100
+{3,3} 81001
+
+SCIDB QUERY : <gemm(ROWS, COLUMNS, build(M4x4C4, 1))>
+{i,j} gemm
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{0,3} 1
+{1,0} 26
+{1,1} 26
+{1,2} 101
+{1,3} 1001
+{2,0} 401
+{2,1} 401
+{2,2} 1601
+{2,3} 16001
+{3,0} 2026
+{3,1} 2026
+{3,2} 8101
+{3,3} 81001
+
+test to check the output when one or more arrays are empty
+SCIDB QUERY : <gemm(ROWS, COLUMNS, M4x4C4)>
+{i,j} gemm
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 25
+{1,1} 25
+{1,2} 100
+{1,3} 1000
+{2,0} 400
+{2,1} 400
+{2,2} 1600
+{2,3} 16000
+{3,0} 2025
+{3,1} 2025
+{3,2} 8100
+{3,3} 81000
+
+SCIDB QUERY : <gemm(filter(ROWS, 0), COLUMNS, M4x4C4)>
+{i,j} gemm
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 0
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 0
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 0
+
+SCIDB QUERY : <gemm(ROWS, filter(COLUMNS, 0) , M4x4C4)>
+{i,j} gemm
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 0
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 0
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 0
+
+SCIDB QUERY : <gemm(filter(ROWS, 0), filter(COLUMNS, 0) , M4x4C4)>
+{i,j} gemm
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{1,0} 0
+{1,1} 0
+{1,2} 0
+{1,3} 0
+{2,0} 0
+{2,1} 0
+{2,2} 0
+{2,3} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 0
+
+SCIDB QUERY : <gemm(filter(ROWS, 0), filter(COLUMNS, 0) , build(M4x4C4, 1))>
+{i,j} gemm
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{0,3} 1
+{1,0} 1
+{1,1} 1
+{1,2} 1
+{1,3} 1
+{2,0} 1
+{2,1} 1
+{2,2} 1
+{2,3} 1
+{3,0} 1
+{3,1} 1
+{3,2} 1
+{3,3} 1
+
+SCIDB QUERY : <gemm(filter(ROWS, 0), COLUMNS , build(M4x4C4, pow(2,i)))>
+{i,j} gemm
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{0,3} 1
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{1,3} 2
+{2,0} 4
+{2,1} 4
+{2,2} 4
+{2,3} 4
+{3,0} 8
+{3,1} 8
+{3,2} 8
+{3,3} 8
+
+SCIDB QUERY : <gemm(ROWS, filter(COLUMNS, 0) , build(M4x4C4, pow(2,i)))>
+{i,j} gemm
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{0,3} 1
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{1,3} 2
+{2,0} 4
+{2,1} 4
+{2,2} 4
+{2,3} 4
+{3,0} 8
+{3,1} 8
+{3,2} 8
+{3,3} 8
+
+SCIDB QUERY : <gemm(filter(ROWS, 0), filter(COLUMNS, 0) , build(M4x4C4, pow(2,i)))>
+{i,j} gemm
+{0,0} 1
+{0,1} 1
+{0,2} 1
+{0,3} 1
+{1,0} 2
+{1,1} 2
+{1,2} 2
+{1,3} 2
+{2,0} 4
+{2,1} 4
+{2,2} 4
+{2,3} 4
+{3,0} 8
+{3,1} 8
+{3,2} 8
+{3,3} 8
+
+test to check the output for adding +inf,-inf, and nan
+SCIDB QUERY : <gemm(ROWS, COLUMNS, build(M4x4C4, inf))>
+{i,j} gemm
+{0,0} inf
+{0,1} inf
+{0,2} inf
+{0,3} inf
+{1,0} inf
+{1,1} inf
+{1,2} inf
+{1,3} inf
+{2,0} inf
+{2,1} inf
+{2,2} inf
+{2,3} inf
+{3,0} inf
+{3,1} inf
+{3,2} inf
+{3,3} inf
+
+SCIDB QUERY : <gemm(ROWS, COLUMNS, build(M4x4C4,-inf))>
+{i,j} gemm
+{0,0} -inf
+{0,1} -inf
+{0,2} -inf
+{0,3} -inf
+{1,0} -inf
+{1,1} -inf
+{1,2} -inf
+{1,3} -inf
+{2,0} -inf
+{2,1} -inf
+{2,2} -inf
+{2,3} -inf
+{3,0} -inf
+{3,1} -inf
+{3,2} -inf
+{3,3} -inf
+
+SCIDB QUERY : <gemm(ROWS, COLUMNS, build(M4x4C4, nan))>
+{i,j} gemm
+{0,0} nan
+{0,1} nan
+{0,2} nan
+{0,3} nan
+{1,0} nan
+{1,1} nan
+{1,2} nan
+{1,3} nan
+{2,0} nan
+{2,1} nan
+{2,2} nan
+{2,3} nan
+{3,0} nan
+{3,1} nan
+{3,2} nan
+{3,3} nan
+
+SCIDB QUERY : <gemm(ROWS, COLUMNS, build(M4x4C4, log10(-1)))>
+{i,j} gemm
+{0,0} nan
+{0,1} nan
+{0,2} nan
+{0,3} nan
+{1,0} nan
+{1,1} nan
+{1,2} nan
+{1,3} nan
+{2,0} nan
+{2,1} nan
+{2,2} nan
+{2,3} nan
+{3,0} nan
+{3,1} nan
+{3,2} nan
+{3,3} nan
+
+SCIDB QUERY : <remove(ROWS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(COLUMNS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M1x1C4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M4x4C4)>
+Query was executed successfully
+

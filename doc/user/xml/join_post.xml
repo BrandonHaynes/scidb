@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="joinOperator">
+  <refnamediv>
+    <refname>join</refname>
+
+    <refpurpose><indexterm>
+        <primary>join</primary>
+      </indexterm><indexterm>
+        <primary>binary operators</primary>
+
+        <secondary>join</secondary>
+      </indexterm>Join two arrays</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>join(<replaceable>left_array</replaceable>,<replaceable>right_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The following table shows the relationship between input and output
+    cells.</para>
+
+    <mediaobject>
+      <imageobject>
+        <imagedata align="left" contentwidth="400" fileref="../graphics/join.png"/>
+      </imageobject>
+    </mediaobject>
+
+    <para>Join combines the attributes of two input arrays at matching
+    dimension values. The two arrays must have the same dimension start
+    coordinates, the same chunk size, and the same chunk overlap. The join
+    result has the same dimension names as the first input. If the left-hand
+    and right-hand arrays do not have the same dimension size, join will
+    return an array with the same dimensions as the smaller input array. If a
+    cell in either the left or right array is empty, the corresponding cell in
+    the result is also empty.</para>
+
+    <para>Note the following:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">join </emphasis>performs an inner join
+          on dimension values.</para>
+        </listitem>
+
+        <listitem>
+          <para>Dimensions are not matched by name, but by their order (first
+          of <replaceable>left_array</replaceable> with first of
+          <replaceable>right_array</replaceable>, and so on).</para>
+        </listitem>
+
+        <listitem>
+          <para>During the operation, compatibility of dimensions means the
+          following:<itemizedlist>
+              <listitem>
+                <para>Same number of dimensions</para>
+              </listitem>
+
+              <listitem>
+                <para>Same dimension boundaries for each corresponding
+                pair</para>
+              </listitem>
+
+              <listitem>
+                <para>Same chunk and overlap values for each corresponding
+                pair</para>
+              </listitem>
+
+              <listitem>
+                <para>Same starting index value for each corresponding
+                pair</para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+
+        <listitem>
+          <para>In the result array, the dimension names match the dimension
+          names of <replaceable>left_array</replaceable>.</para>
+        </listitem>
+
+        <listitem>
+          <para>If the matching dimensions are not the same size, the smaller
+          one appears in the result array.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example joins two arrays with different dimension
+      lengths.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 3<symbol role="symbolfont">×</symbol>3 array
+          left_array containing value 1 in all cells:<para><programlisting>AFL% create array left_array &lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0];  </programlisting><programlisting>AFL% store(build(left_array,1),left_array);  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Create a 3<symbol role="symbolfont">×</symbol>6 array
+          right_array containing value 0 in all cells:<para><programlisting>AFL% create array right_array &lt;val:double&gt;[i=0:2,3,0,j=0:5,3,0];  </programlisting><programlisting>AFL% store(build(right_array,0),right_array);  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Join left_array and right_array:<para><programlisting>AFL% store(join(left_array,right_array),result_array);  </programlisting><screen>[
+[(1,0),(1,0),(1,0)],
+[(1,0),(1,0),(1,0)],
+[(1,0),(1,0),(1,0)]
+]</screen><programlisting>AFL% show(result_array)</programlisting><screen><command>result_array</command>
+
+&lt; val:double,
+val_2:double &gt;
+
+[i=0:2,3,0,
+j=0:2,3,0]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

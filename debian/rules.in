@@ -1,0 +1,48 @@
+#!/usr/bin/make -f
+
+#export DH_VERBOSE=1
+export DH_OPTIONS=--exclude=shim
+
+CMAKE ?= cmake
+BUILD_DIR ?= build
+INSOURCE ?= 0
+
+PACKAGES := scidb-VERSION_MAJOR.VERSION_MINOR.deb scidb-VERSION_MAJOR.VERSION_MINOR-dbg.deb libscidbclient-VERSION_MAJOR.VERSION_MINOR.deb libscidbclient-VERSION_MAJOR.VERSION_MINOR-dbg.deb scidb-VERSION_MAJOR.VERSION_MINOR-utils.deb scidb-VERSION_MAJOR.VERSION_MINOR-utils-dbg.deb scidb-VERSION_MAJOR.VERSION_MINOR-dev-tools.deb
+PACKAGES += scidb-VERSION_MAJOR.VERSION_MINOR-dev-tools-dbg.deb scidb-VERSION_MAJOR.VERSION_MINOR-plugins.deb scidb-VERSION_MAJOR.VERSION_MINOR-plugins-dbg.deb libscidbclient-VERSION_MAJOR.VERSION_MINOR-python.deb libscidbclient-VERSION_MAJOR.VERSION_MINOR-python-dbg.deb scidb-VERSION_MAJOR.VERSION_MINOR-dev.deb scidb-VERSION_MAJOR.VERSION_MINOR-doc.deb scidb-VERSION_MAJOR.VERSION_MINOR-jdbc.deb
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+  NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+  MAKEFLAGS += -j$(NUMJOBS)
+endif
+
+CMAKE_FLAGS := -DSWIG_EXECUTABLE=/usr/bin/swig2.0 -DSCIDB_DOC_TYPE=API -DBUILD_USER_DOC=1 -DCMAKE_BUILD_TYPE=PACKAGE_BUILD_TYPE
+
+%:
+	dh $@
+
+override_dh_installdeb:
+	dh_installdeb
+
+override_dh_auto_configure:
+	-test $(INSOURCE) -eq 0 && mkdir -p $(BUILD_DIR) && cd $(BUILD_DIR) && $(CMAKE) $(CMAKE_FLAGS) ..
+
+override_dh_auto_build:
+	cd $(BUILD_DIR) && $(MAKE)
+
+override_dh_auto_install: $(PACKAGES)
+	dh_auto_install
+
+override_dh_auto_clean:
+	-([ $(INSOURCE) -eq 0 ] && rm -rf $(BUILD_DIR))
+
+override_dh_clean:
+	-(if [ $(INSOURCE) -eq 1 ]; then cd debian; for p in $(PACKAGES) scidb-VERSION_MAJOR.VERSION_MINOR-all scidb-VERSION_MAJOR.VERSION_MINOR-all-coord; do rm -rf $${p%.deb}; done; rm -f *.log; rm -f *.substvars; rm -f files; rm -rf tmp; fi)
+
+%.deb:
+	$(CMAKE) -DCMAKE_INSTALL_PREFIX=debian/$(@:.deb=)/$(shell grep CMAKE_INSTALL_PREFIX $(BUILD_DIR)/CMakeCache.txt|sed 's/.*=//') -DCMAKE_INSTALL_COMPONENT=$(shell echo $(@:.deb=) | sed -e "s/-VERSION_MAJOR.VERSION_MINOR//") -P $(BUILD_DIR)/cmake_install.cmake
+
+override_dh_installdocs:
+override_dh_installchangelogs:
+override_dh_usrlocal:
+override_dh_strip:
+override_dh_auto_test:

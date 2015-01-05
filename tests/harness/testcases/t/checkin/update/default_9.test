@@ -1,0 +1,19 @@
+# ticket no. 1042
+
+--setup
+--start-query-logging
+create array A <a:string default 'test1'> [x=0:2,3,0]
+create array B <a:string default 'test2'> [x=0:2,3,0]
+
+--test
+--aql select * into C from A,B
+--aql select * from show(C)
+--aql select * into D from A,B,C
+--aql select * from show(D)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+--stop-query-logging

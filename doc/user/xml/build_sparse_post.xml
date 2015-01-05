@@ -1,0 +1,194 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="buildSparse">
+  <refnamediv>
+    <refname>build_sparse</refname>
+
+    <refpurpose><indexterm>
+        <primary>build_sparse</primary>
+      </indexterm><indexterm>
+        <primary>sparse arrays</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>sparse</secondary>
+      </indexterm>Produces a sparse result array and assigns values to its
+    non-empty cells.</refpurpose>
+
+    <para><indexterm>
+        <primary>deprecated</primary>
+
+        <secondary>build_sparse</secondary>
+      </indexterm><emphasis role="bold">Deprecated. </emphasis>The
+    <code>build_sparse</code> operator may be removed in the future. We
+    recommend that you use <code>redimension(build())</code> instead.</para>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>build_sparse(<replaceable>template_array</replaceable>|<replaceable>schema_definition</replaceable>,
+                  <replaceable>expression</replaceable>,<replaceable>boolean_expression</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>In SciDB, a sparse array is an array that allows empty cells. SciDB
+    dense arrays do not allow empty cells. You can use
+    <literal>build_sparse</literal> to create arrays with empty cells—but you
+    can also build dense arrays with the <literal>build_sparse</literal>
+    operator.</para>
+
+    <para>That is, you can you use build_sparse to create an array, and fill
+    every cell with a value; in this case, you have used the
+    <literal>build_sparse</literal> operator to create a dense array.</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>A <emphasis role="bold">sparse</emphasis> array may (but does
+        not have to) contain empty cells.</para>
+      </listitem>
+
+      <listitem>
+        <para>A <emphasis role="bold">dense</emphasis> array cannot contain
+        empty cells.</para>
+      </listitem>
+    </itemizedlist>
+
+    <note>
+      <para>NULL, 0, and empty are distinct. That is, a dense array can have
+      cells that contain 0 or NULL, but cannot contain empty cells.</para>
+    </note>
+
+    <para>The build_sparse operator takes as input a template_array or schema
+    definition, an expression that defines a scalar value, and an expression
+    that defines a Boolean value. The argument
+    <replaceable>template_array</replaceable> must be an array that was
+    previously created and stored in SciDB. The output of build_sparse is a
+    result array with the same schema as the template array or schema
+    definition, the value specified by <replaceable>expression</replaceable>
+    wherever <replaceable>boolean_expression</replaceable> evaluates to true,
+    and empty cells wherever <replaceable>boolean_expression</replaceable>
+    evaluates to false.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <itemizedlist>
+      <listitem>
+        <para>The <literal>build_sparse</literal> operator can only take
+        arrays with one attribute.</para>
+      </listitem>
+
+      <listitem>
+        <para>The <literal>build_sparse</literal> operator can only take
+        arrays with bounded dimensions.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>In this example, we build a sparse array, and then a dense array.
+      In the sparse array, only the diagonal elements are present, while in
+      the dense array, only the diagonal elements have non-NULL values.</para>
+
+      <para>Here we create and store the sparse array in
+      <literal>m3x3_sparse</literal>:</para>
+
+      <para><para><programlisting>AFL% store(build_sparse(&lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0],1,i=j),
+       m3x3_sparse);  </programlisting><screen>[
+[(1),(),(),()],
+[(),(1),(),()],
+[(),(),(1),()],
+[(),(),(),(1)]
+]</screen></para></para>
+
+      <para>Here we create and store the sparse array in
+      <literal>m3x3_dense</literal>:</para>
+
+      <para><programlisting>AFL% store(build(&lt;val:double null&gt;[i=0:3,4,0,j=0:3,4,0],iif(i=j,1,NULL)),m3x3_dense);  </programlisting><screen>[
+[(1),(null),(null),(null)],
+[(null),(1),(null),(null)],
+[(null),(null),(1),(null)],
+[(null),(null),(null),(1)]
+]</screen></para></informalexample>
+
+    <para>The remainder of the examples illustrate how to construct a sparse
+    array using the <code>build()</code> operator—these are example you can
+    use when the <code>build_sparse()</code> operator is removed from
+    SciDB.</para>
+
+    <informalexample>
+      <para>In this example, we create an array that has a random value every
+      50 cells (all other cells are empty).</para>
+
+      <procedure>
+        <step>
+          <para>Create an array to hold the eventual dimension
+          index.<para><programlisting>AFL% store(build(&lt;index:int64&gt;[i=0:9,10,0], i*50), A);  </programlisting><screen>[(0),(50),(100),(150),(200),(250),(300),(350),(400),(450)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create an array to hold the values.<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:9,10,0], random()%2000/2000.0), B);
+       </programlisting><screen>[(0.554),(0.7775),(0.198),(0.0285),(0.084),(0.5875),(0.5375),(0.037),(0.2465),(0.717)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Combine A and B into a single array.<para><programlisting>AFL% store(join(A,B), test);  </programlisting><screen>{i} index,val
+{0} 0,0.554
+{1} 50,0.7775
+{2} 100,0.198
+{3} 150,0.0285
+{4} 200,0.084
+{5} 250,0.5875
+{6} 300,0.5375
+{7} 350,0.037
+{8} 400,0.2465
+{9} 450,0.717
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Finally, redimension the array into a sparse
+          array.<para><programlisting>AFL% redimension(test, &lt;val:double&gt;[index=0:*, 10,0]);  </programlisting><screen>{index} val
+{0} 0.554
+{50} 0.7775
+{100} 0.198
+{150} 0.0285
+{200} 0.084
+{250} 0.5875
+{300} 0.5375
+{350} 0.037
+{400} 0.2465
+{450} 0.717
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>Suppose you want to create a 3<symbol>x</symbol>3, 2-dimensional
+      array, where you store the value 5.5 in all cells where the sum of the
+      two dimensions is greater than 4.<screen>If i+j &gt; 4, store 5.5; else empty</screen></para>
+
+      <para>The array looks like this:<para><screen>[
+[(),(),()],
+[(),(),(5.5)],
+[(),(5.5),(5.5)]
+]</screen></para></para>
+
+      <para>This query creates the array:<para><programlisting>AFL% redimension(apply(build(&lt;v:double&gt;[i1=1:3,3,0,j1=1:3,3,0],5.5),
+         i,iif(i1+j1&gt;4,i1,null), j,iif(i1+j1&gt;4,j1,null)),
+         &lt;v:double&gt;[i=1:3,3,0,j=1:3,3,0]);  </programlisting><screen>{i,j} v
+{2,3} 5.5
+{3,2} 5.5
+{3,3} 5.5
+</screen></para></para>
+    </informalexample>
+  </refsect1>
+</refentry>

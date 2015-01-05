@@ -1,0 +1,26 @@
+--setup
+--start-query-logging
+create array Orig <x:string> [i=1:100,10,0]
+create array Flipped <i:int64> [x(string)=100,10,0]
+store(build(Orig,'str'+string(i)), Orig)
+
+--test
+store(redimension(Orig, Flipped), Flipped)
+subarray(Flipped, 'str3', 'str5')                         
+subarray(thin(Flipped, 1, 2), 'str3', 'str5')                         
+between(thin(Flipped, 1, 2), 'str2', 'str4')                         
+store(subarray(thin(Flipped, 1, 2), 'str3', 'str5'), A)                         
+store(between(thin(Flipped, 1, 2), 'str2', 'str4'), B)
+subarray(A, 'str3', 'str5')
+subarray(B, 'str2', 'str3')
+subarray(subarray(A, 'str3', 'str5'), 'str4', 'str5')
+--error --code=scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_IMPLICIT_CONVERTER "subarray(A, 0, 100)"
+subarray(A, null, null)
+--error --code=scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_IMPLICIT_CONVERTER "subarray(subarray(A, null, null), 0, 100)"
+
+--cleanup
+remove(Orig)
+remove(Flipped)
+remove(A)
+remove(B)
+--stop-query-logging

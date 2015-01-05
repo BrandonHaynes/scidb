@@ -1,0 +1,15 @@
+--setup
+#create array source <dummy : string> [x=0:3,4,0, y(string)=*,4,0]
+#create array result <dummy : string> [x=0:3,4,0, y(string)=*,2,0]
+create array source <dummy : string> [x(string)=*,4,0]
+create array result <dummy : string> [x(string)=*,2,0]
+
+--test
+scan(source)
+repart(source, result)
+store(repart(source, result), result)
+scan(result)
+
+--cleanup
+remove(source)
+remove(result)

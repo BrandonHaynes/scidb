@@ -1,0 +1,59 @@
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <create array ROWS <x:double>[i=0:3,32,0, j=0:0,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(ROWS,pow(i,4)), ROWS)>
+{i,j} x
+{0,0} 0
+{1,0} 1
+{2,0} 16
+{3,0} 81
+
+SCIDB QUERY : <create array COLUMNS <x:double>[i=0:0,32,0, j=0:3,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(COLUMNS, iif(i+j>1,pow(10,j-i), 25)), COLUMNS)>
+{i,j} x
+{0,0} 25
+{0,1} 25
+{0,2} 100
+{0,3} 1000
+
+SCIDB QUERY : <gesvd(ROWS, 'values')>
+{i} sigma
+{0} 82.5712
+
+SCIDB QUERY : <gesvd(ROWS, 'left')>
+{i_1,i_2} u
+{0,0} 0
+{1,0} -0.0121108
+{2,0} -0.193772
+{3,0} -0.980972
+
+SCIDB QUERY : <gesvd(ROWS, 'right')>
+{i,j} v
+{0,0} -1
+
+SCIDB QUERY : <gesvd(COLUMNS, 'values')>
+{i} sigma
+{0} 1005.61
+
+SCIDB QUERY : <gesvd(COLUMNS, 'left')>
+{i_1,i_2} u
+{0,0} 1
+
+SCIDB QUERY : <gesvd(COLUMNS, 'right')>
+{i,j} v
+{0,0} 0.0248606
+{0,1} 0.0248606
+{0,2} 0.0994422
+{0,3} 0.994422
+
+SCIDB QUERY : <remove(ROWS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(COLUMNS)>
+Query was executed successfully
+

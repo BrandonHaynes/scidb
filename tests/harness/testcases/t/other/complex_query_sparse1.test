@@ -1,0 +1,81 @@
+--setup
+--start-query-logging
+# Testcases for AFL complex querries on simple sparse 2D arrays.
+# Added these Tests on ticket number : 1651
+# Array types used : diagonal array and row array
+# Added additional rank-quantile tests
+
+
+
+create array m5x5_sparse < val : double > [ x=0:4,5,0, y=0:4,5,0]
+# Filling up only 1st row ie x=0
+store(filter(build(m5x5_sparse, (3*x*x-4*y)/(3.5)),x=0 ),m5x5_sparse)
+create array m5x5_array <val:double> [x=0:4,5,0,y=0:4,5,0]
+store(filter(build(m5x5_array, x+100*y), x=y),m5x5_array)
+#Here {0,0} is not considered as we cannot have 0=0 so we do update.
+--aql update m5x5_array set val=420 where x=0 and y=0
+
+
+--test
+scan(m5x5_sparse)
+apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x)
+aggregate(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),count(*))
+aggregate(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),count(*))
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),m5x5_sparse)"
+
+# The above case is achieved using the repart operator
+join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0]))
+aggregate(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),count(*))
+between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3)
+regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z))
+
+cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse)
+aggregate(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),count(*))
+unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i)
+store(unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_sparse),0,0,0,0,1,1,1,1),val),i),ZZZ)
+show(ZZZ)
+
+unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_array,2,2),0,1,9,8),z,x),repart(m5x5_array,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_array),0,0,0,0,1,1,1,1),val),i)
+store(unpack(project(subarray(cross_join(regrid(between(join(apply(subarray(xgrid(m5x5_array,2,2),0,1,9,8),z,x),repart(m5x5_array,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3),2,2,sum(z)),m5x5_array),0,0,0,0,1,1,1,1),val),i),MMM)
+show(MMM)
+
+--reset-format
+
+## Additional rank-quantile tests
+
+rank(m5x5_sparse)
+rank(m5x5_array)
+rank(m5x5_sparse, val)
+rank(m5x5_array, val)
+rank(ZZZ,x_2)
+rank(ZZZ,y_2)
+rank(ZZZ,val)
+rank(MMM, val)
+rank(MMM, x_2)
+
+quantile(m5x5_array,2)
+quantile(m5x5_sparse,2)
+quantile(ZZZ,2)
+quantile(MMM,2)
+quantile(m5x5_array,5)
+quantile(m5x5_sparse,5)
+quantile(ZZZ,5)
+quantile(MMM,5)
+quantile(m5x5_array,10)
+quantile(m5x5_sparse,10)
+quantile(ZZZ,10)
+quantile(MMM,10)
+quantile(m5x5_array,100)
+quantile(m5x5_sparse,100)
+quantile(ZZZ,100)
+quantile(MMM,100)
+
+
+
+--cleanup
+remove(m5x5_sparse)
+remove(m5x5_array)
+remove(ZZZ)
+remove(MMM)
+
+--stop-query-logging

@@ -1,0 +1,40 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+# t1
+create array spA <a:double>[x=0:5,2,0, y=0:5,2,0]
+
+# t2
+# a test case should at wrap past 4 instances
+create array spC <v:double>[row=1:10,2,0, col=1:10,2,0]
+
+--test
+#
+# t1
+#
+#[jhm] the +y term clouds the test. Its a diagonal so x-1 would be more clear,
+store( filter(build(spA, x+y), x=y), spA )
+spgemm(spA, spA)
+spgemm(spA, spA, 'min.+')
+spgemm(spA, spA, 'max.+')
+
+# [jhm] what is the purpose of making a copy of spA ?
+store( spA, spB)
+spgemm(spA, spB)
+spgemm(spA, spB, 'min.+')
+spgemm(spA, spB, 'max.+')
+
+#
+# t2
+#
+store( filter(build(spC, row-1), row=col), spC )
+spgemm(spC, spC)
+
+--cleanup
+remove(spA)
+remove(spB)
+remove(spC)
+
+
+--stop-query-logging

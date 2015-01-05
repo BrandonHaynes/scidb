@@ -1,0 +1,11 @@
+SCIDB QUERY : <create array rank_array <val:double>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(rank_array,random()%7/1.0),rank_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <avg_rank(rank_array,val,i)>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+

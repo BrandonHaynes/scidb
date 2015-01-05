@@ -1,0 +1,55 @@
+SCIDB QUERY : <create array A <a:int32 null default 99> [x=0:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(A,x+10),x<>2 and x<>6),A)>
+{x} a
+{0} 10
+{1} 11
+{3} 13
+{4} 14
+{5} 15
+{7} 17
+{8} 18
+
+SCIDB QUERY : <thin(A,0,1)>
+{x} a
+{0} 10
+{1} 11
+{3} 13
+{4} 14
+{5} 15
+{7} 17
+{8} 18
+
+SCIDB QUERY : <thin(A,0,2)>
+{x} a
+{0} 10
+{2} 14
+{4} 18
+
+SCIDB QUERY : <thin(A,0,3)>
+{x} a
+{0} 10
+{1} 13
+
+SCIDB QUERY : <thin(A,1,2)>
+{x} a
+{0} 11
+{1} 13
+{2} 15
+{3} 17
+
+SCIDB QUERY : <thin(A,1,3)>
+{x} a
+{0} 11
+{1} 14
+{2} 17
+
+SCIDB QUERY : <thin(A,2,3)>
+{x} a
+{1} 15
+{2} 18
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

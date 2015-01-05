@@ -1,0 +1,11 @@
+# this query should result in an error due to the type of filter expression
+
+--setup
+create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+load(mult_1,'${TEST_DATA_DIR}/mult1.txt')
+
+--test
+--error --code=scidb::SCIDB_SE_TYPE::SCIDB_LE_CANT_FIND_CONVERTER "filter(mult_1, x + 0.1)"
+
+--cleanup
+remove (mult_1)

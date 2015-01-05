@@ -1,0 +1,56 @@
+--setup
+--start-query-logging
+# Ticket number : 1688
+# Tests for the binary load-save on 3D sparse arrays with data as inf and nan
+# Tests cover AQL Syntax
+
+create array C <num:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]
+create array C1 <num:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]
+create array C2 <num:double> [x=1:*,100000,0,y=1:*,100000,0,z=1:*,100000,0]
+create array CString <name:string> [x=1:*,100000,0,y=1:*,100000,0,z=1:*,100000,0]
+
+--test
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(C, '${TEST_DATA_DIR}/bsp1.txt')""
+--aql save C into current instance 'Csparse1.bin' as '(double)'
+--aql load C1 from current instance 'Csparse1.bin' as '(double)'
+--aql load C2 from current instance 'Csparse1.bin' as '(double)'
+--aql select * from C
+--aql select * from C1
+--aql select * from C2
+
+store(join(C1,C2),Z)
+--aql select * from Z
+--aql select * from show(Z)
+--aql save Z into current instance 'Zsparse1.bcp' as '(double,double)'
+
+store(join(Z,Z),ZxZ)
+--aql select * from ZxZ
+--aql select * from show(ZxZ)
+--aql save ZxZ into current instance 'ZxZsparse1.bcp' as '(double,double,double,double)'
+--aql load Z from current instance 'ZxZsparse1.bcp' as '(double,double,dummy(8),dummy(8))'
+--aql load Z from current instance 'ZxZsparse1.bcp' as '(double,dummy(8),double,dummy(8))'
+--aql load C1 from current instance 'ZxZsparse1.bcp' as '(dummy(8),dummy(8),double,dummy(8))'
+
+--aql save ZxZ into current instance 'ZxZsparse2.bcp' as '(string,string,string,string)'
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED --aql="load CString from current instance 'ZxZsparse2.bcp' as '(dummy(8),dummy(8),dummy(8),string)'"
+
+--aql load CString from current instance 'ZxZsparse2.bcp' as '(dummy(8),dummy(8),dummy(8),string)' errors 100
+--aql load CString from current instance 'ZxZsparse2.bcp' as '(dummy,dummy,dummy,string)'
+
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNSUPPORTED_FORMAT --aql="save C into current instance 'Csp.bin' as 'double'"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_UNSUPPORTED_FORMAT --aql="save C into current instance 'Cspfloat.bin' as 'float'"
+--error --code scidb::SCIDB_SE_TYPESYSTEM::SCIDB_LE_TYPE_NOT_REGISTERED --aql="save C into current instance 'Csparse3.txt' as '(text)'"
+--aql  save C into current instance 'Csparse3.txt' as 'text'
+
+
+
+--cleanup
+remove(C)
+remove(C1)
+remove(C2)
+remove(Z)
+remove(ZxZ)
+remove(CString)
+
+--stop-query-logging

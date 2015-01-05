@@ -1,0 +1,3 @@
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME --aql="create array A <A:int32>[A=1:5,5,0]"
+

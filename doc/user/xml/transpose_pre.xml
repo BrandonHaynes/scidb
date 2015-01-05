@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="transposeOperator">
+  <refnamediv>
+    <refname>transpose</refname>
+
+    <refpurpose><indexterm>
+        <primary>transpose</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>transpose</secondary>
+      </indexterm><indexterm>
+        <primary>matrix</primary>
+
+        <secondary>transpose</secondary>
+      </indexterm>Array transpose.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>transpose(<replaceable>array</replaceable>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The transpose operator accepts an array which may contain any number
+    of attributes and dimensions. Attributes may be of any type. If the array
+    contains dimensions d<subscript>1</subscript>, d<subscript>2</subscript>,
+    d<subscript>3</subscript>, ...,
+    d<subscript><replaceable>n</replaceable></subscript> the result contains
+    the dimensions in reverse order
+    d<subscript><replaceable>n</replaceable></subscript>, ...,
+    d<subscript>3</subscript>, d<subscript>2</subscript>,
+    d<subscript>1</subscript>.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example transposes a 3<symbol>×</symbol>3 array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-attribute, 2-dimensional array called
+          m3x3:<programlisting language="test">--afl CREATE ARRAY m3x3 &lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Store values of 0–8 in m3x3:<programlisting language="test">--afl store(build(m3x3,i*3+j),m3x3); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Transpose m3x3:<programlisting language="test">--afl transpose(m3x3); --output-format=dense --chunkify=yes</programlisting>Compare
+          the <literal>reverse</literal> operator to transpose:<programlisting
+          language="test">--afl reverse(m3x3); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

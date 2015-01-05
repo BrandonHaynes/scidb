@@ -1,0 +1,20 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY m6x6 <val:double>[i=0:5,6,0,j=0:5,6,0]  
+--set-format dense
+--stop-igdata
+store(build(m6x6,i*6+j),m6x6)  
+thin(m6x6,0,1,0,2)  
+thin(m6x6,0,2,0,1)  
+thin(m6x6,1,2,1,2)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m6x6)

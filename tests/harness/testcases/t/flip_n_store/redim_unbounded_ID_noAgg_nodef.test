@@ -1,0 +1,21 @@
+--setup
+
+CREATE array Raw_Test_Data < I : int64, J : int64, V : double NULL > [ Line=0:*,100,0 ]
+load ( Raw_Test_Data, '../tests/harness/testcases/data/redim_data2.txt')
+
+--test
+--start-query-logging
+
+CREATE ARRAY Data < V : double NULL > [ I=0:*,10,0, J=0:*,10,0 ]
+
+store(redimension(Raw_Test_Data, Data), Data)
+
+scan (Raw_Test_Data)
+scan (Data)
+
+--stop-query-logging
+--cleanup
+
+remove(Raw_Test_Data)
+remove(Data)
+

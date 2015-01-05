@@ -1,0 +1,5 @@
+create array A<a: double, b: int32>[x=0:3,4,0, y=0:3,4,0];
+store(build (<a: double> [x=0:3,4,0, y=0:3,4,0], x*4+y), A1);
+store(build (<b: int32> [x=0:3,4,0, y=0:3,4,0], x*4+y), A2);
+store(join(A1, A2), A);
+

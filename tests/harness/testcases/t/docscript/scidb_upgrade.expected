@@ -1,0 +1,61 @@
+SCIDB QUERY : <CREATE ARRAY intensityFlat < exposure:string, elapsedTime:int64, measuredIntensity:int64 null > [i=0:24,5,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -naq "load(intensityFlat,'${TEST_DATA_DIR}/doc/intensity_data.bin',-2, '(string, int64, int64 null)')">
+Query was executed successfully
+
+SCIDB QUERY : <store(build(<elevation:int64>[i=0:24,5,0],random()%1000),plus)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(intensityFlat,plus),saveExample)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array notFlat<exposure:string,measuredIntensity:int64 NULL DEFAULT null> [elevation=0:999,100,0,elapsedTime=0:15,16,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(notFlat)>
+{i} schema
+{0} 'notFlat<exposure:string,measuredIntensity:int64 NULL DEFAULT null> [elevation=0:999,100,0,elapsedTime=0:15,16,0]'
+
+SCIDB QUERY : <store(redimension(saveExample, notFlat),notFlat)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <save(unpack(notFlat,myDim), 'notFlat_saved.bin', -2, '(int64,int64,string, int64 null)')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show('unpack(notFlat,myDim)','afl')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(unpack(notFlat,myDim),notFlat_unpacked)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(notFlat_unpacked)>
+{i} schema
+{0} 'notFlat_unpacked<elevation:int64,elapsedTime:int64,exposure:string,measuredIntensity:int64 NULL DEFAULT null> [myDim=0:*,16000,0]'
+
+SCIDB QUERY : <CREATE ARRAY restored_1D_Array <elevation:int64, elapsedTime:int64,exposure:string,measuredIntensity:int64 NULL DEFAULT null> [myDim=0:*,16000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <load(restored_1D_Array, 'notFlat_saved.bin', -2, '(int64, int64, string, int64 null)')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array restoredFinal<exposure:string,measuredIntensity:int64 NULL DEFAULT null> [elevation=0:999,100,0,elapsedTime=0:15,16,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(restored_1D_Array, restoredFinal),restoredFinal)>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

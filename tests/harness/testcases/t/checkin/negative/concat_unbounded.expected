@@ -1,0 +1,20 @@
+{I} v1
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+
+{I} v1
+{0} 5
+{1} 6
+{2} 7
+{3} 8
+{4} 9
+
+[An error expected at this place for the query "concat(Foo, Bar)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_CONCAT_ERROR1. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_CONCAT_ERROR1.]
+
+Query was executed successfully
+
+Query was executed successfully
+

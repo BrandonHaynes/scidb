@@ -1,0 +1,20 @@
+SCIDB QUERY : <build(<val:double>[i=0:3,4,0,j=0:3,4,0],1)>
+[[(1),(1),(1),(1)],[(1),(1),(1),(1)],[(1),(1),(1),(1)],[(1),(1),(1),(1)]]
+
+SCIDB QUERY : <build(<val:double>[i=0:3,4,0,j=0:3,4,0],iif(i=j,1,0))>
+[[(1),(0),(0),(0)],[(0),(1),(0),(0)],[(0),(0),(1),(0)],[(0),(0),(0),(1)]]
+
+SCIDB QUERY : <build(<val:double>[i=0:3,4,0,j=0:3,4,0],i*4+j)>
+[[(0),(1),(2),(3)],[(4),(5),(6),(7)],[(8),(9),(10),(11)],[(12),(13),(14),(15)]]
+
+SCIDB QUERY : <CREATE ARRAY identity_matrix <val:double>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(identity_matrix,iif(i=j,1,0)),identity_matrix)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(identity_matrix)>
+[[(1),(0),(0),(0)],[(0),(1),(0),(0)],[(0),(0),(1),(0)],[(0),(0),(0),(1)]]
+
+Query was executed successfully
+

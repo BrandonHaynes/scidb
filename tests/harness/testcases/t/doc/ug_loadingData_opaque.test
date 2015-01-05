@@ -1,0 +1,23 @@
+
+--setup
+--start-query-logging
+
+--aql create array intensityFlat <category:string,elapsedTime:int64,measuredIntensity:int64 null>[i=0:*,10000,0]
+--shell --command " csv2scidb -s 1 -p SNN < $DOC_DATA/intensityBig.csv > $DOC_DATA/intensityBig.scidb " --store
+--shell --command " csv2scidb -s 1 -p SNN < $DOC_DATA/intensity.csv > $DOC_DATA/intensity.scidb " --store
+--aql load intensityFlat from '${TEST_DATA_DIR}/doc/intensity.scidb'
+--aql create array intensity <measuredIntensity:int64 null> [category(string)=3,3,0,elapsedTime=0:40000,10000,0]
+store(redimension(intensityFlat,intensity),intensity)
+
+--test
+--aql SAVE intensity INTO CURRENT INSTANCE 'intensity_data.opaque' AS 'OPAQUE'
+--aql SELECT * FROM show(intensity)
+--aql CREATE ARRAY intensityCopy < measuredIntensity:int64 NULL > [ exposure(string)=3,3,0, duration=0:40000,10000,0]
+--aql LOAD intensityCopy FROM CURRENT INSTANCE 'intensity_data.opaque' AS 'OPAQUE'
+
+--cleanup
+--aql drop array intensityFlat
+--aql drop array intensity
+--aql drop array intensityCopy
+
+--stop-query-logging

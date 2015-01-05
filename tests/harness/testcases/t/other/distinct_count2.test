@@ -1,0 +1,40 @@
+--setup
+--start-query-logging
+# Ticket number : 1613
+# Tests for ApproxDC on 2D array with different multiple attribute types
+
+create array A1 <val1:double> [x=0:3,2,0,y=0:3,2,0]
+store((apply((apply((apply((build(A1,x+y+2.5) As Q1),val2,x) As Q2),val3,'a'+string(x)+string(y)) As Q3),val4,x+y) As Q4),A2)
+show(A2)
+
+
+--test
+aggregate(A1,approxdc(val1))
+aggregate(A2,approxdc(val1))
+
+aggregate(A2,ApproxDC(val1))
+aggregate(A2,ApproxDC(val2))
+aggregate(A2,ApproxDC(val3))
+aggregate(A2,ApproxDC(val4))
+
+aggregate(A2,ApproxDC(val1), ApproxDC(val2))
+aggregate(A2,ApproxDC(val1), ApproxDC(val2),  ApproxDC(val3), ApproxDC(val4))
+aggregate(A2,ApproxDC(val1), ApproxDC(val2),  ApproxDC(val3), ApproxDC(val4),sum(val1),count(val2))
+
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_SINGLE_ATTRIBUTE_IN_INPUT_EXPECTED --aql="select ApproxDC(A2)" 
+--aql select ApproxDC(A1)
+--aql select ApproxDC(val1),ApproxDC(val2),ApproxDC(val3),ApproxDC(val4),ApproxDC(val3) from A2
+--aql select ApproxDC(val1),ApproxDC(val2),ApproxDC(val3),ApproxDC(val4),ApproxDC(val3) from A2 group by x
+--aql select cos(2*y),y,ApproxDC(val1),count(val1),max(val2),min(val2) from A2 group by y
+--aql select tan(2*x),x,ApproxDC(val3),count(val1),max(val2),min(val2) from A2 group by x
+--aql select ApproxDC(val1),ApproxDC(val2),ApproxDC(val3),ApproxDC(val4),ApproxDC(val3) from A2 regrid as (partition by x 2, y 2)
+--aql select ApproxDC(val1),ApproxDC(val2),ApproxDC(val3),ApproxDC(val4),ApproxDC(val3) from A2 regrid as (partition by x 1, y 4)
+--aql select ApproxDC(val1),ApproxDC(val2),ApproxDC(val3),ApproxDC(val4),ApproxDC(val3) from A2 regrid as (partition by x 3, y 3)
+
+
+--cleanup
+remove(A1)
+remove(A2)
+
+--stop-query-logging

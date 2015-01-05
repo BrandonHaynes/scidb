@@ -1,0 +1,35 @@
+--setup
+--start-query-logging
+# Tests on NID array 1D dense array
+# Tests for sort-rank and quantile
+
+create  array A <a:char,b:char>[x=0:2,3,0]
+create array B <b:char>[a(char)=3,3,0]
+create array T <a:char>[x=0:2,3,0]
+store(join(filter(build(T,string(x+1)),1),filter(build(T,string(x+5)),1)),A)
+store(redimension(A,B),B)
+
+
+--test
+--set-format dense
+sort(B)
+sort(B,b desc)
+sort(filter(B,b<>'6'),5)
+
+rank(B)
+rank(filter(B,b<>'6'))
+
+quantile(B,2)
+quantile(B,4)
+quantile(B,10)
+quantile(B,20)
+quantile(filter(B,b<>'6'),2)
+quantile(filter(B,b<>'6'),4)
+
+--reset-format
+--cleanup
+remove(A)
+remove(B)
+remove(T)
+--stop-query-logging
+

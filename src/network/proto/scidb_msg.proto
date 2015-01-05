@@ -1,0 +1,277 @@
+/*
+**
+* BEGIN_COPYRIGHT
+*
+* This file is part of SciDB.
+* Copyright (C) 2008-2014 SciDB, Inc.
+*
+* SciDB is free software: you can redistribute it and/or modify
+* it under the terms of the AFFERO GNU General Public License as published by
+* the Free Software Foundation.
+*
+* SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+* INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+* NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+* the AFFERO GNU General Public License for the complete license terms.
+*
+* You should have received a copy of the AFFERO GNU General Public License
+* along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+*
+* END_COPYRIGHT
+*/
+
+package scidb_msg;
+
+option java_package = "org.scidb.io.network";
+/**
+ *  Add creating new object according to new message type in
+ *  MessageDesc::createRecordByType (../src/BaseConnection.cpp)
+ *
+ * Example of message (more detail: http://code.google.com/apis/protocolbuffers/docs/proto.html):
+ *
+ *  message SearchRequest
+ *  {
+ *      required string query = 1;
+ *      repeated int32 page_number = 2;
+ *      optional int32 result_per_page = 3 [default	= 10];
+ *      optional int32 result_count = 4;
+ *  }
+ *
+ */
+
+/**
+ * Message with query string
+ */
+message Query
+{
+	required string query = 1;
+	required bool afl = 2 [default = false];
+        optional string program_options = 3 [default = "unknown"];
+}
+
+/**
+ * Request chunk fetching
+ */
+message Fetch
+{
+    optional uint32 attribute_id = 2;
+    optional bool position_only = 3;
+    optional uint32 obj_type = 4; // 0 - for remote array; 1 - for merged array, 2 - for pull-sg. Same as the Chunk::obj_type message field.
+    optional string array_name = 5; // a name of mapping array to fetch: result array or mapping array
+    optional uint32 prefetch_size = 6; // the number of chunks/items the sender is willing to accept in response
+    optional uint64 fetch_id = 7; // this message id
+}
+
+/**
+ * Chunk data with necessary description
+ */
+message Chunk
+{
+    optional int32 compression_method = 1;
+    repeated int64 coordinates = 2;
+    optional uint64 array_id = 3;
+    optional uint32 attribute_id = 4;
+    required bool eof = 5;
+    optional bool sparse = 6;
+    optional bool rle = 7;
+    optional uint64 decompressed_size = 8;
+    optional bool has_next = 9;
+    repeated int64 next_coordinates = 10;
+    optional uint32 obj_type = 11; // Same as the Fetch::obj_type message field.
+    optional uint32 count  = 12;
+    optional bool tombstone = 13 [default = false];
+    optional uint64 dest_instance = 14;
+    optional uint64 next_dest_instance = 15;
+    optional uint64 fetch_id = 16; // last fetch_id received by the sender
+
+    message Warning
+    {
+        required int32 code = 1;
+        required string file = 2;
+        required string function = 3;
+        required int32 line = 4;
+        required string what_str = 5;
+        required string stringified_code = 6;
+        required string strings_namespace = 7;
+    }
+
+    repeated Warning warnings = 17;//warnings posted during execution
+}
+
+/**
+ * Message with description of query result sent to client
+ */
+message QueryResult
+{
+	message AttributeDesc
+	{
+		required uint32 id = 1;
+		required string name = 2;
+		required string type = 3;
+	    required uint32 flags = 4;
+	    required uint32 default_compression_method = 5;
+	    required int32 default_missing_reason = 6;
+	    required bytes default_value = 7;
+	}
+
+	message DimensionDesc
+	{
+            required string name = 1;
+            required int64 start_min = 2;
+            required int64 curr_start = 3;
+            required int64 curr_end = 4;
+            required int64 end_max = 5;
+            required int64 chunk_interval = 6;
+            required int64 chunk_overlap = 7;
+	}
+
+    message Warning
+    {
+        required int32 code = 1;
+        required string file = 2;
+        required string function = 3;
+        required int32 line = 4;
+        required string what_str = 5;
+        required string stringified_code = 6;
+        required string strings_namespace = 7;
+    }
+
+	optional string array_name = 2;
+	repeated AttributeDesc attributes = 3;
+	repeated DimensionDesc dimensions = 4;
+        optional string explain_physical = 5;
+	optional uint64 execution_time = 6;
+	optional bool selective = 7;
+        optional string explain_logical = 8;
+        repeated Warning warnings = 9;//warnings posted during query preparing
+        repeated string plugins = 10;
+        optional bool exclusive_array_access = 11;
+}
+
+/**
+ * Physical plan for execution by every instance
+ */
+message PhysicalPlan
+{
+	required string physical_plan = 2;
+        required uint64 view_id = 3;
+        message InstanceListEntry
+        {
+          required uint64 instance_id = 2;
+          required uint64 gen_id = 3;
+        }
+        message InstanceList
+        {
+          repeated InstanceListEntry instance_entry = 2;
+        }
+        required InstanceList dead_list = 4;
+        required InstanceList live_list = 5;
+        required string cluster_uuid = 6;
+}
+
+/**
+ * Message with error description
+ */
+message Error
+{
+    //UserException and SystemException part
+    required int32 type = 1; //0 - for no error, 1 - system exception, 2 - user, 3 - user query
+    optional string file = 2;
+    optional string function = 3;
+    optional int32 line = 4;
+    optional string what_str = 5;
+    required string errors_namespace = 6;
+    required int32 short_error_code = 7;
+    required int32 long_error_code = 8;
+    optional string stringified_short_error_code = 9;
+    optional string stringified_long_error_code = 10;
+
+
+    //UserQueryException part
+    message ParsingContext
+    {
+        required string query_string = 1;
+        required uint32 line_start = 2;
+        required uint32 col_start = 3;
+        required uint32 line_end = 4;
+        required uint32 col_end = 5;
+    }
+
+    optional ParsingContext parsing_context = 11;
+    optional string cluster_uuid = 12;
+}
+
+/**
+ * DummyQuery record structure for:
+ * Cancel query execution message
+ * Sync messages
+ */
+ message DummyQuery
+ {
+    optional uint64 payload_id = 2;
+    optional string cluster_uuid = 3;
+ }
+
+
+/**
+ * Cluster resources messages
+ */
+message ResourcesFileExistsRequest
+{
+    required uint64 resource_request_id = 1;
+    required string file_path = 2;
+}
+
+message ResourcesFileExistsResponse
+{
+    required uint64 resource_request_id = 1;
+    required bool exits_flag = 2;
+}
+
+/**
+* Message used to convey flow control information
+*/
+message Control
+{
+  message Channel
+  {
+    required uint32 id = 1;
+    required uint64 available = 2;
+    required uint64 local_sn = 3;
+    required uint64 remote_sn = 4;
+  }
+  required uint64 local_gen_id = 1;
+  required uint64 remote_gen_id = 2;
+  repeated Channel channels = 3;
+}
+
+/**
+*  MPI slave -> SciDB handshake
+*/
+message MpiSlaveHandshake
+{
+  required string cluster_uuid = 1;
+  required uint64 instance_id = 2;
+  required uint64 launch_id = 3;
+  required uint64 rank = 4;
+  required uint64 pid  = 5;
+  required uint64 ppid = 6;
+}
+
+/**
+*  MPI slave -> SciDB command result
+*/
+message MpiSlaveResult
+{
+  required uint64 launch_id = 1;
+  required int64 status = 3;
+}
+
+/**
+* SciDB -> MPI slave command
+*/
+message MpiSlaveCommand
+{
+  required string command = 1;
+  repeated string args = 2;
+}

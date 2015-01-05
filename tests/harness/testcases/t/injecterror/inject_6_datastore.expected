@@ -1,0 +1,32 @@
+SCIDB QUERY : <load_library('misc')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array C <d:int64> [ X=0:5000000,100000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array B <d:int64> [ X=0:5000000,100000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(B, random()), X > 2500000), B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(filter(build(C, random()), X < 2500000), C)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <filter(build(C, injectError(0,6)), X = 0)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <insert(B, C)>
+[An error expected at this place for the query "insert(B, C)". And it failed.]
+
+"Restarting SciDB..."
+"...done."
+SCIDB QUERY : <insert(B, C)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(C)>
+[Query was executed successfully, ignoring data output by this query.]
+

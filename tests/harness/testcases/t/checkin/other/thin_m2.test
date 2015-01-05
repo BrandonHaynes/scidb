@@ -1,0 +1,16 @@
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:8,6,0,y=-2:6,8,1]
+store(build(A,x+10),A)
+
+--test
+thin(A,0,1,-2,1)
+thin(A,0,2,-2,4)
+thin(A,0,3,-2,2)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3 "thin(A,1,2,-1,1)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3 "thin(A,1,3,0,2)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3 "thin(A,2,3,2,4)"
+
+--cleanup
+remove(A)
+--stop-query-logging

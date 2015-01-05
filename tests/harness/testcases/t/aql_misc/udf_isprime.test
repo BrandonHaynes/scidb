@@ -1,0 +1,13 @@
+--setup
+--aql create array A <a:int32> [x=0:2,3,0]
+load_library('more_math')
+store(build(A,x+2),A)
+store(build(A,x-1),B)
+
+--test
+--aql select isprime(a) from A
+--aql select isprime(a) from B
+
+--cleanup
+--aql drop array A
+--aql drop array B

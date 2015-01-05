@@ -1,0 +1,209 @@
+--setup
+--start-query-logging
+
+create array Ts_rle <a:int64 null compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_d <a:int64 null compression 'dictionary'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_ns <a:int64 null compression 'null suppression'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_be <a:int64 null compression 'bitmap encoding'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_z <a:int64 null compression 'zlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_bz <a:int64 null compression 'bzlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_nf <a:int64 null compression 'null filter'> [x=-2:3,2,2,y=0:2,3,0]
+
+
+create array eTs_rle <a:int64 null compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_d <a:int64 null compression 'dictionary'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_ns <a:int64 null compression 'null suppression'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_be <a:int64 null compression 'bitmap encoding'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_z <a:int64 null compression 'zlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_bz <a:int64 null compression 'bzlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_nf <a:int64 null compression 'null filter'> [x=-2:3,2,2,y=0:2,3,0]
+
+
+create array dTs_rle <a:int64 null default 2 compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_d <a:int64 null default 2 compression 'dictionary'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_ns <a:int64 null default 2 compression 'null suppression'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_be <a:int64 null default 2 compression 'bitmap encoding'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_z <a:int64 null default 2 compression 'zlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_bz <a:int64 null default 2 compression 'bzlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_nf <a:int64 null default 2 compression 'null filter'> [x=-2:3,2,2,y=0:2,3,0]
+
+
+create array edTs_rle <a:int64 null default 2 compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_d <a:int64 null default 2 compression 'dictionary'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_ns <a:int64 null default 2 compression 'null suppression'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_be <a:int64 null default 2 compression 'bitmap encoding'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_z <a:int64 null default 2 compression 'zlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_bz <a:int64 null default 2 compression 'bzlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_nf <a:int64 null default 2 compression 'null filter'> [x=-2:3,2,2,y=0:2,3,0]
+
+
+
+create array Ts_rle2 <a:int64 null compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_d2 <a:int64 null compression 'dictionary'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_ns2 <a:int64 null compression 'null suppression'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_be2 <a:int64 null compression 'bitmap encoding'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_z2 <a:int64 null compression 'zlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_bz2 <a:int64 null compression 'bzlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array Ts_nf2 <a:int64 null compression 'null filter'> [x=-2:3,2,2,y=0:2,3,0]
+
+
+create array eTs_rle2 <a:int64 null compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_d2 <a:int64 null compression 'dictionary'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_ns2 <a:int64 null compression 'null suppression'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_be2 <a:int64 null compression 'bitmap encoding'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_z2 <a:int64 null compression 'zlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_bz2 <a:int64 null compression 'bzlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array eTs_nf2 <a:int64 null compression 'null filter'> [x=-2:3,2,2,y=0:2,3,0]
+
+
+create array dTs_rle2 <a:int64 null default 2 compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_d2 <a:int64 null default 2 compression 'dictionary'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_ns2 <a:int64 null default 2 compression 'null suppression'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_be2 <a:int64 null default 2 compression 'bitmap encoding'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_z2 <a:int64 null default 2 compression 'zlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_bz2 <a:int64 null default 2 compression 'bzlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array dTs_nf2 <a:int64 null default 2 compression 'null filter'> [x=-2:3,2,2,y=0:2,3,0]
+
+
+create array edTs_rle2 <a:int64 null default 2 compression 'rle'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_d2 <a:int64 null default 2 compression 'dictionary'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_ns2 <a:int64 null default 2 compression 'null suppression'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_be2 <a:int64 null default 2 compression 'bitmap encoding'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_z2 <a:int64 null default 2 compression 'zlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_bz2 <a:int64 null default 2 compression 'bzlib'> [x=-2:3,2,2,y=0:2,3,0]
+create array edTs_nf2 <a:int64 null default 2 compression 'null filter'> [x=-2:3,2,2,y=0:2,3,0]
+
+
+--test
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_rle from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_d from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_ns from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_be from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_z from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_bz from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_nf from '${TEST_DATA_DIR}/null_17.txt'""
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_rle from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_d from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_ns from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_be from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_z from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_bz from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_nf from '${TEST_DATA_DIR}/null_17.txt'""
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_rle from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_d from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_ns from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_be from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_z from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_bz from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_nf from '${TEST_DATA_DIR}/null_17.txt'""
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_rle from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_d from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_ns from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_be from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_z from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_bz from '${TEST_DATA_DIR}/null_17.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_nf from '${TEST_DATA_DIR}/null_17.txt'""
+
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_rle2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_d2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_ns2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_be2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_z2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_bz2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load Ts_nf2 from '${TEST_DATA_DIR}/null_18.txt'""
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_rle2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_d2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_ns2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_be2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_z2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_bz2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load dTs_nf2 from '${TEST_DATA_DIR}/null_18.txt'""
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_rle2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_d2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_ns2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_be2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_z2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_bz2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load eTs_nf2 from '${TEST_DATA_DIR}/null_18.txt'""
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_rle2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_d2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_ns2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_be2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_z2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_bz2 from '${TEST_DATA_DIR}/null_18.txt'""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load edTs_nf2 from '${TEST_DATA_DIR}/null_18.txt'""
+
+--cleanup
+
+remove(Ts_rle)
+remove(Ts_d)
+remove(Ts_ns)
+remove(Ts_be)
+remove(Ts_z)
+remove(Ts_bz)
+remove(Ts_nf)
+
+remove(eTs_rle)
+remove(eTs_d)
+remove(eTs_ns)
+remove(eTs_be)
+remove(eTs_z)
+remove(eTs_bz)
+remove(eTs_nf)
+
+remove(dTs_rle)
+remove(dTs_d)
+remove(dTs_ns)
+remove(dTs_be)
+remove(dTs_z)
+remove(dTs_bz)
+remove(dTs_nf)
+
+remove(edTs_rle)
+remove(edTs_d)
+remove(edTs_ns)
+remove(edTs_be)
+remove(edTs_z)
+remove(edTs_bz)
+remove(edTs_nf)
+
+remove(Ts_rle2)
+remove(Ts_d2)
+remove(Ts_ns2)
+remove(Ts_be2)
+remove(Ts_z2)
+remove(Ts_bz2)
+remove(Ts_nf2)
+
+remove(dTs_rle2)
+remove(dTs_d2)
+remove(dTs_ns2)
+remove(dTs_be2)
+remove(dTs_z2)
+remove(dTs_bz2)
+remove(dTs_nf2)
+
+remove(eTs_rle2)
+remove(eTs_d2)
+remove(eTs_ns2)
+remove(eTs_be2)
+remove(eTs_z2)
+remove(eTs_bz2)
+remove(eTs_nf2)
+
+remove(edTs_rle2)
+remove(edTs_d2)
+remove(edTs_ns2)
+remove(edTs_be2)
+remove(edTs_z2)
+remove(edTs_bz2)
+remove(edTs_nf2)
+
+--stop-query-logging

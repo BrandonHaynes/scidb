@@ -1,0 +1,57 @@
+--setup
+--start-query-logging
+create array A <a:bool>[x=0:4,2,0]
+create array B <a:int32>[x=0:4,2,0]
+create array C <a:string>[x=0:4,2,0]
+create array D <a:int8>[x=0:4,2,0]
+create array E <a:int16>[x=0:4,2,0]
+create array F <a:char>[x=0:4,2,0]
+create array G <a:datetime>[x=0:4,2,0]
+create array H <a:bool>[x=0:4,2,0]
+create array I <a:int32>[x=0:4,2,0]
+create array J <a:string>[x=0:4,2,0]
+create array K <a:int8>[x=0:4,2,0]
+create array L <a:int16>[x=0:4,2,0]
+create array M <a:char>[x=0:4,2,0]
+create array N <a:datetime>[x=0:4,2,0]
+
+--test
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(<a:bool>[x=0:4,2,0],null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(<a:string>[x=0:4,2,0],null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(<a:int32>[x=0:4,2,0],null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(<a:int8>[x=0:4,2,0],null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(<a:int16>[x=0:4,2,0],null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(<a:char>[x=0:4,2,0],null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(<a:datetime>[x=0:4,2,0],null)"
+
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(A,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(B,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(C,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(D,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(E,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(F,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(G,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(H,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(I,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(J,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(K,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(L,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(M,null)"
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE "build(N,null)"
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+remove(F)
+remove(G)
+remove(H)
+remove(I)
+remove(J)
+remove(K)
+remove(L)
+remove(M)
+remove(N)
+--stop-query-logging

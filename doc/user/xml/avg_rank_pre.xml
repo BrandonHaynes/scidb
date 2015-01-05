@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="avgRankOperator">
+  <refnamediv id="avgRank">
+    <refname>avg_rank</refname>
+
+    <refpurpose><indexterm>
+        <primary>avg_rank</primary>
+      </indexterm><indexterm>
+        <primary>ranking methods</primary>
+
+        <secondary>avg_rank</secondary>
+      </indexterm>Rank elements of an array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>avg_rank(<replaceable>array</replaceable><optional>, <replaceable>attribute</replaceable></optional><optional>,<replaceable> dimension_1</replaceable>, <replaceable>dimension_2</replaceable>,...]</optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <code>avg_rank</code> operator ranks array elements and
+    calculates average rank as the average of the upper bound (UB) and lower
+    bound (LB) rankings. The LB ranking of A, same as returned by rank, is the
+    number of elements less than A, plus 1. The UB ranking of A is the number
+    of elements less than or equal to A, plus 1. avg_rank returns the average
+    of the UB and LB ranking for each element.</para>
+
+    <para>If no duplicates are present, then for each element the UB rank is
+    the same as the LB rank and avg_rank returns exactly the same result as
+    <link linkend="rankOperator">rank</link>.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example calculates ranks along the columns of an array where
+      there are ties within columns.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 4<symbol role="symbolfont">×</symbol>4 array called
+          rank:<programlisting language="test">--afl create array rank_array &lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put random values of 0–6 into rank:<programlisting
+          language="test">--afl store(build(rank_array,random()%7/1.0),rank_array); --show-output-in-test-file=no
+   --output-format=dense --chunkify=yes
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Rank the elements in rank_array by dimension i:<programlisting
+          language="test">--afl avg_rank(rank_array,val,i); --show-output-in-test-file=no
+   --output-format=dense --chunkify=yes
+</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,177 @@
+SCIDB QUERY : <load_library('linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_PAIRS)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <create array GRAPH_PAIRS <v0:int64, v1:int64>[dummy=0:*,10000*10000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_WEIGHTS)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <create array  GRAPH_WEIGHTS <w:float>[v0=0:   12830,      12830/4+1,0,    v1=0: 12830,     12830/4+1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(GRAPH_PAIRS,    '/tmp/401_twitter.scidb.txt')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(apply(filter(GRAPH_PAIRS, v0<=12830 and v1<=12830), w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+"shortest paths from vertex 12"
+SCIDB QUERY : <scan(SHORTEST_PATHS_VEC)>
+{v1,dummy} multiply
+{12,0} 0
+{13,0} 1
+{14,0} 1
+{20,0} 2
+{47,0} 3
+{66,0} 3
+{107,0} 2
+{224,0} 2
+{246,0} 2
+{291,0} 1
+{295,0} 1
+{324,0} 2
+{380,0} 2
+{409,0} 1
+{414,0} 2
+{418,0} 1
+{422,0} 1
+{528,0} 2
+{573,0} 2
+{586,0} 2
+{648,0} 1
+{746,0} 2
+{760,0} 2
+{761,0} 3
+{765,0} 2
+{767,0} 2
+{785,0} 2
+{885,0} 2
+{922,0} 2
+{929,0} 3
+{939,0} 2
+{989,0} 1
+{997,0} 3
+{1004,0} 3
+{1075,0} 1
+{1076,0} 2
+{1081,0} 2
+{1084,0} 2
+{1186,0} 2
+{1192,0} 3
+{1378,0} 1
+{1966,0} 2
+{2112,0} 2
+{2172,0} 1
+{2187,0} 3
+{2391,0} 3
+{2426,0} 2
+{2565,0} 2
+{2627,0} 3
+{2900,0} 2
+{3032,0} 2
+{3302,0} 4
+{3382,0} 2
+{3471,0} 2
+{3475,0} 1
+{3526,0} 2
+{3839,0} 2
+{3840,0} 2
+{3860,0} 3
+{4488,0} 2
+{4558,0} 2
+{4791,0} 2
+{4816,0} 2
+{4833,0} 3
+{5017,0} 2
+{5471,0} 2
+{5517,0} 3
+{5525,0} 3
+{5699,0} 1
+{5702,0} 2
+{5827,0} 4
+{5841,0} 2
+{5976,0} 3
+{6104,0} 3
+{6140,0} 2
+{6532,0} 2
+{6579,0} 3
+{6664,0} 2
+{6735,0} 3
+{6856,0} 3
+{7482,0} 2
+{7632,0} 3
+{7846,0} 1
+{8291,0} 2
+{8584,0} 2
+{8943,0} 2
+{9027,0} 2
+{10191,0} 2
+{10202,0} 2
+{10203,0} 3
+{10213,0} 3
+{10230,0} 2
+{10237,0} 2
+{10241,0} 2
+{10350,0} 1
+{10367,0} 3
+{10437,0} 2
+{10450,0} 2
+{10519,0} 2
+{10545,0} 3
+{10638,0} 2
+{10668,0} 3
+{10725,0} 2
+{10877,0} 3
+{10923,0} 2
+{11041,0} 2
+{11113,0} 1
+{11222,0} 2
+{11250,0} 3
+{11489,0} 4
+{11628,0} 2
+{11661,0} 4
+{11677,0} 4
+{11682,0} 4
+{11718,0} 3
+{11818,0} 4
+{11866,0} 4
+{11969,0} 2
+{12028,0} 4
+{12108,0} 2
+{12158,0} 4
+{12161,0} 3
+{12196,0} 4
+{12249,0} 3
+{12376,0} 4
+{12491,0} 3
+{12496,0} 4
+{12497,0} 3
+{12528,0} 4
+{12534,0} 3
+{12555,0} 3
+{12587,0} 3
+{12591,0} 4
+{12616,0} 3
+{12707,0} 3
+{12715,0} 4
+{12741,0} 3
+{12773,0} 2
+{12815,0} 4
+{12830,0} 4
+
+SCIDB QUERY : <remove(GRAPH_PAIRS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_WEIGHTS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+Query was executed successfully
+

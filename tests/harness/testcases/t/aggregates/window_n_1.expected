@@ -1,0 +1,138 @@
+SCIDB QUERY : <create array A <a:int32 null> [x=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <update A set a=null where x=1>
+{x} a
+{0} 10
+{1} null
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <store(build(A,x-2),A)>
+{x} a
+{0} -2
+{1} -1
+{2} 0
+{3} 1
+{4} 2
+{5} 3
+{6} 4
+{7} 5
+{8} 6
+
+SCIDB QUERY : <update A set a=null where x=1>
+{x} a
+{0} -2
+{1} null
+{2} 0
+{3} 1
+{4} 2
+{5} 3
+{6} 4
+{7} 5
+{8} 6
+
+SCIDB QUERY : <window(A,8,9,sum(a),max(a))>
+{x} a_sum,a_max
+{0} 19,6
+{1} 19,6
+{2} 19,6
+{3} 19,6
+{4} 19,6
+{5} 19,6
+{6} 19,6
+{7} 19,6
+{8} 19,6
+
+SCIDB QUERY : <window(A,1,1,max(a),var(a),stdev(a),count(a),sum(a),min(a))>
+{x} a_max,a_var,a_stdev,a_count,a_sum,a_min
+{0} -2,null,null,1,-2,-2
+{1} 0,2,1.41421,2,-2,-2
+{2} 1,0.5,0.707107,2,1,0
+{3} 2,1,1,3,3,0
+{4} 3,1,1,3,6,1
+{5} 4,1,1,3,9,2
+{6} 5,1,1,3,12,3
+{7} 6,1,1,3,15,4
+{8} 6,0.5,0.707107,2,11,5
+
+SCIDB QUERY : <window(A,1,2,min(a),count(*))>
+{x} a_min,count
+{0} -2,3
+{1} -2,4
+{2} 0,4
+{3} 0,4
+{4} 1,4
+{5} 2,4
+{6} 3,4
+{7} 4,3
+{8} 5,2
+
+SCIDB QUERY : <window(A,0,1,count(a),count(*))>
+{x} a_count,count
+{0} 1,2
+{1} 1,2
+{2} 2,2
+{3} 2,2
+{4} 2,2
+{5} 2,2
+{6} 2,2
+{7} 2,2
+{8} 1,1
+
+SCIDB QUERY : <window(A,1,1,count(*),sum(a))>
+{x} count,a_sum
+{0} 2,-2
+{1} 3,-2
+{2} 3,1
+{3} 3,3
+{4} 3,6
+{5} 3,9
+{6} 3,12
+{7} 3,15
+{8} 2,11
+
+SCIDB QUERY : <window(A,2,2,stdev(a),avg(a))>
+{x} a_stdev,a_avg
+{0} 1.41421,-1
+{1} 1.52753,-0.333333
+{2} 1.70783,0.25
+{3} 1.29099,1.5
+{4} 1.58114,2
+{5} 1.58114,3
+{6} 1.58114,4
+{7} 1.29099,4.5
+{8} 1,5
+
+SCIDB QUERY : <window(A,4,4,var(a),stdev(a))>
+{x} a_var,a_stdev
+{0} 2.91667,1.70783
+{1} 3.7,1.92354
+{2} 4.66667,2.16025
+{3} 5.80952,2.4103
+{4} 7.125,2.66927
+{5} 4.66667,2.16025
+{6} 4.66667,2.16025
+{7} 3.5,1.87083
+{8} 2.5,1.58114
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

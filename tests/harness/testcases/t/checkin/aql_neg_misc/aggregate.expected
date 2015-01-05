@@ -1,0 +1,21 @@
+Query was executed successfully
+
+{x,y} a
+{0,0} 1
+{0,1} 2
+{0,2} 3
+{1,0} 4
+{1,1} 5
+{1,2} 6
+{2,0} 7
+{2,1} 8
+{2,2} 9
+
+[An error expected at this place for the query "select count(select * from part where part.y > 1 and part.a>1) from mult_1 group-by x as part". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+[An error expected at this place for the query "select * from mult_1 as A where A.a > sum ( select A.x from mult_1 as B where A.x = B.x)". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+[An error expected at this place for the query "select 1 + count(mult_1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AGGREGATE_EXPECTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AGGREGATE_EXPECTED.]
+
+Query was executed successfully
+

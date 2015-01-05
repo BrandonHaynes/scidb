@@ -1,0 +1,6 @@
+Query was executed successfully
+
+[An error expected at this place for the query "join(remove(foo),remove(foo))". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_DDL_CANT_BE_NESTED. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_DDL_CANT_BE_NESTED.]
+
+Query was executed successfully
+

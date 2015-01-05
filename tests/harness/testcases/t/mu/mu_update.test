@@ -1,0 +1,56 @@
+--setup
+
+--shell --command "echo This test requires at least two instances on IQUERY_HOST because it is using IQUERY_PORT and IQUERY_PORT+1"
+
+ --igdata "store(build (<a:int64> [I=0:999,10,0], 0), MU_TEST_ARRAY)"
+ --igdata "store(build (<x:double>[i=0:1024-1,32,0, j=0:1024-1,32,0], 0.0),  MU_TEST_M1024x1024)"
+
+--shell --command "touch  /tmp/$HPID.mu_setup.sh"
+--shell --command "touch  /tmp/$HPID.mu_cleanup.sh"
+
+--shell --command "echo iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -aq $'\'aggregate(filter(MU_TEST_ARRAY, a<>100),count(*))\''  > /tmp/$HPID.mu_tests.sh"
+--shell --command "echo iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -aq $'\'aggregate(filter(MU_TEST_M1024x1024, x=100),count(*))\''  > /tmp/$HPID.mu_tests.sh"
+
+--shell --command "echo iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -naq $'\'store(project(apply(MU_TEST_ARRAY, b, a+1),b), MU_TEST_ARRAY)\''  >> /tmp/$HPID.mu_tests.sh"
+--shell --command "echo iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -naq $'\'store(project(apply(MU_TEST_M1024x1024, b, x+1),b), MU_TEST_M1024x1024)\''  >> /tmp/$HPID.mu_tests.sh"
+
+--shell --command "echo iquery -c ${IQUERY_HOST:=localhost} -p $((${IQUERY_PORT:=1239}+1)) -aq $'\'aggregate(filter(MU_TEST_ARRAY, a=100),count(*))\''  >> /tmp/$HPID.mu_tests.sh"
+--shell --command "echo iquery -c ${IQUERY_HOST:=localhost} -p ${IQUERY_PORT:=1239} -aq $'\'aggregate(filter(MU_TEST_M1024x1024, x<>100),count(*))\''  >> /tmp/$HPID.mu_tests.sh"
+
+--shell --command "echo [multi_query_test]                    > /tmp/$HPID.mu.cfg"
+--shell --command "echo base-port=${IQUERY_PORT:=1239}        >> /tmp/$HPID.mu.cfg"
+--shell --command "echo target-host=${IQUERY_HOST:=localhost} >> /tmp/$HPID.mu.cfg"
+
+--shell --command "echo setup=/tmp/$HPID.mu_setup.sh          >> /tmp/$HPID.mu.cfg"
+--shell --command "echo cleanup=/tmp/$HPID.mu_cleanup.sh      >> /tmp/$HPID.mu.cfg"
+--shell --command "echo tests=/tmp/$HPID.mu_tests.sh          >> /tmp/$HPID.mu.cfg"
+--shell --command "echo num-clients=100                       >> /tmp/$HPID.mu.cfg"
+--shell --command "echo num-iterations=1                      >> /tmp/$HPID.mu.cfg"
+
+--test
+
+# if interrupted, this shell command will kill the current process group (typically scidbtestharness+children).
+# this way the background iquery started here does not stay behind - best effort cleanup attempt.
+
+--shell --command "trap 'kill 0' SIGINT SIGTERM SIGHUP SIGQUIT ; python ${TEST_BIN_DIR}/mu_driver.py /tmp/$HPID.mu.cfg 1> /tmp/$HPID.stdout 2> /tmp/$HPID.stderr"
+
+aggregate(filter(MU_TEST_ARRAY, a<>100),count(*))
+aggregate(filter(MU_TEST_ARRAY, a=100),count(*))
+
+aggregate(filter(MU_TEST_M1024x1024,x<>100),count(*))
+aggregate(filter(MU_TEST_M1024x1024,x=100),count(*))
+
+--cleanup
+
+--shell --command "cat /tmp/$HPID.stderr"
+--shell --store --command "cat /tmp/$HPID.stdout"
+
+remove(MU_TEST_ARRAY)
+remove(MU_TEST_M1024x1024)
+
+--shell --command "rm /tmp/$HPID.mu_setup.sh"
+--shell --command "rm /tmp/$HPID.mu_cleanup.sh"
+--shell --command "rm /tmp/$HPID.mu_tests.sh"
+--shell --command "rm /tmp/$HPID.mu.cfg"
+--shell --command "rm /tmp/$HPID.stdout"
+--shell --command "rm /tmp/$HPID.stderr"

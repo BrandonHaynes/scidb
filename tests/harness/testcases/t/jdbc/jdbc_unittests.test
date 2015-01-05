@@ -1,0 +1,1 @@
+--shell --command "${TESTDIR}/jdbc_unittests.py"

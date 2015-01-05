@@ -1,0 +1,34 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+
+
+# the "canonical" array for scanning
+# this will cause all output to go to one chunk before being scanned
+# so that it will always be output in a single order, no matter
+# how it is chunked during computation.  this makes the script
+# test for equality correctly, no matter how many instances are used
+
+create array FMT3 <v:double>[i=0:1,2,0, j=0:1,2,0]
+
+# 2x2 array, chunksize 1 to 3
+# we'd like to use the following size, but its too small to check with gemm
+# so we'll use 32 instead
+#create array V_c1 <v:double>[i=0:1,1,0, j=0:1,1,0]
+create array V_c1 <v:double>[i=0:1,32,0, j=0:1,32,0]
+
+--test
+
+repart(store( filter(build(V_c1, 1+4*i+2*j), true), V_c1 ), FMT3)
+
+# regular
+repart(gemm(V_c1, V_c1, build(V_c1,0)),FMT3)
+repart(spgemm(V_c1, V_c1),FMT3)
+
+--cleanup
+remove(FMT3)
+remove(V_c1)
+
+--stop-query-logging
+

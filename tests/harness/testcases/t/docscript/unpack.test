@@ -1,0 +1,51 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+--aql CREATE ARRAY m3x3 <val:double>[i=0:2,3,0,j=0:2,3,0]  
+--set-format auto
+--stop-igdata
+store(build(m3x3,i*3+j),m3x3)  
+store(apply(m3x3,val2,val+100),m3x3_2attr)  
+--set-format dcsv
+unpack(m3x3_2attr, x) 
+--start-igdata
+create array aFlat <row:int64, col:int64, value:string null> [csvRow=0:5,6,0] 
+store(build(aFlat,'[(2,1,null),(2,2,null),(2,3,null),(3,1,"a7"),(3,2,"a8"),(3,3,"a9")]',true),aFlat)  
+--aql create array A <value:string null> [row=1:3,3,0, col=1:3,3,0] 
+store(redimension(aFlat,A),A) 
+--set-format dense
+--stop-igdata
+show(A)  
+--aql select * from A 
+--set-format dcsv
+unpack(A, x) 
+--start-igdata
+create array A1 <firstnames:string> [i=0:2,3,0, j=0:1,2,0]  
+create array A2 <lastnames:string> [i=0:2,3,0, j=0:1,2,0]  
+store(build(A1,'[[("Bill"),("Anne")],[("Joe"),("Steve")],[("Burt"),("Ronald")]]',true),A1)  
+store(build(A2,'[[("Clinton"),("Rice")],[("Pantoliano"),("Jobs")],[("Reynolds"),("Reagan")]]',true),A2)  
+store(join(A1,A2),Names)  
+--stop-igdata
+show(Names)
+--set-format dense
+scan(Names)  
+--set-format dcsv
+store(unpack(Names,x),namesFlat)  
+show(namesFlat)
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m3x3)
+remove(m3x3_2attr)
+remove(aFlat)
+remove(A)
+remove(A1)
+remove(A2)
+remove(Names)
+remove(namesFlat)

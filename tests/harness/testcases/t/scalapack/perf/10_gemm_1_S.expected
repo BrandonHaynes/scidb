@@ -1,0 +1,73 @@
+SCIDB QUERY : <create array ident1<a: double >   [r=0:0,32,0, c=0:0,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident2<a: double >   [r=0:1,32,0, c=0:1,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident4<a: double >   [r=0:3,32,0, c=0:3,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident8<a: double >   [r=0:7,32,0, c=0:7,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident16<a: double >   [r=0:15,32,0, c=0:15,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident32<a: double >   [r=0:31,32,0, c=0:31,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident64<a: double >   [r=0:63,32,0, c=0:63,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident128<a: double >   [r=0:127,32,0, c=0:127,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident256<a: double >   [r=0:255,32,0, c=0:255,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident512<a: double >   [r=0:511,32,0, c=0:511,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident1024<a: double >   [r=0:1023,32,0, c=0:1023,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident2048<a: double >   [r=0:2047,32,0, c=0:2047,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident4096<a: double >   [r=0:4095,32,0, c=0:4095,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array ident8192<a: double >   [r=0:8191,32,0, c=0:8191,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

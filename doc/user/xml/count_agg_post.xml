@@ -1,0 +1,103 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="countAggregate">
+    <refname>count</refname>
+
+    <refpurpose><indexterm>
+        <primary>count</primary>
+      </indexterm><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>count</secondary>
+      </indexterm>Returns a count of non-empty cells, or attributes that are
+    not null.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>AQL% <command>SELECT</command> count(<replaceable>attribute</replaceable>) <command>FROM</command> <replaceable>array</replaceable> <optional><command>GROUP BY</command> <replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional>
+
+AFL% aggregate(<replaceable>array</replaceable>,count(<replaceable>attribute</replaceable>)<optional>,<replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional>)</synopsis>
+
+    <para>OR</para>
+
+    <synopsis>AQL% <command>SELECT</command> count(*) <command>FROM</command> <replaceable>array</replaceable> <optional><command>GROUP BY</command> <replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional></synopsis>
+
+    <synopsis>AFL% aggregate(<replaceable>array</replaceable>,count(*) <optional>,<replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>If you use the count(<replaceable>attribute</replaceable>) syntax,
+    the count aggregate counts everything except the following:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>empty cells</para>
+      </listitem>
+
+      <listitem>
+        <para>attribute values that are NULL.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>If you use the count(*) syntax, the count aggregate returns a count
+    of the all the cells present (both NULL and NOT NULL).</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example finds the number of nonempty cells in a 3<symbol role="symbolfont">×</symbol>3 array.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array with values 1 along the diagonal of m3x3, and
+          the remaining cells empty.<para><programlisting>AFL% store(redimension
+        (apply
+            (build(&lt;v:double&gt;[i1=1:3,3,0,j1=1:3,3,0],1),i,iif(i1=j1,i1,null),
+         j,iif(i1=j1,j1,null)),
+      &lt;v:double&gt;[i=1:3,3,0,j=1:3,3,0]), m3x3);    </programlisting><screen>[
+[(1),(),()],
+[(),(1),()],
+[(),(),(1)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Find the number of nonempty cells in the array:<para><programlisting>AFL% aggregate(m3x3,count(v));  </programlisting><screen>[(3)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example finds the number of nonempty and non-null cells from
+      an array that contains some NULL values.</para>
+
+      <procedure>
+        <step>
+          <para>Show the contents of array <emphasis role="bold">A</emphasis>:<para><screen>[
+[(),(),()],
+[(null),(null),(null)],
+[('a7'),('a8'),('a9')]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Count the number of nonempty cells:<para><programlisting>AQL% <command>SELECT</command> count(*) <command>FROM</command> A;  </programlisting><screen>[(6)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Count the number of nonempty and non-null cells for the
+          <literal>value</literal> attribute, along the first
+          dimension:<para><programlisting>AQL% <command>SELECT</command> count(value) <command>FROM</command> A <command>GROUP BY</command> row;  </programlisting><screen>[(),(),(3)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

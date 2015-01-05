@@ -1,0 +1,21 @@
+--setup
+create array A <a:int32>[x=0:2,3,0,y=1:6,3,0]
+store(build(A,x+y),A)
+store(build(A,x+y),B)
+create array C <c:int32>[p=0:2,3,0,q=1:6,3,0]
+store(build(C,p-q),C)
+
+--test
+cross_join(A,B,A.x,B.x)
+cross_join(A,B,A.y,B.y)
+cross_join(A,B,A.x,B.x,A.y,B.y)
+cross_join(A,B,A.y,B.y,A.x,B.x)
+cross_join(A,C,A.x,C.p)
+cross_join(A,C,A.x,C.p)
+cross_join(A,C,A.x,C.p,A.y,C.q)
+cross_join(A,C,A.y,C.q,A.x,C.p)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

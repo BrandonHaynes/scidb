@@ -1,0 +1,251 @@
+Query was executed successfully
+
+SCIDB QUERY : <create array SAint8 <a:int8>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAint16 <a:int16>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAint32 <a:int32>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAint64 <a:int64>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAuint8 <a:uint8>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAuint16 <a:uint16>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAuint32 <a:uint32>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAuint64 <a:uint64>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAfloat <a:float>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAdouble <a:double>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SAstring <a:string>[x=0:2,3,0, y=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store( filter(build(SAint8, x+9), true), SAint8 )>
+{x,y} a
+{0,0} 9
+{0,1} 9
+{0,2} 9
+{1,0} 10
+{1,1} 10
+{1,2} 10
+{2,0} 11
+{2,1} 11
+{2,2} 11
+
+SCIDB QUERY : <store( filter(build(SAint16, x+y), true), SAint16 )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAint32, x+y), true), SAint32 )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAint64, x+y), true), SAint64 )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAuint8, x+y), true), SAuint8 )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAuint16, x+y), true), SAuint16 )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAuint32, x+y), true), SAuint32 )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAuint64, x+y), true), SAuint64 )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAfloat, x+y), true), SAfloat )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAdouble, x+y), true), SAdouble )>
+{x,y} a
+{0,0} 0
+{0,1} 1
+{0,2} 2
+{1,0} 1
+{1,1} 2
+{1,2} 3
+{2,0} 2
+{2,1} 3
+{2,2} 4
+
+SCIDB QUERY : <store( filter(build(SAstring, string(x+y)), true), SAstring )>
+{x,y} a
+{0,0} '0'
+{0,1} '1'
+{0,2} '2'
+{1,0} '1'
+{1,1} '2'
+{1,2} '3'
+{2,0} '2'
+{2,1} '3'
+{2,2} '4'
+
+SCIDB QUERY : <spgemm(SAint8, SAint8)>
+[An error expected at this place for the query "spgemm(SAint8, SAint8)". And it failed.]
+
+SCIDB QUERY : <spgemm(SAint16, SAint16)>
+[An error expected at this place for the query "spgemm(SAint16, SAint16)". And it failed.]
+
+SCIDB QUERY : <spgemm(SAint32, SAint32)>
+[An error expected at this place for the query "spgemm(SAint32, SAint32)". And it failed.]
+
+SCIDB QUERY : <spgemm(SAint64, SAint64)>
+[An error expected at this place for the query "spgemm(SAint64, SAint64)". And it failed.]
+
+SCIDB QUERY : <spgemm(SAuint8, SAuint8)>
+[An error expected at this place for the query "spgemm(SAuint8, SAuint8)". And it failed.]
+
+SCIDB QUERY : <spgemm(SAuint16, SAuint16)>
+[An error expected at this place for the query "spgemm(SAuint16, SAuint16)". And it failed.]
+
+SCIDB QUERY : <spgemm(SAuint32, SAuint32)>
+[An error expected at this place for the query "spgemm(SAuint32, SAuint32)". And it failed.]
+
+SCIDB QUERY : <spgemm(SAuint64, SAuint64)>
+[An error expected at this place for the query "spgemm(SAuint64, SAuint64)". And it failed.]
+
+SCIDB QUERY : <spgemm(SAfloat, SAfloat)>
+{x,y} multiply
+{0,0} 5
+{0,1} 8
+{0,2} 11
+{1,0} 8
+{1,1} 14
+{1,2} 20
+{2,0} 11
+{2,1} 20
+{2,2} 29
+
+SCIDB QUERY : <spgemm(SAdouble, SAdouble)>
+{x,y} multiply
+{0,0} 5
+{0,1} 8
+{0,2} 11
+{1,0} 8
+{1,1} 14
+{1,2} 20
+{2,0} 11
+{2,1} 20
+{2,2} 29
+
+SCIDB QUERY : <spgemm(SAstring, SAstring)>
+[An error expected at this place for the query "spgemm(SAstring, SAstring)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_MULTIPLY_ERROR9. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_MULTIPLY_ERROR9.]
+
+SCIDB QUERY : <remove(SAint8)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAint16)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAint32)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAint64)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAuint8)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAuint16)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAuint32)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAuint64)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAfloat)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAdouble)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SAstring)>
+Query was executed successfully
+

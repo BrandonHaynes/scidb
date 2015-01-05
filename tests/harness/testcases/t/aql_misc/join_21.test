@@ -1,0 +1,16 @@
+--setup
+--aql create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+
+--test
+--aql select * into B from A,A
+--aql select * into C from A,A where x=1
+--aql select * into D from A,A where x>1
+--aql select * into E from A,A where x<>1
+
+--cleanup
+--aql drop array A
+--aql drop array B
+--aql drop array C
+--aql drop array D
+--aql drop array E

@@ -1,0 +1,67 @@
+SCIDB QUERY : <load_library('linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_PAIRS)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <create array GRAPH_PAIRS <v0:int64, v1:int64>[dummy=0:*,10000*10000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_WEIGHTS)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <create array GRAPH_WEIGHTS <w:float>[v0=0:568770231, 568770231/4+1,0, v1=0:568770231, 568770231/4+1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(GRAPH_PAIRS,    '/tmp/409_twitter.scidb.txt')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(apply(GRAPH_PAIRS, w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <show(SHORTEST_PATHS_VEC)>
+{i} schema
+{0} 'SHORTEST_PATHS_VEC<multiply:float> [v1=0:568770231,142192558,0,dummy=0:0,1,0]'
+
+SCIDB QUERY : <aggregate(SHORTEST_PATHS_VEC, count(*))>
+{i} count
+{0} 81304
+
+SCIDB QUERY : <aggregate(SHORTEST_PATHS_VEC, sum(multiply))>
+{i} multiply_sum
+{0} 304922
+
+SCIDB QUERY : <aggregate(SHORTEST_PATHS_VEC, avg(multiply))>
+{i} multiply_avg
+{0} 3.75039
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+[Query was executed successfully. It was only intended to just run.]
+SCIDB QUERY : <show(SHORTEST_PATHS_VEC)>
+{i} schema
+{0} 'SHORTEST_PATHS_VEC<multiply:float> [v1=0:568770231,142192558,0,dummy=0:0,1,0]'
+
+SCIDB QUERY : <aggregate(SHORTEST_PATHS_VEC, count(*))>
+{i} count
+{0} 81304
+
+SCIDB QUERY : <aggregate(SHORTEST_PATHS_VEC, sum(multiply))>
+{i} multiply_sum
+{0} 340429
+
+SCIDB QUERY : <aggregate(SHORTEST_PATHS_VEC, avg(multiply))>
+{i} multiply_avg
+{0} 4.18711
+
+SCIDB QUERY : <remove(GRAPH_PAIRS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(GRAPH_WEIGHTS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+Query was executed successfully
+

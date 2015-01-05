@@ -1,0 +1,22 @@
+--setup
+--start-query-logging
+# make sure we report an error when we are out of space on /dev/shm
+# it tries to multiply two 8GB matricies, the default /dev/shm partition is 8G
+# it should try to allocate about 2*8GB worth of shared memory (by default /dev/shm size is RAM/2)
+create array SCHEMA_8GB_ROWc1024 <a: double >   [r=0:0,1024,0, c=0:1024*1024*1024-1,1024,0]
+create array SCHEMA_8GB_COLc1024 <a: double >   [r=0:1024*1024*1024-1,1024,0, c=0:0,1024,0]
+create array SCHEMA_ONEc1024 <a: double >       [r=0:0,1024,0, c=0:0,1024,0]
+load_library('dense_linear_algebra')
+--test
+# on large memory machines, the temp file holding the output of this query can
+# (1) make it run very slow
+# (2) use more disk space than is available for stage and scidb gets an IO error and the coordinator dies
+# so we must use start-igdata or the test can seem to hang and/or fail
+--start-igdata
+# note that build is hideously slow, too
+--error --code=scidb::SCIDB_SE_NO_MEMORY::SCIDB_LE_MEMORY_ALLOCATION_ERROR "gemm(build(SCHEMA_8GB_ROWc1024, 0), build(SCHEMA_8GB_COLc1024, 0), build(SCHEMA_ONEc1024, 0))"
+--stop-igdata
+--cleanup
+remove(SCHEMA_8GB_ROWc1024)
+remove(SCHEMA_8GB_COLc1024)
+remove(SCHEMA_ONEc1024)

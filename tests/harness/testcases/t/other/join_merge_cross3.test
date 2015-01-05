@@ -1,0 +1,55 @@
+--setup
+--start-query-logging
+##Ticket number: 1602
+##Testcases for the 2D-arrays with different dimension alignment, same dimension names and different attribute types
+
+
+create array m7x3 < val : double > [ I=0:6,3,0, J=1:3,3,0]
+create array m3x7 < val : int64 > [I=0:2,3,0, J=1:7,3,0]
+create array m3x3 < val : string > [ I=1:3,3,0, J=1:3,3,0]
+create array M3x3 < val :float > [ I=0:2,3,0, J=1:3,3,0]
+store(build(m7x3, I*I+J/(1.0)),m7x3)
+store(build(m3x7, I*I+J/(1.0)),m3x7)
+store(build(m3x3, I+J/(2.5)),m3x3)
+store(build(M3x3, I+J/(3.5)),M3x3)
+
+--test
+join(m7x3,M3x3)
+join(M3x3,m7x3)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(m3x3,m7x3)"
+subarray(m7x3,0,1,6,3)
+subarray(m3x3,1,1,3,3)
+join(subarray(m3x3,1,1,3,3),subarray(m7x3,0,1,6,3)) 
+## This is done to set the start cordinates of both array 0 and hence operation becomes possible.
+join(subarray(m7x3,1,1,2,2),subarray(m3x3,2,2,3,3))
+join(m3x7,m7x3)
+join(m7x3,m3x7)
+cross_join(m7x3,M3x3)
+cross_join(M3x3,m7x3)
+cross_join(M3x3,m3x3)
+cross_join(m7x3,m3x7)
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AMBIGUOUS_DIMENSION "cross_join(m7x3,M3x3,J,I)"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AMBIGUOUS_DIMENSION "cross_join(m7x3,M3x3,I,J)"
+## Using cast to remove ambiguity in dimension names.
+store(cross_join(m7x3,cast(M3x3,< val : float > [ X=0:2,3,0, Y=1:3,3,0]),J,Y),RRR)            
+show(RRR)
+cross_join(m3x3,cast(M3x3,< val : float > [ X=0:2,3,0, Y=1:3,3,0]),J,Y)
+merge(subarray(m7x3,0,1,1,3),subarray(m7x3,5,1,6,3))
+merge(subarray(m7x3,5,1,6,3),subarray(m7x3,0,1,1,3))
+--aql select * into m1 from subarray(m7x3,0,1,2,3) where J>I
+--aql select * into m2 from subarray(m7x3,0,1,2,3) where I>J
+merge(m1,m2)
+merge(m2,m1)
+
+
+
+
+--cleanup
+remove(m7x3)
+remove(m3x7)
+remove(m3x3)
+remove(M3x3)
+remove(m1)
+remove(m2)
+remove(RRR)
+--stop-query-logging

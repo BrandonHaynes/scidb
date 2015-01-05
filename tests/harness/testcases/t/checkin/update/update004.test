@@ -1,0 +1,17 @@
+--setup
+--aql create  array A <a:int32 null>[x=0:2,3,0]
+store(build(A,x+1),A)
+
+--test
+--sleep 2
+--aql update A set a=5 where x=1
+--sleep 2
+--aql update A set a=2 where a=1
+--sleep 2
+--aql update A set a=9 where a=x+1
+--sleep 2
+--aql update A set a=7 where x+1=a-1
+--sleep 2
+
+--cleanup
+--aql drop array A

@@ -1,0 +1,32 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+--aql create array ddFlat <patientID:int64,elapsedTime:int64,pulse:int64,ppm:int64> [csvRow=0:1000,1000,0]  
+--shell  --command="csv2scidb -s 1 -p NNNN < $DOC_DATA/doseData.csv > $DOC_DATA/doseData.scidb "
+--stop-igdata
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -q "load ddFlat from '${TEST_DATA_DIR}/doc/doseData.scidb'""
+--start-igdata
+--aql create array doseData <pulse:int64,ppm:int64> [patientID=1:100,100,0,elapsedTime=0:999,1000,0] 
+--stop-igdata
+store(redimension(ddFlat,doseData),doseData) 
+--start-igdata
+--aql create array ppmFunction <ppm:int64> [patientID=1:100,100,0, elapsedTime=0:999,1000,0,pulse=0:300,301,0] 
+--stop-igdata
+store(redimension(doseData,ppmFunction),ppmFunction) 
+--start-igdata
+--aql create array pulseFunction <pulse:int64> [patientID=1:100,100,0, elapsedTime=0:999,1000,0, ppm=0:10000,10001,0] 
+--stop-igdata
+store(redimension(doseData,pulseFunction),pulseFunction) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(ddFlat)
+remove(doseData)
+remove(ppmFunction)
+remove(pulseFunction)

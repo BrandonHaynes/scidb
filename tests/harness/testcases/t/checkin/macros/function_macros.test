@@ -1,0 +1,39 @@
+--setup
+create array A < a1 : int32, a2 : int32 NULL > [ I=0:9,5,0, J=0:9,5,0 ]
+create array B < a1 : int32, a2 : int32 NULL > [ I=0:9,5,0, J=0:9,5,0 ]
+store ( filter ( join ( build ( < a1 : int32 > [ I=0:9,5,0, J=0:9,5,0 ], I*9+J ), build ( < a2 : int32 NULL > [ I=0:9,5,0, J=0:9,5,0 ], iif(((J*9+I)%2=0),missing(0),(J*9+I)))), a1%5 != 0), A)
+store ( filter ( join ( build ( < a1 : int32 > [ I=0:9,5,0, J=0:9,5,0 ], 1000 + I*9+J ), build ( < a2 : int32 NULL > [ I=0:9,5,0, J=0:9,5,0 ], iif(((1000 + J*9+I)%2=0),missing(0),(1000 + J*9+I)))), a1%5 != 0), B)
+
+--test
+#
+#   1. Test that the function macros have been loaded into the system.
+#   2. Check that the function macros are correct.
+#   3. Check that the function macros work in both AFL and AQL.
+#   4. Check that the function macros work with NULL / missing codes.
+#   5. Check that the function macros can be nested, both within queries
+#      and within other macros (use op_count(...)).
+#
+
+op_count ( filter ( join ( op_count ( filter ( cross_join ( A, B ), func_min ( A.a1, B.a1 ) = A.a1)) AS J1, op_count ( cross_join ( A, B )) AS J2), J1.count = J2.count ))
+--aql SELECT COUNT(*) FROM A CROSS JOIN B WHERE func_min ( A.a1, B.a1 ) = A.a1
+
+op_count ( filter ( join ( op_count ( filter ( cross_join ( A, B ), func_min ( A.a1, B.a1 ) = B.a1)) AS J1, op_count ( cross_join ( A, B )) AS J2), J1.count = J2.count ))
+--aql SELECT COUNT(*) FROM A CROSS JOIN B WHERE func_min ( A.a1, B.a1 ) = B.a1
+
+op_count ( filter ( join ( op_count ( filter ( cross_join ( A, B ), func_max ( A.a1, B.a1 ) = A.a1)) AS J1, op_count ( cross_join ( A, B )) AS J2), J1.count = J2.count ))
+--aql SELECT COUNT(*) FROM A CROSS JOIN B WHERE func_max ( A.a1, B.a1 ) = A.a1
+
+op_count ( filter ( join ( op_count ( filter ( cross_join ( A, B ), func_max ( A.a1, B.a1 ) = B.a1)) AS J1, op_count ( cross_join ( A, B )) AS J2), J1.count = J2.count))
+--aql SELECT COUNT(*) FROM A CROSS JOIN B WHERE func_max ( A.a1, B.a1 ) = B.a1
+
+#
+# Check the nulls / missing codes case ...
+op_count ( filter ( filter ( A, missing_reason ( a2 ) >= 0 ), missing_reason ( func_min ( a1, a2 ) ) = 0))
+--aql SELECT COUNT(*) FROM A WHERE missing_reason ( func_max ( A.a1, A.a2 ) ) = 0
+
+op_count ( filter ( filter ( B, missing_reason ( a2 ) >= 0 ), missing_reason ( func_min ( a1, a2 ) ) = 0))
+--aql SELECT COUNT(*) FROM B WHERE missing_reason ( func_max ( B.a1, B.a2 ) ) = 0
+
+--cleanup
+remove ( A )
+remove ( B )

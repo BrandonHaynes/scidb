@@ -1,0 +1,10 @@
+remove(raw);
+remove(A);
+create array raw <device: int64, pos: int64, val: float> [offset=1:*,25,0];
+create array A<val: float>[device=1:5,2,0, pos=1:5,2,0];
+
+# store(join(build(<device: int64>[pos=1:10,5,0], pos+1), build(<b:string>[c=1:10,5,0], 'label-'+string(c))), raw);
+
+csv2scidb -p NNN -s 1 -f 1 < raw.txt > /tmp/raw.scidb
+load(raw, '/tmp/raw.scidb')
+redimension(raw, A);

@@ -1,0 +1,3 @@
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_CHUNK_SIZE --aql="create array A <b:int64>[x=1:5,0,0]"
+

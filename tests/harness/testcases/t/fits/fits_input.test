@@ -1,0 +1,8 @@
+--setup
+--aql create array fits_test<v: float NOT NULL>[d0=0:511,512,0, d1=0:511,512,0]
+load_library('fits')
+--test
+fits_input(fits_test, '${TEST_DATA_DIR}/rosat_pspc_rdf2_3_bk1.fits')
+#fits_input(fits_test, '/tmp/rosat_pspc_rdf2_3_bk1.fits')
+--cleanup
+remove(fits_test)

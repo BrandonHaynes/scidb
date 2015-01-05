@@ -1,0 +1,17 @@
+#2277: unify the error message when redim_store has an "overflow" in synthetic dim
+--setup
+--start-query-logging
+create array Input<x:int64>[i=0:7,2,0]
+create array Good<i:int64>[x=0:3,2,0, s=0:1,2,0]
+create array Bad<i:int64>[x=0:3,2,0, s=0:1,1,0]
+store(build(Input, i/2), Input)
+
+--test
+store(redimension(Input, Good), Good)
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_OP_REDIMENSION_STORE_ERROR7 "store(redimension(Input, Bad), Bad)"
+
+--cleanup
+remove(Input)
+remove(Good)
+remove(Bad)
+--stop-query-logging

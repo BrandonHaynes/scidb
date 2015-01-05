@@ -1,0 +1,19 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array A <val:double NULL default NULL> [i=0:2,3,0, j=0:2,3,0] 
+--set-format dense
+--stop-igdata
+store(build(A, iif(i=j, i, null)),A)  
+--set-format lcsv+
+apply(A,missing_value,is_null(val))  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(A)

@@ -1,0 +1,41 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array trig_1 <val:float>[x=0:5,6,0]  
+--set-format dense
+--stop-igdata
+store(build(trig_1,(2.0/3.0)*acos(0)*x),trig_1)  
+--aql select cos(val) from trig_1  
+--aql select sin(val) from trig_1  
+--aql select tan(val) from trig_1  
+--set-format dcsv
+--start-igdata
+create array trig_2 <val:float>[x=0:5,6,0]  
+--set-format dense
+--stop-igdata
+store(build(trig_2,1.0/(x+1)),trig_2)  
+--aql select acos(val) from trig_2  
+--aql select asin(val) from trig_2  
+--aql select atan(val) from trig_2  
+--set-format dcsv
+--start-igdata
+create array logs <val:float>[x=0:5,6,0]  
+--set-format dense
+--stop-igdata
+store(build(logs,(1.7*(x+0.01))),logs)  
+--aql select exp(val) from logs  
+store(build(logs, pow(10,x)),logs)  
+--aql select log(val) from logs  
+--aql select log10(val) from logs  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(trig_1)
+remove(trig_2)
+remove(logs)

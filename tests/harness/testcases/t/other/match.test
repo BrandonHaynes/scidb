@@ -1,0 +1,20 @@
+--setup
+--start-query-logging
+create array catalog<luminicity:float>[ra=0:999,1000,10, decl=0:999,1000,10]
+create array sky<luminicity:float>[ra=0:999,1000,10, decl=0:999,1000,10]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(catalog, '${TEST_DATA_DIR}/catalog.txt')""
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(sky, '${TEST_DATA_DIR}/sky.txt')""
+load_library('match')
+load_library('bestmatch')
+
+--test
+
+--set-format sparse
+match(sky, catalog, 10, 5)
+bestmatch(sky, catalog, 10)
+
+--cleanup
+remove(sky)
+remove(catalog)
+--stop-query-logging
+

@@ -1,0 +1,13 @@
+--setup
+--test
+
+load_library('misc')
+
+--start-query-logging
+
+test_file_io()
+
+# TODO use shell command to check whether data files have been properly deleted
+
+--stop-query-logging
+--cleanup

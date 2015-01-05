@@ -1,0 +1,912 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+%myents;
+]>
+<chapter remap="h1" xml:id="iqueryClient">
+  <title>Getting Started with SciDB Development</title>
+
+  <para><indexterm>
+      <primary>iquery</primary>
+    </indexterm>The <literal>iquery</literal> executable is the basic
+  command-line tool for communicating with SciDB. <literal>iquery</literal> is
+  the default SciDB client used to issue AQL and AFL commands. Start the
+  <literal>iquery</literal> client by typing <literal>iquery</literal> at the
+  command line when a SciDB session is active:</para>
+
+  <para>
+    <programlisting>$ scidb.py startall <replaceable>scidb_cluster_name</replaceable>
+$ iquery</programlisting>
+  </para>
+
+  <para><indexterm>
+      <primary>AQL</primary>
+    </indexterm>By default, <literal>iquery</literal> opens an AQL command
+  prompt:<programlisting>AQL%</programlisting></para>
+
+  <para><indexterm>
+      <primary>AFL</primary>
+    </indexterm>You can then enter AQL queries at the command prompt. To
+  switch to AFL queries, use the <code>set lang</code>
+  command:<programlisting>AQL% set lang afl;</programlisting></para>
+
+  <para>AQL and AFL statements end with a semicolon (;). If you forget the
+  terminating semicolon, <literal>iquery</literal> presents a prompt
+  (<emphasis role="bold">CON&gt;</emphasis>) where you can enter the
+  terminating semicolon and run the query.</para>
+
+  <section xml:id="UsingtheiqueryClient">
+    <title>Using the iquery Client</title>
+
+    <para>To see the internal <literal>iquery</literal> commands reference,
+    type <literal>help</literal> at the AQL or AFL prompt:<programlisting>AQL% help;
+set            - List current options
+set lang afl   - Set AFL as querying language
+set lang aql   - Set AQL as querying language
+set fetch      - Start retrieving query results
+set no fetch   - Stop retrieving query results
+set timer      - Start reporting query setup time
+set no timer   - Stop reporting query setup time
+set verbose    - Start reporting details from engine
+set no verbose - Stop reporting details from engine
+quit or exit   - End iquery session</programlisting></para>
+
+    <para>You can pass an AQL query directly to <literal>iquery</literal> from
+    the command line using the -q flag:<programlisting>iquery -q "<replaceable>my AQL statement</replaceable>"</programlisting></para>
+
+    <para><indexterm>
+        <primary>iquery</primary>
+
+        <secondary>input file</secondary>
+      </indexterm>You can also pass a file containing an AQL query to
+    <literal>iquery</literal> with the -f flag:<programlisting>iquery -f <replaceable>my_input_filename</replaceable></programlisting></para>
+
+    <para>AQL is the default language for <literal>iquery</literal>. To switch
+    to AFL, use the -a flag:<programlisting>iquery -aq "<replaceable>my AFL statement</replaceable>"</programlisting></para>
+
+    <para><indexterm>
+        <primary>port numbers</primary>
+      </indexterm>Each invocation of <literal>iquery</literal> connects to the
+    SciDB coordinator instance, passes in a query, and prints out the
+    coordinator instance's response. <literal>iquery</literal> connects by
+    default to SciDB on port 1239. If you use a port number that is not the
+    default, specify it using the "-p" option with <literal>iquery</literal>.
+    For example, to use port 9999 to run an AFL query contained in the file
+    <literal>my_filename</literal> do this:<programlisting>iquery -af <replaceable>my_input_filename</replaceable> -p 9999</programlisting></para>
+
+    <para>The query result will be printed to stdout. Use -r flag to redirect
+    the output to a file:<programlisting>iquery -r <replaceable>my_output_filename</replaceable> -af <replaceable>my_input_filename</replaceable></programlisting></para>
+
+    <para>To change the output format, use the -o flag:<programlisting>iquery -o csv -r <replaceable>my_output_filename.csv</replaceable> -af <replaceable>my_input_filename</replaceable></programlisting></para>
+
+    <para><indexterm>
+        <primary>output options</primary>
+      </indexterm><indexterm>
+        <primary>query output</primary>
+      </indexterm><indexterm>
+        <primary>formatting, output</primary>
+      </indexterm>Available options for output format are csv, csv+, lcsv+,
+    dcsv, dense, tsv, tsv+, ltsv+, sparse, and lsparse. These options are
+    described in the following table:</para>
+
+    <informaltable frame="all" id="outputOptions">
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="15*"/>
+
+        <colspec colname="c2" colwidth="50*"/>
+
+        <thead>
+          <row>
+            <entry>Output Option</entry>
+
+            <entry>Description</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>auto</entry>
+
+            <entry>SciDB array format.</entry>
+          </row>
+
+          <row>
+            <entry>csv</entry>
+
+            <entry>Comma-separated values.</entry>
+          </row>
+
+          <row>
+            <entry>csv+</entry>
+
+            <entry>Comma-separated values with dimension indices.</entry>
+          </row>
+
+          <row>
+            <entry>lcsv+</entry>
+
+            <entry>Comma-separated values with dimension indices and a Boolean
+            flag attribute, <emphasis role="bold">EmptyTag</emphasis>, showing
+            if a cell is empty.</entry>
+          </row>
+
+          <row>
+            <entry>dcsv (default)</entry>
+
+            <entry>Format used in most doc examples. Visually distinguishes
+            dimensions from attributes. This is the default output
+            format.</entry>
+          </row>
+
+          <row>
+            <entry>tsv</entry>
+
+            <entry>Tab-separated values.</entry>
+          </row>
+
+          <row>
+            <entry>tsv+</entry>
+
+            <entry>Tab-separated values with dimension indices.</entry>
+          </row>
+
+          <row>
+            <entry>ltsv+</entry>
+
+            <entry>Tab-separated values with dimension indices and a Boolean
+            flag attribute, <emphasis role="bold">EmptyTag</emphasis>, showing
+            if a cell is empty.</entry>
+          </row>
+
+          <row>
+            <entry>dense</entry>
+
+            <entry>Ideal for viewing 2-dimensional arrays. Displays empty
+            cells as parentheses. Not recommended for very sparse
+            arrays.</entry>
+          </row>
+
+          <row>
+            <entry>sparse</entry>
+
+            <entry>Sparse SciDB array format.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+
+    <para><indexterm>
+        <primary>iquery</primary>
+
+        <secondary>options</secondary>
+      </indexterm>To see a list of the <literal>iquery</literal> switches and
+    their descriptions, type <literal>iquery -h</literal> or <literal>iquery
+    --help</literal> at the command line. The switches are explained in the
+    following table:<informaltable frame="all">
+        <tgroup cols="2">
+          <colspec colwidth="20*"/>
+
+          <colspec colwidth="30*"/>
+
+          <thead>
+            <row>
+              <entry>iquery Switch Option</entry>
+
+              <entry>Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>
+                <para>-w [ --precision ]
+                <replaceable>precision</replaceable></para>
+              </entry>
+
+              <entry><indexterm>
+                  <primary>digits to display</primary>
+                </indexterm><indexterm>
+                  <primary>precision, digits displayed</primary>
+                </indexterm>Precision for printing floating point numbers.
+              Default is 6.</entry>
+            </row>
+
+            <row>
+              <entry>-c [ --host ]
+              <replaceable>host_name</replaceable></entry>
+
+              <entry>Host of one of the cluster instances. Default is
+              'localhost'.</entry>
+            </row>
+
+            <row>
+              <entry>-p [ --port ]<replaceable>
+              port_number</replaceable></entry>
+
+              <entry>Port for connection. Default is 1239.</entry>
+            </row>
+
+            <row>
+              <entry>-q [ --query ] <replaceable>query</replaceable></entry>
+
+              <entry>Query to be executed.</entry>
+            </row>
+
+            <row>
+              <entry>-f [ --query-file ]<replaceable>
+              input_filename</replaceable></entry>
+
+              <entry>File with query to be executed.</entry>
+            </row>
+
+            <row>
+              <entry>-r [ --result ]
+              <replaceable>target_filename</replaceable></entry>
+
+              <entry>Filename where result data will be stored.</entry>
+            </row>
+
+            <row>
+              <entry>-o [ --format ] <replaceable>format</replaceable></entry>
+
+              <entry>Output format. See the previous table for available
+              options. Default is 'dcsv'.</entry>
+            </row>
+
+            <row>
+              <entry>-v [ --verbose ]</entry>
+
+              <entry>Print the debugging information. Disabled by default.
+              Useful for displaying data such as number of chunks and chunk
+              size.</entry>
+            </row>
+
+            <row>
+              <entry>-t [ --timer ]</entry>
+
+              <entry>Query setup time (in seconds).</entry>
+            </row>
+
+            <row>
+              <entry>-n [ --no-fetch ]</entry>
+
+              <entry>Skip data fetching. Disabled by default. Useful when the
+              result array is large, and you do not want to have the results
+              displayed on screen.</entry>
+            </row>
+
+            <row>
+              <entry>-a [ --afl ]</entry>
+
+              <entry>Switch to AFL query language mode. Default is
+              AQL.</entry>
+            </row>
+
+            <row>
+              <entry>-u [ --plugins ] <replaceable>path</replaceable></entry>
+
+              <entry>Path to the plugins directory.</entry>
+            </row>
+
+            <row>
+              <entry>-h [ --help ]</entry>
+
+              <entry>Show help.</entry>
+            </row>
+
+            <row>
+              <entry>-V [ --version ]</entry>
+
+              <entry><indexterm>
+                  <primary>versions</primary>
+
+                  <secondary>SciDB</secondary>
+                </indexterm>Show SciDB version information.</entry>
+            </row>
+
+            <row>
+              <entry>--ignore-errors</entry>
+
+              <entry>Ignore execution errors in batch mode.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable></para>
+
+    <para>Note the following:<itemizedlist>
+        <listitem>
+          <para>The <literal>iquery</literal> interface is case
+          sensitive.</para>
+        </listitem>
+
+        <listitem>
+          <para><indexterm>
+              <primary>strings</primary>
+
+              <secondary>output format</secondary>
+            </indexterm>When <literal>iquery</literal> outputs string
+          attributes, the strings are wrapped in single quotes.</para>
+        </listitem>
+
+        <listitem>
+          <para><indexterm>
+              <primary>iquery</primary>
+
+              <secondary>maximum query length</secondary>
+            </indexterm><indexterm>
+              <primary>queries</primary>
+
+              <secondary>maximum length</secondary>
+            </indexterm>The maximum length of a query is 16MB.</para>
+        </listitem>
+      </itemizedlist></para>
+  </section>
+
+  <section xml:id="iqueryConfiguration">
+    <title>iquery Configuration</title>
+
+    <para><indexterm>
+        <primary>iquery</primary>
+
+        <secondary>configuring</secondary>
+      </indexterm><indexterm>
+        <primary>configuration</primary>
+
+        <secondary>iquery</secondary>
+      </indexterm>You can use a configuration file to save and restore your
+    <literal>iquery</literal> configuration. The file is stored in
+    <code>~/.config/scidb/iquery.conf</code>. Once you have created this file
+    it will load automatically the next time you start
+    <literal>iquery</literal>. The allowed options are:</para>
+
+    <informaltable frame="all">
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="20*"/>
+
+        <colspec colname="c2" colwidth="70*"/>
+
+        <tbody>
+          <row>
+            <entry>
+              <para>host</para>
+            </entry>
+
+            <entry>
+              <para>Host name for the cluster instance. Default is <literal>
+              localhost</literal>.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>port</para>
+            </entry>
+
+            <entry>
+              <para>Port for connection. Default is 1239.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>afl</para>
+            </entry>
+
+            <entry>
+              <para>Start the session with the AFL command line.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>timer</para>
+            </entry>
+
+            <entry>
+              <para>Report query run-time (in seconds).</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>verbose</para>
+            </entry>
+
+            <entry>
+              <para>Print debug information.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>format</para>
+            </entry>
+
+            <entry>
+              <para>Set the format of query output. Options are csv, csv+,
+              dcsv, lcsv+, sparse, and lsparse.</para>
+
+              <para>The default format is dcsv.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>plugins</para>
+            </entry>
+
+            <entry>
+              <para>Path to the plugins directory.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+
+    <para>For example, your <code>iquery.conf</code> file might look like
+    this: <programlisting>{
+"host":"myhostname",
+"port":9999,
+"afl":true,
+"timer":false,
+"verbose":false,
+"format":"csv+"
+}</programlisting></para>
+
+    <para>The opening and closing braces at the beginning and end of the file
+    must be present and each entry (except the last one) should be followed by
+    a comma.</para>
+  </section>
+
+  <section id="iqueryNonCoord">
+    <title>Running iquery from any computer</title>
+
+    <para><indexterm>
+        <primary>remote iquery</primary>
+      </indexterm><indexterm>
+        <primary>iquery</primary>
+
+        <secondary>running remotely</secondary>
+      </indexterm>You can run the iquery command from any computer, not just
+    the SciDB coordinator server. This section describes how to do so.</para>
+
+    <para>Note the following:<itemizedlist>
+        <listitem>
+          <para>Your version of iquery must match the version of SciDB. For
+          example, if your SciDB installation is at version 14.7, you must
+          download and install iquery version 14.7.</para>
+        </listitem>
+
+        <listitem>
+          <para>Your client OS does not need to match the OS of the SciDB
+          coordinator server. For example, you can install the iquery client
+          on computer running Ubuntu, and access a SciDB coordinator server
+          that is running CentOS.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>Perform the following steps from the computer on which you wish to
+    run iquery:</para>
+
+    <procedure>
+      <step>
+        <para>Add SciDB's GPG public key by running the following
+        command:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>On Ubuntu:<programlisting>wget -O- https://downloads.paradigm4.com/key | sudo apt-key add -</programlisting></para>
+          </listitem>
+
+          <listitem>
+            <para>On CentOS or RHEL:<programlisting>wget https://downloads.paradigm4.com/key
+sudo rpm --import key
+rm -f key</programlisting></para>
+          </listitem>
+        </itemizedlist>
+      </step>
+
+      <step>
+        <para>Add the SciDB repository to the repository folder, by creating
+        the configuration file:<itemizedlist>
+            <listitem>
+              <para>On Ubuntu, create the file
+              <code>/etc/apt/sources.list.d/scidb.list</code> and add the
+              following line:<programlisting>deb  https://downloads.paradigm4.com/  ubuntu12.04/&scidb_version;/</programlisting></para>
+            </listitem>
+
+            <listitem>
+              <para>On CentOS or RHEL, create the
+              <code>/etc/yum.repos.d/scidb.repo</code> file and add the
+              following lines:<programlisting>[scidb]
+name=SciDB
+baseurl=https://downloads.paradigm4.com/centos6.3/&scidb_version;/
+gpgcheck=1</programlisting></para>
+            </listitem>
+          </itemizedlist></para>
+      </step>
+
+      <step>
+        <para>Run the appropriate update and package install commands for your
+        OS:<itemizedlist>
+            <listitem>
+              <para>On Ubuntu:<programlisting>sudo apt-get update
+sudo apt-get install scidb-&scidb_version;-utils</programlisting></para>
+            </listitem>
+
+            <listitem>
+              <para>On CentOS or RHEL:<programlisting>sudo yum update
+sudo yum install scidb-&scidb_version;-utils</programlisting></para>
+            </listitem>
+          </itemizedlist></para>
+      </step>
+
+      <step>
+        <para>Set the SciDB environment variables in the user
+        environment.<programlisting>export SCIDB_VER=&scidb_version; 
+export PATH="$PATH:/opt/scidb/$SCIDB_VER/bin:/opt/scidb/$SCIDB_VER/share/scidb"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/scidb/$SCIDB_VER/lib"</programlisting></para>
+      </step>
+
+      <step>
+        <para>When you run iquery, make sure to specify the correct host (the
+        computer running the SciDB coordinator node). For example, if your
+        SciDB coordinator server is <emphasis
+        role="bold">shared-c6-c2-vm1</emphasis> (and is running on the default
+        <code>base-port</code> of 1239), you could start an iquery session by
+        running the following command: <programlisting>$ iquery --host shared-c6-c2-vm1</programlisting></para>
+      </step>
+    </procedure>
+  </section>
+
+  <section id="multipleSciDBs">
+    <title>Running multiple versions of SciDB</title>
+
+    <para><indexterm>
+        <primary>versions</primary>
+
+        <secondary>multiple</secondary>
+      </indexterm><indexterm>
+        <primary>SciDB</primary>
+
+        <secondary>multiple versions</secondary>
+      </indexterm><indexterm>
+        <primary>iquery</primary>
+
+        <secondary>multiple versions</secondary>
+      </indexterm>You can run multiple versions of SciDB on the same SciDB
+    server. This section discusses some guidelines for doing this.</para>
+
+    <para><itemizedlist>
+        <listitem>
+          <para>You can use the default name for all SciDB configuration
+          files: <emphasis role="bold">config.ini</emphasis>. Since they each
+          reside in <emphasis
+          role="bold">/opt/scidb/</emphasis><replaceable>version</replaceable><emphasis
+          role="bold">/etc</emphasis>, they can coexist on the same
+          server.</para>
+        </listitem>
+
+        <listitem>
+          <para>Edit the following configuration parameters:<itemizedlist>
+              <listitem>
+                <para>The name of the SciDB database must be different for
+                each configuration.</para>
+              </listitem>
+
+              <listitem>
+                <para>The <emphasis role="bold">db_user</emphasis> and
+                <emphasis role="bold">db_passwd</emphasis> values should be
+                different for each configuration.</para>
+              </listitem>
+
+              <listitem>
+                <para>The <emphasis role="bold">base-path</emphasis> values
+                must be set to different folders.</para>
+              </listitem>
+
+              <listitem>
+                <para>The <emphasis role="bold">base-port</emphasis> parameter
+                must be different for each configuration. <emphasis
+                role="bold">Tip: </emphasis>do not use the default port
+                (1239); using non-default values for both configurations makes
+                it harder to accidentally use the wrong configuration, as you
+                will need to always explicitly specify a port.</para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+
+        <listitem>
+          <para>You can create an alias or shell script as a shortcut for
+          invoking the appropriate iquery command.</para>
+        </listitem>
+      </itemizedlist>As an example, suppose that we want to run SciDB 13.3 and
+    13.6 on the same server. Consider the following simple config.ini files
+    and aliases:<itemizedlist>
+        <listitem>
+          <para>The following config.ini is in
+          /opt/scidb/13.3/etc:<programlisting>[db_one]
+server-0=localhost,0
+db_user=one_133
+db_passwd=one_133
+install_root=/opt/scidb/13.3
+pluginsdir=/opt/scidb/13.3/lib/scidb/plugins
+logconf=/opt/scidb/13.3/share/scidb/log4cxx.properties
+base-path=/home/scidb/one-13.3
+base-port=1259</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>The following config.ini is in
+          /opt/scidb/13.6/etc:<programlisting>[db_two]
+server-0=localhost,0
+db_user=one_136
+db_passwd=one_136
+install_root=/opt/scidb/13.6
+pluginsdir=/opt/scidb/13.6/lib/scidb/plugins
+logconf=/opt/scidb/13.6/share/scidb/log4cxx.properties
+base-path=/home/scidb/two-13.6
+base-port=1279</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>You could create the following aliases (add them to your
+          .bashrc or .bash_aliases file):<programlisting>alias iquery13.3=/opt/scidb/13.3/bin/iquery -p 1259
+alias iquery13.6=/opt/scidb/13.6/bin/iquery -p 1279
+</programlisting>You could then type <emphasis
+          role="bold">iquery13.3</emphasis> or <emphasis
+          role="bold">iquery13.6</emphasis> at the command line to invoke the
+          corresponding iquery client.</para>
+        </listitem>
+      </itemizedlist></para>
+  </section>
+
+  <section xml:id="Exampleiquerysession">
+    <title>Example iquery session</title>
+
+    <para><indexterm>
+        <primary>iquery</primary>
+
+        <secondary>examples</secondary>
+      </indexterm>This section demonstrates how to use iquery to perform
+    simple array tasks like:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Create a SciDB array</para>
+      </listitem>
+
+      <listitem>
+        <para>Prepare an ASCII file in the SciDB <emphasis> dense</emphasis>
+        load file format</para>
+      </listitem>
+
+      <listitem>
+        <para>Load data from that file into the array.</para>
+      </listitem>
+
+      <listitem>
+        <para>Execute basic queries on the array.</para>
+      </listitem>
+
+      <listitem>
+        <para>Join two arrays containing related data.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The are more detailed examples on creating a SciDB array in <xref
+    linkend="creatingArraysChapter"/>.</para>
+
+    <para>The following example creates an array, generates random numbers and
+    stores them in the array, and saves the array data into a file.</para>
+
+    <orderedlist>
+      <listitem>
+        <para>Create an array called random_numbers with:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>2 dimensions, x = 9 and y = 10</para>
+          </listitem>
+
+          <listitem>
+            <para>One double attribute called <code>num</code></para>
+          </listitem>
+
+          <listitem>
+            <para>Random numerical values in each cell <programlisting>iquery -aq "store(build(&lt;num:double&gt;[x=0:8,1,0, y=0:9,1,0], random()),random_numbers)"
+</programlisting></para>
+          </listitem>
+        </itemizedlist>
+      </listitem>
+
+      <listitem>
+        <para>Save the values in random_numbers in the default format
+        (<emphasis role="bold">dcsv</emphasis>) to a file called
+        <code>/tmp/random_values.dcsv</code>: <programlisting>iquery -r /tmp/random_values.dcsv -aq "scan(random_numbers)"
+</programlisting></para>
+      </listitem>
+    </orderedlist>
+
+    <para>The following example creates an array, loads existing csv data into
+    the array, performs simple conversions on the data, joins two arrays with
+    related data set, and eliminates redundant data from the result.</para>
+
+    <procedure>
+      <step>
+        <para>Create an array, <literal>target</literal>, in which you are
+        going to place the values from the csv file:<programlisting>iquery -aq "create array target &lt;type:string,mpg:double&gt;[x=0:*,1,0]"</programlisting></para>
+      </step>
+
+      <step>
+        <para>Starting from a csv file, prepare a file to load into a SciDB
+        array. Use the file <emphasis>datafile.csv</emphasis>, which is
+        contained in the <code>tests/harness/testcases/data/doc</code>
+        directory of your SciDB installation:<programlisting>Type,MPG
+Truck, 23.5
+Sedan, 48.7
+SUV, 19.6
+Convertible, 26.8
+</programlisting></para>
+      </step>
+
+      <step>
+        <para>Convert the file to SciDB format with the command
+        csv2scidb:<programlisting>csv2scidb -p SN -s 1
+   &lt; <replaceable>scidb_root</replaceable>/tests/harness/testcases/data/doc/datafile.csv
+   &gt; <replaceable>output_path</replaceable>/datafile.scidb</programlisting><emphasis
+        role="bold">Note</emphasis>: <literal>csv2scidb</literal> is a
+        separate data-preparation utility provided with SciDB. To see all
+        options available for csv2scidb, type <literal>csv2scidb
+        --help</literal> at the command line.</para>
+
+        <para><indexterm>
+            <primary>SciDB-formatted text file example</primary>
+          </indexterm>After running this command, you will have the following
+        SciDB-formatted text file, <emphasis
+        role="bold">datafile.scidb</emphasis>:</para>
+
+        <programlisting>0}[
+("Truck", 23.5),
+("Sedan", 48.7),
+("SUV", 19.6),
+("Convertible", 26.8)
+]</programlisting>
+      </step>
+
+      <step>
+        <para>Use the load command to load the SciDB-formatted file that you
+        just created into <literal>target</literal>:<programlisting>iquery aq "load(target, '<replaceable>output_path</replaceable>/datafile.scidb')"</programlisting><screen>type,mpg
+'Truck',23.5
+'Sedan',48.7
+'SUV',19.6
+'Convertible',26.8
+</screen>You will need to use the full pathname for
+        <replaceable>output_path</replaceable>. For example, if the file
+        <code>datafile.scidb</code> is located in
+        <code>/home/username/files</code>, you should use the string
+        <code>'/home/username/files/datafile.csv'</code> for the load function
+        argument.</para>
+      </step>
+
+      <step>
+        <para>By default, iquery always re-reads or retrieves the data that
+        has just written to the array. To suppress the print to screen when
+        you use the load command, use the -n flag in iquery:<programlisting>iquery -naq "load(target, '/<replaceable>output_path</replaceable>/datafile.scidb')"</programlisting></para>
+      </step>
+
+      <step>
+        <para>Now, suppose that you want to convert miles per gallon to
+        kilometers per liter. Use the apply operator to perform a calculation
+        on the <literal>mpg</literal> attribute values:<programlisting>iquery -aq "apply(target,kpl,mpg*.4251)"</programlisting><screen>{x} type,mpg,kpl
+{0} 'Truck',23.5,9.98985
+{1} 'Sedan',48.7,20.7024
+{2} 'SUV',19.6,8.33196
+{3} 'Convertible',26.8,11.3927</screen>Note that this does not update
+        <literal>target</literal>. Instead, SciDB creates an result array with
+        the new calculated attribute <literal>kpl</literal>. To create an
+        array containing the kpl attribute, use the <literal>store</literal>
+        command:<programlisting>iquery -aq "store(apply(target,kpl,mpg*.4251),target_new)"</programlisting></para>
+      </step>
+
+      <step>
+        <para>Suppose you have a related data file,
+        <literal>datafile_price.csv</literal>:<programlisting>Make,Type,Price
+Handa,Truck,26700
+Tolona,Sedan,31000
+Gerrd, SUV,42000
+Maudi,Convertible,45000
+</programlisting>You want to add the data on <literal>price</literal> and
+        <literal>make</literal> to your array. Use csv2scidb to convert the
+        file to SciDB data format:<programlisting>csv2scidb -p SSN -s 1 &lt; <replaceable>scidb_root</replaceable>/tests/harness/testcases/data/doc/datafile_price.csv
+    &gt; <replaceable>output_path</replaceable>/datafile_price.scidb</programlisting>Create
+        an array called storage:<programlisting>iquery -aq "create array storage&lt;make:string, type:string, price:int64&gt; [x=0:*,1,0]"</programlisting>Load
+        the <literal>datafile_price.scidb</literal> file into
+        storage:<programlisting>iquery -naq "load(storage, '/tmp/datafile_price.scidb')"</programlisting></para>
+      </step>
+
+      <step>
+        <para>Now, you want to combine the data in these two files so that
+        each entry has a make and model, a price, an mpg, and a kpl. You can
+        join the arrays with the <literal>join</literal>
+        operator:<programlisting>iquery -aq "join(storage,target_new)"</programlisting><screen>{x} make,type,price,type,mpg,kpl
+{0} 'Handa','Truck',26700,'Truck',23.5,9.98985
+{1} 'Tolona','Sedan',31000,'Sedan',48.7,20.7024
+{2} 'Gerrd',' SUV',42000,'SUV',19.6,8.33196
+{3} 'Maudi','Convertible',45000,'Convertible',26.8,11.3927</screen>Note that
+        attributes 2 and 4 are identical. Before you store the combined data
+        in an array, you want to get rid of duplicated data.</para>
+      </step>
+
+      <step>
+        <para>You can use the <literal>project</literal> operator to specify
+        attributes in a specific order:<programlisting>iquery -aq "project(target_new,mpg,kpl)"</programlisting><screen>{x} mpg,kpl
+{0} 23.5,9.98985
+{1} 48.7,20.7024
+{2} 19.6,8.33196
+{3} 26.8,11.3927
+</screen>Attributes that you do not specify are not included in the
+        output.</para>
+      </step>
+
+      <step>
+        <para>Use the <literal>join</literal> and <literal>project</literal>
+        operators to put the car data together. Use csv as the query output
+        format:<programlisting>iquery -aq "join(storage,project(target_new,mpg,kpl))"</programlisting><screen>{x} make,type,price,mpg,kpl
+{0} 'Handa','Truck',26700,23.5,9.98985
+{1} 'Tolona','Sedan',31000,48.7,20.7024
+{2} 'Gerrd',' SUV',42000,19.6,8.33196
+{3} 'Maudi','Convertible',45000,26.8,11.3927</screen></para>
+      </step>
+    </procedure>
+  </section>
+
+  <section>
+    <title>Reserved Words</title>
+
+    <para><indexterm>
+        <primary>reserved words</primary>
+      </indexterm><indexterm>
+        <primary>keywords</primary>
+      </indexterm>In SciDB, there are keywords that are designated as
+    reserved. You cannot use these words as identifiers (such as array names,
+    dimension names, or attribute names). The lists are
+    language-dependent.</para>
+
+    <para>The following words are reserved when using AFL.<screen>and          array    as
+asc          between  case
+compression  create   default
+desc         else     empty
+end          false    if
+is           not      null
+or           reserve  then
+true         when</screen></para>
+
+    <para><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>reserved words</secondary>
+      </indexterm>All the AFL reserved words are also reserved words in AQL.
+    In addition, AQL also has the following set of reserved words.<screen>all         by           cancel
+cross       current      drop
+errors      fixed        following
+from        group        insert
+instance    instances    into
+join        library      load
+on          order        over
+partition   preceding    query
+redimension regrid       rename
+save        select       set
+shadow      start        step
+thin        to           unbound
+unload      update       values
+variable    where        window</screen></para>
+
+    <para>To avoid possible errors, we recommend that you avoid using
+    <emphasis role="bold">all </emphasis>of the reserved words as
+    identifiers—no matter which language you use. Some SciDB utilities may use
+    both AQL and AFL, "under the covers." Thus, any AQL or AFL reserved word
+    identifier could cause errors.</para>
+  </section>
+</chapter>

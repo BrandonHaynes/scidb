@@ -1,0 +1,43 @@
+--setup
+create array A <a:int32> [x=0:2,3,0]
+store(build(A,x+1),A)
+store(build(A,x+10),B)
+store(cross_join(A,B),C)
+
+--test
+--aql select sum(a) from A
+--aql select sum(a) from B
+--aql select sum(a) from C
+--aql select sum(a_2) from C
+--aql select sum(A)
+--aql select sum(B)
+#--aql select sum(C)
+
+--aql select max(a) from A
+--aql select max(a) from B
+--aql select max(a) from C
+--aql select max(a_2) from C
+--aql select max(A)
+--aql select max(B)
+#--aql select max(C)
+
+--aql select min(a) from A
+--aql select min(a) from B
+--aql select min(a) from C
+--aql select min(a_2) from C
+--aql select min(A)
+--aql select min(B)
+#--aql select min(C)
+
+--aql select avg(a) from A
+--aql select avg(a) from B
+--aql select avg(a) from C
+--aql select avg(a_2) from C
+--aql select avg(A)
+--aql select avg(B)
+#--aql select avg(C)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

@@ -1,0 +1,158 @@
+# check output when data contains missing and null values at different positions
+# ticket #404
+
+--setup
+create  array m_bool	  <a:bool>	   [x=0:3,2,0]
+create  array mn_bool 	  <a:bool null>	   [x=0:3,2,0]
+create  array m_string   <a:string>	   [x=0:3,2,0]
+create  array mn_string  <a:string null>  [x=0:3,2,0]
+create  array m_i32 	  <a:int32>	   [x=0:3,2,0]
+create  array mn_i32 	  <a:int32 null>   [x=0:3,2,0]
+create  array m_i8 	  <a:int8>	   [x=0:3,2,0]
+create  array mn_i8 	  <a:int8 null>    [x=0:3,2,0]
+create  array m_i16 	  <a:int16>	   [x=0:3,2,0]
+create  array mn_i16 	  <a:int16 null>   [x=0:3,2,0]
+create  array m_char 	  <a:char>	   [x=0:3,2,0]
+create  array mn_char 	  <a:char null>	   [x=0:3,2,0]
+create  array m_dt 	  <a:datetime>	   [x=0:3,2,0]
+create  array mn_dt 	  <a:datetime null>[x=0:3,2,0]
+
+--test
+--echo datatype = bool
+
+--aql load m_bool from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_bool from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_bool from '${TEST_DATA_DIR}/null_6.txt'
+
+--aql load mn_bool from '${TEST_DATA_DIR}/null_7.txt'
+
+--aql load mn_bool from '${TEST_DATA_DIR}/null_8.txt'
+
+--aql load mn_bool from '${TEST_DATA_DIR}/null_9.txt'
+
+--aql load mn_bool from '${TEST_DATA_DIR}/null_10.txt'
+
+
+--echo datatype = string
+
+--aql load m_string from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_string from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_string from '${TEST_DATA_DIR}/null_6.txt'
+
+--aql load mn_string from '${TEST_DATA_DIR}/null_7.txt'
+
+--aql load mn_string from '${TEST_DATA_DIR}/null_8.txt'
+
+--aql load mn_string from '${TEST_DATA_DIR}/null_9.txt'
+
+--aql load mn_string from '${TEST_DATA_DIR}/null_10.txt'
+
+
+
+--echo datatype = int32
+
+--aql load m_i32 from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_i32 from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_i32 from '${TEST_DATA_DIR}/null_6.txt'
+
+--aql load mn_i32 from '${TEST_DATA_DIR}/null_7.txt'
+
+--aql load mn_i32 from '${TEST_DATA_DIR}/null_8.txt'
+
+--aql load mn_i32 from '${TEST_DATA_DIR}/null_9.txt'
+
+--aql load mn_i32 from '${TEST_DATA_DIR}/null_10.txt'
+
+
+
+--echo datatype = int8
+
+--aql load m_i8 from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_i8 from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_i8 from '${TEST_DATA_DIR}/null_6.txt'
+
+--aql load mn_i8 from '${TEST_DATA_DIR}/null_7.txt'
+
+--aql load mn_i8 from '${TEST_DATA_DIR}/null_8.txt'
+
+--aql load mn_i8 from '${TEST_DATA_DIR}/null_9.txt'
+
+--aql load mn_i8 from '${TEST_DATA_DIR}/null_10.txt'
+
+
+
+--echo datatype = int16
+
+--aql load m_i16 from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_i16 from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_i16 from '${TEST_DATA_DIR}/null_6.txt'
+
+--aql load mn_i16 from '${TEST_DATA_DIR}/null_7.txt'
+
+--aql load mn_i16 from '${TEST_DATA_DIR}/null_8.txt'
+
+--aql load mn_i16 from '${TEST_DATA_DIR}/null_9.txt'
+
+--aql load mn_i16 from '${TEST_DATA_DIR}/null_10.txt'
+
+
+
+--echo datatype = char
+
+--aql load m_char from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_char from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_char from '${TEST_DATA_DIR}/null_6.txt'
+
+--aql load mn_char from '${TEST_DATA_DIR}/null_7.txt'
+
+--aql load mn_char from '${TEST_DATA_DIR}/null_8.txt'
+
+--aql load mn_char from '${TEST_DATA_DIR}/null_9.txt'
+
+--aql load mn_char from '${TEST_DATA_DIR}/null_10.txt'
+
+
+--echo datatype = datetime
+#
+#--aql load m_dt from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_dt from '${TEST_DATA_DIR}/null_5.txt'
+
+--aql load mn_dt from '${TEST_DATA_DIR}/null_6.txt'
+
+--aql load mn_dt from '${TEST_DATA_DIR}/null_7.txt'
+
+--aql load mn_dt from '${TEST_DATA_DIR}/null_8.txt'
+
+--aql load mn_dt from '${TEST_DATA_DIR}/null_9.txt'
+
+--aql load mn_dt from '${TEST_DATA_DIR}/null_10.txt'
+
+
+--cleanup
+remove(m_bool)
+remove(mn_bool)
+remove(m_string)
+remove(mn_string)
+remove(m_i32)
+remove(mn_i32)
+remove(m_i8)
+remove(mn_i8)
+remove(m_i16)
+remove(mn_i16)
+remove(m_char)
+remove(mn_char)
+remove(m_dt)
+remove(mn_dt)

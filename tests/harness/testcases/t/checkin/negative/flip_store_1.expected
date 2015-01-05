@@ -1,0 +1,21 @@
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+{VersionNo} version_id,timestamp
+
+[An error expected at this place for the query "store(redimension(A,C),C)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_INVALID_REDIMENSION_POSITION. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_INVALID_REDIMENSION_POSITION.]
+
+{a} x
+
+{VersionNo} version_id,timestamp
+
+Query was executed successfully
+
+Query was executed successfully
+

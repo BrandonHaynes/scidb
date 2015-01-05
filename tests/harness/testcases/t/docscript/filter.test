@@ -1,0 +1,20 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY m4x4<val:double>[i=0:3,4,0,j=0:3,4,0]  
+--set-format dense
+--stop-igdata
+store(build(m4x4,iif(i=j,100+i,i*4+j)),m4x4)  
+filter(m4x4,val<100)  
+--set-format csv
+filter(list('operators'),regex(name,'(.*)z(.*)'))  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m4x4)

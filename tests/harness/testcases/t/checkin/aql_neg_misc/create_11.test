@@ -1,0 +1,2 @@
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_DIMENSION_BOUNDARY --aql="create array A <a:int32> [x=0:9223372036854775807,5,0]"

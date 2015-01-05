@@ -1,0 +1,9 @@
+--setup
+create array fs <s: string> [i=1:10,10,0]
+store(build(fs, 'str' + string(i)), fs)
+
+--test
+filter(fs, regex(s, 'str.'))
+
+--cleanup
+remove (fs)

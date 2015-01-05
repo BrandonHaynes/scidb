@@ -1,0 +1,12 @@
+--setup
+create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+create array mult_2 <a:double> [x=0:2,1,0, y=0:2,1,0]
+load(mult_1,'${TEST_DATA_DIR}/mult1.txt')
+load(mult_2,'${TEST_DATA_DIR}/mult2.txt')
+
+--test
+--aql select * from mult_1,mult_2 where mult_1.a+mult_2.a>20 and mult_1.a+mult_2.a<40
+
+--cleanup
+remove(mult_1)
+remove(mult_2)

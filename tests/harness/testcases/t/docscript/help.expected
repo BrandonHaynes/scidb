@@ -1,0 +1,5 @@
+SCIDB QUERY : <help('show')>
+{i} help
+{0} 'Operator: show
+Usage: show(<array name | anonymous schema | query string [, \'aql\' | \'afl\']>)'
+

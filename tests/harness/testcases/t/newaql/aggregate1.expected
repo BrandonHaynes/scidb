@@ -1,0 +1,443 @@
+SCIDB QUERY : <create array A <a:double> [x=-3:8,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:double> [x=-3:8,4,2]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x*2),A)>
+{x} a
+{-3} -6
+{-2} -4
+{-1} -2
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+{4} 8
+{5} 10
+{6} 12
+{7} 14
+{8} 16
+
+SCIDB QUERY : <store(build(B,x*2),B)>
+{x} a
+{-3} -6
+{-2} -4
+{-1} -2
+{0} 0
+{1} 2
+{2} 4
+{3} 6
+{4} 8
+{5} 10
+{6} 12
+{7} 14
+{8} 16
+
+SCIDB QUERY : <select x,sum(a) from A group by x>
+{x} expr,sum
+{-3} -3,-6
+{-2} -2,-4
+{-1} -1,-2
+{0} 0,0
+{1} 1,2
+{2} 2,4
+{3} 3,6
+{4} 4,8
+{5} 5,10
+{6} 6,12
+{7} 7,14
+{8} 8,16
+
+SCIDB QUERY : <select count(A)>
+{i} count
+{0} 12
+
+SCIDB QUERY : <select min(A)>
+{i} a_min
+{0} -6
+
+SCIDB QUERY : <select max(A)>
+{i} a_max
+{0} 16
+
+SCIDB QUERY : <select avg(A)>
+{i} a_avg
+{0} 5
+
+SCIDB QUERY : <select sum(A)>
+{i} a_sum
+{0} 60
+
+SCIDB QUERY : <select stdev(A)>
+{i} a_stdev
+{0} 7.2111
+
+SCIDB QUERY : <select var(A)>
+{i} a_var
+{0} 52
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A>
+{i} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{0} 60,16,-6,5,7.2111,52,12
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 1)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} -6,-6,-6,-6,null,null,1
+{-2} -4,-4,-4,-4,null,null,1
+{-1} -2,-2,-2,-2,null,null,1
+{0} 0,0,0,0,null,null,1
+{1} 2,2,2,2,null,null,1
+{2} 4,4,4,4,null,null,1
+{3} 6,6,6,6,null,null,1
+{4} 8,8,8,8,null,null,1
+{5} 10,10,10,10,null,null,1
+{6} 12,12,12,12,null,null,1
+{7} 14,14,14,14,null,null,1
+{8} 16,16,16,16,null,null,1
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 3)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} -12,-2,-6,-4,2,4,3
+{-2} 6,4,0,2,2,4,3
+{-1} 24,10,6,8,2,4,3
+{0} 42,16,12,14,2,4,3
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 5)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} -10,2,-6,-2,3.16228,10,5
+{-2} 40,12,4,8,3.16228,10,5
+{-1} 30,16,14,15,1.41421,2,2
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 11)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} 44,14,-6,4,6.63325,44,11
+{-2} 16,16,16,16,null,null,1
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 14)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} 60,16,-6,5,7.2111,52,12
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 0 preceding and 1 following)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} -10,-4,-6,-5,1.41421,2,2
+{-2} -6,-2,-4,-3,1.41421,2,2
+{-1} -2,0,-2,-1,1.41421,2,2
+{0} 2,2,0,1,1.41421,2,2
+{1} 6,4,2,3,1.41421,2,2
+{2} 10,6,4,5,1.41421,2,2
+{3} 14,8,6,7,1.41421,2,2
+{4} 18,10,8,9,1.41421,2,2
+{5} 22,12,10,11,1.41421,2,2
+{6} 26,14,12,13,1.41421,2,2
+{7} 30,16,14,15,1.41421,2,2
+{8} 16,16,16,16,null,null,1
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 1 preceding and 2 following)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} -12,-2,-6,-4,2,4,3
+{-2} -12,0,-6,-3,2.58199,6.66667,4
+{-1} -4,2,-4,-1,2.58199,6.66667,4
+{0} 4,4,-2,1,2.58199,6.66667,4
+{1} 12,6,0,3,2.58199,6.66667,4
+{2} 20,8,2,5,2.58199,6.66667,4
+{3} 28,10,4,7,2.58199,6.66667,4
+{4} 36,12,6,9,2.58199,6.66667,4
+{5} 44,14,8,11,2.58199,6.66667,4
+{6} 52,16,10,13,2.58199,6.66667,4
+{7} 42,16,12,14,2,4,3
+{8} 30,16,14,15,1.41421,2,2
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 5 preceding and 6 following)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} 0,6,-6,0,4.32049,18.6667,7
+{-2} 8,8,-6,1,4.89898,24,8
+{-1} 18,10,-6,2,5.47723,30,9
+{0} 30,12,-6,3,6.0553,36.6667,10
+{1} 44,14,-6,4,6.63325,44,11
+{2} 60,16,-6,5,7.2111,52,12
+{3} 66,16,-4,6,6.63325,44,11
+{4} 70,16,-2,7,6.0553,36.6667,10
+{5} 72,16,0,8,5.47723,30,9
+{6} 72,16,2,9,4.89898,24,8
+{7} 70,16,4,10,4.32049,18.6667,7
+{8} 66,16,6,11,3.74166,14,6
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 7 preceding and 7 following)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} 8,8,-6,1,4.89898,24,8
+{-2} 18,10,-6,2,5.47723,30,9
+{-1} 30,12,-6,3,6.0553,36.6667,10
+{0} 44,14,-6,4,6.63325,44,11
+{1} 60,16,-6,5,7.2111,52,12
+{2} 60,16,-6,5,7.2111,52,12
+{3} 60,16,-6,5,7.2111,52,12
+{4} 60,16,-6,5,7.2111,52,12
+{5} 66,16,-4,6,6.63325,44,11
+{6} 70,16,-2,7,6.0553,36.6667,10
+{7} 72,16,0,8,5.47723,30,9
+{8} 72,16,2,9,4.89898,24,8
+
+SCIDB QUERY : <select count ((select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 2)))>
+{i} count
+{0} 6
+
+SCIDB QUERY : <select count ((select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 0 preceding and 1 following)))>
+{i} count
+{0} 12
+
+SCIDB QUERY : <select count ((select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 3)))>
+{i} count
+{0} 4
+
+SCIDB QUERY : <select count ((select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 1 preceding and 1 following)))>
+{i} count
+{0} 12
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from B>
+{i} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{0} 60,16,-6,5,7.2111,52,12
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from B regrid as (partition by x 1)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} -6,-6,-6,-6,null,null,1
+{-2} -4,-4,-4,-4,null,null,1
+{-1} -2,-2,-2,-2,null,null,1
+{0} 0,0,0,0,null,null,1
+{1} 2,2,2,2,null,null,1
+{2} 4,4,4,4,null,null,1
+{3} 6,6,6,6,null,null,1
+{4} 8,8,8,8,null,null,1
+{5} 10,10,10,10,null,null,1
+{6} 12,12,12,12,null,null,1
+{7} 14,14,14,14,null,null,1
+{8} 16,16,16,16,null,null,1
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from B regrid as (partition by x 3)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} -12,-2,-6,-4,2,4,3
+{-2} 6,4,0,2,2,4,3
+{-1} 24,10,6,8,2,4,3
+{0} 42,16,12,14,2,4,3
+
+SCIDB QUERY : <select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 14)>
+{x} sum,max_1,min_2,avg_3,stdev_4,var_5,count_6
+{-3} 60,16,-6,5,7.2111,52,12
+
+SCIDB QUERY : <select sin(a*x) from A>
+{x} expr
+{-3} -0.750987
+{-2} 0.989358
+{-1} 0.909297
+{0} 0
+{1} 0.909297
+{2} 0.989358
+{3} -0.750987
+{4} 0.551427
+{5} -0.262375
+{6} 0.253823
+{7} -0.573382
+{8} 0.721038
+
+SCIDB QUERY : <select x,sum(a) from A where x>3 group by x>
+{x} expr,sum
+{4} 4,8
+{5} 5,10
+{6} 6,12
+{7} 7,14
+{8} 8,16
+
+SCIDB QUERY : <select cos(a*a*2*x) from A where sqrt(a)<=x>
+{x} expr
+{0} 1
+{2} 0.391857
+{3} -0.717985
+{4} -0.996833
+{5} 0.562379
+{6} 0.992317
+{7} -0.180193
+{8} 0.803991
+
+SCIDB QUERY : <select x,cos(a*a*2*x) from B where sqrt(a)<=x>
+{x} expr,expr_1
+{0} 0,1
+{2} 2,0.391857
+{3} 3,-0.717985
+{4} 4,-0.996833
+{5} 5,0.562379
+{6} 6,0.992317
+{7} 7,-0.180193
+{8} 8,0.803991
+
+SCIDB QUERY : <select x,tan(a*a*2*x) from B>
+{x} expr,expr_1
+{-3} -3,0.969461
+{-2} -2,-2.34786
+{-1} -1,6.79971
+{0} 0,0
+{1} 1,-6.79971
+{2} 2,2.34786
+{3} 3,-0.969461
+{4} 4,-0.0797711
+{5} 5,1.47032
+{6} 6,0.124681
+{7} 7,5.45876
+{8} 8,-0.739613
+
+SCIDB QUERY : <select  pow(sin(a), 2), pow(cos(x), 2) FROM B where x<0>
+{x} expr,expr_1
+{-3} 0.078073,0.980085
+{-2} 0.57275,0.173178
+{-1} 0.826822,0.291927
+
+SCIDB QUERY : <select x,sin(x),cos(2*a*a*x/2),tan(a) from A where sqrt(x)>1>
+{x} expr,expr_1,expr_2,expr_3
+{2} 2,0.909297,0.834223,1.15782
+{3} 3,0.14112,0.37551,-0.291006
+{4} 4,-0.756802,-0.0397908,-6.79971
+{5} 5,-0.958924,-0.883849,0.648361
+{6} 6,-0.279415,-0.998077,-0.63586
+{7} 7,0.656987,-0.640237,7.24461
+{8} 8,0.989358,0.949734,0.300632
+
+SCIDB QUERY : <select x,sin(x),cos(2*a*a*x/2),tan(a) from A where (sqrt(x)+x)<3>
+{x} expr,expr_1,expr_2,expr_3
+{0} 0,0,1,0
+{1} 1,0.841471,-0.653644,-2.18504
+
+SCIDB QUERY : <select x,sin(x),cos(2*a*a*x/2),tan(a) from B where (sqrt(x)+x)<3>
+{x} expr,expr_1,expr_2,expr_3
+{0} 0,0,1,0
+{1} 1,0.841471,-0.653644,-2.18504
+
+SCIDB QUERY : <select * from A,B>
+{x} a,a
+{-3} -6,-6
+{-2} -4,-4
+{-1} -2,-2
+{0} 0,0
+{1} 2,2
+{2} 4,4
+{3} 6,6
+{4} 8,8
+{5} 10,10
+{6} 12,12
+{7} 14,14
+{8} 16,16
+
+SCIDB QUERY : <select * from A,repart(B,<a:double> [x=-3:8,4,0])>
+{x} a,a
+{-3} -6,-6
+{-2} -4,-4
+{-1} -2,-2
+{0} 0,0
+{1} 2,2
+{2} 4,4
+{3} 6,6
+{4} 8,8
+{5} 10,10
+{6} 12,12
+{7} 14,14
+{8} 16,16
+
+SCIDB QUERY : <select * from A,reverse(A)>
+{x} a,a
+{-3} -6,16
+{-2} -4,14
+{-1} -2,12
+{0} 0,10
+{1} 2,8
+{2} 4,6
+{3} 6,4
+{4} 8,2
+{5} 10,0
+{6} 12,-2
+{7} 14,-4
+{8} 16,-6
+
+SCIDB QUERY : <select * from A,reverse(repart(B,<a:double> [x=-3:8,4,0]))>
+{x} a,a
+{-3} -6,16
+{-2} -4,14
+{-1} -2,12
+{0} 0,10
+{1} 2,8
+{2} 4,6
+{3} 6,4
+{4} 8,2
+{5} 10,0
+{6} 12,-2
+{7} 14,-4
+{8} 16,-6
+
+SCIDB QUERY : <select * from A,reverse(A),reshape( subarray(sort(A,a,4),0,11), <a:double> [x=-3:8,4,0])>
+{x} a,a,a
+{-3} -6,16,-6
+{-2} -4,14,-4
+{-1} -2,12,-2
+{0} 0,10,0
+{1} 2,8,2
+{2} 4,6,4
+{3} 6,4,6
+{4} 8,2,8
+{5} 10,0,10
+{6} 12,-2,12
+{7} 14,-4,14
+{8} 16,-6,16
+
+SCIDB QUERY : <select * from A,reverse(A),reshape( subarray(sort(A,a,4),0,11), <a:double> [x=-3:8,4,0]) where x>0 and x<3>
+{x} a,a,a
+{1} 2,8,2
+{2} 4,6,4
+
+SCIDB QUERY : <select Arr.x + 10 from A as Arr>
+{x} expr
+{-3} 7
+{-2} 8
+{-1} 9
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <select (Arr.a + 1),(Arr.a*10) from A as Arr>
+{x} expr,expr_1
+{-3} -5,-60
+{-2} -3,-40
+{-1} -1,-20
+{0} 1,0
+{1} 3,20
+{2} 5,40
+{3} 7,60
+{4} 9,80
+{5} 11,100
+{6} 13,120
+{7} 15,140
+{8} 17,160
+
+SCIDB QUERY : <select (Brr.a + 1)+(Brr.a*10) from B as Brr>
+{x} expr
+{-3} -65
+{-2} -43
+{-1} -21
+{0} 1
+{1} 23
+{2} 45
+{3} 67
+{4} 89
+{5} 111
+{6} 133
+{7} 155
+{8} 177
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="gesvdOperator">
+  <refnamediv>
+    <refname>gesvd</refname>
+
+    <refpurpose><indexterm>
+        <primary>gesvd</primary>
+      </indexterm><indexterm>
+        <primary>singular value decomposition</primary>
+      </indexterm><indexterm>
+        <primary>svd</primary>
+
+        <see>gesvd</see>
+      </indexterm>Produces a result matrix containing any one of the three
+    components of the singular value decomposition of a dense
+    matrix.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis> gesvd(<replaceable>input_matrix</replaceable>, <replaceable>factor</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Library</title>
+
+    <para>The <code>gesvd</code> operator resides in the Dense Linear Algebra
+    library. Run the following query to load this library:<programlisting>AFL% load_library('dense_linear_algebra');</programlisting></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>For a matrix <emphasis>M</emphasis>, GESVD returns the matrix
+    factorization:<informalequation>
+        <alt>M = U\Sigma V^*</alt>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="../equations/svd.png" scale="60"/>
+          </imageobject>
+        </mediaobject>
+      </informalequation>The <literal>gesvd </literal>operator produces a
+    singular value decomposition (SVD) of the input matrix and returns one of
+    the three factors. For more details of the SVD, see <ulink
+    url="http://en.wikipedia.org/wiki/Singular_value_decomposition">http://en.wikipedia.org/wiki/Singular_value_decomposition</ulink>.</para>
+
+    <para>The <replaceable>factor </replaceable>must be one of the following
+    values:<itemizedlist>
+        <listitem>
+          <para><literal>'U'</literal> (or '<literal>left'</literal>): the
+          matrix of left-singular vectors.</para>
+        </listitem>
+
+        <listitem>
+          <para><literal>'S'</literal> (or <literal>'values</literal>'): a
+          vector that contains the singular values in decreasing numerical
+          order.</para>
+        </listitem>
+
+        <listitem>
+          <para><literal>'VT'</literal> (or '<literal>right'</literal>): the
+          transpose of the matrix of right-singular vectors.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>If the input matrix is an <emphasis>m</emphasis> <symbol
+    role="symbolfont">× </symbol><emphasis>n</emphasis> matrix, and letting
+    <emphasis role="bold">MIN</emphasis> =
+    min(<emphasis>m</emphasis>,<emphasis>n</emphasis>), then
+    dim(<emphasis><emphasis role="bold">U</emphasis></emphasis>) is
+    <emphasis>m</emphasis><symbol role="symbolfont"> ×</symbol> <emphasis
+    role="bold">MIN</emphasis>, dim(<emphasis><emphasis
+    role="bold">S</emphasis></emphasis>) is <emphasis
+    role="bold">MIN</emphasis>, and dim(<emphasis><emphasis
+    role="bold">VT</emphasis></emphasis>) is <emphasis
+    role="bold">MIN</emphasis> <symbol role="symbolfont">×
+    </symbol><emphasis>n</emphasis>.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <para>The input matrix must have the following
+    characteristics:<itemizedlist>
+        <listitem>
+          <para>It must be dense: that is, it cannot have any empty
+          cells.</para>
+        </listitem>
+
+        <listitem>
+          <para>The first attribute must be of type <literal>double</literal>.
+          All other attributes are ignored.</para>
+        </listitem>
+
+        <listitem>
+          <para>The chunks of the input array must be square, and must have a
+          chunk interval between 32 and 1024.</para>
+        </listitem>
+
+        <listitem>
+          <para>Each dimension must have the following characteristics:</para>
+
+          <para><itemizedlist mark="endash">
+              <listitem>
+                <para>Currently, the starting index must be zero.</para>
+              </listitem>
+
+              <listitem>
+                <para>The ending index cannot be '*'.</para>
+              </listitem>
+
+              <listitem>
+                <para>Currently, the chunk size must be 32.</para>
+              </listitem>
+
+              <listitem>
+                <para>Currently, the chunk overlap must be zero.</para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example creates a matrix and calculates its singular value
+      decomposition.</para>
+
+      <procedure>
+        <step>
+          <para>Ensure that the <literal>dense_linear_algebra</literal>
+          library is loaded.<para>
+              <programlisting>AFL% load_library('dense_linear_algebra');  </programlisting>
+            </para></para>
+        </step>
+
+        <step>
+          <para>Construct a rotation matrix, A, that rotates by <symbol
+          role="symbolfont">π</symbol>/6.<programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:1,32,0,j=0:1,32,0],
+    iif(i=j,sqrt(3)/2, iif(i=1,0.5,-0.5))),A); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Construct a scaling matrix, B, that distorts by a factor of
+          2.<programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:1,32,0,j=0:1,32,0],iif(i!=j, 0, iif(i=0,2,1))),B); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Construct a rotation matrix, C, that rotates by
+          -π/6.<programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:1,32,0,j=0:1,32,0],
+    iif(i=j,sqrt(3)/2, iif(i=1,-0.5,0.5))),C); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Multiply the matrices together. The product becomes the input
+          to the <literal>gesvd</literal> operator.<programlisting
+          language="test">--afl create array product&lt;val:double&gt;[i=0:1,32,0,j=0:1,32,0]; --show-query=no --show-output=no
+--afl store(gemm(gemm(A,B, build(A,0)),C, build(A,0)),product); 
+    --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Calculate the U, S, and VT decompositions.</para>
+
+          <para><programlisting language="test">--afl gesvd(product,'U'); --output-format=dense --chunkify=yes</programlisting><programlisting
+          language="test">--afl gesvd(product,'S'); --output-format=dense</programlisting><programlisting
+          language="test">--afl gesvd(product,'VT'); --output-format=dense --chunkify=yes</programlisting>Note
+          that the factors match the matrices that we used to construct the
+          input to <literal>gesvd</literal>, except for the signs of some of
+          the matrix values. This happens because SVD in only unique up to the
+          sign of the matrix entries.</para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

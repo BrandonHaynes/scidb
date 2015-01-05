@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="varAggregate">
+    <refname>var</refname>
+
+    <refpurpose><indexterm>
+        <primary>variance</primary>
+      </indexterm><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>var</secondary>
+      </indexterm>Aggregate that calculates the sample variance.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>AQL% <command>SELECT</command> var(<replaceable>attribute</replaceable>) <command>FROM</command> <replaceable>array</replaceable>;</synopsis>
+
+    <synopsis>AFL% aggregate(<replaceable>array</replaceable>,var(<replaceable>attribute</replaceable>)<optional>,<replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <code>var</code> aggregate returns the sample variance of a set
+    of values. You can optionally specify one or more dimensions to group
+    by.</para>
+
+    <para>The sample variance of an empty set is NULL. The sample variance of
+    a set that contains only NULL values is also NULL. If the set contains
+    NULL and NOT NULL values, the <code>var</code> aggregate considers only
+    NOT NULL values.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example finds the variance of every column of a 3<symbol role="symbolfont">×</symbol>3 array.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array:<para><programlisting>AQL% <command>CREATE ARRAY</command> m3x3&lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Put random values between 1 and 9 into m3x3:<para><programlisting>AFL% store(build(m3x3,random()%10/1.0),m3x3);
+     </programlisting><screen>[
+[(1),(2),(2)],
+[(2),(9),(0)],
+[(2),(0),(0)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Find the variance for each column of m3x3:<para><programlisting>AFL% aggregate(m3x3,var(val),j)  </programlisting><screen>[(0.333333),(22.3333),(1.33333)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

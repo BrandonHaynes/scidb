@@ -1,0 +1,10 @@
+--setup
+CREATE ARRAY overlap <a: double> [x=0:5,3,1, y=0:5,3,1]
+load(overlap, '${TEST_DATA_DIR}/overlap.txt')
+
+--test
+window(overlap, 1, 1, 1, 1, avg(a),count(a))
+
+
+--cleanup
+remove(overlap)

@@ -1,0 +1,100 @@
+--setup
+--start-query-logging
+# Testing gesvd on the nested between-filter-subarray queries
+
+load_library('dense_linear_algebra')
+
+--start-igdata
+create array s10x10 <s:double null>[i=0:9,32,0, j=0:9,32,0]
+create array M10x10 <x:double null>[i=0:9,32,0, j=0:9,32,0]
+
+# use a matrix that avoids near-zeros in its results, since
+# the test, as written, uses exact matching, which will not be
+# stable across different math libraries
+store(build(M10x10, sin(i+10*j)*sqrt(2)), s10x10)
+store(project(apply(s10x10,x,s-floor(s)),x), M10x10)
+
+store(apply(M10x10, y, x), M2_10x10)
+
+--stop-igdata
+--test
+--echo test to check the output when all elements are null or zero
+
+gesvd(build(M10x10, 0), 'values')
+--error --code=scidb::scidb::SCIDB_SE_EXECUTION::scidb::SCIDB_LE_CANT_CONVERT_NULL "gesvd(build(M10x10, null), 'values')"
+gesvd(build(M10x10, 0), 'right')
+--error --code=scidb::scidb::SCIDB_SE_EXECUTION::scidb::SCIDB_LE_CANT_CONVERT_NULL "gesvd(build(M10x10, null), 'right')"
+gesvd(build(M10x10, 0), 'left')
+--error --code=scidb::scidb::SCIDB_SE_EXECUTION::scidb::SCIDB_LE_CANT_CONVERT_NULL "gesvd(build(M10x10, null), 'left')"
+
+--echo test for gesvd on the subarrays
+subarray(M10x10,0,0, 4,4)
+gesvd(subarray(M10x10,0,0, 4,4), 'values')
+gesvd(subarray(M10x10,0,0, 4,4), 'right')
+gesvd(subarray(M10x10,0,0, 4,4), 'left')
+
+# TEMPORARY all non-square and non-zero starting index cases are
+#           temporarily errors ... ScaLAPACK DLA_ERROR43 and 44, respectively
+#           will be fixed by #2200 and/or #2202
+#
+#gesvd(subarray(M10x10,0,4, 4,9), 'values')
+#gesvd(subarray(M10x10,0,4, 4,9), 'left')
+#gesvd(subarray(M10x10,0,4, 4,9), 'right')
+#
+#gesvd(subarray(M10x10,4,0, 9,4), 'values')
+#gesvd(subarray(M10x10,4,0, 9,4), 'left')
+#gesvd(subarray(M10x10,4,0, 9,4), 'right')
+
+gesvd(subarray(M10x10,4,4, 9,9), 'values')
+gesvd(subarray(M10x10,4,4, 9,9), 'left')
+gesvd(subarray(M10x10,4,4, 9,9), 'right')
+
+# TEMPORARY all non-square and non-zero starting index cases are
+#           temporarily errors ... ScaLAPACK DLA_ERROR43 and 44, respectively
+#           will be fixed by #2200 and/or #2202
+#
+#gesvd(subarray(M10x10,0,0, 0,10), 'values')
+#gesvd(subarray(M10x10,0,0, 0,10), 'left')
+#gesvd(subarray(M10x10,0,0, 0,10), 'right')
+#
+#gesvd(subarray(M10x10,0,0, 1,10), 'values')
+#gesvd(subarray(M10x10,0,0, 1,10), 'left')
+#gesvd(subarray(M10x10,0,0, 1,10), 'right')
+
+--echo test for gesvd on the unity matrix and subarray unity matrix and using between over the matrix
+gesvd(build(M10x10,iif(i=j,1,0)), 'values')
+gesvd(build(M10x10,iif(i=j,1,0)), 'left')
+gesvd(build(M10x10,iif(i=j,1,0)), 'right')
+
+gesvd(between(build(M10x10,iif(i=j,1,0)),0,3,2,5), 'values')
+gesvd(between(build(M10x10,iif(i=j,1,0)),0,3,2,5), 'left')
+gesvd(between(build(M10x10,iif(i=j,1,0)),0,3,2,5), 'right')
+
+gesvd(filter(build(M10x10,iif(i=j,1,0)),i=j) As Q1, 'values')
+gesvd(filter(build(M10x10,iif(i=j,-3*i+2*j,0)),i=j) As Q1, 'values')
+gesvd(filter(build(M10x10,iif(i=j,1,0)),i=j) As Q1, 'left')
+gesvd(filter(build(M10x10,iif(i=j,-3*i+2*j,0)),i=j) As Q1, 'left')
+gesvd(filter(build(M10x10,iif(i=j,1,0)),i=j) As Q1, 'right')
+gesvd(filter(build(M10x10,iif(i=j,-3*i+2*j,0)),i=j) As Q1, 'right')
+
+--echo negative test for gesvd : matrix must have only one attribute.
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2 "gesvd(M2_10x10, 'values')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2 "gesvd(M2_10x10, 'left')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2 "gesvd(M2_10x10, 'right')"
+
+--echo test for gesvd on multi-attribute array using project
+gesvd(project(M2_10x10, y), 'values')
+gesvd(project(M2_10x10, y), 'left')
+gesvd(project(M2_10x10, y), 'right')
+gesvd(project(M2_10x10, x), 'values')
+gesvd(project(M2_10x10, x), 'left')
+gesvd(project(M2_10x10, x), 'right')
+
+
+
+--cleanup
+remove(s10x10)
+remove(M10x10)
+remove(M2_10x10)
+
+--stop-query-logging

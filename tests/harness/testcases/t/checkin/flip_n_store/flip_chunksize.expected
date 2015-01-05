@@ -1,0 +1,24 @@
+SCIDB QUERY : <create array A <a:uint64> [x=1:1024,1024,0,y=1:100,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A, random()%(1024*1024)), A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(A,A), C)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array T <a:uint64> [x=1:1024,1024,0,y=1:100,10,0,a_2=1:(1024*1024),1024,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(C,T),T)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+

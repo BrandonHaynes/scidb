@@ -1,0 +1,18 @@
+--setup
+
+CREATE ARRAY M4x4 <a:int32, b:int32> [x=0:3,3,0, y=0:3,3,0]
+
+load(M4x4,'${TEST_DATA_DIR}/M4x4.txt')
+
+--test
+
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select * from 1 cross join 1"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select * from 1 cross join M4x4"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select * from M4x4 cross join 1"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select * from 1+1 cross join 1+1"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select * from 1+1 cross join M4x4"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select * from M4x4 cross join 1+1"
+
+
+--cleanup
+remove(M4x4)

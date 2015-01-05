@@ -1,0 +1,178 @@
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <create array DIMS  <val:double> [x=0:4,32,0,y=0:4,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(DIMS,iif(x=y,double(x+1),0.0)),DENSE)>
+{x,y} val
+{0,0} 1
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{0,4} 0
+{1,0} 0
+{1,1} 2
+{1,2} 0
+{1,3} 0
+{1,4} 0
+{2,0} 0
+{2,1} 0
+{2,2} 3
+{2,3} 0
+{2,4} 0
+{3,0} 0
+{3,1} 0
+{3,2} 0
+{3,3} 4
+{3,4} 0
+{4,0} 0
+{4,1} 0
+{4,2} 0
+{4,3} 0
+{4,4} 5
+
+SCIDB QUERY : <store(build(DIMS,'[[{0,0}(1),{1,1}(2),{2,2}(3),{3,3}(4)]]',true),SPARSE)>
+{x,y} val
+{0,0} 1
+{1,1} 2
+{2,2} 3
+{3,3} 4
+
+SCIDB QUERY : <gesvd(DENSE, 'values')>
+{i} sigma
+{0} 5
+{1} 4
+{2} 3
+{3} 2
+{4} 1
+
+SCIDB QUERY : <gesvd(DENSE, 'left')>
+{x,i} u
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{0,4} 1
+{1,0} 0
+{1,1} 0
+{1,2} 0
+{1,3} 1
+{1,4} 0
+{2,0} 0
+{2,1} 0
+{2,2} 1
+{2,3} 0
+{2,4} 0
+{3,0} 0
+{3,1} 1
+{3,2} 0
+{3,3} 0
+{3,4} 0
+{4,0} 1
+{4,1} 0
+{4,2} 0
+{4,3} 0
+{4,4} 0
+
+SCIDB QUERY : <gesvd(DENSE, 'right')>
+{i,y} v
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 0
+{0,4} 1
+{1,0} 0
+{1,1} 0
+{1,2} 0
+{1,3} 1
+{1,4} 0
+{2,0} 0
+{2,1} 0
+{2,2} 1
+{2,3} 0
+{2,4} 0
+{3,0} 0
+{3,1} 1
+{3,2} 0
+{3,3} 0
+{3,4} 0
+{4,0} 1
+{4,1} 0
+{4,2} 0
+{4,3} 0
+{4,4} 0
+
+SCIDB QUERY : <gesvd(SPARSE, 'values')>
+{i} sigma
+{0} 4
+{1} 3
+{2} 2
+{3} 1
+{4} 0
+
+SCIDB QUERY : <gesvd(SPARSE, 'left')>
+{x,i} u
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 1
+{0,4} 0
+{1,0} 0
+{1,1} 0
+{1,2} 1
+{1,3} 0
+{1,4} 0
+{2,0} 0
+{2,1} 1
+{2,2} 0
+{2,3} 0
+{2,4} 0
+{3,0} 1
+{3,1} 0
+{3,2} 0
+{3,3} 0
+{3,4} 0
+{4,0} 0
+{4,1} 0
+{4,2} 0
+{4,3} 0
+{4,4} 1
+
+SCIDB QUERY : <gesvd(SPARSE, 'right')>
+{i,y} v
+{0,0} 0
+{0,1} 0
+{0,2} 0
+{0,3} 1
+{0,4} 0
+{1,0} 0
+{1,1} 0
+{1,2} 1
+{1,3} 0
+{1,4} 0
+{2,0} 0
+{2,1} 1
+{2,2} 0
+{2,3} 0
+{2,4} 0
+{3,0} 1
+{3,1} 0
+{3,2} 0
+{3,3} 0
+{3,4} 0
+{4,0} 0
+{4,1} 0
+{4,2} 0
+{4,3} 0
+{4,4} 1
+
+SCIDB QUERY : <remove(DIMS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(DENSE)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SPARSE)>
+Query was executed successfully
+

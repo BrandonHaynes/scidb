@@ -1,0 +1,29 @@
+--setup
+load_library('dense_linear_algebra')
+
+# size of our problem
+create array DIMS  <val:double> [x=0:4,32,0,y=0:4,32,0]
+
+--start-query-logging
+# create DENSE which is dense
+store(build(DIMS,iif(x=y,double(x+1),0.0)),DENSE)
+
+# create same-dimensioned SPARSE which has empties where the zeros are above
+store(build(DIMS,'[[{0,0}(1),{1,1}(2),{2,2}(3),{3,3}(4)]]',true),SPARSE)
+
+# all dense examples for reference
+gesvd(DENSE, 'values')
+gesvd(DENSE, 'left')
+gesvd(DENSE, 'right')
+
+--test
+# show that operations on sparse are identical
+gesvd(SPARSE, 'values')
+gesvd(SPARSE, 'left')
+gesvd(SPARSE, 'right')
+
+--cleanup
+remove(DIMS)
+remove(DENSE)
+remove(SPARSE)
+

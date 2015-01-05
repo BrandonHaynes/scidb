@@ -1,0 +1,30 @@
+--setup
+create array dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+create array vec <a:int32, b:int32> [i=1:10,10,0]
+load(dense,'${TEST_DATA_DIR}/dense.txt')
+load(vec,'${TEST_DATA_DIR}/vec.txt')
+
+create array A <v:double> [I=0:99,100,0, J=0:99,100,0]
+store(filter(build(A, double(I+J)/100.0), ((I * 99) + J )%17 = 0), A)
+create array B <v:double> [I=0:99,100,0, J=0:99,100,0]
+store(filter(build(B, double(I+J)/100.0), ((I * 99) + J )%19 = 0), B)
+create array C <v:double> [I=0:99,10,0, J=0:99,10,0]
+store(build(C, I), C)
+
+--test
+cross_join(dense, vec)
+aggregate( apply( cross_join ( A, B ), vv, A.v * B.v), sum ( vv ), A.I, B.J)
+
+aggregate(apply(cross_join(C as A, aggregate(C, avg(v) as v, I) as B, A.I, B.I), dv, B.v - A.v), sum(dv), avg(dv), count(*))
+aggregate(apply(cross_join(C as A, aggregate(C, avg(v) as v, I) as B, A.J, B.I), dv, B.v - A.v), sum(dv), avg(dv), count(*))
+aggregate(apply(cross_join(C as A, aggregate(C, avg(v) as v, J) as B, A.I, B.J), dv, B.v - A.v), sum(dv), avg(dv), count(*))
+aggregate(apply(cross_join(C as A, aggregate(C, avg(v) as v, J) as B, A.J, B.J), dv, B.v - A.v), sum(dv), avg(dv), count(*))
+between(cross_join(C as A, aggregate(C, avg(v) as v, J) as B, A.I, B.J), 0, 0, 10, 10)
+aggregate(aggregate(aggregate(C as A, avg(v) as v, A.I, A.J) as B, sum(v) as v2, B.J), sum(v2), A.J)
+
+--cleanup
+remove (dense)
+remove (vec)
+remove (A)
+remove (B)
+remove (C)

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="loadLibrary">
+    <refname>load_library</refname>
+
+    <refpurpose><indexterm>
+        <primary>libraries</primary>
+
+        <secondary>load_library</secondary>
+      </indexterm>Load a plugin</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>load_library('<replaceable>library_name</replaceable>');</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Load a SciDB plugin. The act of loading a library first registers
+    the library in the SciDB system catalogs. Then it opens and examines the
+    shared library to store its contents with SciDB's internal extension
+    management subsystem.</para>
+
+    <para>Shared libraries which are registered with the SciDB instance
+    will be loaded at system start time.</para>
+
+    <para>To unload a library, see the <link
+    linkend="unloadLibrary">unload_library</link> operator reference.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example loads the example plugin, <emphasis
+      role="bold">librational.so</emphasis>.</para>
+
+      <programlisting>load_library('rational');</programlisting>
+    </informalexample>
+  </refsect1>
+</refentry>

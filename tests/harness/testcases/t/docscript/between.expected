@@ -1,0 +1,11 @@
+SCIDB QUERY : <CREATE ARRAY between_array <val:double>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(between_array,i*4+j),between_array)>
+[[(0),(1),(2),(3)],[(4),(5),(6),(7)],[(8),(9),(10),(11)],[(12),(13),(14),(15)]]
+
+SCIDB QUERY : <between(between_array,2,2,3,3)>
+[[(),(),(),()],[(),(),(),()],[(),(),(10),(11)],[(),(),(14),(15)]]
+
+Query was executed successfully
+

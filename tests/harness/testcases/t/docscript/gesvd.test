@@ -1,0 +1,27 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(build(<val:double>[i=0:1,32,0,j=0:1,32,0], iif(i=j,sqrt(3)/2, iif(i=1,0.5,-0.5))),A)  
+store(build(<val:double>[i=0:1,32,0,j=0:1,32,0],iif(i!=j, 0, iif(i=0,2,1))),B)  
+store(build(<val:double>[i=0:1,32,0,j=0:1,32,0], iif(i=j,sqrt(3)/2, iif(i=1,-0.5,0.5))),C)  
+--set-format dcsv
+--start-igdata
+create array product<val:double>[i=0:1,32,0,j=0:1,32,0]  
+--set-format dense
+--stop-igdata
+store(gemm(gemm(A,B, build(A,0)),C, build(A,0)),product)  
+gesvd(product,'U')  
+gesvd(product,'S')  
+gesvd(product,'VT')  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(A)
+remove(B)
+remove(C)
+remove(product)

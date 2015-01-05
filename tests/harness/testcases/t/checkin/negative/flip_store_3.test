@@ -1,0 +1,12 @@
+--setup
+create array D <a:int64> [x=0:9,3,0]
+create array C <x:int64> [a(int32)=15,3,0]
+store(filter(build(D,x+1),x<>1),D)
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_DESTINATION_DIMENSION_TYPE "redimension(D,C)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REDIMENSION_STORE_ERROR5 "store(redimension(D,C),C)"
+
+--cleanup
+remove(D)
+remove(C)

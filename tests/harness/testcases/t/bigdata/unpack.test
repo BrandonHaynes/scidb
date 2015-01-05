@@ -1,0 +1,39 @@
+# ticket #1481
+#
+
+--setup
+--start-query-logging
+--start-igdata
+
+create array cube <sample: string, probe: string, algo: string, response: double>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0]
+store(build(<sample: string>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0], 'sample-' + string(i)), s)
+store(build(<probe: string>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0], 'probe-' + string(j)), p)
+store(build(<algo: string>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0], 'algo-' + string(k)), a)
+store(build(<response: double>[i=1:7000,1000,0, j=1:7000,1000,0, k=1:3,1,0], (i+j+k)*1.001), r)
+store(join(join(join(s, p), a), r), cube)
+
+--stop-igdata
+
+show(cube)
+aggregate(cube,count(*))
+
+
+--test
+
+--start-igdata
+store(unpack(cube, x), expo_1d)
+remove(expo_1d)
+remove(r)
+store(build(<response: double>[i=1:700,100,0, j=1:700,100,0, k=1:3,1,0], (i+j+k)*1.001), r)
+store(unpack(r, x), expo_1d)
+--stop-igdata
+
+
+--cleanup
+remove(cube)
+remove(s)
+remove(p)
+remove(a)
+remove(r)
+remove(expo_1d)
+

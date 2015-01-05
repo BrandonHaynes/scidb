@@ -1,0 +1,37 @@
+--setup
+--start-query-logging
+create array A <a:datetime>[x=0:2,3,0]
+store(build(A,datetime('10/10/2010 01:12:21')),A)
+
+
+--test
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a + ('01/01/01 00:00:01') from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a * ('01/01/01 00:00:01') from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a / ('01/01/01 00:00:01') from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a % ('01/01/01 00:00:01') from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a * 10 from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a / 10 from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a % 10 from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a * a from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a / a from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select a % a from A"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND "aggregate(A,sum(a))"
+
+--error --code=scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_SPECIFIED_DATE "build(A,'2011-13-10')"
+--error --code=scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_SPECIFIED_DATE "build(A,'2011-10-32')"
+--error --code=scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_INVALID_SPECIFIED_DATE "build(A,'2011-10-10 24:00:00')"
+--error --code=scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "build(A,'2011-10-10 12:5:.2')"
+
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND "filter(A,a<'2011-10-10')"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND "filter(A,a>'2011-10-10')"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND "filter(A,a='2011-10-10')"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND "filter(A,a<>'2011-10-10')"
+
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select * from A where a < '2011-10-10'"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select * from A where a > '2011-10-10'"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select * from A where a = '2011-10-10'"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND --aql="select * from A where a <> '2011-10-10'"
+
+--cleanup
+remove(A)
+--stop-query-logging

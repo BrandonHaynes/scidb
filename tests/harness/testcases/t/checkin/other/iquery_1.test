@@ -1,0 +1,25 @@
+--setup
+--start-query-logging
+
+CREATE ARRAY Raw_Dorf < name : string, chin : string, top : string, head : string, face : string, dorfishness : int64 > [ Offset=0:8,10,0 ]
+
+load ( Raw_Dorf, '${TEST_DATA_DIR}/iquery_1.txt')
+
+CREATE array Dorfishness < dorfishness : int64 > [ name(string)=10,11,0, chin(string)=10,11,0, top(string)=10,11,0, head(string)=10,11,0, face(string)=10,11,0 ]
+
+--igdata "store(redimension( Raw_Dorf, Dorfishness ), Dorfishness )"
+
+
+--test
+
+echo ('iquery -o lcsv+ -aq \'scan ( Dorfishness )\'')
+--shell --command " iquery -o lcsv+ -aq 'scan ( Dorfishness )' " --store
+
+echo ('iquery -o lsparse -aq \'scan ( Dorfishness )\'')
+--shell --command " iquery  -o lsparse -aq 'scan ( Dorfishness )' " --store
+
+
+--cleanup
+remove ( Raw_Dorf )
+remove ( Dorfishness )
+--stop-query-logging

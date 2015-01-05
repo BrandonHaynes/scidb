@@ -1,0 +1,22 @@
+# ticket #1562
+#
+# cast supports non-empty -> empty conversion
+#
+
+--setup
+--start-query-logging
+
+create array A <a:int32> [x=0:2,3,0]
+store(build(A,x+1),A)
+create array B <b:int32> [y=0:2,3,0]
+
+--test
+store(cast(A,B),C)
+show(C)
+--stop-query-logging
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+

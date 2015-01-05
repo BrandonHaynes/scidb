@@ -1,0 +1,28 @@
+Query was executed successfully
+
+{i} a,b
+{1} 1,5
+{2} 3,2
+{3} 2,8
+{4} 9,4
+{5} 2,1
+{6} 5,7
+{7} 3,5
+{8} 7,6
+{9} 2,1
+{10} 5,5
+
+{i} a,b,x
+{1} 1,5,false
+{2} 3,2,true
+{3} 2,8,false
+{4} 9,4,true
+{5} 2,1,false
+{6} 5,7,false
+{7} 3,5,false
+{8} 7,6,true
+{9} 2,1,false
+{10} 5,5,false
+
+Query was executed successfully
+

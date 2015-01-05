@@ -1,0 +1,21 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array counting <val:int32> [i=0:999,1000,0, j=0:999,1000,0]  
+store(build(counting, (i * 1000) + j),counting)  
+--stop-igdata
+aggregate(counting,approxdc(val)) 
+--start-igdata
+store(build(counting, ((i * 1000) + j) % 2000),counting)  
+--stop-igdata
+aggregate(counting,approxdc(val)) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(counting)

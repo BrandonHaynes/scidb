@@ -1,0 +1,48 @@
+--setup
+--start-query-logging
+# Ticket number : 1688
+# Tests for the binary load-save on 2-D unbounded arrays with datetime datatype
+
+create array Matrix < val : double > [ x=0:3,4,0, y=0:3,4,0]
+store(apply(apply(build(Matrix, x*y+2.5/(1.0)),name,'genome-'+string(x+y)),sal,(x+y*200)/0.25),MAT)
+create array MAT_UB <val:double,name:string,sal:double> [x=0:*,4,0,y=0:*,4,0]
+create array Matrix_date <val:double,name:string,sal:double,date:datetime> [x=0:*,4,0,y=0:*,4,0]
+create array MAT_UB1 <val:double,name:string,sal:double> [x=0:*,4,0,y=0:*,4,0]
+create array MAT_UB2 <val:double,name:string,sal:double> [x=0:*,4,0,y=0:*,4,0]
+
+
+
+--test
+save(MAT, 'matrix.bin', 0, '(double,string,double)')
+load(MAT_UB, 'matrix.bin', 0, '(double,string,double)')
+save(MAT_UB, 'mat.txt', -1)
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(Matrix_date, '${TEST_DATA_DIR}/matdate.txt')""
+save(Matrix_date, 'matdate.out', 0, '(double,string,double,datetime)')
+show(Matrix_date)
+show(MAT_UB)
+load(MAT_UB, 'mat.txt', 0, 'text')
+
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(MAT_UB1, 'matdate.out', 0, '(double,string,double)')"
+
+load(MAT_UB1, 'matdate.out', 0, '(double,string,double,dummy(8))')
+
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(Matrix_date, 'matrix.bin', 0, '(double,string,double,datetime)')"
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(MAT_UB2, 'matrix.bin', 0, '(float,string,float)')"
+
+## undesired output because of wrong data types
+load(MAT_UB2, 'matrix.bin', 0, '(float,string,float)',10,UB_shadow)
+load(MAT_UB2, 'matrix.bin', 0, '(double,string,double)',10,UB_shadow)
+scan(UB_shadow)
+
+
+--cleanup
+remove(Matrix)
+remove(MAT)
+remove(MAT_UB)
+remove(MAT_UB1)
+remove(MAT_UB2)
+remove(Matrix_date)
+remove(UB_shadow)
+
+--stop-query-logging

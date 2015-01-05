@@ -1,0 +1,18 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+--aql CREATE ARRAY between_array <val:double>[i=0:3,4,0,j=0:3,4,0]  
+--set-format auto
+--stop-igdata
+store(build(between_array,i*4+j),between_array)  
+between(between_array,2,2,3,3)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(between_array)

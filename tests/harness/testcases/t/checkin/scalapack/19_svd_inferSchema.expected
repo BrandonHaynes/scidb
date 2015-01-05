@@ -1,0 +1,145 @@
+SCIDB QUERY : <create array A_1c32 <x:double>[r=0:0,32,0, c=0:0,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A_1c32, 1), A_1c32)>
+{r,c} x
+{0,0} 1
+
+SCIDB QUERY : <create array A_12c32 <x:double>[r=0:0,32,0, c=0:1,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A_12c32, 1 + r*2+c), A_12c32)>
+{r,c} x
+{0,0} 1
+{0,1} 2
+
+SCIDB QUERY : <create array A_21c32 <x:double>[r=0:1,32,0, c=0:0,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A_21c32, 1 + r*2+c), A_21c32)>
+{r,c} x
+{0,0} 1
+{1,0} 3
+
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+Query was executed successfully
+
+SCIDB QUERY : <gesvd(A_1c32, 'left')>
+r,i,u
+0,0,1
+
+SCIDB QUERY : <gesvd(A_1c32, 'values')>
+i,sigma
+0,1
+
+SCIDB QUERY : <gesvd(A_1c32, 'right')>
+i,c,v
+0,0,1
+
+SCIDB QUERY : <gesvd(A_1c32, 'U')>
+r,i,u
+0,0,1
+
+SCIDB QUERY : <gesvd(A_1c32, 'S')>
+i,sigma
+0,1
+
+SCIDB QUERY : <gesvd(A_1c32, 'VT')>
+i,c,v
+0,0,1
+
+SCIDB QUERY : <gesvd(A_1c32, 'SIGMA')>
+i,sigma
+0,1
+
+SCIDB QUERY : <gesvd(A_1c32, 'foo')>
+[An error expected at this place for the query "gesvd(A_1c32, 'foo')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR33. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR33.]
+
+SCIDB QUERY : <remove(tmp)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <store(gesvd(A_1c32, 'U'),  tmp)>
+r,i,u
+0,0,1
+
+SCIDB QUERY : <show(tmp)>
+i,schema
+0,'tmp<u:double> [r=0:0,32,0,i=0:0,32,0]'
+
+SCIDB QUERY : <scan(tmp)>
+r,i,u
+0,0,1
+
+SCIDB QUERY : <remove(tmp)>
+Query was executed successfully
+
+SCIDB QUERY : <store(gesvd(A_1c32, 'S'),  tmp)>
+i,sigma
+0,1
+
+SCIDB QUERY : <show(tmp)>
+i,schema
+0,'tmp<sigma:double> [i=0:0,32,0]'
+
+SCIDB QUERY : <scan(tmp)>
+i,sigma
+0,1
+
+SCIDB QUERY : <remove(tmp)>
+Query was executed successfully
+
+SCIDB QUERY : <store(gesvd(A_1c32, 'VT'), tmp)>
+i,c,v
+0,0,1
+
+SCIDB QUERY : <show(tmp)>
+i,schema
+0,'tmp<v:double> [i=0:0,32,0,c=0:0,32,0]'
+
+SCIDB QUERY : <scan(tmp)>
+i,c,v
+0,0,1
+
+SCIDB QUERY : <remove(tmp)>
+Query was executed successfully
+
+SCIDB QUERY : <create array M_first_i <x:double>[i=0:0,32,0, j=0:0,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(M_first_i, 1), M_first_i)>
+i,j,x
+0,0,1
+
+SCIDB QUERY : <store(gesvd(M_first_i, 'U'), tmp)>
+i_1,i_2,u
+0,0,1
+
+SCIDB QUERY : <remove(M_first_i)>
+Query was executed successfully
+
+SCIDB QUERY : <create array M_second_i <x:double>[h=0:0,32,0, i=0:0,32,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(M_second_i, 1), M_second_i)>
+h,i,x
+0,0,1
+
+SCIDB QUERY : <store(gesvd(M_second_i, 'VT'), tmp)>
+i_1,i_2,u
+0,0,1
+
+SCIDB QUERY : <remove(tmp)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M_second_i)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A_1c32)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A_12c32)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A_21c32)>
+Query was executed successfully
+

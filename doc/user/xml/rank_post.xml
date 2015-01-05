@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="rankOperator">
+    <refname>rank</refname>
+
+    <refpurpose><indexterm>
+        <primary>ranking methods</primary>
+
+        <secondary>rank</secondary>
+      </indexterm><indexterm>
+        <primary>rank</primary>
+      </indexterm>Rank array elements</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>rank(<replaceable>array</replaceable><optional>, <replaceable>attribute</replaceable></optional><optional>,<replaceable> dimension_1</replaceable>, <replaceable>dimension_2</replaceable>,...]</optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>Ranking array elements sorts them and assigns an ordinal
+    rank.</para>
+
+    <para>The <literal>avg_rank</literal> operator is equivalent to
+    <literal>rank</literal> except for handling ties. The
+    <literal>avg_rank</literal> operator averages the rank for the tied
+    values. For details, see the <link linkend="avgRank">avg_rank</link>
+    reference.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The <literal>rank</literal> operator takes the following
+    arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">array</emphasis>: a source array with
+          one or more attributes and one or more dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">attribute_</emphasis><replaceable>n</replaceable>: An
+          optional attribute on which to sort. If no attributes are specified,
+          the first one is used.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">dimension</emphasis>_<replaceable>n</replaceable>: An
+          optional list of dimensions to group by. If no dimensions are
+          specified, the ordering is global across the entire array.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example ranks a 4<symbol role="symbolfont">×</symbol>4 array
+      by dimension.</para>
+
+      <procedure>
+        <step>
+          <para>Assume that you have the following 4<symbol role="symbolfont">×</symbol>4 array called
+          rank_array:<para><screen>[
+[(9),(1),(0),(6)],
+[(1),(3),(7),(7)],
+[(2),(3),(9),(8)],
+[(5),(9),(5),(9)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Rank the elements in rank_array by dimension i:<para><programlisting>AFL% rank(rank_array,val,i);  </programlisting><screen>[
+[(9,4),(1,2),(0,1),(6,3)],
+[(1,1),(3,2),(7,<emphasis role="bold">3</emphasis>),(7,<emphasis role="bold">3</emphasis>)],
+[(2,1),(3,2),(9,4),(8,3)],
+[(5,1),(9,<emphasis role="bold">3</emphasis>),(5,1),(9,<emphasis role="bold">3</emphasis>)]
+]</screen>Notice that the first value for each cell is the value of the
+          <emphasis role="bold">val</emphasis> attribute, and the second value
+          is the rank. Ties are marked in bold.</para></para>
+        </step>
+
+        <step>
+          <para>Rank all the elements of the array:<para><programlisting>AFL% rank(rank_array,val);  </programlisting><screen>[
+[(9,<emphasis role="bold">13</emphasis>),(1,<emphasis role="bold">2</emphasis>),(0,1),(6,9)],
+[(1,<emphasis role="bold">2</emphasis>),(3,<emphasis role="bold">5</emphasis>),(7,<emphasis role="bold">10</emphasis>),(7,<emphasis role="bold">10</emphasis>)],
+[(2,4),(3,<emphasis role="bold">5</emphasis>),(9,<emphasis role="bold">13</emphasis>),(8,12)],
+[(5,7),(9,<emphasis role="bold">13</emphasis>),(5,7),(9,<emphasis role="bold">13</emphasis>)]
+]</screen>Notice that the four occurrences of '9' are all ranked the same, as
+          '13', which is the highest rank in the data set.</para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

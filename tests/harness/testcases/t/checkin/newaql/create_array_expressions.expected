@@ -1,0 +1,28 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{i} schema
+{0} 'A<a:int32> [x=3:7,11,1]'
+
+{i} schema
+{0} 'B<a:int32> [x=3:7,11,1]'
+
+{i} schema
+{0} 'C<a:int32> [x(string)=30,11,1]'
+
+{i} schema
+{0} 'D<a:int32> [x(string)=30,11,1]'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,108 @@
+# Any queries passed during setup phase do not require a 'SCIDB QUERY'
+# line in the test.expected file.
+--setup
+
+--test
+--start-query-logging
+# The test.expected file requires that each line here be duplicated 
+# in this manner, followed by its expected output.
+# SCIDB QUERY : <test action line>
+# {i} v,w
+# {0} 0,1
+# {1} 1,2
+# {2} 2,3
+# {3} 3,4
+# {4} 4,5
+# {5} 5,6
+# {6} 6,7
+# {7} 7,8
+# {8} 8,9
+# {9} 9,10
+
+# Test integer input
+unfold(apply(build(<v:int64>[i=0:9,3,0],i),w,i+1))
+
+# Test double input
+unfold(apply(build(<v:double>[i=0:9,3,0],i),w,i+0.5))
+
+# Test input with empty values
+unfold(apply(build(<v:double NULL>[i=0:5,1,1],NULL),w,i+0.5))
+
+# Test input with more than two attributes
+unfold(apply(apply(apply(build(<v:double>[i=0:9,3,0],i),w,i+0.5),x,w+0.25),y,x+0.125))
+
+# Test sparse input
+unfold(apply(filter(build(<w:double>[i=2:2,4,0],2),1),h,2*w))
+
+# Test sparse input wiht more than two attributes
+unfold(apply(apply(apply(filter(build(<v:double>[i=2:2,4,0],2),i),w,i+0.5),x,w+0.25),y,x+0.125))
+
+# Test sparse input with larger array
+store(build(<index:int64>[i=0:9,10,0],i*50),sparse_9a)
+store(build(<val:double>[i=0:9,10,0], 2.718*i),sparse_9b)
+store(join(sparse_9a,sparse_9b), sparse_9ab)
+store(redimension(sparse_9ab, <val:double>[index=0:*, 50,0]),sparse_9result)
+store(apply(sparse_9result,w,2*val), sr2attr9)
+unfold(sr2attr9)
+
+# Test sparse input with another array
+store(build(<index:int64>[i=0:4,10,0],i*50),sparse_4a)
+store(build(<val:double>[i=0:4,10,0], 2.718*i),sparse_4b)
+store(join(sparse_4a,sparse_4b), sparse_4ab)
+store(redimension(sparse_4ab, <val:double>[index=0:*, 50,0]),sparse_4result)
+store(apply(sparse_4result,w,2*val), sr2attr4)
+unfold(sr2attr4)
+
+# Test case for sparse n-dimensional input array
+unfold(apply(unfold(sr2attr4),w,3.5*val))
+
+# Test for when input array has only one attribute
+unfold(build(<v:int64>[i=0:9,3,0],i))
+
+# Test case for datetime type
+create array datetime1 <dt:datetime,dt2:datetime>[i=0:*,100,0]
+--stop-query-logging
+load(datetime1,'${TEST_DATA_DIR}/dates.txt')
+--start-query-logging
+unfold(datetime1)
+
+# Test case where, for sparse input, the data do not occur
+# at the chunk boundaries.
+store(build(<index:int64>[i=0:9,10,0],i*55),sparse_5a)
+store(build(<val:double>[i=0:9,10,0], 3.1416*i),sparse_5b)
+store(join(sparse_5a,sparse_5b), sparse_5ab)
+store(redimension(sparse_5ab, <val:double>[index=0:*, 50,0]),sparse_5result)
+store(apply(sparse_5result,w,2*val), sr2attr5)
+unfold(sr2attr5)
+
+# Negative test for when attributes are not of the same type
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_ILLEGAL_OPERATION "unfold(apply(build(<v:int64>[i=0:9,3,0],i),w,i+0.5))"
+
+# Test case for n-dimensional dense input array
+unfold(apply(apply(build(<u:int64>[i=0:4,2,0,j=0:4,2,0],(i+1)*(i+1)),w,2*u+1),x,3*w+2))
+
+--stop-query-logging
+--cleanup
+
+# Any queries passed during cleanup phase do not require a 'SCIDB QUERY'
+# line in the test.expected file.
+remove(sparse_9a)
+remove(sparse_9b)
+remove(sparse_9ab)
+remove(sparse_9result)
+remove(sr2attr9)
+remove(sparse_4a)
+remove(sparse_4b)
+remove(sparse_4ab)
+remove(sparse_4result)
+remove(sr2attr4)
+remove(sparse_5a)
+remove(sparse_5b)
+remove(sparse_5ab)
+remove(sparse_5result)
+remove(sr2attr5)
+remove(datetime1)
+
+# The test.expected file must end with two newlines (newline followed
+# by a blank line).  As an example, this file ends in that manner.
+

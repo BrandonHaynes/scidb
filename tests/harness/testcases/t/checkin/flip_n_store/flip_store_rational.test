@@ -1,0 +1,70 @@
+--setup
+--start-query-logging
+load_library('rational')
+create array A <a:rational,b:rational>[x=0:2,3,0]
+create array T <a:rational>[x=0:2,3,0]
+create array B <b:rational>[a(rational)=3,3,0]
+create array C <a:rational>[b(rational)=3,3,0]
+project(apply(store(join(build(T,rational(x+1,x+2)),build(T,rational(x+10,x+11))),A),c,str(a)+' - '+str(b)),c)
+
+--test
+
+#workaround for p4 bug 564
+--set-format csv+
+store(redimension(A,B),B)
+project(apply(B,c,str(b)),c)
+store(redimension(B,C),C)
+project(apply(C,c,str(a)),c)
+project(apply(unpack(B,row),c,str(a)+' - '+str(b)),c)
+project(apply(unpack(C,row),c,str(b)+' - '+str(a)),c)
+
+rename(B,B1)
+project(apply(aggregate(B1,max(b)),c,str(b_max)),c)
+project(apply(aggregate(B1,min(b)),c,str(b_min)),c)
+project(apply(aggregate(B1,avg(b)),c,str(b_avg)),c)
+project(apply(subarray(B1,rational(1,2),rational(2,3)),c,str(b)),c)
+project(apply(subarray(B1,rational(1,1),rational(2,2)),c,str(b)),c)
+project(apply(between(B1,rational(1,2),rational(2,3)),c,str(b)),c)
+project(apply(between(B1,rational(1,1),rational(2,2)),c,str(b)),c)
+project(apply(filter(B1,a=rational(2,3)),c,str(a)),c)
+project(apply(filter(B1,b<rational(11,12)),c,str(b)),c)
+project(apply(filter(B1,b<=rational(11,12)),c,str(b)),c)
+project(apply(filter(B1,b>rational(11,12)),c,str(b)),c)
+project(apply(filter(B1,b>=rational(11,12)),c,str(b)),c)
+project(apply(join(B1 as B11,B1 as B12),c,str(B11.b)+' - '+str(B12.b)),c)
+project(apply(cross_join(B1 as B11,B1 as B12),c,str(B11.b)+' - '+str(B12.b)),c)
+aggregate(B1,count(*))
+project(apply(aggregate(B1,sum(b)),c,str(b_sum)),c)
+project(apply(sort(B1,b),c,str(b)),c)
+project(apply(sort(B1,b desc),c,str(b)),c)
+rename(B1,B)
+
+rename(C,C1)
+project(apply(aggregate(C1,max(a)),c,str(a_max)),c)
+project(apply(aggregate(C1,min(a)),c,str(a_min)),c)
+project(apply(aggregate(C1,avg(a)),c,str(a_avg)),c)
+project(apply(subarray(C1,rational(10,11),rational(11,12)),c,str(a)),c)
+project(apply(subarray(C1,rational(1,1),rational(2,2)),c,str(a)),c)
+project(apply(between(C1,rational(10,11),rational(11,12)),c,str(b)),c)
+project(apply(between(C1,rational(1,1),rational(2,2)),c,str(b)),c)
+project(apply(filter(C1,a=rational(2,3)),c,str(a)),c)
+project(apply(filter(C1,b<rational(11,12)),c,str(b)),c)
+project(apply(filter(C1,b<=rational(11,12)),c,str(b)),c)
+project(apply(filter(C1,b>rational(11,12)),c,str(b)),c)
+project(apply(filter(C1,b>=rational(11,12)),c,str(b)),c)
+project(apply(join(C1 as C11,C1 as C12),c,str(C11.a)+' - '+str(C12.a)),c)
+project(apply(cross_join(C1 as C11,C1 as C12),c,str(C11.a)+' - '+str(C12.a)),c)
+aggregate(C1,count(*))
+project(apply(aggregate(C1,sum(a)),c,str(a_sum)),c)
+project(apply(sort(C1,a),c,str(a)),c)
+project(apply(sort(C1,a desc),c,str(a)),c)
+rename(C1,C)
+
+--reset-format
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(T)
+--stop-query-logging

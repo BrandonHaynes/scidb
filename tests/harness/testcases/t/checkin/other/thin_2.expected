@@ -1,0 +1,66 @@
+SCIDB QUERY : <create array A <a:double> [x=-2:8,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10.5),A)>
+{x} a
+{-2} 8.5
+{-1} 9.5
+{0} 10.5
+{1} 11.5
+{2} 12.5
+{3} 13.5
+{4} 14.5
+{5} 15.5
+{6} 16.5
+{7} 17.5
+{8} 18.5
+
+SCIDB QUERY : <thin(A,-2,1)>
+{x} a
+{0} 8.5
+{1} 9.5
+{2} 10.5
+{3} 11.5
+{4} 12.5
+{5} 13.5
+{6} 14.5
+{7} 15.5
+{8} 16.5
+{9} 17.5
+{10} 18.5
+
+SCIDB QUERY : <window(thin(A,-2,1),0,1,sum(a))>
+{x} a_sum
+{0} 18
+{1} 20
+{2} 22
+{3} 24
+{4} 26
+{5} 28
+{6} 30
+{7} 32
+{8} 34
+{9} 36
+{10} 18.5
+
+SCIDB QUERY : <thin(A,0,2)>
+[An error expected at this place for the query "thin(A,0,2)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <thin(A,0,3)>
+{x} a
+{0} 10.5
+{1} 13.5
+{2} 16.5
+
+SCIDB QUERY : <thin(A,1,2)>
+[An error expected at this place for the query "thin(A,1,2)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <thin(A,1,3)>
+[An error expected at this place for the query "thin(A,1,3)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <thin(A,2,3)>
+[An error expected at this place for the query "thin(A,2,3)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

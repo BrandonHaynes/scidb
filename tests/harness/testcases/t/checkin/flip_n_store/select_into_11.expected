@@ -1,0 +1,126 @@
+SCIDB QUERY : <create array A <a:int32>[x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:string>[x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <b:string,a:int32> [x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <b:string> [x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array E <a:int32> [x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array G <a:int32> [b(string)=15,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(C,C1)>
+[[]]
+
+SCIDB QUERY : <store(D,D1)>
+[[]]
+
+SCIDB QUERY : <store(E,E1)>
+[[]]
+
+SCIDB QUERY : <store(G,G1)>
+[]
+
+SCIDB QUERY : <store(C,C2)>
+[[]]
+
+SCIDB QUERY : <store(D,D2)>
+[[]]
+
+SCIDB QUERY : <store(E,E2)>
+[[]]
+
+SCIDB QUERY : <store(G,G2)>
+[]
+
+SCIDB QUERY : <store(build(A,x+y+10),A)>
+[[(8)],[(9)],[(10)]];[[(9)],[(10)],[(11)]];[[(10)],[(11)],[(12)]];[[(11)],[(12)],[(13)]];[[(12)],[(13)],[(14)]]
+
+SCIDB QUERY : <store(build(B,string(x)+'_'+string(y)),B)>
+[[('0_-2')],[('1_-2')],[('2_-2')]];[[('0_-1')],[('1_-1')],[('2_-1')]];[[('0_0')],[('1_0')],[('2_0')]];[[('0_1')],[('1_1')],[('2_1')]];[[('0_2')],[('1_2')],[('2_2')]]
+
+SCIDB QUERY : <select * into C from A,B>
+[[('0_-2',8)],[('1_-2',9)],[('2_-2',10)]];[[('0_-1',9)],[('1_-1',10)],[('2_-1',11)]];[[('0_0',10)],[('1_0',11)],[('2_0',12)]];[[('0_1',11)],[('1_1',12)],[('2_1',13)]];[[('0_2',12)],[('1_2',13)],[('2_2',14)]]
+
+SCIDB QUERY : <select * into D from A,B>
+[[('0_-2')],[('1_-2')],[('2_-2')]];[[('0_-1')],[('1_-1')],[('2_-1')]];[[('0_0')],[('1_0')],[('2_0')]];[[('0_1')],[('1_1')],[('2_1')]];[[('0_2')],[('1_2')],[('2_2')]]
+
+SCIDB QUERY : <select * into E from A,B>
+[[(8)],[(9)],[(10)]];[[(9)],[(10)],[(11)]];[[(10)],[(11)],[(12)]];[[(11)],[(12)],[(13)]];[[(12)],[(13)],[(14)]]
+
+SCIDB QUERY : <select * into G from A,B>
+[(9),(8),(10),(11),(12),(10),(9),(11),(12),(13),(11),(10),(12),(13),(14)]
+
+SCIDB QUERY : <select * into C1 from A,B where x=0>
+[[('0_-2',8)],[()],[()]];[[('0_-1',9)],[()],[()]];[[('0_0',10)],[()],[()]];[[('0_1',11)],[()],[()]];[[('0_2',12)],[()],[()]]
+
+SCIDB QUERY : <select * into D1 from A,B where x<>0>
+[[()],[('1_-2')],[('2_-2')]];[[()],[('1_-1')],[('2_-1')]];[[()],[('1_0')],[('2_0')]];[[()],[('1_1')],[('2_1')]];[[()],[('1_2')],[('2_2')]]
+
+SCIDB QUERY : <select * into E1 from A,B where x<=1>
+[[(8)],[(9)],[()]];[[(9)],[(10)],[()]];[[(10)],[(11)],[()]];[[(11)],[(12)],[()]];[[(12)],[(13)],[()]]
+
+SCIDB QUERY : <select * into G1 from A,B where x<>3>
+[(9),(8),(10),(11),(12),(10),(9),(11),(12),(13),(11),(10),(12),(13),(14)]
+
+SCIDB QUERY : <select * into C2 from A,B where a=10>
+[[()],[()],[('2_-2',10)]];[[()],[('1_-1',10)],[()]];[[('0_0',10)],[()],[()]]
+
+SCIDB QUERY : <select * into D2 from A,B where b<>'0_-1'>
+[[('0_-2')],[('1_-2')],[('2_-2')]];[[()],[('1_-1')],[('2_-1')]];[[('0_0')],[('1_0')],[('2_0')]];[[('0_1')],[('1_1')],[('2_1')]];[[('0_2')],[('1_2')],[('2_2')]]
+
+SCIDB QUERY : <select * into E2 from A,B where a<11 or b>'1_'>
+[[(8)],[(9)],[(10)]];[[(9)],[(10)],[(11)]];[[(10)],[(11)],[(12)]];[[()],[(12)],[(13)]];[[()],[(13)],[(14)]]
+
+SCIDB QUERY : <select * into G2 from A,B where a=10 or b='0_2' and a=12>
+[(10),(12),(10),(10)]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G2)>
+Query was executed successfully
+

@@ -1,0 +1,120 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0','9999',10000,10000
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','-500','499',1000,1000
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0','19999',20000,100000
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0','200000',1052265,1000000
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0','1524155677489',1194316,1234568
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0','458541',146593,460000
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0','1000',1001,459000
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0','99999',102730,100000
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0-50000','9999949999',100002,100000
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','0','99999.8',601599,1000000
+
+{i} a_ApproxDC
+{0} 9968
+
+{i} a_ApproxDC
+{0} 997
+
+{i} a_ApproxDC
+{0} 20021
+
+{i} a_ApproxDC
+{0} 1004684
+
+{i} a_ApproxDC
+{0} 1236713
+
+{i} a_ApproxDC
+{0} 147270
+
+{i} a_ApproxDC
+{0} 1002
+
+{i} a_ApproxDC
+{0} 99683
+
+{i} a_ApproxDC
+{0} 100279
+
+{i} a_ApproxDC
+{0} 602400
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

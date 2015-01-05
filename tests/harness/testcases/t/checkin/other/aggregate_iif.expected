@@ -1,0 +1,60 @@
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+Query was executed successfully
+
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+{8} 8
+
+{i} a
+{0} 'abc'
+{1} 'abc'
+{2} 'abc'
+{3} 'abc'
+{4} 'abc'
+{5} 'abc'
+{6} 'abc'
+{7} 'abc'
+{8} 'abc'
+{9} 'abc'
+
+{i} sum
+{0} 9
+
+{i} b_sum
+{0} 9
+
+{x} expr
+{0} 1
+{1} 1
+{2} 1
+{3} 1
+{4} 1
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+
+{i} a_max,c_max,c_min,c_count,c_sum
+{0} 'abc',null,null,0,''
+{1} 'abc',null,null,0,''
+{2} 'abc',null,null,0,''
+{3} 'abc',null,null,0,''
+{4} 'abc',null,null,0,''
+{5} 'abc',null,null,0,''
+{6} 'abc',null,null,0,''
+{7} 'abc',null,null,0,''
+{8} 'abc',null,null,0,''
+{9} 'abc',null,null,0,''
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,16 @@
+
+--test
+--start-query-logging
+
+--start-igdata
+--aql select * from list()  
+--shell  --command="csv2scidb -s 1 -p SNSN < examples.new/data/olympic_data.csv > examples.new/data/olympic_data.scidb "
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+#remove(N)
+#remove(name)

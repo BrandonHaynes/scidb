@@ -1,0 +1,112 @@
+--setup
+--aql create array A11 <A:int64>[i]
+--aql create array A12 <A:int64>[i, j]
+--aql create array A13 <A:int64>[i, j, k]
+--aql create array A14 <A:int64>[i, j, k, l]
+
+--aql create array B11 <A:int64>[i=0:10,200,10, j]
+--aql create array B12 <A:int64>[i=0:10,200,10, j, k]
+--aql create array B13 <A:int64>[i=0:10,200,10, j, k, l=0:10,300,10]
+
+--aql create array C11 <A:int64>[i(string)]
+--aql create array C12 <A:int64>[i(string), j(string)]
+--aql create array C13 <A:int64>[i(string), j(string), k(string)]
+--aql create array C14 <A:int64>[i(string), j(string), k(string), l(string)]
+
+--aql create array D11 <A:int64>[i(string)=10,200,10, j(string)]
+--aql create array D12 <A:int64>[i(string)=10,200,10, j(string), k(string)]
+--aql create array D13 <A:int64>[i(string)=10,200,10, j(string), k(string), l(string)=10,300,10]
+
+#same syntax for AFL
+create array A21 <A:int64>[i]
+create array A22 <A:int64>[i, j]
+create array A23 <A:int64>[i, j, k]
+create array A24 <A:int64>[i, j, k, l]
+
+create array B21 <A:int64>[i=0:10,200,10, j]
+create array B22 <A:int64>[i=0:10,200,10, j, k]
+create array B23 <A:int64>[i=0:10,200,10, j, k, l=0:10,300,10]
+
+create array C21 <A:int64>[i(string)]
+create array C22 <A:int64>[i(string), j(string)]
+create array C23 <A:int64>[i(string), j(string), k(string)]
+create array C24 <A:int64>[i(string), j(string), k(string), l(string)]
+
+create array D21 <A:int64>[i(string)=10,200,10, j(string)]
+create array D22 <A:int64>[i(string)=10,200,10, j(string), k(string)]
+create array D23 <A:int64>[i(string)=10,200,10, j(string), k(string), l(string)=10,300,10]
+
+--test
+show(A11)
+show(A12)
+show(A13)
+show(A14)
+
+show(B11)
+show(B12)
+show(B13)
+
+show(C11)
+show(C12)
+show(C13)
+show(C14)
+
+show(D11)
+show(D12)
+show(D13)
+
+show(A21)
+show(A22)
+show(A23)
+show(A24)
+
+show(B21)
+show(B22)
+show(B23)
+
+show(C21)
+show(C22)
+show(C23)
+show(C24)
+
+show(D21)
+show(D22)
+show(D23)
+
+--cleanup
+remove(A11)
+remove(A12)
+remove(A13)
+remove(A14)
+
+remove(B11)
+remove(B12)
+remove(B13)
+
+remove(C11)
+remove(C12)
+remove(C13)
+remove(C14)
+
+remove(D11)
+remove(D12)
+remove(D13)
+
+remove(A21)
+remove(A22)
+remove(A23)
+remove(A24)
+
+remove(B21)
+remove(B22)
+remove(B23)
+
+remove(C21)
+remove(C22)
+remove(C23)
+remove(C24)
+
+remove(D21)
+remove(D22)
+remove(D23)
+

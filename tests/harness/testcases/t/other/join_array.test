@@ -1,0 +1,75 @@
+--setup
+--start-query-logging
+
+create array data_array < A: int64 > [ X=0:9,5,0]
+store(build(data_array, 1+X), data_array)
+create array UB <a:int64>[x=0:*,5,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(UB, '${TEST_DATA_DIR}/ub_join.txt')""
+create array Media < val : double > [ I=1:3,3,0, J=1:3,3,0 ]
+store(build(Media, I*I+J/(1.0)), Media)
+create array two_dimension < age:int32>[ I=1:2,2,0 , J=1:2,2,0]
+store(build(two_dimension, I*I+J/(1.0)),two_dimension)
+create array Media_A < val : double > [ I=1:3,3,1, J=1:3,3,1]
+store(build(Media_A, I*I+J/(1.0)), Media_A)
+create array Media_B < val : double > [ I=1:3,2,1, J=1:3,2,1]
+store(build(Media_B, I*I+J/(1.0)), Media_B)
+create array Media_C < val : double > [ I=1:3,2,1, J=1:3,2,2]
+store(build(Media_C, I*I+J/(1.0)), Media_C)
+create array Media_D <salary : double > [ I=1:3,3,0, J=1:3,3,0 ]
+store(build(Media_D, I*I+J/(1.0)), Media_D)
+create array Media_E <sal : float > [ I=1:3,3,0, J=1:3,3,0 ]
+store(build(Media_E, I*I+J/(1.0)), Media_E)
+create array multiMedia_array_new < name: string, val : double , sal:int32  > [ I=1:3,3,0, J=1:3,3,0 ]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(multiMedia_array_new,'${TEST_DATA_DIR}/multi.txt')""
+create array threeD_array < val : double > [ I=1:3,3,0, J=1:3,3,0 , K=1:3,3,0]
+store(build(threeD_array, 4.67*cos(I+J+K)), threeD_array)
+create array threeD_array_A <initial:char, val : double > [ I=1:3,3,0, J=1:3,3,0 , K=1:3,3,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(threeD_array_A,'${TEST_DATA_DIR}/threed.txt')""
+
+--test
+
+join(data_array,UB)
+join(UB,data_array)
+--aql select * from UB,data_array
+--aql select * from data_array,UB
+--aql select * from data_array,UB where X >2 and X<6
+join(Media,Media)
+join(Media_A,Media)
+join(Media_B,Media_C)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(subarray(Media,1,1,2,2),two_dimension)"
+join(Media,Media_D)
+join(Media_D,Media)
+join(Media,Media_E)
+--aql select * from Media, Media_E
+--aql select * from store((select* from Media,Media_E),AA)
+--aql select * from store((select* from multiMedia_array_new,Media),AB)
+join (multiMedia_array_new, Media)
+Join(threeD_array_A,threeD_array)
+Join(threeD_array,threeD_array_A)
+--aql select * from threeD_array,threeD_array_A
+--aql select * from store(apply(threeD_array_A,bonus,(I+J+K)*1000),threeD_array_B)
+--aql select * from threeD_array,(select bonus from threeD_array_B)
+--aql select * from store ((select * from threeD_array,(select bonus from threeD_array_B)),threeD_array_C)
+--aql select * from (select bonus from threeD_array_B),(select val from threeD_array)
+--aql select threeD_array.val + threeD_array_A.val from threeD_array,threeD_array_A
+
+
+
+--cleanup
+remove(data_array)
+remove(UB)
+remove(Media)
+remove(Media_A)
+remove(two_dimension)
+remove(Media_B)
+remove(Media_C)
+remove(Media_D)
+remove(Media_E)
+remove(multiMedia_array_new)
+remove(threeD_array)
+remove(threeD_array_A)
+remove(AA)
+remove(AB)
+remove(threeD_array_B)
+remove(threeD_array_C)
+--stop-query-logging

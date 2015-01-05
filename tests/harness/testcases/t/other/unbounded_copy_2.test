@@ -1,0 +1,17 @@
+--setup
+
+create array unbounded <a:int64>[x=0:*,5,0]
+load(unbounded,'${TEST_DATA_DIR}/unbounded.txt')
+
+--test
+
+store(subarray(unbounded,null,null), bounded)
+
+
+scan(unbounded)  
+scan(bounded)
+
+--cleanup
+
+remove(unbounded) 
+remove(bounded)

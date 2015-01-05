@@ -1,0 +1,32 @@
+--setup
+--start-query-logging
+#Ticket number : 1651 
+# Tests for the querry on ticket -Same querry as on the ticket
+
+create array a<x:double>[s(string)=10,10,0]
+store(redimension(join(build(<s:string>[i=1:10,10,0],i),build(<x:double>[i=1:10,10,0],0)),a),a)
+create array b <x:int32 NULL>[k=0:*,1000000,0]
+
+
+--test
+scan(a)
+scan(b)
+aggregate(a,sum(x))
+aggregate(a,avg(x))
+# array b is an array
+# Note: sum of an array is 0 but the average is null.
+aggregate(b,sum(x))
+aggregate(b,avg(x))
+cross_join(a,aggregate(a,sum(x)))
+cross_join(a,aggregate(b,sum(x)))
+cross_join(a,aggregate(b,avg(x)))
+cross_join(a,aggregate(b,avg(x)))
+cross_join(a,aggregate(b,max(x)))
+cross_join(a,aggregate(b,min(x)))
+
+--cleanup
+
+remove(a)
+remove(b)
+
+--stop-query-logging

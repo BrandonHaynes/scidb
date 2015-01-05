@@ -1,0 +1,27 @@
+SCIDB QUERY : <select * into A from array(<abc:string, cba:string>[a=0:2,3,0], '[("a","c"),("b","b"),("c","a")]')>
+{a} abc,cba
+{0} 'a','c'
+{1} 'b','b'
+{2} 'c','a'
+
+SCIDB QUERY : <create array B<a:int64> [abc(string)=3,3,0, cba(string)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(A, B), B)>
+{abc,cba} a
+{'a','c'} 0
+{'b','b'} 1
+{'c','a'} 2
+
+SCIDB QUERY : <select * from B>
+{abc,cba} a
+{'a','c'} 0
+{'b','b'} 1
+{'c','a'} 2
+
+SCIDB QUERY : <drop array A>
+Query was executed successfully
+
+SCIDB QUERY : <drop array B>
+Query was executed successfully
+

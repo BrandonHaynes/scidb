@@ -1,0 +1,28 @@
+SCIDB QUERY : <CREATE ARRAY source_array<val:double>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(source_array,i*4+j),source_array)>
+[[(0),(1),(2),(3)],[(4),(5),(6),(7)],[(8),(9),(10),(11)],[(12),(13),(14),(15)]]
+
+SCIDB QUERY : <store(between(source_array,1,1,1,2),count_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(count_array)>
+[[(),(),(),()],[(),(5),(6),()],[(),(),(),()],[(),(),(),()]]
+
+SCIDB QUERY : <aggregate(count_array,count(val))>
+[(2)]
+
+SCIDB QUERY : <aggregate(count_array,count(val),i)>
+[(),(2),(),()]
+
+SCIDB QUERY : <aggregate(count_array,count(val),j)>
+[(),(1),(1),()]
+
+SCIDB QUERY : <aggregate(count_array,count(val),i,j)>
+[[(),(),(),()],[(),(1),(1),()],[(),(),(),()],[(),(),(),()]]
+
+Query was executed successfully
+
+Query was executed successfully
+

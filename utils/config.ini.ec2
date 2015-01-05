@@ -1,0 +1,11 @@
+[ec2]
+server-0=10.96.223.160,0
+server-1=10.96.222.17,1
+db_user=ec2
+db_passwd=ec2
+install_root=@CMAKE_INSTALL_PREFIX@
+pluginsdir=@CMAKE_INSTALL_PREFIX@/lib/scidb/plugins
+logconf=@CMAKE_INSTALL_PREFIX@/share/scidb/log1.properties
+base-path=/mnt/ec2
+base-port=1239
+interface=eth0

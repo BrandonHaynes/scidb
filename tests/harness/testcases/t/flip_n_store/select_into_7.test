@@ -1,0 +1,22 @@
+# ticket no. 752
+
+--setup
+--start-query-logging
+create array A <a:int64, b:string> [x=0:2,3,0]
+create array B <b:string, x:int64> [a=0:2,3,0]
+create array T <a:int64> [x=0:2,3,0]
+create array TS <a:string> [x=0:2,3,0]
+store(join(filter(build(T,x),1),filter(build(TS,string(x+10)),1)),A)
+
+--test
+--aql select * into B from A
+--aql update B set b = b + '_new' where x=1
+--aql select * into A from B
+--aql select * from A
+
+--cleanup
+remove(A)
+remove(B)
+remove(T)
+remove(TS)
+--stop-query-logging

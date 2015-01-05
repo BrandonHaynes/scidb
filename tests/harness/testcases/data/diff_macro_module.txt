@@ -1,0 +1,19 @@
+diff1(A,B,a,b) =
+    aggregate(
+        filter(
+	       apply(join(A,B),
+           _d,
+		   a - b),
+	    _d <> 0),
+	count(*));
+
+/**
+ *  Another way of saying the same thing...
+ */
+diff2(A,B,a,b) = cnt(nonzero(map(join(A,B),a - b,_diff)))
+where
+{
+    cnt(A)       = aggregate(A,count(*));
+    nonzero(A)  = filter(A, _diff <> 0);
+    map(A,e,n)   = project(apply(A,n,e),n);
+};

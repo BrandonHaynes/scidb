@@ -1,0 +1,13 @@
+# http://trac.scidb.org/ticket/325#comment:21
+# accepted as enhancement for version 1.0
+
+--setup
+create array mult_1 <a:double> [x=0:2,1,0, y=0:2,1,0]
+load(mult_1,'${TEST_DATA_DIR}/mult1.txt')
+
+--test
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select * from mult_1 as A where A.a > sum (select A.x from mult_1 as B where A.x = B.x)"
+
+--cleanup
+remove(mult_1)
+

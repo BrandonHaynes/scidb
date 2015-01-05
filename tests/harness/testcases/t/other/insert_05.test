@@ -1,0 +1,92 @@
+--setup
+--start-query-logging
+
+create array L <a:int64> [x=0:*,4,0 , y=0:*,4,0]
+create array Ldata_small <a:int64> [x=0:7,4,0 , y=0:7,4,0]
+create array Ldata_large <a:int64> [x=0:11,4,0 , y=0:11,4,0]
+
+create array Ldata_left  <a:int64> [x=0:4,4,0 , y=0:4,4,0]
+create array Ldata_right <a:int64> [x=0:11,4,0 , y=0:4,4,0]
+
+create array R <a:int64> [x=0:*,4,0 , y=0:*,4,0]
+create array Rdata_small <a:int64> [x=0:7,4,0 , y=0:7,4,0]
+create array Rdata_large <a:int64> [x=0:11,4,0 , y=0:11,4,0]
+
+create array Rdata_left  <a:int64> [x=0:4,4,0 , y=0:11,4,0]
+create array Rdata_right <a:int64> [x=0:11,4,0 , y=0:11,4,0]
+
+--test
+store(build(Ldata_small, 100*x-19*y), Ldata_small)
+store(build(Ldata_large, 50*x-10*y), Ldata_large)
+
+store(filter(build(Ldata_left,  50*x-10*y), x < 5), Ldata_left)
+store(filter(build(Ldata_right, 50*x-10*y), x > 4), Ldata_right)
+
+store(build(Rdata_small, 100*x-19*y), Rdata_small)
+store(build(Rdata_large, 50*x-10*y), Rdata_large)
+
+store(filter(build(Rdata_left, 50*x-10*y), x < 5), Rdata_left)
+store(filter(build(Rdata_right, 50*x-10*y), x > 4), Rdata_right)
+
+# case 1. s -> l
+store(Ldata_small, L)
+store(Rdata_large, R)
+show(L)
+show(R)
+insert(L, R)
+show(R)
+dimensions(R)
+
+# case 2. l -> s
+insert(R, L)
+show(L)
+dimensions(L)
+
+# case 3. disjoint no overlap
+store(Ldata_left, L)
+store(Rdata_right, R)
+insert(L, R)
+
+# case 4. l contains r
+store(Ldata_large, L)
+store(Rdata_small, R)
+insert(L, R)
+
+# case 5. l and r different overlap, remove overlap and add arrays
+dimensions(R)
+dimensions(L)
+store(Rdata_right, R)
+store(repart(Ldata_left, <a:int64> [x=0:*,4,2 , y=0:*,4,2]), Ldata_left_ol)
+insert(repart(Ldata_left_ol, <a:int64> [x=0:*,4,0, y=0:*,4,0]), R)
+dimensions(R)
+dimensions(L)
+
+# case 6. l and r different overlap, add overlap and add arrays
+store(Rdata_right, R)
+store(repart(Ldata_left, <a:int64> [x=0:*,4,2 , y=0:*,4,2]), Ldata_left_ol)
+dimensions(R)
+dimensions(Ldata_left_ol)
+show(R)
+show(Ldata_left_ol)
+
+insert(repart(R, <a:int64> [x=0:*,4,2, y=0:*,4,2]), Ldata_left_ol)
+dimensions(R)
+dimensions(Ldata_left_ol)
+show(R)
+show(Ldata_left_ol)
+
+--cleanup
+remove(L)
+remove(Ldata_small)
+remove(Ldata_large)
+
+remove(Ldata_left)
+remove(Ldata_right)
+
+remove(R)
+remove(Rdata_small)
+remove(Rdata_large)
+
+remove(Rdata_left)
+remove(Rdata_right)
+remove(Ldata_left_ol)

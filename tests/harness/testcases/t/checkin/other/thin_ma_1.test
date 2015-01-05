@@ -1,0 +1,20 @@
+--setup
+--start-query-logging
+create array A <a:int32, b:string> [x=-2:8,6,0]
+create array Ti <a:int32> [x=-2:8,6,0]
+create array Ts <b:string> [x=-2:8,6,0]
+--aql select * into A from build(Ti,x+10),build(Ts,x+10)
+
+--test
+thin(A,-2,1)
+thin(A,-2,2)
+thin(A,0,3)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3 "thin(A,1,2)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3 "thin(A,1,3)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR3 "thin(A,2,3)"
+
+--cleanup
+remove(A)
+remove(Ti)
+remove(Ts)
+--stop-query-logging

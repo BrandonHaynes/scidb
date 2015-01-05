@@ -1,0 +1,47 @@
+Query was executed successfully
+
+{x,y,z} a
+{0,0,1000} 1000
+{0,0,1001} 1001
+{1,1,1000} 1002
+{1,1,1001} 1003
+{2,2,1000} 1004
+{2,2,1001} 1005
+{3,3,1000} 1006
+{3,3,1001} 1007
+{4,4,1000} 1008
+{4,4,1001} 1009
+{5,5,1000} 1010
+{5,5,1001} 1011
+{6,6,1000} 1012
+{6,6,1001} 1013
+{7,7,1000} 1014
+{7,7,1001} 1015
+{8,8,1000} 1016
+{8,8,1001} 1017
+
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+{dummy} v1,v2,v3,v4,v5,v6
+{0} 0,0,1000,0,0,1000
+{1} 8,0,1000,9,1,1001
+{2} 0,0,1000,0,0,999
+{3} 4,2,0,5,3,100
+{4} 6,6,1001,7,6,1001
+
+{x,y,z} a
+{0,0,1000} 1000
+{6,6,1001} 1013
+
+{x,y,z} a
+{0,0,1000} 1000
+{6,6,1001} 1013
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

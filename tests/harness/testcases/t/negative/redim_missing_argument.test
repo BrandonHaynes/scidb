@@ -1,0 +1,15 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+
+CREATE ARRAY test_redim_missing_argument_array <a:int32> [I=0:0,1,0,J=0:1023,1024,2,K=0:1023,1024,2]
+
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2 "store( redimension ( apply ( build ( < a : int32 > [ R= 0:999999, 1000000, 0 ], R ), I, 0, J, a/1023, K, (a%1024) * 1)), test_redim_missing_argument_array)"
+
+--stop-query-logging
+
+--cleanup
+
+remove ( test_redim_missing_argument_array )

@@ -1,0 +1,16 @@
+# for ticket no. 657
+
+--setup
+create array A <a:int64> [x=0:2,3,0]
+create array C <x:int64> [a=0:3,3,0]
+store(build(A,x+10),A)
+
+--test
+--aql select * from versions(C)
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_INVALID_REDIMENSION_POSITION "store(redimension(A,C),C)"
+scan(C)
+--aql select * from versions(C)
+
+--cleanup
+remove(A)
+remove(C)

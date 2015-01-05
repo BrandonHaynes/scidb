@@ -1,0 +1,12 @@
+diff -ur a/boost/serialization/export.hpp b/boost/serialization/export.hpp
+--- a/boost/serialization/export.hpp
++++ b/boost/serialization/export.hpp
+@@ -131,7 +131,7 @@
+         // through pointers to their base classes.
+         instantiate_ptr_serialization((T*)0, 0, adl_tag());
+     }
+-    const void export_guid(mpl::true_) const {
++    void export_guid(mpl::true_) const {
+     }
+     guid_initializer const & export_guid() const {
+         BOOST_STATIC_WARNING(boost::is_polymorphic< T >::value);

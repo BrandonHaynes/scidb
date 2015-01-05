@@ -1,0 +1,50 @@
+--setup
+--start-query-logging
+# Ticket number : 1688
+# Tests for the binary load-save on 2D sparse arrays
+
+create array B <val:double> [x=-10:100,10,0,y=0:100,20,0]
+store(filter(build(B, x+100*y), (x=-10 and y=0) or (x=100 and y=100)),B)
+create array B1 <val:double> [x=-10:100,10,0,y=0:100,20,0]
+create array B2 <val:double> [x=0:110,10,0,y=0:100,20,0]
+create array M1 <val:double> [x=0:110,10,0,y=0:100,20,0]
+create array M2 <val:double> [x=0:110,10,0,y=0:100,20,0]
+
+--test
+
+save(B,'sparse_B.dmp', 0,'(double)')
+--aql save B into current instance 'sparse_aql.dmp' as '(double)'
+--aql save B into current instance 'sparse_aql.txt' as 'text'
+--aql save B1 into current instance 'sparseB1_aql.dmp' as '(float)'
+load(B1, 'sparse_B.dmp', 0, '(double)')
+
+# Note the coordinates for the two filled cells in this case
+load(B2, 'sparse_B.dmp', 0, '(double)')
+store(join(B,B1),Z)
+
+--aql save Z into current instance 'sparseZ_aql.dmp' as '(float ,dummy)'
+--aql load B2 from current instance 'sparseZ_aql.dmp' as '(float)'
+--aql load B2 from current instance 'sparse_aql.txt' as '(float)' errors 100
+--aql load B2 from current instance 'sparse_aql.txt' as '(float)' errors 100 shadow array B2_shad
+
+--aql save B2@3 into current instance 'sparseB2version3.fsh' as '(double)'
+--aql save B2@3 into current instance 'sparseB2dummy.bin' as '(dummy)'
+
+# Tests to see only if the query runs not for data correctness
+--aql load M1 from current instance 'sparseB2version3.fsh' as '(double)' errors 200 shadow array B2V_shad
+--aql load M2 from current instance 'sparseB2dummy.bin' as '(double)' errors 100
+--error --code scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ATTRIBUTES_MISMATCH --aql="load M2 from current instance 'sparseB2dummy.bin' as '(dummy)'"
+
+
+
+--cleanup
+remove(B)
+remove(B1)
+remove(B2)
+remove(M1)
+remove(M2)
+remove(Z)
+remove(B2_shad)
+remove(B2V_shad)
+
+--stop-query-logging

@@ -1,0 +1,23 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a,b
+{0} 1,1
+{1} 2,2
+{2} 3,3
+
+{a} b
+
+[An error expected at this place for the query "store(redimension(A,B),B)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_INVALID_REDIMENSION_POSITION. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_INVALID_REDIMENSION_POSITION.]
+
+{a} b
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

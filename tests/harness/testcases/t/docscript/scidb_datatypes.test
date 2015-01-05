@@ -1,0 +1,57 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array datetime1 <dt:datetime>[i=0:*,100,0]  
+create array datetime2 <dtz:datetimetz>[i=0:*,100,0]  
+--shell --store --command="cat $DOC_DATA/dateformats.scidb "
+--shell --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(datetime1,'${TEST_DATA_DIR}/doc/dateformats.scidb')""
+--set-format csv+
+--stop-igdata
+scan(datetime1) 
+--shell --store --command="cat $DOC_DATA/dateformatsTZ.scidb "
+--set-format dcsv
+--start-igdata
+--shell --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(datetime2,'${TEST_DATA_DIR}/doc/dateformatsTZ.scidb')""
+--set-format csv+
+--stop-igdata
+scan(datetime2) 
+--set-format dense
+store(build(<a1: int32>[i=0:0,1,0],2),A)  
+--set-format dcsv
+apply(A, a2, double(a1))  
+apply(A, a2, string(a1))  
+--start-igdata
+create array T<td: datetime>[i=0:0,1,0]  
+--set-format dense
+--stop-igdata
+--start-igdata
+store(build(T, now()), T)  
+--set-format dcsv
+--stop-igdata
+--start-igdata
+apply(T, dst, append_offset(td, 3600))  
+create array T1 <t:datetimetz>[i=0:0,1,0]  
+--stop-igdata
+--start-igdata
+store(project(apply(T,dst,apply_offset(td,3600)),dst),T1)  
+--stop-igdata
+--start-igdata
+apply(T1,dst,strip_offset(t))  
+--stop-igdata
+--start-igdata
+apply(T1,dst,togmt(t)) 
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(datetime1)
+remove(datetime2)
+remove(A)
+remove(T)
+remove(T1)

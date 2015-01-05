@@ -1,0 +1,53 @@
+SCIDB QUERY : <store(build(<event:string>[i=0:*,12,0],'["dash","dash","steeplechase","marathon","marathon", "marathon"]',true),event)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<year:int64>[i=0:*,12,0],'[1996,2000,2000,1996,2000,2008]',true),year)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<person:string>[i=0:*,12,0],'["Bailey","Greene","Kosgei","Thugwane","Abera", "Wanjiru"]',true),person)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<country:string>[i=0:*,12,0],'["Canada","USA","Kenya","USA","Ethiopia", "Kenya"]',true),country)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<time:double>[i=0:*,12,0],'[9.84,9.87,503.17,7956,7811,7596]',true),time)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(event,join(year,(join(person,join(country,time))))),winnersFlat)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(sort(winnersFlat,year),champions)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(champions)>
+event,year,person,country,time
+'dash',1996,'Bailey','Canada',9.84
+'marathon',1996,'Thugwane','USA',7956
+'dash',2000,'Greene','USA',9.87
+'steeplechase',2000,'Kosgei','Kenya',503.17
+'marathon',2000,'Abera','Ethiopia',7811
+'marathon',2008,'Wanjiru','Kenya',7596
+
+SCIDB QUERY : <project(champions,year,event,country,time)>
+year,event,country,time
+1996,'dash','Canada',9.84
+1996,'marathon','USA',7956
+2000,'dash','USA',9.87
+2000,'steeplechase','Kenya',503.17
+2000,'marathon','Ethiopia',7811
+2008,'marathon','Kenya',7596
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

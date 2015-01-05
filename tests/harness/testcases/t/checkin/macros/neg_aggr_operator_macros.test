@@ -1,0 +1,44 @@
+--setup
+create array A < a1 : int32, a2 : string  > [ I=0:9,5,0, J=0:9,5,0 ]
+#
+#  Basic tests to:
+#
+#   1. When the argument array is missing
+#   2. When the argument attribute is missing.
+#   3. When the type doesn't support the aggregate (string for avg / stdev).
+#
+--test
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "op_count ( ARRAY_THAT_DOES_NOT_EXIST )"
+#
+# Basic sum test(s) ...
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "op_sum ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "op_sum ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+#
+# Basic avg test(s) ...
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "op_avg ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "op_avg ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE "op_avg ( A, a2 )"
+#
+# Basic stdev test(s) ...
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "op_stdev ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "op_stdev ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE "op_stdev ( A, a2 )"
+#
+# Basic min test(s) ...
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "op_min ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "op_min ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+#
+# Basic max test(s) ...
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "op_max ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "op_max ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+#
+# Basic range test(s) ...
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "op_range ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST "op_range ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+#
+# Basic op_distinct_count() tests ...
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "op_distinct_count ( ARRAY_THAT_DOES_NOT_EXIST, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "op_distinct_count ( A, ATTRIBUTE_THAT_DOES_NOT_EXIST )"
+
+--cleanup
+remove(A)

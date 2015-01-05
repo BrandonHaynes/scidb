@@ -1,0 +1,11 @@
+[
+("Bashful",    "Long beard",  "Brown top",    "green hat",        "long eyelashes", 1),
+("Doc",        "Short beard", "Red tunic",    "brown hat",        "glasses",        1),
+("Dopey",      "Beardless",   "Green tunic",  "purple hat",       "big ears",       1),
+("Grumpy",     "Long beard",  "Red tunic",    "brown hat",        "scowl",          1),
+("Happy",      "Short beard", "Brown top",    "orange headpiece", "smile",          1),
+("Sleepy",     "Long beard",  "Green top",    "blue hat",         "heavy eyelids",  1),
+("Sneezy",     "Short beard", "brown jacket", "orange headpiece", "red nose",       1),
+("Snow White", "No Beard",    "blue jacket",  "diadem",           "perky",          0),
+("Witch",      "No Beard",    "black blouse", "no hat",           "warty",          0)
+]

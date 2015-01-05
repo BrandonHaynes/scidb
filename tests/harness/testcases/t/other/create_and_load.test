@@ -1,0 +1,31 @@
+--setup
+CREATE ARRAY Data1 < A: int32 > [ X=0:4,5,0]
+CREATE ARRAY carinfo  <make:string, model:string, price:int64,mpg:double> [x=0:*,4,0]
+CREATE array emp1  <x:double null, y:double null>[i=1:10,5,0]
+CREATE ARRAY UB <a:int64>[x=0:*,10,0]
+CREATE array TEST1 <a:int32>[X=0:3,4,0]
+CREATE array TEST2 <a:int16,b:int16>[X=0:3,4,0 , Y=0:3,4,0]
+CREATE  ARRAY Test3_default <val1:double default 3.14159,val2:int32 default 2500>[x=0:3,4,0,y=0:3,4,0]
+CREATE  ARRAY Test4_NA <val1:double default 3.14159, val2:double default 3.14159> [x=0:3,4,0, y=0:3,4,0]
+
+--test
+load(Data1,'${TEST_DATA_DIR}/data.txt')
+load(carinfo,'${TEST_DATA_DIR}/carinfo.txt')
+load(emp1,'${TEST_DATA_DIR}/emp1.txt')
+load(UB,'${TEST_DATA_DIR}/ub.txt')
+load(TEST1,'${TEST_DATA_DIR}/test1.txt')
+load(TEST2,'${TEST_DATA_DIR}/test2.txt')
+load(Test3_default,'${TEST_DATA_DIR}/test3_def.txt')
+load(Test4_NA,'${TEST_DATA_DIR}/test4_NA.txt')
+
+--cleanup
+remove(Data1)
+remove(carinfo)
+remove(emp1)
+remove(UB)
+remove(TEST1)
+remove(TEST2)
+remove(Test3_default)
+remove(Test4_NA)
+
+

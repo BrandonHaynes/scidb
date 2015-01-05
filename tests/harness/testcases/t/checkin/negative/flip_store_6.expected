@@ -1,0 +1,10 @@
+Query was executed successfully
+
+[An error expected at this place for the query "filter(build(A,null),1)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+[An error expected at this place for the query "store(filter(build(A,null),1),A)". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ASSIGNING_NULL_TO_NON_NULLABLE.]
+
+{x} a
+
+Query was executed successfully
+

@@ -1,0 +1,182 @@
+--setup
+
+--start-query-logging
+
+load_library('dense_linear_algebra')
+
+create array Valid<a: double> [r=0:1,32,0, c=0:1,32,0]
+
+--test
+#
+# arg count must be 3 or 4
+#
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2 "gemm(Valid)"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2 "gemm(Valid, Valid)"
+# 3 that succeed: "gemm(Valid, Valid, Valid)"
+# 4 that succeed: "gemm(Valid, Valid, Valid, 'TRANSA=1'); (or TRANSB, ALPHA, BETA)
+# fail because 4th arg is not of type string
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "gemm(Valid, Valid, Valid, Valid)"
+# fail because it does not handle more than 4 arguments
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT3 "gemm(Valid, Valid, Valid, 'TRANSA=1', Valid)"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT3 "gemm(Valid, Valid, Valid, 'TRANSA=1', 'TRANSB=1')"
+
+# OR arg count can be 4 when the last argument is a properly-formatted named-option string
+# here we will list some illegal strings to demonstrate that the parser will catch them
+# example A: comma separator instead of semicolon
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR46 "gemm(Valid, Valid, Valid, 'TRANSA=1,TRANSB=1')"
+# example B: no such keyword
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR46 "gemm(Valid, Valid, Valid, 'INVENTED=1')"
+# example C: missing =
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR46 "gemm(Valid, Valid, Valid, 'ALPHA 1.0')"
+# there's really an infinity of things that would be wrong, but these should have demonstrated
+# that using a parser not only recognized the error, but gives helpful error messages
+
+# only one attribute allowed
+create array TooManyAttrs <a: double, b: double >               [r=0:1,2,0, c=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2 "gemm(TooManyAttrs, Valid, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2 "gemm(Valid, TooManyAttrs, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR2 "gemm(Valid, Valid, TooManyAttrs)"
+remove(TooManyAttrs)
+
+# the attribute must be a double
+create array Int<a: int32>  [r=0:1,2,0, c=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5 "gemm(Int, Valid, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5 "gemm(Valid, Int, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5 "gemm(Valid, Valid, Int)"
+remove(Int)
+
+#invalid dims -- less than 2
+create array DimsTooFew<a: double>  [r=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3 "gemm(DimsTooFew, Valid, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3 "gemm(Valid, DimsTooFew, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3 "gemm(Valid, Valid, DimsTooFew)"
+remove(DimsTooFew)
+
+#invalid dims -- more than 2 aka "too much dimensions" ;)
+create array DimsTooMany<a: double>  [r=0:1,2,0, c=0:1,2,0, d=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3 "gemm(DimsTooMany, Valid, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3 "gemm(Valid, DimsTooMany, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR3 "gemm(Valid, Valid, DimsTooMany)"
+remove(DimsTooMany)
+
+# unbounded rows
+create array RowInf<a: double>  [r=0:*,2,0, c=0:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gemm(RowInf, Valid, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gemm(Valid, RowInf, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gemm(Valid, Valid, RowInf)"
+remove(RowInf)
+
+# unbounded columns
+create array ColInf<a: double>  [r=0:1,2,0, c=0:*,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gemm(Valid, Valid, ColInf)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gemm(Valid, ColInf, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR9 "gemm(ColInf, Valid, Valid)"
+remove(ColInf)
+
+# restriction to square matrices has been removed
+# so DLA_ERROR43 should not occur anymore
+
+# dimensions must start at 0, temporarily
+create array StartOne<a: double>  [r=1:1,2,0, c=1:1,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR44 "gemm(Valid, Valid, StartOne)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR44 "gemm(Valid, StartOne, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR44 "gemm(StartOne, Valid, Valid)"
+remove(StartOne)
+
+# dimensions must be int or uint types, temporarily
+create array NonInt<a: double>  [r(float)=1,2,0, c=0:0,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(Valid, Valid, NonInt)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(Valid, NonInt, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(NonInt, Valid, Valid)"
+remove(NonInt)
+create array NonInt<a: double>  [r(double)=1,2,0, c=0:0,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(Valid, Valid, NonInt)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(Valid, NonInt, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(NonInt, Valid, Valid)"
+remove(NonInt)
+create array NonInt<a: double>  [r(char)=1,2,0, c=0:0,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(Valid, Valid, NonInt)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(Valid, NonInt, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(NonInt, Valid, Valid)"
+remove(NonInt)
+create array NonInt<a: double>  [r(string)=1,2,0, c=0:0,2,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(Valid, Valid, NonInt)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(Valid, NonInt, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR45 "gemm(NonInt, Valid, Valid)"
+remove(NonInt)
+
+# chunksize too small
+create array chunkTooSmall <a: double> [r=0:1,31,0, c=0:1,31,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gemm(Valid, Valid, chunkTooSmall)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gemm(Valid, chunkTooSmall, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gemm(chunkTooSmall, Valid, Valid)"
+remove(chunkTooSmall)
+
+# chunksize too large
+create array chunkTooLarge  <a: double> [r=0:1,1025,0, c=0:1,33,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR42 "gemm(Valid, Valid, chunkTooLarge)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR42 "gemm(Valid, chunkTooLarge, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR42 "gemm(chunkTooLarge, Valid, Valid)"
+remove(chunkTooLarge)
+
+# NOTE: cannot test non-square chunk size when min and max are already set to same value...
+#       the min/max check happens first
+#       keeping this for a later release where a range of chunk sizes will be permitted
+#
+## chunkSize not square
+#create array chunkNotSquare <a: double> [r=0:1,32,0,   c=0:1,33,0]
+#--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR10 "gemm(Valid, Valid, chunkNotSquare)"
+#--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR10 "gemm(Valid, chunkNotSquare, Valid)"
+#--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR10 "gemm(chunkNotSquare, Valid, Valid)"
+#remove(chunkNotSquare)
+
+# overlap not allowed - rows
+create array RowOverlap<a: double>  [r=0:1,32,1, c=0:1,32,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40 "gemm(RowOverlap, Valid, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40 "gemm(Valid, RowOverlap, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40 "gemm(Valid, Valid, RowOverlap)"
+remove(RowOverlap)
+
+# overlap not allowed - cols
+create array ColOverlap<a: double>  [r=0:1,32,1, c=0:1,32,0]
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40 "gemm(ColOverlap, Valid, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40 "gemm(Valid, ColOverlap, Valid)"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR40 "gemm(Valid, Valid, ColOverlap)"
+remove(ColOverlap)
+
+#
+# Only after all single-arg checks, do the cross-argument checks
+# (better for maintenance, and teaching the user, IMHO)
+#
+
+#
+# sizes must follow matrix-multiply rules
+#
+create array Square<a: double> [r=0:1, 32,0, c=0:1, 32,0]
+create array Wide<a: double>   [r=0:1, 32,0, c=0:10,32,0]
+create array Tall<a: double>   [r=0:10,32,0, c=0:1, 32,0]
+# catch mismatch between A's cols and B's rows
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR4 "gemm(Wide, Square, Square)"
+# catch mismatch between A's rows and C's rows
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR4 "gemm(Tall, Square, Square)"
+# catch mismatch between B's cols and C's cols
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR4 "gemm(Square, Wide, Square)"
+remove(Square)
+remove(Wide)
+remove(Tall)
+
+# NOTE: cannot test mismatched chunk size when min and max are already set to same value...
+#       the min/max check happens first
+#       keeping this for a later release where a range of chunk sizes will be permitted
+#
+## all chunksizes must match, at least until #2032 fixed, and checks removed
+#create array chunkMisMatch <a: double> [r=0:1,32,0,  c=0:1,33,0]
+#--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR10 "gemm(Valid, Valid, chunkMisMatch)"
+#--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR10 "gemm(Valid, chunkMisMatch, Valid)"
+#--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR10 "gemm(chunkMisMatch, Valid, Valid)"
+#remove(chunkMisMatch)
+
+--stop-query-logging
+
+--cleanup
+remove(Valid)

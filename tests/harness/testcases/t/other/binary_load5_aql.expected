@@ -1,0 +1,155 @@
+SCIDB QUERY : <create array B <val:double> [x=-10:100,10,0,y=0:100,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(B, x+100*y), (x=-10 and y=0) or (x=100 and y=100)),B)>
+{x,y} val
+{-10,0} -10
+{100,100} 10100
+
+SCIDB QUERY : <create array B1 <val:double> [x=-10:100,10,0,y=0:100,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B2 <val:double> [x=0:110,10,0,y=0:100,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array M1 <val:double> [x=0:110,10,0,y=0:100,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array M2 <val:double> [x=0:110,10,0,y=0:100,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <save(B,'sparse_B.dmp', 0,'(double)')>
+{x,y} val
+{-10,0} -10
+{100,100} 10100
+
+SCIDB QUERY : <save B into current instance 'sparse_aql.dmp' as '(double)'>
+{x,y} val
+{-10,0} -10
+{100,100} 10100
+
+SCIDB QUERY : <save B into current instance 'sparse_aql.txt' as 'text'>
+{x,y} val
+{-10,0} -10
+{100,100} 10100
+
+SCIDB QUERY : <save B1 into current instance 'sparseB1_aql.dmp' as '(float)'>
+{x,y} val
+
+SCIDB QUERY : <load(B1, 'sparse_B.dmp', 0, '(double)')>
+{x,y} val
+{-10,0} -10
+{-10,1} 10100
+
+SCIDB QUERY : <load(B2, 'sparse_B.dmp', 0, '(double)')>
+{x,y} val
+{0,0} -10
+{0,1} 10100
+
+SCIDB QUERY : <store(join(B,B1),Z)>
+{x,y} val,val_2
+{-10,0} -10,-10
+
+SCIDB QUERY : <save Z into current instance 'sparseZ_aql.dmp' as '(float ,dummy)'>
+{x,y} val,val_2
+{-10,0} -10,-10
+
+SCIDB QUERY : <load B2 from current instance 'sparseZ_aql.dmp' as '(float)'>
+{x,y} val
+{0,0} -10
+
+SCIDB QUERY : <load B2 from current instance 'sparse_aql.txt' as '(float)' errors 100>
+{x,y} val
+{0,0} 1.4288e-11
+{0,1} 6.26417e-10
+{0,2} 2.51978e-09
+{0,3} 9.9602e+17
+{0,4} 6.45673e-10
+{0,5} 6.4455e-10
+{0,6} 6.17807e+16
+{0,7} 2.56393e-09
+{0,8} 7.61956e+17
+{0,9} 0
+
+SCIDB QUERY : <load B2 from current instance 'sparse_aql.txt' as '(float)' errors 100 shadow array B2_shad>
+{x,y} val
+{0,0} 1.4288e-11
+{0,1} 6.26417e-10
+{0,2} 2.51978e-09
+{0,3} 9.9602e+17
+{0,4} 6.45673e-10
+{0,5} 6.4455e-10
+{0,6} 6.17807e+16
+{0,7} 2.56393e-09
+{0,8} 7.61956e+17
+{0,9} 0
+
+SCIDB QUERY : <save B2@3 into current instance 'sparseB2version3.fsh' as '(double)'>
+{x,y} val
+{0,0} 1.4288e-11
+{0,1} 6.26417e-10
+{0,2} 2.51978e-09
+{0,3} 9.9602e+17
+{0,4} 6.45673e-10
+{0,5} 6.4455e-10
+{0,6} 6.17807e+16
+{0,7} 2.56393e-09
+{0,8} 7.61956e+17
+{0,9} 0
+
+SCIDB QUERY : <save B2@3 into current instance 'sparseB2dummy.bin' as '(dummy)'>
+{x,y} val
+{0,0} 1.4288e-11
+{0,1} 6.26417e-10
+{0,2} 2.51978e-09
+{0,3} 9.9602e+17
+{0,4} 6.45673e-10
+{0,5} 6.4455e-10
+{0,6} 6.17807e+16
+{0,7} 2.56393e-09
+{0,8} 7.61956e+17
+{0,9} 0
+
+SCIDB QUERY : <load M1 from current instance 'sparseB2version3.fsh' as '(double)' errors 200 shadow array B2V_shad>
+{x,y} val
+{0,0} 1.4288e-11
+{0,1} 6.26417e-10
+{0,2} 2.51978e-09
+{0,3} 9.9602e+17
+{0,4} 6.45673e-10
+{0,5} 6.4455e-10
+{0,6} 6.17807e+16
+{0,7} 2.56393e-09
+{0,8} 7.61956e+17
+{0,9} 0
+
+SCIDB QUERY : <load M2 from current instance 'sparseB2dummy.bin' as '(double)' errors 100>
+{x,y} val
+
+SCIDB QUERY : <load M2 from current instance 'sparseB2dummy.bin' as '(dummy)'>
+[An error expected at this place for the query "load M2 from current instance 'sparseB2dummy.bin' as '(dummy)'". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ATTRIBUTES_MISMATCH. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ATTRIBUTES_MISMATCH.]
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(M2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B2_shad)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B2V_shad)>
+Query was executed successfully
+

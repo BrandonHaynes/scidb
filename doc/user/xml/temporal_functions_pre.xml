@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="temporalFunctions">
+  <refnamediv>
+    <refname>Temporal functions</refname>
+
+    <refpurpose><indexterm>
+        <primary>temporal functions</primary>
+      </indexterm>Perform functions on datetime and datetimetz
+    attributes</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis><command>SELECT</command> <replaceable>expression1</replaceable> <command>FROM</command> <replaceable>array</replaceable> <command>WHERE</command> <replaceable>expression2</replaceable>;</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The following table lists the time functions.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="4">
+        <colspec colname="c1" colwidth="16*"/>
+
+        <colspec align="left" colname="c2" colwidth="32*"/>
+
+        <colspec colname="c3" colwidth="28*"/>
+
+        <colspec colname="cgen1" colwidth="12*"/>
+
+        <thead>
+          <row>
+            <entry>Function Name</entry>
+
+            <entry>Description</entry>
+
+            <entry>Syntax</entry>
+
+            <entry>Returned Data type</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>+ and -</entry>
+
+            <entry>Adds or subtracts the specified number of seconds to a
+            datetime value.</entry>
+
+            <entry>datetime +/- int64</entry>
+
+            <entry>datetime</entry>
+          </row>
+
+          <row>
+            <entry>-</entry>
+
+            <entry>Subtracts one datetime value from another, returning the
+            difference in seconds.</entry>
+
+            <entry>datetime - datetime</entry>
+
+            <entry>int64</entry>
+          </row>
+
+          <row>
+            <entry>append_offset</entry>
+
+            <entry>Appends a GMT offset, in seconds, to a datetime
+            attribute.</entry>
+
+            <entry>append_offset(datetime,int64)</entry>
+
+            <entry>datetimetz</entry>
+          </row>
+
+          <row>
+            <entry>apply_offset</entry>
+
+            <entry>Converts a UTC datetime to local datetime by subtracting
+            the offset timezone value, and stores the result as datetimetz
+            including the offset timezone value.</entry>
+
+            <entry>apply_offset(datetime,int64)</entry>
+
+            <entry>datetimetz</entry>
+          </row>
+
+          <row>
+            <entry>day_of_week</entry>
+
+            <entry>Returns an integer value representing the day of the week:
+            0 (Sunday) through 6 (Saturday).</entry>
+
+            <entry>day_of_week(datetime), or day_of_week(datetimetz)</entry>
+
+            <entry>uint8</entry>
+          </row>
+
+          <row>
+            <entry>get_offset</entry>
+
+            <entry>Returns the timezone offset, in seconds.</entry>
+
+            <entry>get_offset(datetimetz)</entry>
+
+            <entry>int64</entry>
+          </row>
+
+          <row>
+            <entry>hour_of_day</entry>
+
+            <entry>Extracts the hour from a datetime attribute.</entry>
+
+            <entry>hour_of_day(datetime), or hour_of_day(datetimetz)</entry>
+
+            <entry>uint8</entry>
+          </row>
+
+          <row>
+            <entry>now</entry>
+
+            <entry>Returns the current date and time.</entry>
+
+            <entry>now()</entry>
+
+            <entry>datetime</entry>
+          </row>
+
+          <row>
+            <entry>strftime</entry>
+
+            <entry>Returns the the formatted date and time, based on the
+            formatting options that you pass to the function. The arguments
+            for the format string are the same as for the Linux strftime
+            function.</entry>
+
+            <entry>strftime(datetime,string)</entry>
+
+            <entry>string</entry>
+          </row>
+
+          <row>
+            <entry>strip_offset</entry>
+
+            <entry>Returns the datetime value, after stripping the offset from
+            a datetimetz argument.</entry>
+
+            <entry>strip_offset(datetimetz)</entry>
+
+            <entry>datetime</entry>
+          </row>
+
+          <row>
+            <entry>togmt</entry>
+
+            <entry>Converts a datetimetz to a datetime, adding in the timezone
+            offset to return the GMT date and time that corresponds to the
+            input.</entry>
+
+            <entry>togmt(datetimetz)</entry>
+
+            <entry>datetime</entry>
+          </row>
+
+          <row>
+            <entry>tznow</entry>
+
+            <entry>Returns the current date and time.</entry>
+
+            <entry>tznow()</entry>
+
+            <entry>datetimetz</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example illustrates the <literal>day_of_week</literal> and
+      related <literal>hour_of_day</literal> functions.</para>
+
+      <procedure>
+        <step>
+          <para>Assume the following array, <emphasis
+          role="bold">dates</emphasis>.<programlisting language="test">--afl create array dates &lt;dt:datetime&gt;[i=0:*,10,0]; --show-query=no --show-output=no
+--afl show(dates); --output-format=dense
+--afl load(dates,'../tests/harness/testcases/data/doc/dates.scidb'); --show-query=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Calculate the day of the week for each date in the
+          array.<programlisting language="test">--afl apply(dates, weekday, day_of_week(dt)); --output-format=csv+</programlisting>So,
+          you can see that the first date is a Thursday, the second is a
+          Monday, and the third is a Sunday.</para>
+        </step>
+
+        <step>
+          <para>Extract the hour for each datetime value in the
+          array.<programlisting language="test">--afl apply(dates, time_hour, hour_of_day(dt)); --output-format=csv+</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>Using the dates array that we created in the previous example,
+      illustrate the <literal>strftime</literal> function.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Get the date as <emphasis role="bold">Month, day,
+          year</emphasis>.<programlisting language="test">--afl apply(dates,date,strftime(dt,'%B %d, %Y'));</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Get the time as <emphasis role="bold">hour:minute:second
+          AM/PM</emphasis>.<programlisting language="test">--afl apply(dates,date,strftime(dt,'%l:%M:%S %p'));</programlisting>There
+          is a shorthand for this format, <emphasis
+          role="bold">%r</emphasis>:<programlisting language="test">--afl apply(dates,date,strftime(dt,'%r'));</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Get the date in the ISO 8601 date format.<programlisting
+          language="test">--afl apply(dates,date,strftime(dt,'%F'));</programlisting></para>
+        </listitem>
+      </itemizedlist>
+    </informalexample>
+
+    <informalexample>
+      <para><indexterm>
+          <primary>time zone offset</primary>
+        </indexterm>This example illustrates offsets for time zones. It uses
+      the same array as the previous example, array, <emphasis
+      role="bold">dates</emphasis>.</para>
+
+      <procedure>
+        <step>
+          <para>Apply an offset for each value in the array, <emphasis
+          role="bold">dates</emphasis>. <programlisting language="test">--afl store(project(apply(dates,dt_plusI,append_offset(dt,3600*(i+1))),dt_plusI),datesTZ);</programlisting>We
+          store the result array into <emphasis
+          role="bold">datesTZ</emphasis>. The <emphasis role="bold">datesTZ
+          </emphasis>array contains datetimetz values, where the offset added
+          is based on the index of the value: one hour (3600 seconds) is added
+          for the first value, two hours for the second, and so on.</para>
+        </step>
+
+        <step>
+          <para>Illustrate the SciDB functions that process timezone offset
+          values.</para>
+
+          <substeps>
+            <step>
+              <para>Use get_offset to return the offsets as
+              integers.<programlisting language="test">--afl apply(datesTZ,offset_integer,get_offset(dt_plusI));</programlisting></para>
+            </step>
+
+            <step>
+              <para>Use strip_offset to strip the offsets, and return the
+              datetime value, without the timezone offset.<programlisting
+              language="test">--afl apply(datesTZ,date_stripped,strip_offset(dt_plusI));</programlisting></para>
+            </step>
+          </substeps>
+        </step>
+
+        <step>
+          <para>Get the date and time, as a datetimetz value, and then convert
+          it to a datetime value that adds the GMT offset.<programlisting
+          language="test">--afl store(build(&lt;current:datetimetz&gt;[i=0:0,1,0],tznow()),nowDate); --show-output-in-test-file=no --output-format=dense</programlisting>The
+          <emphasis role="bold">nowDate</emphasis> array has the current date
+          and time. Now use the <literal>apply</literal> operator to return
+          the GMT date and time.<programlisting language="test">--afl  project(apply(nowDate,GMTdate,togmt(current)),GMTdate); --show-output-in-test-file=no --output-format=dense</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para><indexterm>
+          <primary>append_offset</primary>
+        </indexterm><indexterm>
+          <primary>apply_offset</primary>
+        </indexterm>This example illustrates the difference between
+      <literal>append_offset</literal> and
+      <literal>apply_offset</literal>.</para>
+
+      <procedure>
+        <step>
+          <para>Get the time and date as a datetime value, and store it to an
+          array.<programlisting language="test">--afl store(build(&lt;current:datetime&gt;[i=0:0,1,0],now()),currentDate); --show-output-in-test-file=no --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Assume that we know that our time is GMT -5 hours. We can use
+          the <literal>append_offset</literal> function to convert our
+          datetime value into the correct datetimetz value.<programlisting
+          language="test">--afl apply(currentDate, currentGMT, append_offset(current, (-5*3600))); --show-output-in-test-file=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Now, assume that we have a datetime value that we know is a
+          GMT representation, but we want to convert it to being correct for
+          our time zone, which happens to be GMT -5 hours. Here, we can use
+          the <literal>apply_offset</literal> function to convert our datetime
+          value into the correct datetimetz value.<programlisting
+          language="test">--afl apply(currentDate, currentGMT, apply_offset(current, (-5*3600))); --show-output-in-test-file=no</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

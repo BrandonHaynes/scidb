@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="regridOperator">
+  <refnamediv>
+    <refname>regrid</refname>
+
+    <refpurpose><indexterm>
+        <primary>regrid</primary>
+      </indexterm>Selects non-overlapping subarrays and performs aggregation
+    on them.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>regrid(<replaceable>array</replaceable>,<replaceable>grid_1</replaceable>, <replaceable>grid_2</replaceable><optional>,...,<replaceable>grid_N</replaceable></optional>,
+   <replaceable>aggregate_call_1</replaceable> <optional>, <replaceable>aggregate_call_2</replaceable>,...,<replaceable>aggregate_call_N</replaceable></optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The regrid operator partitions the cells in the input array into
+    blocks. For each block, regrid applies a specific aggregate operation over
+    the value(s) of some attribute in each block.</para>
+
+   <para>Note that the chunk size does not have to be a multiple of the grid
+   size, and the grids may span array chunks. However, processing is most
+   efficient if chunk size is a multiple of the grid size, and grids do not
+   span array chunks.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The <literal>regrid</literal> operator takes the following
+    arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">array</emphasis>: a source array with
+          one or more attributes and one or more dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis
+          role="bold">grid</emphasis>_<replaceable>n</replaceable>: A list of
+          block sizes, one per dimension.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis
+          role="bold">aggregate_call</emphasis>_<replaceable>n</replaceable>:
+          One or more aggregate calls.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example divides a 4<symbol role="symbolfont">×</symbol>4
+      array into 4 equal partitions and calculates the average of each one.
+      This process is known as <emphasis role="italic">spatial
+      averaging</emphasis>.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array m4x4:<programlisting language="test">--afl CREATE ARRAY m4x4 &lt;val:double&gt; [i=0:3,4,0,j=0:3,4,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para><programlisting language="test">--afl store(build (m4x4, i*4+j), m4x4); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Regrid m4x4 into four partitions and find the average of each
+          partition.<programlisting language="test">--afl regrid(m4x4, 2,2, avg(val) as Average); --output-format=dense</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,22 @@
+SCIDB QUERY : <create array A <a:int32 null> [x=0:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:int32 null> [x=0:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load A from '../tests/harness/testcases/data/null_8.txt'">
+{x} a
+{1} null
+{3} ?1
+
+SCIDB QUERY : <select * into B from repart(A,B)>
+{x} a
+{1} null
+{3} ?1
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

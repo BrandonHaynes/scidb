@@ -1,0 +1,25 @@
+--setup
+
+# ticket #2353
+create array volumes32 <value:double>[device=0:2517,32,0,ts=0:9999,32,0]
+
+--test
+load_library('dense_linear_algebra')
+
+# ticket #2353
+
+# these are large output queries
+--start-igdata
+
+store(build(volumes32, 1+device+ts*10000), volumes32)
+store(gesvd(volumes32, 'left'), svdLeft32)
+remove(svdLeft32)
+
+--stop-igdata
+#end ticket #2353
+
+--cleanup
+
+# inputs
+remove(volumes32)
+

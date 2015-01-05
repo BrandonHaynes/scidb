@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="vacuum">
+  <refnamediv>
+    <refname>vacuum</refname>
+
+    <refpurpose><indexterm>
+        <primary>vacuum</primary>
+      </indexterm><indexterm>
+        <primary>garbage collection</primary>
+      </indexterm>Reclaims storage that is no longer used for SciDB
+    arrays.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>vacuum();</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <literal>vacuum</literal> operator reclaims storage that is no
+    longer used in your SciDB arrays. When you run vacuum, SciDB moves all
+    free segments in the storage file (<emphasis
+    role="bold">storage.data1</emphasis>, one file per instance) to the end of
+    the file and then truncates them, reducing the size of the file, and
+    returning the unused space to the operating system.</para>
+
+    <para>While vacuum is running, all other read or write queries are made to
+    wait until vacuum is finished. If vacuum is cancelled or there is a power
+    outage during vacuum, the system remains in a fully-functional state; you
+    can restart the vacuum process by calling the operator again. Vacuum
+    returns an array that tells the user how much space was reclaimed on each
+    instance.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example runs vacuum and returns the amount of space that was
+      freed.<programlisting>--afl vacuum(); --show-output-in-test-file=no</programlisting></para>
+    </informalexample>
+  </refsect1>
+</refentry>

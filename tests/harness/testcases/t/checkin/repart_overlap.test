@@ -1,0 +1,23 @@
+# Testing repart with overlap
+# This is from Ticket #2702.
+# The two count calls should return the same number
+
+--setup
+--justrun "remove (test_array)"
+--justrun "remove (test_array_overlap)"
+
+create array test_array <vss_speed:double NOT NULL,ts:int64 NOT NULL> [device_id=-1:*,2000,0,trip_id=-1:*,50000,0,entry_id=0:*,1000,0]
+--igdata "load (test_array, '${TEST_DATA_DIR}/ticket2702.scidb')"
+
+--start-query-logging
+--test
+create array test_array_overlap <vss_speed:double NOT NULL,ts:int64 NOT NULL> [device_id=-1:*,2000,0,trip_id=-1:*,50000,0,entry_id=0:*,1000,2]
+--igdata "store(repart(test_array,test_array_overlap),test_array_overlap)"
+aggregate(test_array,count(*))
+aggregate(test_array_overlap,count(*))
+
+--cleanup
+remove (test_array)
+remove (test_array_overlap)
+
+--stop-query-logging

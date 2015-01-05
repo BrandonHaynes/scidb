@@ -1,0 +1,31 @@
+--setup
+--start-query-logging
+load_library('misc')
+store (build (<v : int64> [I=0:7,1,0], I), NODE_ID)
+store (build (<v : int64> [I=0:7,1,0], -1), ARR)
+
+
+--test
+# injectError (nodeid, errorid)
+# Error_IDs for inject error:
+# 1 - a specific error injected into the Storage::writeChunk code path which is triggered at the end of writing the first chunk
+# 2 - a specific error injected into the ReplicationManager::sendItem code path which is triggered when the ReplicationManager is trying to send a chunk to a remote node
+# 3 - a specific error injected into the ReplicationManager::wait code path which is triggered when the ReplicationManager is trying to wait until more buffer/queue space is available in NetworkManager. This path is often taken when replication network flow control is pushing back. 
+# 4 - a generic error to be interpreted by a specific operator. store(),redim_store(),sg(),rename() error out after they have done 99% of the work (99% because a coordinator will error out before creating a new version in the catalog). remove() errors out before it does any work.
+
+##
+## ERROR2
+##
+# coordinator
+subarray(apply (NODE_ID, foo, injectError (0, 2)),0,0)
+--error --aql "update ARR set v=666"
+# node 1
+subarray(apply (NODE_ID, foo, injectError (1, 2)),0,1)
+--error --aql "update ARR set v=666"
+
+scan(ARR)
+
+--cleanup
+remove(NODE_ID)
+remove(ARR)
+--stop-query-logging

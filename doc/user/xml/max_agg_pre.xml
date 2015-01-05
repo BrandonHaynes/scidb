@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="maxAggregate">
+    <refname>max</refname>
+
+    <refpurpose><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>max</secondary>
+      </indexterm><indexterm>
+        <primary>max</primary>
+      </indexterm>Maximum value aggregate</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>AQL% <command>SELECT</command> max(<replaceable>attribute</replaceable>) <command>FROM</command> <replaceable>array</replaceable> <optional><command>GROUP BY</command> <replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional></synopsis>
+
+    <synopsis>AFL% aggregate(<replaceable>array</replaceable>,max(<replaceable>attribute</replaceable>)<optional>,<replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional></synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The max aggregate takes a set of scalar values from an array
+    attribute and returns the maximum value. You can optionally specify one or
+    more dimensions to group by.</para>
+
+    <para>The maximum value of an empty set is NULL. The max of a set that
+    contains only NULL values is also NULL. If the set contains NULL and NOT
+    NULL values, the max aggregate considers only NOT NULL values.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example find the maximum value of each row of a 2-dimensional
+      array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-attribute, 2-dimensional array called
+          m3x3:<programlisting language="test">--afl CREATE ARRAY m3x3 &lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Store values of 0–8 in m3x3:<programlisting language="test">--afl store(build(m3x3,i*3+j),m3x3); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Select the maximum value of each row of m3x3:<programlisting
+          language="test">--afl aggregate(m3x3,max(val),i); --output-format=dense</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

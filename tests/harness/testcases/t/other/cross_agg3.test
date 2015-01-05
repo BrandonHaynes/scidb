@@ -1,0 +1,21 @@
+--setup
+--start-query-logging
+# Ticket number : 1651
+# Test cross/join on 2D arrays with complex querries
+
+create array m4x4_overlap < val : double > [ x=1:4,2,0, y=1:4,2,1]
+store(build(m4x4_overlap, (3*x*x-4*y)/(3.5)),m4x4_overlap)
+
+
+--test
+cross_join(apply(subarray(xgrid(m4x4_overlap,2,2),0,1,8,7),z,x),m4x4_overlap)
+aggregate(cross_join(apply(subarray(xgrid(m4x4_overlap,2,2),0,1,8,7),z,x),m4x4_overlap),count(*))
+cross_join(m4x4_overlap,aggregate(cross_join(apply(subarray(xgrid(m4x4_overlap,2,2),0,1,8,7),z,x),m4x4_overlap),count(*)))
+store(cross_join(apply(subarray(xgrid(m4x4_overlap,2,2),0,1,8,7),z,x),m4x4_overlap),AAA)
+show(AAA)
+
+--cleanup
+remove(m4x4_overlap)
+remove(AAA)
+
+--stop-query-logging

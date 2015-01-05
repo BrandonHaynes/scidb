@@ -1,0 +1,1 @@
+aggregate(xyz, sum(a), count(a))

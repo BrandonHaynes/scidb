@@ -1,0 +1,17 @@
+--setup
+
+--test
+--start-query-logging
+
+create array bounded <a:int64>[x=0:150,5,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(bounded,'${TEST_DATA_DIR}/unbounded_empty.txt')""
+
+
+ 
+scan(bounded)  
+
+
+--stop-query-logging
+--cleanup
+
+remove(bounded) 

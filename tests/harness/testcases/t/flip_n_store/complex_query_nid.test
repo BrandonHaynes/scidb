@@ -1,0 +1,76 @@
+--setup
+--start-query-logging
+# Ticket number: 1651
+# Complex query for the diagonal NID 2D arrays.
+
+create array normal <a1: double > [x=0:4,5,0]
+create array NID <x:int64> [a1(double)=5,5,0, a2(double)=5,5,0]
+store(apply(store(build(normal,13.5*6/x),normal),a2,a1*0.233),normal1)
+
+
+--test
+scan(normal1)
+store(redimension(normal1,NID),NID)
+scan(NID)
+store(redimension(reverse(normal1),NID),NID)
+scan(NID)
+show(NID)
+apply(apply(NID,y,a1),z,a2)
+regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z))
+xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)
+cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1))
+store(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),AAA)
+show(AAA)
+project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum)
+between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2)
+
+subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2)
+store(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),TTT)
+show(TTT)
+aggregate(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i),count(*))
+
+unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i)
+
+store(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i),VVV)
+show(VVV)
+
+filter(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i), i>4)
+
+filter(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i), i=3)
+
+##### Here is what i find doubtful: Please see for it.
+
+store(filter(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i), i=3),MMM)
+show(MMM)
+scan(MMM)
+project(MMM,a1)
+project(MMM,a2)
+project(MMM,a1_2)
+project(MMM,a2_2)
+project(MMM,x)
+project(MMM,z_sum)
+
+project(filter(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i), i=3),z_sum)
+
+project(filter(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i), i=3),x)
+
+### Why does it throw ambiguous error for a1,a2 when i have attributes as a1,a2,a1_2,a2_2,x,z_sum?
+### same complex query when stored in MMM is giving the correct result.
+
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AMBIGUOUS_ATTRIBUTE "project(filter(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i), i=3),a1)"
+
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "project(filter(unpack(subarray(between(project(cross_join(NID,xgrid(regrid(apply(apply(NID,y,a1),z,a2),2,2,sum(z)),2,1)),x,z_sum),20.25,4.71825,0,0,27,6.291,2,2),20.25,4.71825,0,0,27,6.291,2,2),i), i=3),a1_2)"
+
+
+
+
+--cleanup
+remove(normal)
+remove(normal1)
+remove(NID)
+remove(AAA)
+remove(TTT)
+remove(VVV)
+remove(MMM)
+
+--stop-query-logging

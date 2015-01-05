@@ -1,0 +1,100 @@
+Query was executed successfully
+
+[An error expected at this place for the query "aggregate(zz.A,sum(a))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "aggregate(zz.A,avg(a))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "aggregate(zz.A,max(a))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "aggregate(zz.A,min(a))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "aggregate(zz.A,count(*))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "save(zz.A,'1.txt')". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "between(zz.A,1,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "filter(zz.A,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "lookup(zz.A,A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "lookup(A,zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "regrid(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "adddim(zz.A,c)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "deldim(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "xgrid(zz.A,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "slice(zz.A,x,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "normalize(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "sort(zz.A,1,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "unpack(zz.A,row)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "transpose(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "reverse(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "project(zz.A,a)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "aggregate(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "cross_join(A,zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "cross_join(zz.A,A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "concat(zz.A,A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "concat(A,zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "merge(zz.A,A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "merge(A,zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "apply(zz.A,b,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "subarray(zz.A,1,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "bernoulli(zz.A,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "scan(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "build(zz.A,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "load(zz.A,'1.txt')". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "store(A,zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "store(zz.A,A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "input(zz.A,'1.txt')". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "dimensions(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "attributes(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "reshape(zz.A,A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "reshape(A,zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "rename(A,zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "rename(zz.A,A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "versions(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "filter(build(zz.A,9),1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "repart(A,zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "repart(zz.A,A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+[An error expected at this place for the query "remove(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
+
+Query was executed successfully
+

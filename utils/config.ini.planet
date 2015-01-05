@@ -1,0 +1,15 @@
+[planet]
+base-port=1239
+base-path=/data/planet
+instance-0=master,0
+instance-2=instance2,1
+instance-3=instance3,1
+instance-4=instance4,1
+db_user=planet
+db_passwd=planet
+install_root=@CMAKE_INSTALL_PREFIX@
+pluginsdir=@CMAKE_INSTALL_PREFIX@/lib/scidb/plugins
+logconf=@CMAKE_INSTALL_PREFIX@/share/scidb/log1.properties
+interface=eth1
+ssh-port=31337
+

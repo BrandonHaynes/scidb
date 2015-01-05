@@ -1,0 +1,38 @@
+--setup
+--start-query-logging
+# Tests on NID array
+# Tests for sort-rank and quantile
+
+store(apply((build(<a:char>[x=0:2,3,0],string(x-2))),b,(x+32/2.7)),A)
+create  array B <x:int64>[a(char)=3,3,0, b(double)=3,3,0]
+store(redimension(A,B),B)
+
+
+--test
+--set-format dense
+sort(B)
+sort(B,x)
+sort(B,x,20)
+sort(filter(B,x<>1))
+sort(filter(B,b>13 or  b<12))
+
+rank(B)
+rank(B,x)
+rank(filter(B,x<>1))
+rank(filter(B,b>13 or  b<12))
+
+quantile(B,2)
+quantile(B,4)
+quantile(B,10)
+quantile(B,20)
+quantile(filter(B,x<>1),2)
+quantile(filter(B,x<>1),10)
+quantile((filter(B,b>13 or  b<12)),2)
+quantile((filter(B,b>13 or  b<12)),8)
+
+--reset-format
+--cleanup
+remove(A)
+remove(B)
+--stop-query-logging
+

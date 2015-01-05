@@ -1,0 +1,39 @@
+SCIDB QUERY : <CREATE ARRAY v4 <val1:int8,val2:int8>[i=0:3,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD v4 FROM '${TEST_DATA_DIR}/doc/v4.scidb'">
+{i} val1,val2
+{0} 0,100
+{1} 1,99
+{2} 2,0
+{3} 3,97
+
+SCIDB QUERY : <CREATE ARRAY v4_dflt <val1:int8,val2:int8 default 111>[i=0:3,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD v4_dflt FROM '${TEST_DATA_DIR}/doc/v4.scidb'">
+{i} val1,val2
+{0} 0,100
+{1} 1,99
+{2} 2,111
+{3} 3,97
+
+SCIDB QUERY : <CREATE ARRAY v4_null <val1:int8,val2:int8 NULL> [i=0:3,4,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD v4_null FROM '${TEST_DATA_DIR}/doc/v4_null.scidb'">
+{i} val1,val2
+{0} 0,100
+{1} 1,99
+{2} 2,null
+{3} 3,97
+
+SCIDB QUERY : <drop array v4>
+Query was executed successfully
+
+SCIDB QUERY : <drop array v4_dflt>
+Query was executed successfully
+
+SCIDB QUERY : <drop array v4_null>
+Query was executed successfully
+

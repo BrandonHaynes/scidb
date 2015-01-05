@@ -1,0 +1,10 @@
+# ticket no. 1443
+
+--setup
+create array A <a:int32> [x=0:2,3,0]
+
+--test
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_OP_CROSSJOIN_ERROR2 "cross_join(A as a1,A as a2,a1.x)"
+
+--cleanup
+remove(A)

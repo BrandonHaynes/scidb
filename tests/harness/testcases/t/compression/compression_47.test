@@ -1,0 +1,57 @@
+--setup
+--start-query-logging
+create array Ts <a:string> [x=-2:3,2,0]
+create array eTs <a:string> [x=-2:3,2,0]
+create array Ts_rle <a:string compression 'rle'> [x=-2:3,2,0]
+create array Ts_d <a:string compression 'dictionary'> [x=-2:3,2,0]
+create array Ts_ns <a:string compression 'null suppression'> [x=-2:3,2,0]
+create array Ts_be <a:string compression 'bitmap encoding'> [x=-2:3,2,0]
+create array Ts_z <a:string compression 'zlib'> [x=-2:3,2,0]
+create array Ts_bz <a:string compression 'bzlib'> [x=-2:3,2,0]
+create array Ts_nf <a:string compression 'null filter'> [x=-2:3,2,0]
+create array N <x:int64> [a(string)=6,3,0]
+create array Nc <x:int64 compression 'rle' > [a(string)=6,3,0]
+
+--test
+--aql select * into Ts_rle from build(Ts,string(x))
+--aql select * into Ts_d from Ts_rle
+--aql select * into Ts_ns from Ts_rle
+--aql select * into Ts_be from Ts_rle
+--aql select * into Ts_z from Ts_rle
+--aql select * into Ts_bz from Ts_rle
+--aql select * into Ts_nf from Ts_rle
+
+--aql select * into N from Ts
+--aql select * into N from Ts_rle
+--aql select * into N from Ts_d
+--aql select * into N from Ts_ns
+--aql select * into N from Ts_be
+--aql select * into N from Ts_z
+--aql select * into N from Ts_bz
+--aql select * into N from Ts_nf
+
+--aql select * into Nc from Ts
+--aql select * into Nc from Ts_rle
+--aql select * into Nc from Ts_d
+--aql select * into Nc from Ts_ns
+--aql select * into Nc from Ts_be
+--aql select * into Nc from Ts_z
+--aql select * into Nc from Ts_bz
+--aql select * into Nc from Ts_nf
+
+--aql select * into eTs from Nc
+--aql select * into eTs from N
+
+--cleanup
+remove(Ts)
+remove(eTs)
+remove(Ts_rle)
+remove(Ts_d)
+remove(Ts_ns)
+remove(Ts_be)
+remove(Ts_z)
+remove(Ts_bz)
+remove(Ts_nf)
+remove(N)
+remove(Nc)
+--stop-query-logging

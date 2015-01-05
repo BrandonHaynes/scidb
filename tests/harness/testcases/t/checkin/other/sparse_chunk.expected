@@ -1,0 +1,22 @@
+SCIDB QUERY : <store(redimension(apply(build(<i:int64>[k=1:1,1,0],0),a,'a',b,'b'),<a:string, b:string>[i=0:*,1000000,0]),SPARSE_CHUNK_STR)>
+{i} a,b
+{0} 'a','b'
+
+SCIDB QUERY : <apply(SPARSE_CHUNK_STR, ab, a+b)>
+{i} a,b,ab
+{0} 'a','b','ab'
+
+SCIDB QUERY : <store(redimension(apply(build(<i:int64>[k=1:1,1,0],0),a,7.0,b,11),<a:double, b:int64>[i=0:*,1000000,0]),SPARSE_CHUNK_NUM)>
+{i} a,b
+{0} 7,11
+
+SCIDB QUERY : <apply(SPARSE_CHUNK_NUM, ab, a+b)>
+{i} a,b,ab
+{0} 7,11,18
+
+SCIDB QUERY : <remove(SPARSE_CHUNK_STR)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SPARSE_CHUNK_NUM)>
+Query was executed successfully
+

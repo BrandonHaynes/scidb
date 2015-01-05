@@ -1,0 +1,74 @@
+SCIDB QUERY : <store(filter(build(<a:char NULL>[x=10:15,3,2],string(x-10)),x<>11),A)>
+{x} a
+{10} '0'
+{12} '2'
+{13} '3'
+{14} '4'
+{15} '5'
+
+SCIDB QUERY : <store(apply(A,b,a+'_s'),A1)>
+{x} a,b
+{10} '0','0_s'
+{12} '2','2_s'
+{13} '3','3_s'
+{14} '4','4_s'
+{15} '5','5_s'
+
+SCIDB QUERY : <store(filter(build(<b:char NULL>[x=1:10,2,0],string(x+2)),x<6),B)>
+{x} b
+{1} '3'
+{2} '4'
+{3} '5'
+{4} '6'
+{5} '7'
+
+SCIDB QUERY : <store(apply(B,c,b+'_Zebra'),B1)>
+{x} b,c
+{1} '3','3_Zebra'
+{2} '4','4_Zebra'
+{3} '5','5_Zebra'
+{4} '6','6_Zebra'
+{5} '7','7_Zebra'
+
+SCIDB QUERY : <merge(A1,B1)>
+[An error expected at this place for the query "merge(A1,B1)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+
+SCIDB QUERY : <merge(B1,A1)>
+[An error expected at this place for the query "merge(B1,A1)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+
+SCIDB QUERY : <merge(A1,repart(B1,<b:char>[x=10:20,3,2]))>
+[An error expected at this place for the query "merge(A1,repart(B1,<b:char>[x=10:20,3,2]))". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3.]
+
+SCIDB QUERY : <merge(subarray(A1, null, null),subarray(repart(B1,<b:char>[x=1:10,3,2]), null, null))>
+{x} a,b
+{0} '0','0_s'
+{1} '4','4_Zebra'
+{2} '2','2_s'
+{3} '3','3_s'
+{4} '4','4_s'
+{5} '5','5_s'
+
+SCIDB QUERY : <merge(subarray(A, null, null),subarray(repart(B,<b:char NULL>[x=1:10,3,2]), null, null))>
+{x} a
+{0} '0'
+{1} '4'
+{2} '2'
+{3} '3'
+{4} '4'
+{5} '5'
+
+SCIDB QUERY : <merge(A,B)>
+[An error expected at this place for the query "merge(A,B)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B1)>
+Query was executed successfully
+

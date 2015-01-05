@@ -1,0 +1,291 @@
+SCIDB QUERY : <load_library('rational')>
+Query was executed successfully
+
+SCIDB QUERY : <create array A <a:int32>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:rational>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <attributes(B)>
+{No} name,type_id,nullable
+{0} 'b','rational',false
+
+SCIDB QUERY : <store(build(A,x+1),A)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <apply(A,b,str(rational(1,2)))>
+{x} a,b
+{0} 1,'(1/2)'
+{1} 2,'(1/2)'
+{2} 3,'(1/2)'
+
+SCIDB QUERY : <project(apply(build(B,rational(x,1)),c,str(b)),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/1)'
+{2} '(2/1)'
+
+SCIDB QUERY : <project(apply(build(B,rational(1,1)+rational(1,2)),c,str(b)),c)>
+{x} c
+{0} '(3/2)'
+{1} '(3/2)'
+{2} '(3/2)'
+
+SCIDB QUERY : <project(apply(build(B,rational(1,1)+rational(-1,-2)),c,str(b)),c)>
+{x} c
+{0} '(3/2)'
+{1} '(3/2)'
+{2} '(3/2)'
+
+SCIDB QUERY : <project(apply(build(B,rational(1,1)+rational(-1,2)),c,str(b)),c)>
+{x} c
+{0} '(1/2)'
+{1} '(1/2)'
+{2} '(1/2)'
+
+SCIDB QUERY : <project(apply(build(B,rational(-1,1)+rational(-1,2)),c,str(b)),c)>
+{x} c
+{0} '(-3/2)'
+{1} '(-3/2)'
+{2} '(-3/2)'
+
+SCIDB QUERY : <project(apply(build(B,rational(-1,-1)+rational(-1,2)),c,str(b)),c)>
+{x} c
+{0} '(1/2)'
+{1} '(1/2)'
+{2} '(1/2)'
+
+SCIDB QUERY : <project(apply(store(build(B,rational(x,x+1)),B),c,str(b)),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b)),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b+b+b*b-b/6)),c)>
+{x} c
+{0} '(0/1)'
+{1} '(7/6)'
+{2} '(5/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b+rational(0))),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b+rational(1))),c)>
+{x} c
+{0} '(1/1)'
+{1} '(3/2)'
+{2} '(5/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b+rational(1/2))),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b+rational(1,2))),c)>
+{x} c
+{0} '(1/2)'
+{1} '(1/1)'
+{2} '(7/6)'
+
+SCIDB QUERY : <project(apply(B,c,str(b-rational(1,2))),c)>
+{x} c
+{0} '(-1/2)'
+{1} '(0/1)'
+{2} '(1/6)'
+
+SCIDB QUERY : <project(apply(B,c,str(b*rational(1,2))),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/4)'
+{2} '(1/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b/rational(1,2))),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/1)'
+{2} '(4/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b/rational(1))),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b/1)),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <project(apply(B,c,str(b/6)),c)>
+{x} c
+{0} '(0/1)'
+{1} '(1/12)'
+{2} '(1/9)'
+
+SCIDB QUERY : <project(apply(min(B),c,str(b_min)),c)>
+{i} c
+{0} '(0/1)'
+
+SCIDB QUERY : <project(apply(max(B),c,str(b_max)),c)>
+{i} c
+{0} '(2/3)'
+
+SCIDB QUERY : <project(apply(avg(B),c,str(b_avg)),c)>
+{i} c
+{0} '(7/18)'
+
+SCIDB QUERY : <select str(b) from B>
+{x} expr
+{0} '(0/1)'
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <select str(b)+' test' from B>
+{x} expr
+{0} '(0/1) test'
+{1} '(1/2) test'
+{2} '(2/3) test'
+
+SCIDB QUERY : <select str(b+b+b+b+b) from B>
+{x} expr
+{0} '(0/1)'
+{1} '(5/2)'
+{2} '(10/3)'
+
+SCIDB QUERY : <select str(b+rational(9,9)) from B>
+{x} expr
+{0} '(1/1)'
+{1} '(3/2)'
+{2} '(5/3)'
+
+SCIDB QUERY : <select str(b) from B where x<1>
+{x} expr
+{0} '(0/1)'
+
+SCIDB QUERY : <select str(b) from B where str(b)='(1,1)'>
+{x} expr
+
+SCIDB QUERY : <select str(b) from B where str(b)='(1/2)'>
+{x} expr
+{1} '(1/2)'
+
+SCIDB QUERY : <select str(b) from B where b=rational(1,1)>
+{x} expr
+
+SCIDB QUERY : <select str(b+rational(2,4)) from B>
+{x} expr
+{0} '(1/2)'
+{1} '(1/1)'
+{2} '(7/6)'
+
+SCIDB QUERY : <select str(b+rational(-1)) from B>
+{x} expr
+{0} '(-1/1)'
+{1} '(-1/2)'
+{2} '(-1/3)'
+
+SCIDB QUERY : <select getnumer(b) from B>
+{x} expr
+{0} 0
+{1} 1
+{2} 2
+
+SCIDB QUERY : <select getnumer(b+rational(1)) from B>
+{x} expr
+{0} 1
+{1} 3
+{2} 5
+
+SCIDB QUERY : <select getdenom(b+rational(5,3)) from B>
+{x} expr
+{0} 3
+{1} 6
+{2} 3
+
+SCIDB QUERY : <select str(b-rational(5,3)) from B>
+{x} expr
+{0} '(-5/3)'
+{1} '(-7/6)'
+{2} '(-1/1)'
+
+SCIDB QUERY : <select str(b*rational(5,3)) from B>
+{x} expr
+{0} '(0/1)'
+{1} '(5/6)'
+{2} '(10/9)'
+
+SCIDB QUERY : <select str(b/rational(5,3)) from B>
+{x} expr
+{0} '(0/1)'
+{1} '(3/10)'
+{2} '(2/5)'
+
+SCIDB QUERY : <select str(b) from B where b<rational(2,3)>
+{x} expr
+{0} '(0/1)'
+{1} '(1/2)'
+
+SCIDB QUERY : <select str(b) from B where b<=rational(1,2)>
+{x} expr
+{0} '(0/1)'
+{1} '(1/2)'
+
+SCIDB QUERY : <select str(b) from B where b>=rational(1,2)>
+{x} expr
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <select str(b) from B where b>rational(1,2)>
+{x} expr
+{2} '(2/3)'
+
+SCIDB QUERY : <select str(b/2) from B>
+{x} expr
+{0} '(0/1)'
+{1} '(1/4)'
+{2} '(1/3)'
+
+SCIDB QUERY : <select str(b/rational(1)) from B where x<>1>
+{x} expr
+{0} '(0/1)'
+{2} '(2/3)'
+
+SCIDB QUERY : <select str(b) from A,B>
+{x} expr
+{0} '(0/1)'
+{1} '(1/2)'
+{2} '(2/3)'
+
+SCIDB QUERY : <select a from A,B>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <select str(b/a) from A,B>
+{x} expr
+{0} '(0/1)'
+{1} '(1/4)'
+{2} '(2/9)'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+

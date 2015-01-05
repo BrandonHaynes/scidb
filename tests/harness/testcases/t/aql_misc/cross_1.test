@@ -1,0 +1,21 @@
+--setup
+create  array A <a:int32>[x=0:2,3,0]
+create  array C <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+store(build(A,x+10),B)
+store(build(C,x+100),C)
+
+--test
+--aql update A set a = a + 10
+
+--aql update C set a = a + 50
+
+--aql select * from A cross join B
+--aql select * from A cross join C
+--aql select * into D from A cross join A
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)

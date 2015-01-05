@@ -1,0 +1,10 @@
+SCIDB QUERY : <CREATE ARRAY array1 <val:double>[row=0:2000,10,0,column=1:10,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <dimensions(array1)>
+{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
+{0} 'row',0,2001,10,0,4611686018427387903,-4611686018427387903,'int64'
+{1} 'column',1,10,10,0,4611686018427387903,-4611686018427387903,'int64'
+
+Query was executed successfully
+

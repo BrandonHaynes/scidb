@@ -1,0 +1,37 @@
+#!/bin/bash
+#**************************** Copyright © Paradigm4, Inc. All rights reserved.
+#**
+#**
+#**  Version : $Header:$
+#**
+#**
+#**  Purpose : Repackages a boost 1.54 package for installation with  SciDB.
+#**
+#**
+#**  Synopsis: scidb-repackage-boost PACKAGE [SCIDB-VERSION=${SCIDB_VER}]
+#**
+#**
+#*****************************************************************************
+
+STAGE=boost                                              # Install directory
+PREFIXES=libboost                                        # Names to prefix
+
+#*****************************************************************************
+
+source scidb-repackage                                   # Source common stuff
+
+#*****************************************************************************
+
+if [[ `basename $1` == "libboost-python1.54-dev"* ]]; then
+ custom ()
+ {
+    echo "Boost specific processing..."
+    sed -i "s|^update=.*|update=/opt/scidb/$VER/3rdparty/boost/share/python/runtime.d/libboost-python1.54-dev.rtupdate|" $TMP/DEBIAN/{postinst,prerm}
+ }
+fi
+
+#*****************************************************************************
+
+run                                                      # Now run the script
+
+#*****************************************************************************

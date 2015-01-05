@@ -1,0 +1,63 @@
+SCIDB QUERY : <create array A <d:int64> [ X=0:40000000,1000000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(A, random()), A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(sort(A, d), ASort)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(subarray(ASort, 1000, 1100), ASortSlice1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(subarray(ASort, 100000, 100100), ASortSlice2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(subarray(ASort, 500000, 500100), ASortSlice3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(window(ASortSlice1, 0, 1, min(d)), ASortWindow1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(window(ASortSlice2, 0, 1, min(d)), ASortWindow2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(window(ASortSlice3, 0, 1, min(d)), ASortWindow3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(filter(join(ASortSlice1, ASortWindow1), d!=d_min), count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <aggregate(filter(join(ASortSlice2, ASortWindow2), d!=d_min), count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <aggregate(filter(join(ASortSlice3, ASortWindow3), d!=d_min), count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ASort)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ASortSlice1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ASortSlice2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ASortSlice3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ASortWindow1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ASortWindow2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ASortWindow3)>
+Query was executed successfully
+

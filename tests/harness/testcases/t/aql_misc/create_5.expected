@@ -1,0 +1,196 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{i} schema
+{0} 'A11<A:int64> [i=0:*,500000,0]'
+
+{i} schema
+{0} 'A12<A:int64> [i=0:*,707,0,j=0:*,707,0]'
+
+{i} schema
+{0} 'A13<A:int64> [i=0:*,79,0,j=0:*,79,0,k=0:*,79,0]'
+
+{i} schema
+{0} 'A14<A:int64> [i=0:*,26,0,j=0:*,26,0,k=0:*,26,0,l=0:*,26,0]'
+
+{i} schema
+{0} 'B11<A:int64> [i=0:10,200,10,j=0:*,2500,0]'
+
+{i} schema
+{0} 'B12<A:int64> [i=0:10,200,10,j=0:*,50,0,k=0:*,50,0]'
+
+{i} schema
+{0} 'B13<A:int64> [i=0:10,200,10,j=0:*,2,0,k=0:*,2,0,l=0:10,300,10]'
+
+{i} schema
+{0} 'C11<A:int64> [i(string)=*,500000,0]'
+
+{i} schema
+{0} 'C12<A:int64> [i(string)=*,707,0,j(string)=*,707,0]'
+
+{i} schema
+{0} 'C13<A:int64> [i(string)=*,79,0,j(string)=*,79,0,k(string)=*,79,0]'
+
+{i} schema
+{0} 'C14<A:int64> [i(string)=*,26,0,j(string)=*,26,0,k(string)=*,26,0,l(string)=*,26,0]'
+
+{i} schema
+{0} 'D11<A:int64> [i(string)=10,200,10,j(string)=*,2500,0]'
+
+{i} schema
+{0} 'D12<A:int64> [i(string)=10,200,10,j(string)=*,50,0,k(string)=*,50,0]'
+
+{i} schema
+{0} 'D13<A:int64> [i(string)=10,200,10,j(string)=*,2,0,k(string)=*,2,0,l(string)=10,300,10]'
+
+{i} schema
+{0} 'A21<A:int64> [i=0:*,500000,0]'
+
+{i} schema
+{0} 'A22<A:int64> [i=0:*,707,0,j=0:*,707,0]'
+
+{i} schema
+{0} 'A23<A:int64> [i=0:*,79,0,j=0:*,79,0,k=0:*,79,0]'
+
+{i} schema
+{0} 'A24<A:int64> [i=0:*,26,0,j=0:*,26,0,k=0:*,26,0,l=0:*,26,0]'
+
+{i} schema
+{0} 'B21<A:int64> [i=0:10,200,10,j=0:*,2500,0]'
+
+{i} schema
+{0} 'B22<A:int64> [i=0:10,200,10,j=0:*,50,0,k=0:*,50,0]'
+
+{i} schema
+{0} 'B23<A:int64> [i=0:10,200,10,j=0:*,2,0,k=0:*,2,0,l=0:10,300,10]'
+
+{i} schema
+{0} 'C21<A:int64> [i(string)=*,500000,0]'
+
+{i} schema
+{0} 'C22<A:int64> [i(string)=*,707,0,j(string)=*,707,0]'
+
+{i} schema
+{0} 'C23<A:int64> [i(string)=*,79,0,j(string)=*,79,0,k(string)=*,79,0]'
+
+{i} schema
+{0} 'C24<A:int64> [i(string)=*,26,0,j(string)=*,26,0,k(string)=*,26,0,l(string)=*,26,0]'
+
+{i} schema
+{0} 'D21<A:int64> [i(string)=10,200,10,j(string)=*,2500,0]'
+
+{i} schema
+{0} 'D22<A:int64> [i(string)=10,200,10,j(string)=*,50,0,k(string)=*,50,0]'
+
+{i} schema
+{0} 'D23<A:int64> [i(string)=10,200,10,j(string)=*,2,0,k(string)=*,2,0,l(string)=10,300,10]'
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

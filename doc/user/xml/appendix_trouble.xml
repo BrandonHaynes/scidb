@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<appendix id="trouble">
+  <title id="a_title">Troubleshooting</title>
+
+  <para>This appendix contains troubleshooting information.</para>
+
+  <note>
+    <para><!--If fixed for next release, re-enter this sentence: This step is only required if you are setting up a cluster environment,
+ and can be skipped for single-server installations.-->For troubleshooting
+    about installation issues, see <xref linkend="troubleInstall"/> .</para>
+  </note>
+
+  <section id="mpiTrouble">
+    <title>MPI Issues</title>
+
+    <para><indexterm>
+        <primary>MPI</primary>
+      </indexterm><indexterm>
+        <primary>troubleshooting</primary>
+      </indexterm>MPICH is a high performance and widely portable
+    implementation of the Message Passing Interface (MPI) standard. SciDB
+    depends upon <emphasis role="bold">mpich2-1.2</emphasis> being installed
+    and configured. This section provides a checklist for ensuring that MPICH
+    is communicating with SciDB.<itemizedlist>
+        <listitem>
+          <para>If you encounter any errors or problems related to MPI, try
+          running <code>mpi_init()</code>. For details, see <xref
+          linkend="mpi_init"/>.</para>
+        </listitem>
+
+        <listitem>
+          <para>SSH connectivity must be set up for the scidb user from the
+          coordinator to 0.0.0.0, 127.0.0.1, localhost, and all the workers.
+          For each worker:<itemizedlist>
+              <listitem>
+                <para>Make sure that you copy the authorization key, as
+                described in section “Remote Execution Configuration (SSH)” in
+                the Installation chapter.</para>
+              </listitem>
+
+              <listitem>
+                <para>Log in once: ssh
+                scidb@&lt;<replaceable>worker</replaceable>&gt;. At the
+                following prompt, answer <emphasis
+                role="bold">yes</emphasis>.<screen>Are you sure you want to continue connecting (yes/no)?</screen></para>
+              </listitem>
+
+              <listitem>
+                <para>Confirm it works by running:
+                scidb@&lt;<replaceable>worker</replaceable>&gt; again. This
+                must take you directly to a shell prompt on the worker.
+                Otherwise, SSH is not yet set up on this worker.</para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+
+        <listitem>
+          <para>DNS must be configured on all SciDB servers. In particular,
+          verify that the worker instances are able to resolve the coordinator
+          host name to the correct IP.</para>
+        </listitem>
+
+        <listitem>
+          <para><indexterm>
+              <primary>IP address</primary>
+            </indexterm><indexterm>
+              <primary>static IP</primary>
+            </indexterm>If a host has a static IP, make sure to replace
+          <emphasis role="bold">127.0.1.1</emphasis> in the <emphasis
+          role="bold">/etc/hosts</emphasis> file with the static IP. In
+          general, the <emphasis role="bold">/etc/hosts</emphasis> file should
+          not contain multiple IPs mapped to the same name. For example,
+          consider the following section of the <emphasis
+          role="bold">/etc/hosts</emphasis> file (for a machine with hostname
+          <emphasis role="bold">test-u1204-c2-vm1</emphasis>):<programlisting>127.0.0.1      localhost
+127.0.1.1      test-u1204-c2-vm1</programlisting></para>
+
+          <para>The second line can confuse MPI. You should comment it out or
+          enter the actual static IP for <emphasis
+          role="bold">test-u1204-c2-vm1</emphasis>. The practice of using
+          <emphasis role="bold">127.0.1.1</emphasis> is specific to Ubuntu—for
+          details, see the Ubuntu documentation (link to Debian Reference,
+          chapter 10: <ulink
+          url="http://qref.sourceforge.net/quick/ch-gateway.en.html">http://qref.sourceforge.net/quick/ch-gateway.en.html</ulink>).</para>
+        </listitem>
+
+        <listitem>
+          <para>Configuration with multiple Network Interface Cards (NICs),
+          such as eth0, eth1, and so on, has not been tested. We recommend
+          that you disable all but one of your NICs. If you cannot disable all
+          but one of your NICs, make sure that the DNS names resolve to the
+          correct IPs.</para>
+        </listitem>
+
+        <listitem>
+          <para><indexterm>
+              <primary>memory, shared</primary>
+            </indexterm><indexterm>
+              <primary>shared memory</primary>
+            </indexterm>Make sure there is enough shared memory available. On
+          each SciDB server, run the following command to see your shared
+          memory usage:<programlisting>$ df -h /dev/shm</programlisting> Your
+          output should look similar to the following:<screen>Filesystem      Size  Used Avail Use% Mounted on
+none            3.8G  320K  3.8G   1% /run/shm</screen>Your available shared
+          memory needs to be at least 512 MB * #instances_per_host. You can
+          change the size of shared memory by adding a line to the
+          <literal>/etc/fstab</literal> file:<programlisting># shared memory device
+none    /dev/shm     tmpfs   defaults,size=48G     0 0</programlisting>Running
+          out of the shared memory from <literal>/dev/shm</literal> usually
+          manifests itself by the SciDB process being killed with the
+          <emphasis role="bold">SIGBUS</emphasis> signal as reported in the
+          SciDB error log (<emphasis
+          role="bold">scidb-stderr.log</emphasis>):</para>
+
+          <programlisting>2013-5-13 23:17:10 (ppid=23581): Started.
+2013-5-14 0:2:0 (ppid=23581): SciDB child (pid=23604) terminated by signal = 7, core dumped</programlisting>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>If you have run out of shared memory, you can increase the value for
+    the <code>max-memory-limit</code> parameter in your SciDB config.ini
+    file.</para>
+  </section>
+
+  <section>
+    <title>Configuration Issues</title>
+
+    <para>The Troubleshooting appendix contains a section on some guidelines
+    for optimizing the SciDB configuration parameters. For details, see <xref
+    linkend="configTrouble"/>.</para>
+
+    <para>Also, when setting up the config.ini file, we recommend that you use
+    absolute IP addresses (rather than <emphasis
+    role="bold">localhost</emphasis>) whenever possible, especially on
+    multi-server SciDB installations.</para>
+  </section>
+
+  <section>
+    <title>Out Of Memory Issues</title>
+
+    <para>If you encounter any out-of-memory issues, try changing the value
+    for the <literal>max-memory-limit</literal> configuration parameter. For
+    details, see <xref linkend="configMemory"/>.</para>
+  </section>
+
+  <section>
+    <title>Other Issues</title>
+
+    <para>If you notice odd behavior or any performance degradation, try
+    restarting your SciDB cluster.</para>
+
+    <para>From the scidb user account, run the following commands from your
+    Linux prompt to restart:</para>
+
+    <screen>$ scidb.py stopall <replaceable>scidb_cluster_name</replaceable></screen>
+
+    <para>After the cluster stops, start it again:<screen>$ scidb.py startall <replaceable>scidb_cluster_name</replaceable></screen></para>
+
+    <para>In the previous commands, replace
+    <replaceable>scidb_cluster_name</replaceable> with the actual name of your
+    SciDB cluster.</para>
+  </section>
+</appendix>

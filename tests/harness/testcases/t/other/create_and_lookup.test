@@ -1,0 +1,21 @@
+--setup
+CREATE ARRAY Data1 < A: int32 > [ X=0:4,5,0]
+CREATE ARRAY UB <a:int64>[x=0:*,10,0]
+CREATE ARRAY sample1 <val:int32> [x=0:7,3,0]
+CREATE ARRAY sample2 <val:int32> [x=0:20,6,0]
+CREATE ARRAY sample3 <val:int32> [x=-10:10,6,0]
+--test
+load(Data1,'${TEST_DATA_DIR}/data.txt')
+load(UB,'${TEST_DATA_DIR}/ub.txt')
+store(build(sample1,x+1),sample1)
+store(build(sample2,x+40),sample2)
+store(build(sample3,x+50),sample3)
+lookup(Data1,UB)
+lookup(sample1,sample2)
+lookup(sample1,sample3)
+--cleanup
+remove(Data1)
+remove(UB)
+remove(sample1)
+remove(sample2)
+remove(sample3)

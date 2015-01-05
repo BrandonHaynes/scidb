@@ -1,0 +1,42 @@
+--setup
+--start-query-logging
+#Ticket number : 1635 for cross operator
+#Tests for cross operator for 1-D with string attribute and 2-D arrays with double type data.
+#Arrays with cell value as Null and inf
+# Arrays with different chunk size and overlaps
+
+create array a1 <r:string NULL>[x=10:17,2,0]
+store(filter(build(a1,20*x+1),x>13),a1)
+create array d1 <a1: double NULL> [x=0:4,3,0, y=-2:1,2,1]
+store(filter(build(d1, 1.0*x+100.0*y), x<>y),d1)
+
+--test
+cross_join(a1,d1)
+cross_join(d1,a1)
+aggregate(cross_join(a1,d1),count(*))
+aggregate(cross_join(d1,a1),count(*))
+--aql select * into c1 from d1 where x>2 and y>-1 
+## Here c1 obtained from d1 have 3 chunks entirely eliminated.
+show(c1)
+--aql  update c1 set a1=null where x=3 and y=1
+scan(c1)
+#It does not display null value cell but it considers it while using cross or count as below:
+aggregate(c1,count(*))
+cross_join(a1,c1)
+aggregate(cross_join(a1,c1),count(*))
+cross_join(c1,d1)
+aggregate(cross_join(c1,d1),count(*))
+cross_join(c1,c1)
+aggregate(cross_join(c1,c1),count(*))
+--aql update c1 set a1=(1.0/(x-3)) where x=3 and y=1
+##{3,1} set to inf.
+cross_join(c1,c1)
+aggregate(cross_join(c1,c1),count(*))
+
+
+--cleanup
+remove(a1)
+remove(d1)
+remove(c1)
+
+--stop-query-logging

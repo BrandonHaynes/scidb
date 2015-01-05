@@ -1,0 +1,6 @@
+Query was executed successfully
+
+[An error expected at this place for the query "cross_join(A as a1,A as a2,a1.x)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_OP_CROSSJOIN_ERROR2. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_OP_CROSSJOIN_ERROR2.]
+
+Query was executed successfully
+

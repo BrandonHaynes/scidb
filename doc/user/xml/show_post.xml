@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="showOperator">
+  <refnamediv>
+    <refname>show</refname>
+
+    <refpurpose><indexterm>
+        <primary>show</primary>
+      </indexterm><indexterm>
+        <primary>schema, displaying</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>showing schema</secondary>
+      </indexterm>Produces a result array whose contents describe the schema
+    of an array you supply.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>show(<replaceable>named_array</replaceable>);</synopsis>
+
+    <para>or</para>
+
+    <synopsis>show('<replaceable>query</replaceable>'[,'afl']);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <literal>show</literal> operator returns an array's schema. The
+    argument <replaceable>named_array</replaceable> must be an array that was
+    previously created and stored in SciDB.</para>
+
+    <para>You can also use <literal>show</literal> to return the schema for a
+    query. This can be useful to preview the schema for a query, instead of
+    having to first save the result of the query to an array. Use the optional
+    string, <emphasis role="bold">'afl'</emphasis>, if the query is written in
+    AFL.</para>
+
+    <para>You can use the show operator in the FROM clause of an AQL SELECT
+    statement, as a stand-alone operator in a AFL statement, or as an operand
+    within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example shows the schema for an array, creates and stores an
+      abridged version of that array, then shows the schema of the abridged
+      version.</para>
+
+      <procedure>
+        <step>
+          <para>Show the schema for the original array.<para><programlisting>AFL% show(champions);</programlisting><screen>{i} schema
+{0} 'champions&lt;person:string,country:string,time:double&gt; [year=1996:2008,13,0,event_id=0:3,3,0]'
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Use the project and store operators to create an abridged
+          array that excludes the country and time attributes: <para><programlisting>AQL% <command>SELECT</command> * <command>INTO</command> championsAbridged <command>FROM</command> project(champions,person);  </programlisting><screen>{year,event_id} person
+{1996,0} 'Bailey'
+{1996,1} 'Thugwane'
+{1996,2} 'Keter'
+{2000,0} 'Greene'
+{2000,1} 'Abera'
+{2000,2} 'Kosgei'
+{2004,0} 'Gatlin'
+{2004,1} 'Baldini'
+{2004,2} 'Kemboi'
+{2008,0} 'Bolt'
+{2008,1} 'Wanjiru'
+{2008,2} 'Kipruto'
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Show the schema for the abridged array: <para><programlisting>AQL% <command>SELECT</command> * <command>FROM</command> show(championsAbridged);  </programlisting><screen>{i} schema
+{0} 'championsAbridged&lt;person:string&gt; [year=1996:2008,13,0,event_id=0:3,3,0]'
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example illustrates the usage of <literal>show</literal> to
+      return schema for queries.</para>
+
+      <procedure>
+        <step>
+          <para>Create two arrays, and fill them with some
+          data.<para><programlisting>AFL% store(build(&lt;val1:double&gt; [i=0:4,32,0, j=0:0,32,0], i),A);  </programlisting><screen>[[(0)],[(1)],[(2)],[(3)],[(4)]]
+</screen><programlisting>AFL% store(build(&lt;val2:double&gt; [i=0:0,32,0, j=0:4,32,0], 10-j),B);  </programlisting><screen>[[(10),(9),(8),(7),(6)]]
+</screen><programlisting>AFL% store(build(&lt;val3:double&gt; [i=0:4,32,0, j=0:4,32,0], 0),C);  </programlisting><screen>[[(0),(0),(0),(0),(0)],[(0),(0),(0),(0),(0)],[(0),(0),(0),(0),(0)],[(0),(0),(0),(0),(0)],[(0),(0),(0),(0),(0)]]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>View the schema of the result of multiplying A and B (using
+          the <code>gemm</code> operator).<para><programlisting>AFL% show('gemm(A,B,C)','afl');  </programlisting><screen>[('GEMM&lt;gemm:double&gt; [i=0:4,32,0,j=0:4,32,0]')]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>You can use the show operator to view the output type of an
+          aggregate. <para><programlisting>AFL% show('select sum(val1) from A');  </programlisting><screen>[('not empty A@1&lt;sum:double NULL DEFAULT null&gt; [i=0:0,1,0]')]
+</screen><para><programlisting>AFL% show('select stdev(val1) from A');  </programlisting><screen>[('not empty A@1&lt;stdev:double NULL DEFAULT null&gt; [i=0:0,1,0]')]
+</screen></para></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

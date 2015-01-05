@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="removeOperator">
+  <refnamediv>
+    <refname>remove</refname>
+
+    <refpurpose><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>deleting</secondary>
+      </indexterm><indexterm>
+        <primary>delete array</primary>
+      </indexterm><indexterm>
+        <primary>remove</primary>
+      </indexterm>Removes an array and its attendant schema definition from
+    the SciDB database.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>remove(<replaceable>named_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The AFL remove statement works like the AQL <command> <code>DROP
+    ARRAY</code> </command> statement; it deletes a named array, including all
+    of its versions and its schema definition, from the SciDB database. The
+    argument <replaceable>named_array</replaceable> must be an array that was
+    previously created and stored in SciDB.</para>
+
+    <para>Note that <literal>remove</literal> is an AFL statement, but not an
+    operator. Consequently, it does not produce a result array, it cannot
+    appear in the FROM clause of an AQL SELECT statement, and it cannot appear
+    as an operand within AFL operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>Create an array named source and then remove it:<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:9,10,0],1),source);  </programlisting><screen>[(1),(1),(1),(1),(1),(1),(1),(1),(1),(1)]
+</screen><programlisting>AFL% remove(source);</programlisting><screen>Query was executed successfully
+</screen></para></para>
+    </informalexample>
+  </refsect1>
+</refentry>

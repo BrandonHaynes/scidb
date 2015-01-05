@@ -1,0 +1,13 @@
+diff -up cppunit-1.12.0/cppunit-config.in.nolibdir cppunit-1.12.0/cppunit-config.in
+--- cppunit-1.12.0/cppunit-config.in.nolibdir	2007-10-21 11:19:40.000000000 +0200
++++ cppunit-1.12.0/cppunit-config.in	2007-10-21 11:20:01.000000000 +0200
+@@ -87,9 +87,6 @@ if test "$echo_cflags" = "yes"; then
+ fi
+ 
+ if test "$echo_libs" = "yes"; then
+-      if test @libdir@ != /usr/lib ; then
+-            my_linker_flags="-L@libdir@"
+-      fi
+       echo ${my_linker_flags} -lcppunit @LIBADD_DL@
+ fi      
+ 

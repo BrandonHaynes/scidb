@@ -1,0 +1,82 @@
+--setup
+--start-query-logging
+#Ticket number : 16245
+#Tests for fixed window regrid AQL syntax on very sparse 2D,3D(inf-nan) and unbounded array
+# Multi-attribute forms are also tested using apply operator
+
+
+create array A <val:int64> [x=0:10000,5000,0,y=0:10000,5000,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A, '${TEST_DATA_DIR}/bsparse.txt')""
+
+create array B <val:int64> [x=0:*,5000,0,y=0:*,5000,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(B, '${TEST_DATA_DIR}/bsparse.txt')""
+
+create array C <num:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(C, '${TEST_DATA_DIR}/bsp1.txt')""
+
+--test
+--set-format lcsv+
+
+--aql select sum(val/2),ApproxDC(val),avg(val) from A regrid as (partition by x 2000 , y 2000)
+--aql select sum(val/2),ApproxDC(val),avg(val) from A regrid as (partition by y 2000 , x 2000)
+--aql select sum(val/2),ApproxDC(val),avg(val) from A regrid as (partition by y 10001 , x 2000)
+--aql select sum(val/2),ApproxDC(val),avg(val) from A regrid as (partition by y 10001 , x 10001)
+
+--aql select sum(val/2),ApproxDC(val),avg(val) from A fixed window  as (partition by y 500 preceding and 500 following , x 1000 preceding and 500 following)
+
+--aql select sum(val/2),ApproxDC(val),avg(val) from A fixed window  as (partition by x 500 preceding and 500 following , y 1000 preceding and 500 following)
+
+--aql select count(val+100),sum(val/2),ApproxDC(val),avg(val) from A fixed window  as (partition by x 1000000 preceding and 1000000 following , y 1000000 preceding and 100000 following)
+
+--aql select count(val+100),sum(val/2),ApproxDC(val),avg(val) from A fixed window  as (partition by x 1000000 preceding and 000 following , y 1000000 preceding and 000 following)
+
+--aql select count(val+100),sum(val/2),ApproxDC(val),avg(val) from A fixed window  as (partition by x 1000000 preceding and 0000001 following , y 01567 preceding and 000 following)
+
+--aql select count(val+100),sum(val/2),ApproxDC(val),avg(val) from A fixed window  as (partition by x 0 preceding and  10001 following , y 00010001 preceding and 00000000000111111 following)
+
+--aql select count(val+100),sum(val/2),ApproxDC(val),avg(val) from A fixed window  as (partition by x 100000 preceding and  100000 following , y 100010 preceding and 100000 following)
+
+--aql select ApproxDC(2*val) from A fixed window  as (partition by x 100000 preceding and  100000 following , y 100010 preceding and 100000 following)
+
+--aql select ApproxDC(val)+100 from A fixed window  as (partition by x 100000 preceding and  100000 following , y 100010 preceding and 100000 following)
+
+
+#Negative tests
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_MULTIPLE_DIMENSION_SPECIFICATION --aql="select sum(val) from A fixed window  as (partition by x 0 preceding and  5000 following , y 5000 preceding and 0 following, y 5000 preceding and 0 following)"
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DIMENSION_NOT_EXIST --aql="select sum(val) from A fixed window  as (partition by x 0 preceding and  5000 following , y 5000 preceding and 0 following, z 5000 preceding and 0 following)"
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DIMENSION_NOT_EXIST --aql="select sum(val) from A fixed window  as (partition by x 0 preceding and  5000 following , z 5000 preceding and 0 following)"
+
+--error --code scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select sum(val/2),avg(val) from B regrid as (partition by x * , y *)"
+--error --code scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql="select count(num1),sum(num1),avg(num/2) from apply(C,num1,21*x+y) regrid  as (partition by y 12345 , z 786, x (549+200))"
+
+
+#Negative tests ends
+
+
+--aql select sum(val/2),ApproxDC(val),avg(val) from B regrid as (partition by x 2000 , y 2000)
+--aql select ApproxDC(val)+100/2.5 from B  fixed window  as (partition by x 1 preceding and  1 following , y 1 preceding and 1 following)
+--aql select ApproxDC(val)+100/2.5 from B  fixed window  as (partition by x 100000 preceding and  1 following , y 100010 preceding and 1 following)
+
+--aql select sum(val3) from apply(apply(B,val2,val+10),val3,val2*20)  fixed window  as (partition by x 1 preceding and  1 following , y 1 preceding and 1 following)
+
+--aql select sum(val3) from apply(apply(B,val2,val+10),val3,val2*20)  fixed window  as (partition by x 0 preceding and  10000 following , y 0 preceding and 5000 following)
+
+
+--aql select sum(num) from C regrid  as (partition by x 1000 ,y 5000, z 10000)
+--aql select sum(num) from C regrid  as (partition by z 1000 , y 5000, x 10000)
+--aql select count(num1),sum(num1),count(num)*10000 from apply(C,num1,21*x+y) regrid  as (partition by z 1000 , y 5000, x 10000)
+--aql select count(num1),sum(num1),count(num)*10000 from apply(C,num1,21*x+y) regrid  as (partition by z 10 , x 500, y 10000)
+--aql select count(num1),sum(num1),count(num)*10000 from apply(C,num1,21*x+y) regrid  as (partition by y 10 , z 500, x 10000)
+--aql select count(num1),sum(num1),avg(num/2) from apply(C,num1,21*x+y) regrid  as (partition by y 12345 , z 786, x 549)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+
+
+
+--stop-query-logging
+

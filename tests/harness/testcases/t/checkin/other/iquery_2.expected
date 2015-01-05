@@ -1,0 +1,116 @@
+SCIDB QUERY : <CREATE ARRAY RawDataForDorfs < name : string, item : string, detail : string, qty : double > [ Offset=0:27,28,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <load ( RawDataForDorfs, '../tests/harness/testcases/data/iquery_2.txt')>
+{Offset} name,item,detail,qty
+{0} 'Bashful','Beard','long',7
+{1} 'Bashful','Shirt','brown',5
+{2} 'Bashful','Hat','green',7
+{3} 'Bashful','Body','normal',5
+{4} 'Doc','Beard','short',2
+{5} 'Doc','Shirt','red',8
+{6} 'Doc','Hat','brown',5
+{7} 'Doc','Body','large',7
+{8} 'Dopey','Beard','none',0
+{9} 'Dopey','Shirt','red',8
+{10} 'Dopey','Hat','purple',6
+{11} 'Dopey','Body','small',3
+{12} 'Grumpy','Beard','long',7
+{13} 'Grumpy','Shirt','red',8
+{14} 'Grumpy','Hat','brown',5
+{15} 'Grumpy','Body','small',3
+{16} 'Happy','Beard','short',3
+{17} 'Happy','Shirt','brown',5
+{18} 'Happy','Hat','orange',6
+{19} 'Happy','Body','large',7
+{20} 'Sleepy','Beard','long',7
+{21} 'Sleepy','Shirt','green',3
+{22} 'Sleepy','Hat','blue',6
+{23} 'Sleepy','Body','small',2
+{24} 'Sneezy','Beard','short',2
+{25} 'Sneezy','Shirt','brown',5
+{26} 'Sneezy','Hat','orange',6
+{27} 'Sneezy','Body','normal',5
+
+SCIDB QUERY : <CREATE array Dorfs < detail : string, qty : double > [ name(string)=7,7,0, item(string)=4,4,0 ]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension( RawDataForDorfs, Dorfs ), Dorfs )>
+{name,item} detail,qty
+{'Bashful','Beard'} 'long',7
+{'Bashful','Body'} 'normal',5
+{'Bashful','Hat'} 'green',7
+{'Bashful','Shirt'} 'brown',5
+{'Doc','Beard'} 'short',2
+{'Doc','Body'} 'large',7
+{'Doc','Hat'} 'brown',5
+{'Doc','Shirt'} 'red',8
+{'Dopey','Beard'} 'none',0
+{'Dopey','Body'} 'small',3
+{'Dopey','Hat'} 'purple',6
+{'Dopey','Shirt'} 'red',8
+{'Grumpy','Beard'} 'long',7
+{'Grumpy','Body'} 'small',3
+{'Grumpy','Hat'} 'brown',5
+{'Grumpy','Shirt'} 'red',8
+{'Happy','Beard'} 'short',3
+{'Happy','Body'} 'large',7
+{'Happy','Hat'} 'orange',6
+{'Happy','Shirt'} 'brown',5
+{'Sleepy','Beard'} 'long',7
+{'Sleepy','Body'} 'small',2
+{'Sleepy','Hat'} 'blue',6
+{'Sleepy','Shirt'} 'green',3
+{'Sneezy','Beard'} 'short',2
+{'Sneezy','Body'} 'normal',5
+{'Sneezy','Hat'} 'orange',6
+{'Sneezy','Shirt'} 'brown',5
+
+SCIDB QUERY : <echo ('iquery  -o lcsv+ -aq \'scan ( Dorfs )\'')>
+{i} text
+{0} 'iquery  -o lcsv+ -aq \'scan ( Dorfs )\''
+
+SCIDB QUERY : < iquery  -o lcsv+ -aq 'scan ( Dorfs )' >
+name,item,detail,qty
+'Bashful','Beard','long',7
+'Bashful','Body','normal',5
+'Bashful','Hat','green',7
+'Bashful','Shirt','brown',5
+'Doc','Beard','short',2
+'Doc','Body','large',7
+'Doc','Hat','brown',5
+'Doc','Shirt','red',8
+'Dopey','Beard','none',0
+'Dopey','Body','small',3
+'Dopey','Hat','purple',6
+'Dopey','Shirt','red',8
+'Grumpy','Beard','long',7
+'Grumpy','Body','small',3
+'Grumpy','Hat','brown',5
+'Grumpy','Shirt','red',8
+'Happy','Beard','short',3
+'Happy','Body','large',7
+'Happy','Hat','orange',6
+'Happy','Shirt','brown',5
+'Sleepy','Beard','long',7
+'Sleepy','Body','small',2
+'Sleepy','Hat','blue',6
+'Sleepy','Shirt','green',3
+'Sneezy','Beard','short',2
+'Sneezy','Body','normal',5
+'Sneezy','Hat','orange',6
+'Sneezy','Shirt','brown',5
+
+SCIDB QUERY : <echo ('iquery  -o lsparse -aq \'scan ( Dorfs )\'')>
+{i} text
+{0} 'iquery  -o lsparse -aq \'scan ( Dorfs )\''
+
+SCIDB QUERY : < iquery  -o lsparse -aq 'scan ( Dorfs )' >
+{'Bashful','Beard'}[[{'Bashful','Beard'}('long',7),{'Bashful','Body'}('normal',5),{'Bashful','Hat'}('green',7),{'Bashful','Shirt'}('brown',5)],[{'Doc','Beard'}('short',2),{'Doc','Body'}('large',7),{'Doc','Hat'}('brown',5),{'Doc','Shirt'}('red',8)],[{'Dopey','Beard'}('none',0),{'Dopey','Body'}('small',3),{'Dopey','Hat'}('purple',6),{'Dopey','Shirt'}('red',8)],[{'Grumpy','Beard'}('long',7),{'Grumpy','Body'}('small',3),{'Grumpy','Hat'}('brown',5),{'Grumpy','Shirt'}('red',8)],[{'Happy','Beard'}('short',3),{'Happy','Body'}('large',7),{'Happy','Hat'}('orange',6),{'Happy','Shirt'}('brown',5)],[{'Sleepy','Beard'}('long',7),{'Sleepy','Body'}('small',2),{'Sleepy','Hat'}('blue',6),{'Sleepy','Shirt'}('green',3)],[{'Sneezy','Beard'}('short',2),{'Sneezy','Body'}('normal',5),{'Sneezy','Hat'}('orange',6),{'Sneezy','Shirt'}('brown',5)]]
+
+SCIDB QUERY : <remove(RawDataForDorfs)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Dorfs)>
+Query was executed successfully
+

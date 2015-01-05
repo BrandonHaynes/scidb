@@ -1,0 +1,1 @@
+--shell --command "${TESTDIR}/consume2.py"

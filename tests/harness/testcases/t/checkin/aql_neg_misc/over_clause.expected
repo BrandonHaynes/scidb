@@ -1,0 +1,12 @@
+Query was executed successfully
+
+[An error expected at this place for the query "select sin(a) over Z from foo". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE.]
+
+[An error expected at this place for the query "select sin(a) over Z + 1 from foo". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE.]
+
+[An error expected at this place for the query "select sin(a) + 1 over Z from foo". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+[An error expected at this place for the query "select * from foo where 1 = sin(a) over Z". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE.]
+
+Query was executed successfully
+

@@ -1,0 +1,2 @@
+[An error expected at this place for the query "create array A <a:int32> [x=0:9223372036854775807,5,0]". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_DIMENSION_BOUNDARY. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_DIMENSION_BOUNDARY.]
+

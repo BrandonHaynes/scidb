@@ -1,0 +1,15 @@
+# ticket no. 998
+
+--setup
+--start-query-logging
+create array A <a:int64> [x=-2:3,2,1]
+store(build(A,x+1),A)
+
+--test
+save(A,'a_test.txt',-1,'store')
+load(A,'a_test.txt',-1)
+scan(A)
+
+--cleanup
+remove(A)
+--stop-query-logging

@@ -1,0 +1,7 @@
+create_array(m4x4_first,<val1:double>[x=0:3,4,0, y=0:3,4,0]);
+store(build_sparse(m4x4_first,x*4+y,x*4+y<> 10),m4x4_first);
+
+create_array(m4x4_second,<val2:int32>[x=0:3,4,0, y=0:3,4,0]);
+store(build(m4x4_second,'[[100,99,98,97],[0,95,94,93],[92,91,(),89],[88,0,86,85]]',true),m4x4_second);
+
+store(join(m4x4_first, m4x4_second),m4x4_missing);

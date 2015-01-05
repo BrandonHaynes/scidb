@@ -1,0 +1,28 @@
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+Query was executed successfully
+
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array test_array_overlap <vss_speed:double NOT NULL,ts:int64 NOT NULL> [device_id=-1:*,2000,0,trip_id=-1:*,50000,0,entry_id=0:*,1000,2]>
+Query was executed successfully
+
+SCIDB QUERY : <store(repart(test_array,test_array_overlap),test_array_overlap)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(test_array,count(*))>
+{i} count
+{0} 9638
+
+SCIDB QUERY : <aggregate(test_array_overlap,count(*))>
+{i} count
+{0} 9638
+
+SCIDB QUERY : <remove (test_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove (test_array_overlap)>
+Query was executed successfully
+

@@ -1,0 +1,14 @@
+# test case for ticket #520
+
+--setup
+create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+store(build(A,x+10),B)
+
+--test
+project(cross_join(A,B,A.x,B.x),A.a)
+project(cross_join(A,B,A.x,B.x),B.a)
+
+--cleanup
+remove(A)
+remove(B)

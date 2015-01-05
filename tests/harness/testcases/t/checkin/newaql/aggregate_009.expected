@@ -1,0 +1,150 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+{3} 13
+{4} 14
+{5} 15
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <store(build(A,x-2),A)>
+{x} a
+{0} -2
+{1} -1
+{2} 0
+{3} 1
+{4} 2
+{5} 3
+{6} 4
+{7} 5
+{8} 6
+
+SCIDB QUERY : <select sum(a),max(a) from A fixed window W as (partition by x 9 preceding and 8 following)>
+{x} sum,max_1
+{0} 18,6
+{1} 18,6
+{2} 18,6
+{3} 18,6
+{4} 18,6
+{5} 18,6
+{6} 18,6
+{7} 18,6
+{8} 18,6
+
+SCIDB QUERY : <select max(a),var(a),stdev(a),count(a),sum(a),min(a) from A fixed window W as (partition by x 1 preceding and 1 following)>
+{x} max,var_1,stdev_2,count_3,sum_4,min_5
+{0} -1,0.5,0.707107,2,-3,-2
+{1} 0,1,1,3,-3,-2
+{2} 1,1,1,3,0,-1
+{3} 2,1,1,3,3,0
+{4} 3,1,1,3,6,1
+{5} 4,1,1,3,9,2
+{6} 5,1,1,3,12,3
+{7} 6,1,1,3,15,4
+{8} 6,0.5,0.707107,2,11,5
+
+SCIDB QUERY : <select min(a),count(*) from A fixed window W as (partition by x 1 preceding and 2 following)>
+{x} min,count_1
+{0} -2,3
+{1} -2,4
+{2} -1,4
+{3} 0,4
+{4} 1,4
+{5} 2,4
+{6} 3,4
+{7} 4,3
+{8} 5,2
+
+SCIDB QUERY : <select count(a),count(*) from A fixed window W as (partition by x 0 preceding and 1 following)>
+{x} count,count_1
+{0} 2,2
+{1} 2,2
+{2} 2,2
+{3} 2,2
+{4} 2,2
+{5} 2,2
+{6} 2,2
+{7} 2,2
+{8} 1,1
+
+SCIDB QUERY : <select count(*),sum(a) from A fixed window W as (partition by x 1 preceding and 1 following)>
+{x} count,sum_1
+{0} 2,-3
+{1} 3,-3
+{2} 3,0
+{3} 3,3
+{4} 3,6
+{5} 3,9
+{6} 3,12
+{7} 3,15
+{8} 2,11
+
+SCIDB QUERY : <select stdev(a),avg(a) from A fixed window W as (partition by x 2 preceding and 2 following)>
+{x} stdev,avg_1
+{0} 1,-1
+{1} 1.29099,-0.5
+{2} 1.58114,0
+{3} 1.58114,1
+{4} 1.58114,2
+{5} 1.58114,3
+{6} 1.58114,4
+{7} 1.29099,4.5
+{8} 1,5
+
+SCIDB QUERY : <select var(a),stdev(a) from A fixed window W as (partition by x 4 preceding and 4 following)>
+{x} var,stdev_1
+{0} 2.5,1.58114
+{1} 3.5,1.87083
+{2} 4.66667,2.16025
+{3} 6,2.44949
+{4} 7.5,2.73861
+{5} 6,2.44949
+{6} 4.66667,2.16025
+{7} 3.5,1.87083
+{8} 2.5,1.58114
+
+SCIDB QUERY : <select sum(a)+max(a) from A fixed window W as (partition by x 8 preceding and 9 following)>
+{x} expr
+{0} 24
+{1} 24
+{2} 24
+{3} 24
+{4} 24
+{5} 24
+{6} 24
+{7} 24
+{8} 24
+
+SCIDB QUERY : <select sum(a + 1)*max(a + 2) from A fixed window W as (partition by x 8 preceding and 9 following)>
+{x} expr
+{0} 216
+{1} 216
+{2} 216
+{3} 216
+{4} 216
+{5} 216
+{6} 216
+{7} 216
+{8} 216
+
+SCIDB QUERY : <select x, sum(a + 1)*max(a + 2) from A fixed window W as (partition by x 8 preceding and 9 following)>
+{x} expr,expr_1
+{0} 0,216
+{1} 1,216
+{2} 2,216
+{3} 3,216
+{4} 4,216
+{5} 5,216
+{6} 6,216
+{7} 7,216
+{8} 8,216
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

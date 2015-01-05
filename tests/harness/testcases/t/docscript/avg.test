@@ -1,0 +1,19 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+--aql CREATE ARRAY avg_array<val:double>[i=0:3,4,0,j=0:3,4,0]  
+--set-format auto
+--stop-igdata
+store(build(avg_array,i*4+j),avg_array)  
+--set-format dcsv
+aggregate(avg_array,avg(val),j) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(avg_array)

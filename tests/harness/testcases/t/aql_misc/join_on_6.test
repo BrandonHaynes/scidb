@@ -1,0 +1,19 @@
+--setup
+create  array A <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+store(build(A,x+2),B)
+create  array C <a:int32>[y=0:2,3,0]
+store(build(C,y+2),C)
+
+--test
+--aql update A set a = a + 20
+
+--aql update C set a = a + 50
+
+--aql select * from A join B on A.x = B.x
+--aql select * from C join A on A.x = C.y
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

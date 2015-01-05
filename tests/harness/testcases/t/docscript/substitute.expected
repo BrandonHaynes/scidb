@@ -1,0 +1,22 @@
+SCIDB QUERY : <create array m4x4_null <val1:double null, val2:double null>[i=0:3,4,0, j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odense -aq "load(m4x4_null, '${TEST_DATA_DIR}/doc/substitute_example.scidb')">
+[[(1,null),(null,2.5),(),()],[(),(6,null),(nan,null),(null,3.14153)],[(7.3,0),(null,null),(),(inf,2.225)],[(-inf,null),(null,inf),(),(1.3,2.6)]]
+
+SCIDB QUERY : <store(build(<subVal:double>[i=0:0,1,0],0),zeros)>
+[(0)]
+
+SCIDB QUERY : <substitute(m4x4_null,zeros, val1)>
+[[(1,null),(0,2.5),(),()],[(),(6,null),(nan,null),(0,3.14153)],[(7.3,0),(0,null),(),(inf,2.225)],[(-inf,null),(0,inf),(),(1.3,2.6)]]
+
+SCIDB QUERY : <substitute(m4x4_null,zeros, val2)>
+[[(1,0),(null,2.5),(),()],[(),(6,0),(nan,0),(null,3.14153)],[(7.3,0),(null,0),(),(inf,2.225)],[(-inf,0),(null,inf),(),(1.3,2.6)]]
+
+SCIDB QUERY : <substitute(m4x4_null,zeros)>
+[[(1,0),(0,2.5),(),()],[(),(6,0),(nan,0),(0,3.14153)],[(7.3,0),(0,0),(),(inf,2.225)],[(-inf,0),(0,inf),(),(1.3,2.6)]]
+
+Query was executed successfully
+
+Query was executed successfully
+

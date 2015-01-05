@@ -1,0 +1,57 @@
+SCIDB QUERY : <create array A <a:int64, b:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <c:int64, d:int64> [p=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <c:int64, d:int64> [p=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from build(<a:int64>[x=0:2,3,0],x+1),build(<a:int64>[x=0:2,3,0],x+10)>
+{x} a,b
+{0} 1,10
+{1} 2,11
+{2} 3,12
+
+SCIDB QUERY : <select * into B from build(<a:int64>[x=0:2,3,0],x+2),build(<a:int64>[x=0:2,3,0],x+12)>
+{p} c,d
+{0} 2,12
+{1} 3,13
+{2} 4,14
+
+SCIDB QUERY : <select * from A as a1 join A as a2 on a1.a=a2.a>
+{x,x} a,b,a,b
+{0,0} 1,10,1,10
+{1,1} 2,11,2,11
+{2,2} 3,12,3,12
+
+SCIDB QUERY : <select * from A as a1 join B as a2 on a1.a=a2.c>
+{x,p} a,b,c,d
+{1,0} 2,11,2,12
+{2,1} 3,12,3,13
+
+SCIDB QUERY : <select p+11, p+2 into C from B>
+{p} c,d
+{0} 11,2
+{1} 12,3
+{2} 13,4
+
+SCIDB QUERY : <select * from A as a1 join C as a2 on a2.c=a1.b>
+{x,p} a,b,c,d
+{1,0} 2,11,11,2
+{2,1} 3,12,12,3
+
+SCIDB QUERY : <select * from A as a1 join C as a2 on a1.a=a2.d>
+{x,p} a,b,c,d
+{1,0} 2,11,11,2
+{2,1} 3,12,12,3
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+

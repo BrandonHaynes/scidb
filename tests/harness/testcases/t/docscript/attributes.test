@@ -1,0 +1,33 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array event <event:string> [i=0:11,12,0]  
+create array year <year:int64 null>[i=0:11,12,0]  
+create array person <person:string>[i=0:11,12,0]  
+create array country <country:string null>[i=0:11,12,0]  
+create array time <time:double>[i=0:11,12,0]  
+store(build(event,iif(i<4,'dash',iif(i<8,'steeplechase','marathon'))),event)  
+store(build(year,1996+(i%4 * 4)),year)  
+store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,Kemboi, Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person)  
+store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,Kenya,Kenya, USA,Ethiopia,Italy,Kenya]',true),country)  
+store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),(503.17),(485.81), (490.34),(7956),(7811),(7855),(7596)]',true),time)  
+store(join(event,join(person,join(year,join(country,time)))),winnersFlat)  
+--stop-igdata
+scan(winnersFlat)  
+attributes(winnersFlat)  
+filter(attributes(winnersFlat),nullable=true)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(event)
+remove(year)
+remove(person)
+remove(country)
+remove(time)
+remove(winnersFlat)

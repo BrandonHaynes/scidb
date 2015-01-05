@@ -1,0 +1,14 @@
+--setup
+
+create array foo <a:int32> [x]
+
+--test
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE --aql "select sin(a) over Z from foo"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE --aql "select sin(a) over Z + 1 from foo"
+--error --code scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR --aql "select sin(a) + 1 over Z from foo"
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OVER_USAGE --aql "select * from foo where 1 = sin(a) over Z"
+
+--cleanup
+
+remove(foo)

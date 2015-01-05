@@ -1,0 +1,48 @@
+--setup
+--start-query-logging
+# Ticket number: 1646 
+# Tests covers Build literal in 2D forms Use of default in datetime, different chunking schema
+# Also covers unbounded array literal's & few negative tests.
+
+--test
+
+build(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[]]',true)
+build(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[(2)],[()]]',true)
+build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true)
+build(<a1:uint32> [x=0:1,2,0, y=0:1,2,0],'[[(2),(2)],[(0),(4)]]',true)
+build(<a1:uint32 , a2:string> [x=0:1,2,0, y=0:1,2,0],'[[(2,XLDB),(2,SCIDB)],[(0,HADOOP),(4,INFORMIX)]]',true)
+
+--aql select * from array(<a1:uint32 , a2:string> [x=0:1,2,0, y=0:1,2,0],'[[(2,XLDB),(2,SCIDB)],[(0,HADOOP),(4,INFORMIX)]]')
+--aql select sum(a1)+10 from array(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[(2)],[()]]')
+--aql select * from array(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[(2)],[()]]')
+--aql select sin(a1+0.25) from array(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[(2)],[()]]')
+
+store(build(<a:double> [x=10:*,3,0], '[(4),(3.5),(7.9)]', 1),test1)
+show(test1)
+
+store(build(<a1:double NULL> [x=0:*,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-99)]]',1),test2)
+show(test2)
+
+store(build(<a1:double NULL default null> [x=0:*,2,0, y=0:*,2,0],'[[(2),(-100)],[(),(-99)]]',1),test3)
+show(test3)
+
+build(<a:datetime default datetime('1999-01-03 17:20:50') , days: string default 'Thursday'> [x=0:2,3,0], '[(),("2011-12-13 18:41:14",),("2012-12-13 18:41:14",)]', true)
+
+build(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-99)]]',true)
+build(<a1:double NULL default NULL> [x=0:1,2,0, y=0:1,2,0],'[[(),(-100)],[(-199),()]]',true)
+build(<a1:double NULL default NULL , a2:char default 'Z'> [x=0:1,2,0, y=0:1,2,0],'[[(),(-100)],[(-199),()]]',true)
+
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "build(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[(2*x),(-100)],[(-199),(-99)]]',true)"
+
+--error --code scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "build(<a1:int32 NULL> [x=0:1,2,0, y=0:1,2,0],'[[(a),(0)],[(1),(2)]]',true)"
+
+build(<a1:double NULL> [x=0:3,3,0, y=-2:1,2,0],'[[(-200),(-100)],[(-199),(-99)],[(-198),(-98)]];[[(0),(100)],[(1),(101)],[(2),(102)]];[[(-197),(-97)]];[[(3),(103)]]',true)
+
+
+
+--cleanup
+remove(test1)
+remove(test2)
+remove(test3)
+
+--stop-query-logging

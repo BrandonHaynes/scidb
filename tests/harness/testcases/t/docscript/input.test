@@ -1,0 +1,18 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array m4x4 <val1:int32, val2:int32>[i=0:3,4,0, j=0:3,4,0]  
+--set-format dense
+--stop-igdata
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odense -aq "input(m4x4,'${TEST_DATA_DIR}/doc/m4x4_missing.txt')""
+scan(m4x4)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m4x4)

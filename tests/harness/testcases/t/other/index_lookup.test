@@ -1,0 +1,54 @@
+--setup
+--start-query-logging
+create array batch_1 <name:string, data:double> [i=1:*,500000,0]
+create array target_index <name:string> [i=0:*,100000,0]
+create array target <data:double null> [name_index=0:*,500000,0]
+create array batch_2 <name:string, data:double> [i=1:*,500000,0]
+
+--test
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_UNRECOGNIZED_PARAMETER            "index_lookup(batch_1, target_index, batch_1.name, 'foobar')"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_CANNOT_PARSE_INTEGER_PARAMETER    "index_lookup(batch_1, target_index, batch_1.name, 'memory_limit=alex')"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_PARAMETER_NOT_POSITIVE_INTEGER    "index_lookup(batch_1, target_index, batch_1.name, 'memory_limit=0')"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_IMPROPER_INDEX_SHAPE              "index_lookup(batch_1, batch_2, batch_1.name)"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_IMPROPER_INDEX_SHAPE              "index_lookup(batch_1, join(target_index,target_index), batch_1.name)"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_NOT_AN_ATTRIBUTE_IN_INPUT         "index_lookup(batch_1, target_index, target_index.name)"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_ATTRIBUTES_DO_NOT_MATCH_TYPES     "index_lookup(batch_1, project(apply(target_index, d, int64(name)), d), batch_1.name)"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_ATTRIBUTE_CANNOT_BE_NULLABLE      "index_lookup(batch_1, project(apply(target_index, d, string(null)),d), batch_1.name)"
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_CANNOT_PARSE_BOOLEAN_PARAMETER    "index_lookup(batch_1, target_index, batch_1.name, 'index_sorted= foobar')"
+
+index_lookup(batch_1, target_index, batch_1.name)
+index_lookup(batch_1, target_index, batch_1.name, 'index_sorted=true')
+--igdata "store(join(build (<name:string> [i=1:2000000,500000,0], string( i % 400000)),  build(<data:double> [i=1:2000000,500000,0], sin(i) * 1000)), batch_1)"
+between(index_lookup(batch_1, target_index, batch_1.name), 1, 10)
+between(index_lookup(batch_1, target_index, batch_1.name, 'index_sorted= true'), 1, 10)
+index_lookup(between(batch_1, 1,1), target_index, batch_1.name)
+--igdata "store(uniq(sort(project(batch_1, name)), 'chunk_size=100000'), target_index)"
+index_lookup(between(batch_1, 1,1), target_index, batch_1.name)
+index_lookup(between(batch_1, 1,1), target_index, batch_1.name, 'memory_limit=1')
+index_lookup(between(batch_1, 1,1), target_index, batch_1.name, 'index_sorted= true')
+index_lookup(between(batch_1, 1,1), target_index, batch_1.name, 'index_sorted=true', 'memory_limit= 1')
+index_lookup(between(batch_1, 1,10),  filter(target_index, i%2 = 0), batch_1.name)
+index_lookup(between(batch_1, 1,10),  filter(target_index, i%2 = 0), batch_1.name, 'memory_limit=1')
+index_lookup(filter(batch_1, i=0 or i=1 or i=10 or i=1000 or i=10000 or i = 32768),  repart(filter(target_index, i>1 and i<5000), <name:string> [i=0:*,1,0] ), batch_1.name, 'memory_limit=1')
+index_lookup(filter(batch_1, i=0 or i=1 or i=10 or i=1000 or i=10000 or i = 32768),  repart(filter(target_index, i>1 and i<5000), <name:string> [i=0:*,2,0] ), batch_1.name, 'memory_limit=1')
+index_lookup(filter(batch_1, i=0 or i=1 or i=10 or i=1000 or i=10000 or i = 32768),  repart(filter(target_index, i>1 and i<5000), <name:string> [i=0:*,1,0] ), batch_1.name, 'index_sorted=true', 'memory_limit=1')
+index_lookup(filter(batch_1, i=0 or i=1 or i=10 or i=1000 or i=10000 or i = 32768),  repart(filter(target_index, i>1 and i<5000), <name:string> [i=0:*,2,0] ), batch_1.name, 'memory_limit= 1', 'index_sorted= true')
+--igdata "store(redimension(index_lookup(batch_1, target_index, batch_1.name, name_index, 'memory_limit=1', 'index_sorted= true'), target, sum(data) as data), target)"
+aggregate(target, count(*), sum(data), stdev(data), avg(data))
+aggregate(apply(target_index, v, double(name)), count(*), sum(v), avg(v))
+--igdata "store(join(build (<name:string> [i=1:2000000,500000,0], string((i % 400000 - 200000))),  build(<data:double> [i=1:2000000,500000,0], sin(i) * 1000)), batch_2)"
+--igdata "store(uniq(sort(project(batch_2, name)), 'chunk_size=100000'), batch_2_index)"
+aggregate(apply(batch_2_index, b2, int64(name)), sum(b2), avg(b2), min(b2), max(b2), count(*))
+aggregate(index_lookup(batch_2_index, target_index, batch_2_index.name, idx, 'memory_limit=1'), count(idx), count(*))
+aggregate(index_lookup(batch_2_index, target_index, batch_2_index.name, idx, 'memory_limit=1', 'index_sorted=true'), count(idx), count(*))
+--igdata "insert(redimension(apply(cross_join(project(unpack(filter(index_lookup(batch_2_index, target_index, batch_2_index.name, idx, 'memory_limit=32'), idx is null), j), name), aggregate(target_index, count(*) as cnt)), i2, j+cnt), <name:string> [i2=0:*,100000,0]), target_index)"
+--igdata "insert(redimension(index_lookup( batch_2, target_index, batch_2.name, name_index, 'memory_limit=32'), target, sum(data) as data), target)"
+aggregate(target, count(*), sum(data), stdev(data), avg(data))
+aggregate(apply(target_index, v, double(name)), count(*), sum(v), avg(v))
+
+--cleanup
+remove(batch_1)
+remove(target_index)
+remove(target)
+remove(batch_2)
+remove(batch_2_index)

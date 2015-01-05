@@ -1,0 +1,6 @@
+--setup
+--test
+--start-query-logging
+--shell --command "${SCIDB_INSTALL_PATH}/bin/remove_arrays.py fdafdarfewqfveqfeq"
+--stop-query-logging
+--cleanup

@@ -1,0 +1,17 @@
+SCIDB QUERY : <CREATE ARRAY m4x4<val:double>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(m4x4,iif(i=j,100+i,i*4+j)),m4x4)>
+[[(100),(1),(2),(3)],[(4),(101),(6),(7)],[(8),(9),(102),(11)],[(12),(13),(14),(103)]]
+
+SCIDB QUERY : <filter(m4x4,val<100)>
+[[(),(1),(2),(3)],[(4),(),(6),(7)],[(8),(9),(),(11)],[(12),(13),(14),()]]
+
+SCIDB QUERY : <filter(list('operators'),regex(name,'(.*)z(.*)'))>
+name,library
+'analyze','scidb'
+'materialize','scidb'
+'normalize','scidb'
+
+Query was executed successfully
+

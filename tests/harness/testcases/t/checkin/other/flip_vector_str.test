@@ -1,0 +1,11 @@
+--setup
+create array matrix_str<y:double>[x=1:8,4,0, i=1:8,4,0]
+CREATE ARRAY vector_str<x:string, y:double>[i=1:8,4,0]
+load(vector_str, '${TEST_DATA_DIR}/vector_str.txt')
+
+--test
+store(redimension(vector_str, matrix_str), matrix_str)
+
+--cleanup
+remove(matrix_str)
+remove(vector_str)

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<appendix id="appendixA">
+  <title id="a_title">Licenses</title>
+
+  <para>This appendix contains details for the following third-party
+  licenses:</para>
+
+  <itemizedlist>
+    <listitem>
+      <para><link linkend="ScaLAPACK">ScaLAPACK</link></para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="bsdiff">bsdiff</link></para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="JsonCpp">JsonCpp</link></para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="MPICH2">MPICH2</link></para>
+    </listitem>
+  </itemizedlist>
+
+  <section id="Affero">
+    <title>Affero GPL</title>
+
+    <para>SciDB is free software: you can redistribute it and/or modify it
+    under the terms of the Affero General Public License, version 3, as
+    published by the Free Software Foundation.</para>
+
+    <para>SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+    INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, NON-INFRINGEMENT, OR
+    FITNESS FOR A PARTICULAR PURPOSE. See the Affero General Public License at
+    <ulink
+    url="http://www.gnu.org/licenses/agpl-3.0.html">http://www.gnu.org/licenses/agpl-3.0.html</ulink>
+    for the complete license terms.</para>
+  </section>
+
+  <section id="ScaLAPACK">
+    <title>ScaLAPACK</title>
+
+    <para>Copyright (c) 1992-2011 The University of Tennessee and The
+    University of Tennessee Research Foundation. All rights reserved.</para>
+
+    <para>Copyright (c) 2000-2011 The University of California Berkeley. All
+    rights reserved.</para>
+
+    <para>Copyright (c) 2006-2011 The University of Colorado Denver. All
+    rights reserved.</para>
+
+    <para>The copyright holders provide no reassurances that the source code
+    provided does not infringe any patent, copyright, or any other
+    intellectual property rights of third parties. The copyright holders
+    disclaim any liability to any recipient for claims brought against
+    recipient by any third party for infringement of that parties intellectual
+    property rights.</para>
+
+    <para>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+    TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+    CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+    PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</para>
+  </section>
+
+  <section id="bsdiff">
+    <title>bsdiff</title>
+
+    <para><programlisting>Copyright 2003-2005 Colin Percival
+All rights reserved
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted providing that the following conditions 
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.</programlisting></para>
+  </section>
+
+  <section id="JsonCpp">
+    <title>JsonCpp</title>
+
+    <programlisting>The JsonCpp library's source code, including accompanying documentation, 
+tests and demonstration applications, are licensed under the following
+conditions...
+
+The author (Baptiste Lepilleur) explicitly disclaims copyright in all 
+jurisdictions which recognize such a disclaimer. In such jurisdictions, 
+this software is released into the Public Domain.
+
+In jurisdictions which do not recognize Public Domain property (e.g. Germany as of
+2010), this software is Copyright (c) 2007-2010 by Baptiste Lepilleur, and is
+released under the terms of the MIT License (see below).
+
+In jurisdictions which recognize Public Domain property, the user of this 
+software may choose to accept it either as 1) Public Domain, 2) under the 
+conditions of the MIT License (see below), or 3) under the terms of dual 
+Public Domain/MIT License conditions described here, as they choose.
+
+The MIT License is about as close to Public Domain as a license can get, and is
+described in clear, concise terms at:
+
+   http://en.wikipedia.org/wiki/MIT_License
+   
+The full text of the MIT License follows:
+
+========================================================================
+Copyright (c) 2007-2010 Baptiste Lepilleur
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use, copy,
+modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+========================================================================
+(END LICENSE TEXT)
+
+The MIT license is compatible with both the GPL and commercial
+software, affording one all of the rights of Public Domain with the
+minor nuisance of being required to keep the above copyright notice
+and license text in the source code. Note also that by accepting the
+Public Domain "license" you can re-license your copy using whatever
+license you like.</programlisting>
+  </section>
+
+  <section id="MPICH2">
+    <title>MPICH2</title>
+
+    <para><programlisting>	                                  COPYRIGHT
+	
+	The following is a notice of limited availability of the code, and disclaimer
+	which must be included in the prologue of the code and in all source listings
+	of the code.
+	
+	Copyright Notice
+	 + 2002 University of Chicago
+	
+	Permission is hereby granted to use, reproduce, prepare derivative works, and
+	to redistribute to others.  This software was authored by:
+	
+	Argonne National Laboratory Group
+	W. Gropp: (630) 252-4318; FAX: (630) 252-5986; e-mail: gropp@mcs.anl.gov
+	E. Lusk:  (630) 252-7852; FAX: (630) 252-5986; e-mail: lusk@mcs.anl.gov
+	Mathematics and Computer Science Division
+	Argonne National Laboratory, Argonne IL 60439
+	
+	
+	                              GOVERNMENT LICENSE
+	
+	Portions of this material resulted from work developed under a U.S.
+	Government Contract and are subject to the following license: the Government
+	is granted for itself and others acting on its behalf a paid-up, nonexclusive,
+	irrevocable worldwide license in this computer software to reproduce, prepare
+	derivative works, and perform publicly and display publicly.
+	
+	                                  DISCLAIMER
+	
+	This computer code material was prepared, in part, as an account of work
+	sponsored by an agency of the United States Government.  Neither the United
+	States, nor the University of Chicago, nor any of their employees, makes any
+	warranty express or implied, or assumes any legal liability or responsibility
+	for the accuracy, completeness, or usefulness of any information, apparatus,
+	product, or process disclosed, or represents that its use would not infringe
+	privately owned rights.
+	
+	Portions of this code were written by Microsoft. Those portions are
+	Copyright (c) 2007 Microsoft Corporation. Microsoft grants permission to
+	use, reproduce, prepare derivative works, and to redistribute to
+	others. The code is licensed "as is." The User bears the risk of using
+	it. Microsoft gives no express warranties, guarantees or
+	conditions. To the extent permitted by law, Microsoft excludes the
+	implied warranties of merchantability, fitness for a particular
+	purpose and non-infringement.</programlisting></para>
+  </section>
+</appendix>

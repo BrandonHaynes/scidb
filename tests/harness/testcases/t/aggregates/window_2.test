@@ -1,0 +1,19 @@
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:7,3,2]
+store(build(A,x+10),A)
+
+--test
+store(build(A,x-2),A)
+window(A,8,9,sum(a),max(a))
+window(A,1,1,max(a),var(a),stdev(a),count(a),sum(a),min(a))
+window(A,1,2,min(a),count(*))
+window(A,0,1,count(a),count(*))
+window(A,1,1,count(*),sum(a))
+window(A,2,2,stdev(a),avg(a))
+window(A,4,4,var(a),stdev(a))
+
+
+--cleanup
+remove(A)
+--stop-query-logging

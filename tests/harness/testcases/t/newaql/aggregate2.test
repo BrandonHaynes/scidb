@@ -1,0 +1,62 @@
+--setup
+--start-query-logging
+# ticket no: 1609
+# Tests for AQL
+# Test for aggregates,joins, using group by, fixed window,regrid on 2-D arrays with different chunk size and single/multi-attributes with
+# special values like Null,inf and nan
+# multi-attribute arrays generated in test section part using select into. 
+
+
+
+create array m4x4 <val:double NULL>[a=-2:1,4,0, b=1:4,4,0]
+create array m4x4_A <val:double NULL>[a=-2:1,3,0, b=1:4,2,0]
+store(build(m4x4, a*a+b/(3.0-a-4)), m4x4)
+store(build(m4x4_A, a*a+b/(3.0-a-4)), m4x4_A)
+
+
+--test
+--aql select sum(val) from m4x4 group by a
+--aql select sum(val) from m4x4_A group by a
+--aql select a,sum(val) from m4x4 group by a
+--aql select cos(val+a-b) from m4x4
+--aql select cos(val+a-b),sin(val),sqrt(val/a) into SP from m4x4
+--aql select * from ( select avg(val) from m4x4 group by a) where avg < 5
+--aql select a,sum(val) from m4x4 group by a
+--aql select a*10,sum(val+1) from m4x4 group by a
+--aql select b,avg(val*10) from m4x4 group by b
+--aql select b,avg(val*10) from m4x4_A group by b
+--aql select sum(a/val),var(val*10) from m4x4_A group by a
+--aql select sum(val),var(val*10) from m4x4_A group by a
+--aql select sum(val),avg(val) into c from m4x4 group by a
+--aql select sum(val),avg(val),min(val),max(val) into d from m4x4 regrid as (partition by a 2, b 2)
+--aql select sum(val),avg(val),min(val),max(val),count(val) into e from m4x4 regrid as (partition by a 3, b 3)
+--aql select sum(val),avg(val),min(val),max(val),count(val) from m4x4 fixed window as (partition by a 1 preceding and 1 following, b 1 preceding and 1 following)
+--aql select sin(sum+avg_1+min_2+max_3+count_4*a/b) from e
+--aql select * from subarray (m4x4,-2,1,-1,2),subarray(m4x4,-1,2,0,3) 
+--aql select max(expr),max(expr_2) from SP
+--aql select min(expr),min(expr_2) from SP group by a
+--aql select sum(val) from m4x4_A group by a
+--aql select sum(val) from m4x4_A group by b
+--aql select sin(val + val+2) from m4x4
+--aql select * from d,e
+--aql select count(sum) from e
+--aql select avg(sum) from e
+--aql select * from d join e on d.a=e.a
+--aql select * from d join e on d.b=e.b
+--aql update c set sum=NULL where a=0
+--aql select count(sum),avg(sum),min(sum) from c
+--aql update c set sum=inf where a=1
+
+
+
+
+--cleanup
+remove(m4x4)
+remove(m4x4_A)
+remove(c)
+remove(d)
+remove(e)
+remove(SP)
+
+
+--stop-query-logging

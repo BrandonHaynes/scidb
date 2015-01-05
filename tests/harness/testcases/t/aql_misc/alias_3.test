@@ -1,0 +1,47 @@
+--setup
+create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+10),A)
+store(build(A,x+100),A1)
+store(join(A,A1),A2)
+
+--test
+--aql select * from A2 as B where B.x = 1
+--aql select * from A2 as B where B.a = 10
+--aql select * from A2 as B where B.a_2 = 102
+--aql select x from A2 as B where A2.a = 10
+--aql select x from A2 as B where A2.x = 2
+--aql select * from A2 as B,A2
+--aql select * into C from A
+--aql update A2 set a = x + 20 , a_2 = x + 200
+--aql select * from A2 as B,C
+--aql select * from A2 as B,C where B.a = 21
+--aql select x from A2 as B,C where B.a = 21
+--aql select A2.x from A2,C,A2,C as B
+--aql select C.x from A2,C,A2,C as B
+--aql select B.x from A2,C,A2,C as B  where C.x = 2
+--aql select * from A2,C,A2,C as B where B.x = 0
+--aql select a+50 into E from A2
+--aql select * from A2 as B,C as D,E where C.x = 2
+--aql select * from A2 as B,C as D,E where D.x = 2
+--aql select * from A2 as B,C as D,E where A2.x = 1
+--aql select * from A2 as B,C as D,E where A2.a = 20
+--aql select * from A2 as B,C as D,E where B.a = 20
+--aql select B.a from A2 as B,C as D,E where B.a = 20
+--aql select * from A2 as B,C as D,E where D.a = 11
+--aql select * from A2 as B,C as D,E where E.expr = 70
+--aql select * from A2 as B,C as D,E as F where F.expr = 70
+--aql select A2.x from A2 as B,C as D,E where D.x = 2
+--aql select B.x from A2 as B,C as D,E where C.x = 2
+--aql select C.x from A2 as B,C as D,E
+--aql select D.x from A2 as B,C as D,E
+--aql select E.x from A2 as B,C as D,E as F where C.x = 2
+--aql select F.x from A2 as B,C as D,E as F where F.expr = 70
+
+
+--cleanup
+remove(A)
+remove(A1)
+remove(A2)
+remove(C)
+remove(E)
+

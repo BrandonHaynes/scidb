@@ -1,0 +1,50 @@
+--setup
+--start-query-logging
+
+CREATE ARRAY ABRLOAD <a:double compression 'dictionary'> [x=0:1999,10,0, y=0:1999,10,0]
+CREATE array ABRREDIM <x:int64>[a(double)=*,20,0]
+
+#load(ABRLOAD,'${TEST_DATA_DIR}/xyz_small.txt')
+--test 
+
+--start-igdata
+store(build(ABRLOAD, x+y), ABRLOAD)
+--stop-igdata
+
+aggregate(ABRLOAD,count(*))
+aggregate(ABRREDIM,count(*))
+
+--echo "killquery redimension_store (signal 2)"
+--shell  --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2 1 'store(redimension(ABRLOAD, ABRREDIM), ABRREDIM)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+
+--echo "killquery redimension_store (signal 15)"
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 15 1 'store(redimension(ABRLOAD, ABRREDIM), ABRREDIM)' 1> /tmp/${HPID}_2.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_2.stdout"
+
+--echo "killquery redimension_store (signal 9)"
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9 1 'store(redimension(ABRLOAD, ABRREDIM), ABRREDIM)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+
+aggregate(ABRLOAD,count(*))
+project(versions(ABRLOAD),version_id)
+
+--echo "should be empty..."
+aggregate(ABRREDIM,count(*))
+versions(ABRREDIM)
+
+project(sort(filter(list('arrays'), regex(name,'ABR.*'))),name,schema)
+--error "scan(ABRREDIM:a)"
+
+--echo "should be no mapping arrays..."
+
+--cleanup
+--stop-query-logging
+remove(ABRLOAD)
+remove(ABRREDIM)
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_3.stdout 2>/dev/null"

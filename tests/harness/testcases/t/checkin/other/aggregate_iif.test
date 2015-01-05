@@ -1,0 +1,23 @@
+# This is the regression test for Ticket #3094.  In that ticket, the first
+# test statement gave the wrong answer even though the other two gave the
+# right answer.
+
+# Also added repro case for ticket #3874. Very similar query signature but 
+# caused by a different problem
+
+--setup
+--justrun "remove (A)"
+create array A<a:int32> [x=0:8,4,1]
+--aql select * into A from build(A, x)
+store(build(<a:string>[i=0:9,2,0], 'abc'), foo)
+
+--test
+--aql select sum(iif(A1.a = A2.a, 1, 0)) from A as A1, A as A2
+aggregate(apply(join(A as A1, A as A2), b, iif(A1.a = A2.a, 1, 0)), sum(b))
+--aql select iif(A1.a = A2.a, 1, 0) from A as A1, A as A2
+
+aggregate(apply(foo, b, iif(a='abc', 'def', null), c, iif(a='xyz', 'ghi', null)), max(a), max(c), min(c), count(c), sum(c), i)
+
+--cleanup
+remove (A)
+remove (foo)

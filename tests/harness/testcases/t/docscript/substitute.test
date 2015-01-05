@@ -1,0 +1,22 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array m4x4_null <val1:double null, val2:double null>[i=0:3,4,0, j=0:3,4,0]  
+--set-format dense
+--stop-igdata
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odense -aq "load(m4x4_null, '${TEST_DATA_DIR}/doc/substitute_example.scidb')""
+store(build(<subVal:double>[i=0:0,1,0],0),zeros)  
+substitute(m4x4_null,zeros, val1)  
+substitute(m4x4_null,zeros, val2)  
+substitute(m4x4_null,zeros)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m4x4_null)
+remove(zeros)

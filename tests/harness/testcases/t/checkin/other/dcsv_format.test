@@ -1,0 +1,15 @@
+--setup
+--start-query-logging
+--aql select * into A from array(<abc:string, cba:string>[a=0:2,3,0], '[("a","c"),("b","b"),("c","a")]')
+--aql create array B<a:int64> [abc(string)=3,3,0, cba(string)=3,3,0]
+store(redimension(A, B), B)
+
+--test
+--set-format dcsv
+--aql select * from B
+--reset-format
+
+--cleanup
+--aql drop array A
+--aql drop array B
+--stop-query-logging

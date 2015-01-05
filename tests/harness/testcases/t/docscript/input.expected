@@ -1,0 +1,11 @@
+SCIDB QUERY : <create array m4x4 <val1:int32, val2:int32>[i=0:3,4,0, j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -odense -aq "input(m4x4,'${TEST_DATA_DIR}/doc/m4x4_missing.txt')">
+[[(0,100),(1,99),(2,98),(3,97)],[(4,0),(5,95),(6,94),(7,93)],[(8,92),(9,91),(),(11,89)],[(12,88),(13,0),(14,86),(15,85)]]
+
+SCIDB QUERY : <scan(m4x4)>
+[[]]
+
+Query was executed successfully
+

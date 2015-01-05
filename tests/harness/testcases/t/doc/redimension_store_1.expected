@@ -1,0 +1,63 @@
+SCIDB QUERY : <create array winnersFlat <event:string,year:int64,person:string,country:string,time:double>[i=0:*,12,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array winnersCanonical <person:string,country:string,time:double> [year=1996:2008,13,0, event(string)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array yec <person:string,time:double> [year=1996:2008,13,0, event(string)=3,3,0, country(string)=200,200,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load winnersFlat from '../tests/harness/testcases/data/doc/winners2_2.scidb'>
+{i} event,year,person,country,time
+{0} 'dash',1996,'Bailey','Canada',9.84
+{1} 'dash',2000,'Greene','USA',9.87
+{2} 'dash',2004,'Gatlin','USA',9.85
+{3} 'dash',2008,'Bolt','Jamaica',9.69
+{4} 'steeplechase',1996,'Keter','Kenya',487.12
+{5} 'steeplechase',2000,'Kosgei','Kenya',503.17
+{6} 'steeplechase',2004,'Kemboi','Kenya',485.81
+{7} 'steeplechase',2008,'Kipruto','Kenya',490.34
+{8} 'marathon',1996,'Thugwant','RSA',7956
+{9} 'marathon',2000,'Abera','Ethiopia',7811
+{10} 'marathon',2004,'Baldini','Italy',7855
+{11} 'marathon',2008,'Wanjiru','Kenya',7596
+
+SCIDB QUERY : <store(redimension(winnersFlat, winnersCanonical), winnersCanonical)>
+{year,event} person,country,time
+{1996,'dash'} 'Bailey','Canada',9.84
+{1996,'marathon'} 'Thugwant','RSA',7956
+{1996,'steeplechase'} 'Keter','Kenya',487.12
+{2000,'dash'} 'Greene','USA',9.87
+{2000,'marathon'} 'Abera','Ethiopia',7811
+{2000,'steeplechase'} 'Kosgei','Kenya',503.17
+{2004,'dash'} 'Gatlin','USA',9.85
+{2004,'marathon'} 'Baldini','Italy',7855
+{2004,'steeplechase'} 'Kemboi','Kenya',485.81
+{2008,'dash'} 'Bolt','Jamaica',9.69
+{2008,'marathon'} 'Wanjiru','Kenya',7596
+{2008,'steeplechase'} 'Kipruto','Kenya',490.34
+
+SCIDB QUERY : <store(redimension(winnersCanonical,yec),yec)>
+{year,event,country} person,time
+{1996,'dash','Canada'} 'Bailey',9.84
+{1996,'marathon','RSA'} 'Thugwant',7956
+{1996,'steeplechase','Kenya'} 'Keter',487.12
+{2000,'dash','USA'} 'Greene',9.87
+{2000,'marathon','Ethiopia'} 'Abera',7811
+{2000,'steeplechase','Kenya'} 'Kosgei',503.17
+{2004,'dash','USA'} 'Gatlin',9.85
+{2004,'marathon','Italy'} 'Baldini',7855
+{2004,'steeplechase','Kenya'} 'Kemboi',485.81
+{2008,'dash','Jamaica'} 'Bolt',9.69
+{2008,'marathon','Kenya'} 'Wanjiru',7596
+{2008,'steeplechase','Kenya'} 'Kipruto',490.34
+
+SCIDB QUERY : <drop array winnersFlat>
+Query was executed successfully
+
+SCIDB QUERY : <drop array winnersCanonical>
+Query was executed successfully
+
+SCIDB QUERY : <drop array yec>
+Query was executed successfully
+

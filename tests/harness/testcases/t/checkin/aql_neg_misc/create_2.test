@@ -1,0 +1,3 @@
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_ATTRIBUTE_NAME --aql="create array A <a:int64,a:int64>[x=1:5,5,0,x=0:7,5,0]"
+

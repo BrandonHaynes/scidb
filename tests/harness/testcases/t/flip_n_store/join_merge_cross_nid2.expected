@@ -1,0 +1,93 @@
+SCIDB QUERY : <create  array NID  <a:string NULL ,b:string NULL> [x=0:*,2,0,y=0:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <load(NID,'../tests/harness/testcases/data/join_nid.txt')>
+{x,y} a,b
+{0,1} null,'b_0-1'
+{4,0} 'a_4-0',null
+
+SCIDB QUERY : <create  array A <a:string NULL> [b(string)=*,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array A1 <a:string NULL> [b(string)=6,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create  array B <b:string NULL> [a(string)=6,6,0]>
+Query was executed successfully
+
+SCIDB QUERY : <join(NID,NID)>
+{x,y} a,b,a,b
+{0,1} null,'b_0-1',null,'b_0-1'
+{4,0} 'a_4-0',null,'a_4-0',null
+
+SCIDB QUERY : <join(NID,reverse(NID))>
+{x,y} a,b,a,b
+
+SCIDB QUERY : <store(subarray(NID),AAA)>
+{x,y} a,b
+{0,1} null,'b_0-1'
+{4,0} 'a_4-0',null
+
+SCIDB QUERY : <store(redimension(NID,A),A)>
+{b} a
+{'b_0-1'} null
+
+SCIDB QUERY : <store(redimension(NID,B),B)>
+{a} b
+{'a_4-0'} null
+
+SCIDB QUERY : <store(redimension(NID,A1),A1)>
+{b} a
+{'b_0-1'} null
+
+SCIDB QUERY : <join(A,A1)>
+{b} a,a
+{'b_0-1'} null,null
+
+SCIDB QUERY : <cross_Join(NID,A)>
+{x,y,b} a,b,a
+{0,1,'b_0-1'} null,'b_0-1',null
+{4,0,'b_0-1'} 'a_4-0',null,null
+
+SCIDB QUERY : <cross_Join(NID,B)>
+{x,y,a} a,b,b
+{0,1,'a_4-0'} null,'b_0-1',null
+{4,0,'a_4-0'} 'a_4-0',null,null
+
+SCIDB QUERY : <merge(NID,reverse(NID))>
+{x,y} a,b
+{0,1} null,'b_0-1'
+{1,1} 'a_4-0',null
+{4,0} 'a_4-0',null
+{5,0} null,'b_0-1'
+
+SCIDB QUERY : <merge(A,reverse(A1))>
+[An error expected at this place for the query "merge(A,reverse(A1))". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED.]
+
+SCIDB QUERY : <merge(A,B)>
+[An error expected at this place for the query "merge(A,B)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NOT_IMPLEMENTED.]
+
+SCIDB QUERY : <merge(cast(A,<a:string NULL> [b=0:*,6,0]), cast(B,<a:string NULL> [b=0:5,6,0]))>
+{b} a
+{0} null
+
+SCIDB QUERY : <merge(cast(A,<a:string NULL> [b=0:*,6,0]),reverse( cast(B,<a:string NULL> [b=0:5,6,0])))>
+{b} a
+{0} null
+{5} null
+
+SCIDB QUERY : <remove(NID)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(AAA)>
+Query was executed successfully
+

@@ -1,0 +1,4 @@
+[(Honda CRV 26700 23.5), 
+(Toyota Prius 31000 48.7 ),
+(Ford Explorer 42000 19.6),
+(Audi Q5 45000 26.8)] 

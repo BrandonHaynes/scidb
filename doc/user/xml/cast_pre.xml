@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="castOperator">
+  <refnamediv>
+    <refname>cast</refname>
+
+    <refpurpose><indexterm>
+        <primary>cast</primary>
+      </indexterm>Produces a result array with the same dimensions,
+    attributes, and cells as a source array—but with other differences, which
+    can include different names for its dimensions or attributes, different
+    nulls-allowed status for an attribute, and different datatypes for its
+    dimensions.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>cast(<replaceable>array</replaceable>,<replaceable>template_array</replaceable>|<replaceable>schema_definition</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The cast operator has three primary uses:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>To change names of attributes or dimensions</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>To change a nulls-disallowed attribute to a nulls-allowed
+        attribute</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>A single cast invocation can be used to make all of these changes at
+    once. The input array and template arrays should have the same numbers and
+    types of attributes.</para>
+
+    <para>The cells of the result array have the same attribute values as the
+    corresponding cells of the source array.</para>
+
+    <para>You can use the cast operator in the FROM clause of an AQL SELECT
+    statement, as a stand-alone operator in a AFL statement, or as an operand
+    within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example shows the schema of an array, combines the recast and
+      store operators to change some characteristics of the array, and shows
+      the schema of the new array.</para>
+
+      <procedure>
+        <step>
+          <para>Show the schema of an existing array:<programlisting
+          language="test">--afl store(build(&lt;event:string&gt;[i=0:*,12,0],'["dash","dash","steeplechase","marathon","marathon",
+      "marathon"]',true),event); --show-query=no --show-output=no
+--afl store(build(&lt;year:int64&gt;[i=0:*,12,0],'[1996,2000,2000,1996,2000,2008]',true),year);
+      --show-query=no --show-output=no
+--afl store(build(&lt;person:string&gt;[i=0:*,12,0],'["Bailey","Greene","Kosgei","Thugwane","Abera",
+      "Wanjiru"]',true),person); --show-query=no --show-output=no
+--afl store(build(&lt;country:string&gt;[i=0:*,12,0],'["Canada","USA","Kenya","USA","Ethiopia",
+      "Kenya"]',true),country); --show-query=no --show-output=no
+--afl store(build(&lt;time:double&gt;[i=0:*,12,0],'[9.84,9.87,503.17,7956,7811,7596]',true),time);
+      --show-query=no --show-output=no
+--afl store(join(event,join(year,(join(person,join(country,time))))),winnersFewFlat);
+      --show-query=no --show-output=no
+
+
+--afl create array champions &lt;person:string,country:string,time:double, event:string&gt;
+     [year=1996:2008,1,0]; --show-query=no --show-output=no
+--afl store(redimension(winnersFewFlat,champions),champions); --show-query=no --show-output=no
+--afl store(project(champions,time),winningTime); --show-query=no --show-output=no
+--schema winningTime</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use the cast operator to produce a result array similar to the
+          existing array, but with these changes:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para>The attribute in the new array allows null values.</para>
+            </listitem>
+
+            <listitem>
+              <para>The attribute in the new array is called
+              "time_in_seconds."</para>
+            </listitem>
+          </itemizedlist>
+
+          <para>In this example, the cast operator appears as an operand of
+          the store operator, yielding a named array
+          "winningTimeRecast":<programlisting language="test">--afl store
+   (
+   cast
+      (
+      winningTime,
+         &lt;time_in_seconds:double null&gt; 
+         [year=1996:2008,1,0]
+       ),
+       winningTimeRecast
+   ); --output-format=dcsv</programlisting></para>
+        </step>
+
+        <step>
+          <para>Show the schema of the new array:<programlisting
+          language="test">--schema winningTimeRecast</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

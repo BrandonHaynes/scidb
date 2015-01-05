@@ -1,0 +1,181 @@
+--setup
+--start-query-logging
+create array Ts <a:string> [x=-2:3,2,1,y=0:2,3,0]
+create array Ti <a:double> [x=-2:3,2,1,y=0:2,3,0]
+create  array Ts_rle <a:string  compression 'rle',b:double  compression 'rle'> [x=-2:3,2,1,y=0:2,3,0]
+create  array Ts_d <a:string  compression 'dictionary',b:double  compression 'dictionary'> [x=-2:3,2,1,y=0:2,3,0]
+create  array Ts_ns <a:string  compression 'null suppression',b:double  compression 'null suppression'> [x=-2:3,2,1,y=0:2,3,0]
+create  array Ts_be <a:string  compression 'bitmap encoding',b:double  compression 'bitmap encoding'> [x=-2:3,2,1,y=0:2,3,0]
+create  array Ts_z <a:string  compression 'zlib',b:double  compression 'zlib'> [x=-2:3,2,1,y=0:2,3,0]
+create  array Ts_bz <a:string  compression 'bzlib',b:double  compression 'bzlib'> [x=-2:3,2,1,y=0:2,3,0]
+create  array Ts_nf <a:string  compression 'null filter',b:double  compression 'null filter'> [x=-2:3,2,1,y=0:2,3,0]
+
+
+create array eTs <a:string> [x=-2:3,2,1,y=0:2,3,0]
+create array eTi <a:double> [x=-2:3,2,1,y=0:2,3,0]
+create array eTs_rle <a:string  compression 'rle',b:double  compression 'rle'> [x=-2:3,2,1,y=0:2,3,0]
+create array eTs_d <a:string  compression 'dictionary',b:double  compression 'dictionary'> [x=-2:3,2,1,y=0:2,3,0]
+create array eTs_ns <a:string  compression 'null suppression',b:double  compression 'null suppression'> [x=-2:3,2,1,y=0:2,3,0]
+create array eTs_be <a:string  compression 'bitmap encoding',b:double  compression 'bitmap encoding'> [x=-2:3,2,1,y=0:2,3,0]
+create array eTs_z <a:string  compression 'zlib',b:double  compression 'zlib'> [x=-2:3,2,1,y=0:2,3,0]
+create array eTs_bz <a:string  compression 'bzlib',b:double  compression 'bzlib'> [x=-2:3,2,1,y=0:2,3,0]
+create array eTs_nf <a:string  compression 'null filter',b:double  compression 'null filter'> [x=-2:3,2,1,y=0:2,3,0]
+
+
+create array dTs <a:string default 'default'> [x=-2:3,2,1,y=0:2,3,0]
+create array dTi <a:double default 2.5> [x=-2:3,2,1,y=0:2,3,0]
+create  array dTs_rle <a:string default 'default' compression 'rle',b:double default 2.5 compression 'rle'> [x=-2:3,2,1,y=0:2,3,0]
+create  array dTs_d <a:string default 'default' compression 'dictionary',b:double default 2.5 compression 'dictionary'> [x=-2:3,2,1,y=0:2,3,0]
+create  array dTs_ns <a:string default 'default' compression 'null suppression',b:double default 2.5 compression 'null suppression'> [x=-2:3,2,1,y=0:2,3,0]
+create  array dTs_be <a:string default 'default' compression 'bitmap encoding',b:double default 2.5 compression 'bitmap encoding'> [x=-2:3,2,1,y=0:2,3,0]
+create  array dTs_z <a:string default 'default' compression 'zlib',b:double default 2.5 compression 'zlib'> [x=-2:3,2,1,y=0:2,3,0]
+create  array dTs_bz <a:string default 'default' compression 'bzlib',b:double default 2.5 compression 'bzlib'> [x=-2:3,2,1,y=0:2,3,0]
+create  array dTs_nf <a:string default 'default' compression 'null filter',b:double default 2.5 compression 'null filter'> [x=-2:3,2,1,y=0:2,3,0]
+
+
+create array edTs <a:string default 'default'> [x=-2:3,2,1,y=0:2,3,0]
+create array edTi <a:double default 3> [x=-2:3,2,1,y=0:2,3,0]
+create array edTs_rle <a:string default 'default' compression 'rle',b:double default 2.5 compression 'rle'> [x=-2:3,2,1,y=0:2,3,0]
+create array edTs_d <a:string default 'default' compression 'dictionary',b:double default 2.5 compression 'dictionary'> [x=-2:3,2,1,y=0:2,3,0]
+create array edTs_ns <a:string default 'default' compression 'null suppression',b:double default 2.5 compression 'null suppression'> [x=-2:3,2,1,y=0:2,3,0]
+create array edTs_be <a:string default 'default' compression 'bitmap encoding',b:double default 2.5 compression 'bitmap encoding'> [x=-2:3,2,1,y=0:2,3,0]
+create array edTs_z <a:string default 'default' compression 'zlib',b:double default 2.5 compression 'zlib'> [x=-2:3,2,1,y=0:2,3,0]
+create array edTs_bz <a:string default 'default' compression 'bzlib',b:double default 2.5 compression 'bzlib'> [x=-2:3,2,1,y=0:2,3,0]
+create array edTs_nf <a:string default 'default' compression 'null filter',b:double default 2.5 compression 'null filter'> [x=-2:3,2,1,y=0:2,3,0]
+
+
+
+--test
+--aql select * into Ts_rle from build(Ts,string(x)),build(Ti,x)
+--aql select * into Ts_d from build(Ts,string(x)),build(Ti,x)
+--aql select * into Ts_ns from Ts_d
+--aql select * into Ts_z from Ts_ns
+--aql select * into Ts_bz from Ts_be
+--aql select * into Ts_nf from Ts_z
+
+--aql select * into Ts_rle from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_d from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_ns from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_be from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_z from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_bz from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_nf from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+
+--aql select * into Ts_rle from filter(build(Ts,string(x)),x<>0),filter(build(Ti,x),x<>0)
+--aql select * into Ts_d from filter(build(Ts,string(x)),x<>x),filter(build(Ti,x),x<>x)
+--aql select * into Ts_ns from filter(build(Ts,string(x)),x<>1 or x<>-1),filter(build(Ti,x),x<>1 or x<>-1)
+--aql select * into Ts_be from filter(build(Ts,string(x)),x=0 or x=3),filter(build(Ti,x),x=0 or x=3)
+--aql select * into Ts_z from filter(build(Ts,string(x)),x=-1),filter(build(Ti,x),x=-1)
+--aql select * into Ts_bz from filter(build(Ts,string(x)),x=9),filter(build(Ti,x),x=9)
+--aql select * into Ts_nf from filter(build(Ts,string(x)),x=x),filter(build(Ti,x),x=x)
+
+--aql select * into Ts_rle from Ts_nf
+--aql select * into Ts_d from Ts_bz
+--aql select * into Ts_ns from Ts_rle
+--aql select * into Ts_be from Ts_ns
+--aql select * into Ts_bz from Ts_z
+--aql select * into Ts_nf from Ts_be
+
+--aql select * into Ts_rle from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_d from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_ns from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_be from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_z from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_bz from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+--aql select * into Ts_nf from filter(build(Ts,string(x)),true),filter(build(Ti,x),true)
+
+--aql select * into eTs_rle from filter(build(eTs,string(x)),x<>0),filter(build(eTi,x),x<>0)
+--aql select * into eTs_d from filter(build(eTs,string(x)),x<>x),filter(build(eTi,x),x<>x)
+--aql select * into eTs_ns from filter(build(eTs,string(x)),x<>1 or x<>-1),filter(build(eTi,x),x<>1 or x<>-1)
+--aql select * into eTs_be from filter(build(eTs,string(x)),x=0 or x=3),filter(build(eTi,x),x=0 or x=3)
+--aql select * into eTs_z from filter(build(eTs,string(x)),x=-1),filter(build(eTi,x),x=-1)
+--aql select * into eTs_bz from filter(build(eTs,string(x)),x=9),filter(build(eTi,x),x=9)
+--aql select * into eTs_nf from filter(build(eTs,string(x)),x=x),filter(build(eTi,x),x=x)
+
+--aql select * into eTs_rle from eTs_nf
+--aql select * into eTs_d from eTs_bz
+--aql select * into eTs_ns from eTs_rle
+--aql select * into eTs_be from eTs_ns
+--aql select * into eTs_bz from eTs_z
+--aql select * into eTs_nf from eTs_be
+
+--aql select * into dTs_rle from build(dTs,string(x)),build(dTi,x)
+--aql select * into dTs_d from build(dTs,string(x)),build(dTi,x)
+--aql select * into dTs_ns from dTs_d
+--aql select * into dTs_z from dTs_ns
+--aql select * into dTs_bz from dTs_be
+--aql select * into dTs_nf from dTs_z
+
+--aql select * into dTs_rle from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)
+--aql select * into dTs_d from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)
+--aql select * into dTs_ns from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)
+--aql select * into dTs_be from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)
+--aql select * into dTs_z from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)
+--aql select * into dTs_bz from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)
+--aql select * into dTs_nf from filter(build(dTs,string(x)),true),filter(build(dTi,x),true)
+
+--aql select * into dTs_rle from filter(build(dTs,string(x)),x<>0),filter(build(dTi,x),x<>0)
+--aql select * into dTs_d from filter(build(dTs,string(x)),x<>x),filter(build(dTi,x),x<>x)
+--aql select * into dTs_ns from filter(build(dTs,string(x)),x<>1 or x<>-1),filter(build(dTi,x),x<>1 or x<>-1)
+--aql select * into dTs_be from filter(build(dTs,string(x)),x=0 or x=3),filter(build(dTi,x),x=0 or x=3)
+--aql select * into dTs_z from filter(build(dTs,string(x)),x=-1),filter(build(dTi,x),x=-1)
+--aql select * into dTs_bz from filter(build(dTs,string(x)),x=9),filter(build(dTi,x),x=9)
+--aql select * into dTs_nf from filter(build(dTs,string(x)),x=x),filter(build(dTi,x),x=x)
+
+--aql select * into edTs_rle from filter(build(edTs,string(x)),x<>0),filter(build(edTi,x),x<>0)
+--aql select * into edTs_d from filter(build(edTs,string(x)),x<>x),filter(build(edTi,x),x<>x)
+--aql select * into edTs_ns from filter(build(edTs,string(x)),x<>1 or x<>-1),filter(build(edTi,x),x<>1 or x<>-1)
+--aql select * into edTs_be from filter(build(edTs,string(x)),x=0 or x=3),filter(build(edTi,x),x=0 or x=3)
+--aql select * into edTs_z from filter(build(edTs,string(x)),x=-1),filter(build(edTi,x),x=-1)
+--aql select * into edTs_bz from filter(build(edTs,string(x)),x=9),filter(build(edTi,x),x=9)
+--aql select * into edTs_nf from filter(build(edTs,string(x)),x=x),filter(build(edTi,x),x=x)
+
+--aql select * into edTs_rle from edTs_nf
+--aql select * into edTs_d from edTs_bz
+--aql select * into edTs_ns from edTs_rle
+--aql select * into edTs_be from edTs_ns
+--aql select * into edTs_bz from edTs_z
+--aql select * into edTs_nf from edTs_be
+
+
+--cleanup
+remove(Ts)
+remove(Ti)
+remove(Ts_rle)
+remove(Ts_d)
+remove(Ts_ns)
+remove(Ts_be)
+remove(Ts_z)
+remove(Ts_bz)
+remove(Ts_nf)
+
+remove(eTs)
+remove(eTi)
+remove(eTs_rle)
+remove(eTs_d)
+remove(eTs_ns)
+remove(eTs_be)
+remove(eTs_z)
+remove(eTs_bz)
+remove(eTs_nf)
+
+remove(dTs)
+remove(dTi)
+remove(dTs_rle)
+remove(dTs_d)
+remove(dTs_ns)
+remove(dTs_be)
+remove(dTs_z)
+remove(dTs_bz)
+remove(dTs_nf)
+
+remove(edTs)
+remove(edTi)
+remove(edTs_rle)
+remove(edTs_d)
+remove(edTs_ns)
+remove(edTs_be)
+remove(edTs_z)
+remove(edTs_bz)
+remove(edTs_nf)
+--stop-query-logging

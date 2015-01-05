@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="insertOperator">
+  <refnamediv>
+    <refname>insert</refname>
+
+    <refpurpose><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>inserting data</secondary>
+      </indexterm><indexterm>
+        <primary>data</primary>
+
+        <secondary>inserting</secondary>
+      </indexterm><indexterm>
+        <primary>insert</primary>
+
+        <secondary>operator</secondary>
+      </indexterm>Insert values from a source array into a target
+    array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>insert(<replaceable>source_array</replaceable>,<replaceable>target_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The insert operator has two effects. One effect is to update the
+    target array by inserting values from the source array. This means that
+    the <literal>insert</literal> operator is a write operator, like the
+    <literal>store()</literal> operator.</para>
+
+    <para>The other effect is to produce a result array identical to the
+    updated target array. This means that you can use the insert operator as
+    an operand of other SciDB operators, although using the
+    <literal>insert()</literal> operator inside any other write operator (such
+    as <literal>store()</literal>) can yield unpredictable results.</para>
+
+    <para>The source array and target array must be compatible. For the insert
+    operator, compatible means the following:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The source and target arrays must have the same number of
+        attributes.</para>
+
+        <para><emphasis role="bold">Note: </emphasis>To the insert operator,
+        attribute names are immaterial; the attribute names in the source and
+        target arrays need not match. Rather, the first attribute of the
+        source corresponds to the first attribute of the target; the second to
+        the second, and so on.</para>
+      </listitem>
+
+      <listitem>
+        <para>In the left-to-right ordering of attributes in each array, each
+        pair of corresponding attributes must have the same datatype and the
+        same null/not null setting.</para>
+      </listitem>
+
+      <listitem>
+        <para>The source and target arrays must have the same number of
+        dimensions.</para>
+
+        <para><emphasis role="bold">Note: </emphasis>Here too, the names are
+        immaterial. Source dimensions and target dimensions correspond based
+        on the left-to-right order of dimensions.</para>
+      </listitem>
+
+      <listitem>
+        <para>In the left-to-right ordering of dimensions in each array, each
+        pair of corresponding dimensions must have the same dimension starting
+        index.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>For each cell location of the target array, the insert operator
+    writes values according to the following rules:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>If the corresponding cell location of the source array is empty,
+        the insert operator does not write anything. At that cell location of
+        the target array, an empty cell would remain empty, null values would
+        remain null, and other values would remain unchanged.</para>
+      </listitem>
+
+      <listitem>
+        <para>If the corresponding cell location of the source array is
+        non-empty, the insert operator changes the corresponding cell of the
+        target array to match the value of the source. This has the following
+        effects:<itemizedlist>
+            <listitem>
+              <para>Null values in the source can overwrite non-null values in
+              the target.</para>
+            </listitem>
+
+            <listitem>
+              <para>If the cell location of the target array was initially
+              empty, it will be non-empty after the insert operation.</para>
+            </listitem>
+          </itemizedlist></para>
+      </listitem>
+    </itemizedlist>
+
+    <note>
+      <para>The AFL <code>insert()</code> operator provides the same
+      functionality as the AQL <code><command>INSERT INTO</command></code>
+      statement. The <literal>merge</literal> operator is also similar, except
+      that <link linkend="mergeOperator">merge</link> is not a write operator
+      (that is, merge does not store the result of the operation).</para>
+    </note>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <para>For each corresponding pair of dimensions in the source and
+    target:<itemizedlist>
+        <listitem>
+          <para>If the target dimension is bounded, the source dimension must
+          also be bounded and the respective upper bounds must be
+          equal.</para>
+        </listitem>
+
+        <listitem>
+          <para>If the target dimension is unbounded, the source dimension can
+          be unbounded.</para>
+        </listitem>
+
+        <listitem>
+          <para>If the target dimension is unbounded and the source dimension
+          is bounded, the source dimension's chunk size must divide the source
+          dimension's size evenly.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>These examples show the behavior of the <code>insert()</code>
+      operator.</para>
+    </informalexample>
+
+    <informalexample>
+      <procedure>
+        <step>
+          <para>Show array A. Note that row 1 has only empty cells, row 2 has
+          only null values, and row 3 has only non-null values.<para><programlisting>AFL% scan(A);
+  </programlisting><screen>[
+[(),(),()],
+[(null),(null),(null)],
+[('a7'),('a8'),('a9')]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Show array B. Note that column 1 has only empty cells, column
+          2 has only null values, and column 3 has only non-null
+          values.<para><programlisting>AFL% scan(B);
+  </programlisting><screen>[
+[(),(null),('b3')],
+[(),(null),('b6')],
+[(),(null),('b9')]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Insert values from A into B. <para><programlisting>AFL% insert(A,B)
+  </programlisting><screen>[
+[(),(null),('b3')],
+[(null),(null),(null)],
+[('a7'),('a8'),('a9')]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para><indexterm>
+              <primary>array versions</primary>
+            </indexterm>Show the versions of B. Version 1 is the original
+          version of B. Version 2 is the version resulting from the insert
+          operation of the previous step. <para><programlisting>AQL% <command>SELECT</command> * <command>FROM</command> versions(B)
+  </programlisting><screen>{VersionNo} version_id,timestamp
+{1} 1,'2014-04-10 17:39:39'
+{2} 2,'2014-04-10 17:39:40'
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Insert values from B (the original version of B—unchanged by
+          the previous insert operation) into A.<para><programlisting>AFL% insert (B@1, A)
+  </programlisting><screen>[
+[(),(null),('b3')],
+[(null),(null),('b6')],
+[('a7'),(null),('b9')]
+]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,36 @@
+--setup
+--start-query-logging
+# Ticket number : 1646
+# Tests for build literal working on redimension, redimension_store
+
+create array B <b:char>[a(char)=3,3,0]
+create array C <a:char>[b(char)=3,3,0]
+
+create array AAA <count:uint64 null>[even_or_odd=0:1,2,0]
+store(apply(build(<a:double>[x=0:5,3,0,y=0:5,3,0],'[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]]',true), even_or_odd, iif(int64(a)%2=0,0,1)),ZZZ)
+
+--test
+build( <a:char,b:char>[x=0:2,3,0],'[(1,5),(2,6),(3,7)]',1)
+
+store(redimension(build( <a:char,b:char>[x=0:2,3,0],'[(1,5),(2,6),(3,7)]',1),B),B)
+store(redimension(build( <a:char,b:char>[x=0:2,3,0],'[(1,5),(2,6),(3,7)]',1),C),C)
+
+
+redimension(apply(build(<a:double>[x=0:5,3,0,y=0:5,3,0],'[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]]',true), even_or_odd, iif(int64(a)%2=0,0,1)),<count:uint64 null>[even_or_odd=0:1,2,0],count(a) as count)
+
+redimension(apply(build(<a:double>[x=0:5,3,0,y=0:5,3,0],'[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]];[[(3),(4),(5)],[(6),(7),(8)],[(9),(10),(11)]];[[(9),(10),(11)],[(12),(13),(14)],[(15),(16),(17)]];[[(12),(13),(14)],[(15),(16),(17)],[(18),(19),(19)]]',true), even_or_odd, iif(int64(a)%2=0,0,1)),<count:uint64 null>[even_or_odd=0:1,2,0],count(a) as count)
+
+
+show(AAA)
+show(ZZZ)
+
+redimension(ZZZ,AAA, count(a) as count)
+
+
+--cleanup
+remove(B)
+remove(C)
+remove(AAA)
+remove(ZZZ)
+
+--stop-query-logging

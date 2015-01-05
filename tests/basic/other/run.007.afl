@@ -1,0 +1,1 @@
+build(mult_1, iif(x = y, 1, 0))

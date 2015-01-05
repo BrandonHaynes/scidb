@@ -1,0 +1,76 @@
+--setup
+--start-query-logging
+create array A <a:string,b:string>[x=0:2,3,0]
+create array T <a:string>[x=0:2,3,0]
+create array B <b:string>[a(string)=3,3,0]
+create array C <a:string>[b(string)=3,3,0]
+store(join(filter(build(T,'a_'+string(x+1)),1),filter(build(T,'b_'+string(x+1)),1)),A)
+
+--test
+
+#workaround for p4 bug 564
+--set-format csv+
+
+store(redimension(A,B),B)
+store(redimension(B,C),C)
+unpack(B,row)
+unpack(C,row)
+
+rename(B,B1)
+aggregate(B1,max(b))
+aggregate(B1,min(b))
+subarray(B1,'a_1','a_2')
+between(B1,'a_1','a_3')
+filter(B1,a>'a_1')
+filter(B1,a<'a_2')
+filter(B1,a='a_2')
+filter(B1,a<>'a_2')
+filter(B1,b>'b_1')
+filter(B1,b<'b_2')
+filter(B1,b='b_2')
+filter(B1,b<>'b_2')
+project(B1,b)
+join(B1,B1)
+#workaround for p4 bug 564
+--set-format csv+
+cross_join(B1,B1)
+apply(B1,z,a+'_z')
+apply(B1,z,b+'_z')
+aggregate(B1,count(*))
+aggregate(B1,sum(b))
+sort(B1,b)
+sort(B1,b desc)
+rename(B1,B)
+
+rename(C,C1)
+aggregate(C1,max(a))
+aggregate(C1,min(a))
+subarray(C1,'b_1','b_2')
+between(C1,'b_1','b_3')
+filter(C1,a>'a_1')
+filter(C1,a<'a_2')
+filter(C1,a='a_2')
+filter(C1,a<>'a_2')
+filter(C1,b>'b_1')
+filter(C1,b<'b_2')
+filter(C1,b='b_2')
+filter(C1,b<>'b_2')
+project(C1,a)
+join(C1,C1)
+cross_join(C1,C1)
+apply(C1,z,a+'_z')
+apply(C1,z,b+'_z')
+aggregate(C1,count(*))
+aggregate(C1,sum(a))
+sort(C1,a)
+sort(C1,a desc)
+rename(C1,C)
+
+--reset-format
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(T)
+--stop-query-logging

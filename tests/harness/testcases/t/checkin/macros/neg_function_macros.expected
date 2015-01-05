@@ -1,0 +1,28 @@
+Query was executed successfully
+
+[An error expected at this place for the query "op_count ( filter ( A, func_min ( A.b1, A.a1 ) = A.a1 ))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+[An error expected at this place for the query "op_count ( filter ( A, func_min ( A.a1, A.b1 ) = A.a1 ))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+[An error expected at this place for the query "SELECT COUNT(*) FROM A WHERE func_min ( A.a1, A.b1 ) = A.a1". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+[An error expected at this place for the query "SELECT COUNT(*) FROM A WHERE func_min ( A.b1, A.a1 ) = A.a1". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+[An error expected at this place for the query "op_count ( filter ( A, func_max ( A.b1, A.a1 ) = A.a1 ))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+[An error expected at this place for the query "op_count ( filter ( A, func_max ( A.a1, A.b1 ) = A.a1 ))". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+[An error expected at this place for the query "SELECT COUNT(*) FROM A WHERE func_max ( A.a1, A.b1 ) = A.a1". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+[An error expected at this place for the query "SELECT COUNT(*) FROM A WHERE func_max ( A.b1, A.a1 ) = A.a1". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION.]
+
+[An error expected at this place for the query "op_count ( filter ( A, func_min ( A.a1, A.a2 ) = A.a1 ))". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND.]
+
+[An error expected at this place for the query "SELECT COUNT(*) FROM A WHERE func_min ( A.a1, A.a2 ) = A.a1". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND.]
+
+[An error expected at this place for the query "op_count ( filter ( A, func_max ( A.a1, A.a2 ) = A.a1 ))". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND.]
+
+[An error expected at this place for the query "SELECT COUNT(*) FROM A WHERE func_max ( A.a1, A.a2 ) = A.a1". And it failed with error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND. Expected error code = scidb::SCIDB_SE_QPROC::SCIDB_LE_FUNCTION_NOT_FOUND.]
+
+Query was executed successfully
+

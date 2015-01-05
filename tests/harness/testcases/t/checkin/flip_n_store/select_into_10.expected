@@ -1,0 +1,242 @@
+SCIDB QUERY : <create array A <a:int32>[x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:string>[x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <b:string,a:int32> [x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <b:string> [x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array E <a:int32> [x=0:2,3,0,y=-2:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array G <a:int32> [b(string)=15,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+y+10),A)>
+{x,y} a
+{0,-2} 8
+{1,-2} 9
+{2,-2} 10
+{0,-1} 9
+{1,-1} 10
+{2,-1} 11
+{0,0} 10
+{1,0} 11
+{2,0} 12
+{0,1} 11
+{1,1} 12
+{2,1} 13
+{0,2} 12
+{1,2} 13
+{2,2} 14
+
+SCIDB QUERY : <store(build(B,string(x)+'_'+string(y)),B)>
+{x,y} b
+{0,-2} '0_-2'
+{1,-2} '1_-2'
+{2,-2} '2_-2'
+{0,-1} '0_-1'
+{1,-1} '1_-1'
+{2,-1} '2_-1'
+{0,0} '0_0'
+{1,0} '1_0'
+{2,0} '2_0'
+{0,1} '0_1'
+{1,1} '1_1'
+{2,1} '2_1'
+{0,2} '0_2'
+{1,2} '1_2'
+{2,2} '2_2'
+
+SCIDB QUERY : <select * into C from A,B>
+{x,y} b,a
+{0,-2} '0_-2',8
+{1,-2} '1_-2',9
+{2,-2} '2_-2',10
+{0,-1} '0_-1',9
+{1,-1} '1_-1',10
+{2,-1} '2_-1',11
+{0,0} '0_0',10
+{1,0} '1_0',11
+{2,0} '2_0',12
+{0,1} '0_1',11
+{1,1} '1_1',12
+{2,1} '2_1',13
+{0,2} '0_2',12
+{1,2} '1_2',13
+{2,2} '2_2',14
+
+SCIDB QUERY : <select * into D from A,B>
+{x,y} b
+{0,-2} '0_-2'
+{1,-2} '1_-2'
+{2,-2} '2_-2'
+{0,-1} '0_-1'
+{1,-1} '1_-1'
+{2,-1} '2_-1'
+{0,0} '0_0'
+{1,0} '1_0'
+{2,0} '2_0'
+{0,1} '0_1'
+{1,1} '1_1'
+{2,1} '2_1'
+{0,2} '0_2'
+{1,2} '1_2'
+{2,2} '2_2'
+
+SCIDB QUERY : <select * into E from A,B>
+{x,y} a
+{0,-2} 8
+{1,-2} 9
+{2,-2} 10
+{0,-1} 9
+{1,-1} 10
+{2,-1} 11
+{0,0} 10
+{1,0} 11
+{2,0} 12
+{0,1} 11
+{1,1} 12
+{2,1} 13
+{0,2} 12
+{1,2} 13
+{2,2} 14
+
+SCIDB QUERY : <select * into G from A,B>
+{b} a
+{'0_-1'} 9
+{'0_-2'} 8
+{'0_0'} 10
+{'0_1'} 11
+{'0_2'} 12
+{'1_-1'} 10
+{'1_-2'} 9
+{'1_0'} 11
+{'1_1'} 12
+{'1_2'} 13
+{'2_-1'} 11
+{'2_-2'} 10
+{'2_0'} 12
+{'2_1'} 13
+{'2_2'} 14
+
+SCIDB QUERY : <select * into C from A,B where x=0>
+{x,y} b,a
+{0,-2} '0_-2',8
+{0,-1} '0_-1',9
+{0,0} '0_0',10
+{0,1} '0_1',11
+{0,2} '0_2',12
+
+SCIDB QUERY : <select * into D from A,B where x<>0>
+{x,y} b
+{1,-2} '1_-2'
+{2,-2} '2_-2'
+{1,-1} '1_-1'
+{2,-1} '2_-1'
+{1,0} '1_0'
+{2,0} '2_0'
+{1,1} '1_1'
+{2,1} '2_1'
+{1,2} '1_2'
+{2,2} '2_2'
+
+SCIDB QUERY : <select * into E from A,B where x<=1>
+{x,y} a
+{0,-2} 8
+{1,-2} 9
+{0,-1} 9
+{1,-1} 10
+{0,0} 10
+{1,0} 11
+{0,1} 11
+{1,1} 12
+{0,2} 12
+{1,2} 13
+
+SCIDB QUERY : <select * into G from A,B where x<>3>
+{b} a
+{'0_-1'} 9
+{'0_-2'} 8
+{'0_0'} 10
+{'0_1'} 11
+{'0_2'} 12
+{'1_-1'} 10
+{'1_-2'} 9
+{'1_0'} 11
+{'1_1'} 12
+{'1_2'} 13
+{'2_-1'} 11
+{'2_-2'} 10
+{'2_0'} 12
+{'2_1'} 13
+{'2_2'} 14
+
+SCIDB QUERY : <select * into C from A,B where a=10>
+{x,y} b,a
+{2,-2} '2_-2',10
+{1,-1} '1_-1',10
+{0,0} '0_0',10
+
+SCIDB QUERY : <select * into D from A,B where b<>'0_-1'>
+{x,y} b
+{0,-2} '0_-2'
+{1,-2} '1_-2'
+{2,-2} '2_-2'
+{1,-1} '1_-1'
+{2,-1} '2_-1'
+{0,0} '0_0'
+{1,0} '1_0'
+{2,0} '2_0'
+{0,1} '0_1'
+{1,1} '1_1'
+{2,1} '2_1'
+{0,2} '0_2'
+{1,2} '1_2'
+{2,2} '2_2'
+
+SCIDB QUERY : <select * into E from A,B where a<11 or b>'1_'>
+{x,y} a
+{0,-2} 8
+{1,-2} 9
+{2,-2} 10
+{0,-1} 9
+{1,-1} 10
+{2,-1} 11
+{0,0} 10
+{1,0} 11
+{2,0} 12
+{1,1} 12
+{2,1} 13
+{1,2} 13
+{2,2} 14
+
+SCIDB QUERY : <select * into G from A,B where a=10 or b='0_2' and a=12>
+{b} a
+{'0_0'} 10
+{'0_2'} 12
+{'1_-1'} 10
+{'2_-2'} 10
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G)>
+Query was executed successfully
+

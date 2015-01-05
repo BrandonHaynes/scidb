@@ -1,0 +1,101 @@
+--setup
+--start-query-logging
+# Ticket number : 1865
+# Testing for (proj+ all operators) on empty 1D/2D array
+# Tested on SciDB version: 12.7.0.5388 (Cheshire-m4)
+
+project(sort(list(),id),name)
+create array Test1 <a:double NULL, b: string> [x=0:9,2,0]
+create array Test2 <a:double> [x=1:2,2,0, y=1:2,2,0]
+create array Test22 <a:int64> [x=1:2,2,0, y=1:2,2,0]
+create array Test3 <y:int64> [a(double)=2,2,0]
+create array Test4 <y:int64> [a=1:2,2,0]
+
+--test
+--igdata "project(sort(list(),id),name,id)"
+project(reverse(Test1),b)
+project(reverse(Test1),a)
+project(sort(Test1,b),a)
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_AMBIGUOUS_ATTRIBUTE "project(join(Test1,Test1),a)"
+project(join(Test1,cast(Test1, <val1:double NULL, val2: string> [x=0:9,2,0])),val1,a)
+
+
+project(aggregate(Test1, max(a), min(b),avg(a)),b_min)
+project(aggregate(Test1, max(a), min(b),avg(a)),a_max)
+project(aggregate(Test1, max(a), min(b),avg(a)),a_avg)
+project(aggregate(Test1, max(a), min(b),avg(a)),a_avg,b_min,a_max)
+project(aggregate(Test1, ApproxDC(a), count(b),sum(a)),b_count,a_sum,a_ApproxDC)
+
+project(apply(Test1,c,a*10),c,a,b)
+project(subarray(between(Test1, 2,9),3,6),b)
+project(subarray(between(Test1, 2,9),3,6),b,a)
+store(project(subarray(between(Test1, 2,9),3,6),a,b),ZZ)
+
+project(xgrid(Test1,3),b)
+project(variable_window(Test1,x,0,1,sum(a),count(b)),a_sum)
+project(regrid(Test1,2, sum(a),min(a),max(a),count(b)),a_max)
+project(window(Test1,1,2,sum(a),ApproxDC(b)),b_ApproxDC)
+
+project(unpack(Test1,k),x,b,a)
+project(store(repart(Test1,<a:double NULL,b:string> [x=0:9,4,0]),YY),b)
+project(rank(Test1,b),b_rank)
+project(rank(Test1),a_rank)
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "project(rank(Test1),a_rank,b)"
+
+project(quantile(Test1,2),a_quantile,percentage)
+project(quantile(Test1,2,a),percentage)
+project(normalize(project(Test1,a)),a)
+project(merge(Test1,Test1),b,a)
+
+project(transpose(Test2),a)
+project(multiply(Test2,Test2), multiply)
+project(multiply(subarray(Test2),subarray(Test2,1,1,2,1)),multiply)
+project(transpose(Test2),a)
+
+project(versions(Test1),timestamp)
+project(versions(Test1),timestamp,version_id)
+project(attributes(Test1),nullable,type_id,name)
+project(attributes(Test2),nullable,type_id)
+project(dimensions(Test1),length,chunk_overlap,name)
+project(dimensions(Test2),length,chunk_overlap,name)
+project(reshape(subarray(Test2,1,1,1,2),<a:double> [x=0:1,2,0 ,y=0:0,2,0]),a)
+
+project(thin(Test1,1,2),b,a)
+project(thin(Test1,1,2),a)
+project(thin(Test2,1,2,1,2),a)
+project(slice(Test2,x,2),a)
+project(apply(Test2,b,a+10),b,a)
+
+project(adddim(Test1,timestamp),a,b)
+project(store(adddim(Test1,timestamp),ZZZ),b,a)
+project(deldim(ZZZ),b)
+project(redimension(Test22,Test4),y)
+
+
+project(bernoulli(Test1,0.5,10),a)
+project(bernoulli(Test2,0.5,10),a)
+project(bernoulli(Test1,0.5,10),b,a)
+project(bernoulli(Test2,0.5,10),a)
+project(between(Test1,3,7),b,a)
+project(filter(Test1, x<>3),b,a)
+project(substitute(Test1,build(<a:double> [x=0:1,2,0], iif( x = 0, 20, 30))),b,a)
+
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_NESTING_PROHIBITED "project(store(redimension(build(Test2,x*3.9),Test3),Test3),y)"
+## redimension_store has to be the outer operator
+store(redimension(build(Test2,x*3.9),Test3),Test3)
+project(Test3,y)
+store(redimension(Test2,Test3),Test3)
+project(Test3,y)
+
+--cleanup
+remove(Test1)
+remove(Test2)
+remove(Test22)
+remove(Test3)
+remove(Test4)
+remove(ZZ)
+remove(YY)
+remove(ZZZ)
+
+--stop-query-logging

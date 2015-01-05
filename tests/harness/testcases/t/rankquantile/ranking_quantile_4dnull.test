@@ -1,0 +1,18 @@
+--setup
+--start-query-logging
+
+create array quantile4d <a:int64 null, b:int64> [d1=1:5,1,0, d2=1:5,2,0, d3=1:5,3,0, d4=1:5,4,0]
+
+--test
+--set-format dense
+quantile(quantile4d, 2, a, d2, d4)
+quantile(quantile4d, 3, a, d4, d3)
+quantile(quantile4d, 4, b, d1, d2)
+quantile(quantile4d, 5, b, d2, d1)
+quantile(quantile4d, 2, a, d2, d1, d4)
+quantile(quantile4d, 3, b, d1, d3, d2, d4)
+
+--reset-format
+--cleanup
+remove(quantile4d)
+--stop-query-logging

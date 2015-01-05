@@ -1,0 +1,53 @@
+SCIDB QUERY : <create array catalog<luminicity:float>[ra=0:999,1000,10, decl=0:999,1000,10]>
+Query was executed successfully
+
+SCIDB QUERY : <create array sky<luminicity:float>[ra=0:999,1000,10, decl=0:999,1000,10]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(catalog, '${TEST_DATA_DIR}/catalog.txt')">
+{ra,decl} luminicity
+{0,10} 0.11
+{100,100} 77
+{100,800} 33
+{102,208} 0.55
+{209,319} 0.66
+{210,320} 0.88
+{219,290} 0.44
+{400,100} 0.11
+{500,200} 0.55
+{500,400} 0.44
+{502,201} 0.55
+{505,196} 0.22
+{800,800} 0.88
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(sky, '${TEST_DATA_DIR}/sky.txt')">
+{ra,decl} luminicity
+{101,202} 0.5
+{208,318} 0.6
+{213,325} 0.8
+{221,288} 0.4
+{404,101} 0.1
+{409,109} 0.9
+{499,198} 0.3
+{501,199} 0.2
+{505,205} 0.5
+{900,900} 0.9
+
+SCIDB QUERY : <load_library('match')>
+Query was executed successfully
+
+SCIDB QUERY : <load_library('bestmatch')>
+Query was executed successfully
+
+SCIDB QUERY : <match(sky, catalog, 10, 5)>
+[[[{101,202,0}(0.5,0.55,102,208),{208,318,0}(0.6,0.66,209,319),{208,318,1}(0.6,0.88,210,320),{213,325,0}(0.8,0.66,209,319),{213,325,1}(0.8,0.88,210,320),{221,288,0}(0.4,0.44,219,290),{404,101,0}(0.1,0.11,400,100),{409,109,0}(0.9,0.11,400,100),{499,198,0}(0.3,0.55,500,200),{499,198,1}(0.3,0.55,502,201),{499,198,2}(0.3,0.22,505,196),{501,199,0}(0.2,0.55,500,200),{501,199,1}(0.2,0.55,502,201),{501,199,2}(0.2,0.22,505,196),{505,205,0}(0.5,0.55,500,200),{505,205,1}(0.5,0.55,502,201),{505,205,2}(0.5,0.22,505,196)]]]
+
+SCIDB QUERY : <bestmatch(sky, catalog, 10)>
+[[{101,202}(0.5,0.55,102,208),{208,318}(0.6,0.66,209,319),{213,325}(0.8,0.88,210,320),{221,288}(0.4,0.44,219,290),{404,101}(0.1,0.11,400,100),{499,198}(0.3,0.55,500,200),{501,199}(0.2,0.55,500,200),{505,205}(0.5,0.55,502,201)]]
+
+SCIDB QUERY : <remove(sky)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(catalog)>
+Query was executed successfully
+

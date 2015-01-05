@@ -1,0 +1,18 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY source <val:double> [x=0:3,1,0,y=0:3,1,0]  
+--stop-igdata
+store(build(source,x*3+y),source) 
+store(repart(source, <val:double> [x=0:3,2,0, y=0:3,2,0]),target) 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(source)
+remove(target)

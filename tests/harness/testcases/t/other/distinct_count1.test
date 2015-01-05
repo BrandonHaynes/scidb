@@ -1,0 +1,84 @@
+--setup
+--start-query-logging
+# Ticket number : 1613
+# Tests for ApproxDC on 2D array with different attribute types
+
+create array A1 <val1:double> [x=0:3,2,0,y=0:3,2,0]
+store(build(A1,x+y+2.5),A1)
+
+create array A2 <val1:double> [x=0:3,2,0,y=0:3,2,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2,'${TEST_DATA_DIR}/adc1.txt')""
+
+create array A3 <val1:int32> [x=0:3,2,0,y=0:3,2,0]
+store(build(A3,x+y+1),A3)
+
+create array A4 <val1:int64> [x=0:3,2,0,y=0:3,2,0]
+store(build(A4,x+y+1),A4)
+
+create array A5 <val1:string> [x=0:3,2,0,y=0:3,2,0]
+store(build(A5,'a'+string(x)+string(y)),A5)
+
+create array A6 <val1:float> [x=0:3,2,0,y=0:3,2,0]
+store(build(A6,x+y+1.5),A6)
+
+load_library ('rational')
+create array A7 <val1:rational> [x=0:3,2,0,y=0:3,2,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A7,'${TEST_DATA_DIR}/adc2.txt')""
+
+
+--test
+aggregate(A1, ApproxDC(val1))
+aggregate(A2, ApproxDC(val1))
+aggregate(A3, ApproxDC(val1))
+aggregate(A4, ApproxDC(val1))
+aggregate(A5, ApproxDC(val1))
+aggregate(A6, ApproxDC(val1))
+aggregate(A7, ApproxDC(val1))
+
+--aql select ApproxDC(A1)
+--aql select ApproxDC(A3)
+--aql select ApproxDC(A5)
+--aql select ApproxDC(A7)
+
+--aql select ApproxDC(val1) from A1
+--aql select ApproxDC(val1) from A2
+--aql select ApproxDC(val1) from A3
+--aql select ApproxDC(val1) from A4
+--aql select ApproxDC(val1) from A5
+--aql select ApproxDC(val1) from A6
+--aql select ApproxDC(val1) from A7
+
+--aql select count(val1),ApproxDC(val1) from A1
+--aql select count(val1),ApproxDC(val1) from A3
+--aql select count(val1),ApproxDC(val1) from A5
+--aql select count(val1),ApproxDC(val1) from A7
+
+--aql select count(val1),ApproxDC(val1) from A1 regrid as (partition by x 2, y 2)
+--aql select count(val1),ApproxDC(val1) from A3 regrid as (partition by x 2, y 2)
+--aql select count(val1),ApproxDC(val1) from A5 regrid as (partition by x 2, y 4)
+--aql select count(val1),ApproxDC(val1) from A7 regrid as (partition by x 2, y 2)
+
+
+--aql select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7
+--aql select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7 regrid as (partition by x 4, y 4)
+--aql select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7 regrid as (partition by x 2, y 2)
+--aql select count(*) from (select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7 regrid as (partition by x 4, y 4))
+--aql select count(*) from (select sum(val1),max(val1),min(val1),avg(val1),var(val1),count(val1),ApproxDc(val1) from A7 As Q2)
+
+--aql select ApproxDC(val1) from A7 group by x
+--aql select x,ApproxDC(val1) from A7 group by x
+--aql select x,ApproxDC(val1),count(val1) from A7 group by x
+--aql select y,ApproxDC(val1),count(val1) from A7 group by y
+--aql select cos(2*y),y,ApproxDC(val1),count(val1) from A7 group by y
+
+
+--cleanup
+remove(A1)
+remove(A2)
+remove(A3)
+remove(A4)
+remove(A5)
+remove(A6)
+remove(A7)
+
+--stop-query-logging

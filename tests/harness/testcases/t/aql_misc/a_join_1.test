@@ -1,0 +1,15 @@
+--setup
+--start-query-logging
+create array A <a:int64> [x=0:2,3,0]
+create array B <a:int64> [x=0:2,3,0]
+
+--test
+--aql select * into A from build(A,x+5)
+--aql select * into B from build(B,x+6)
+--aql select * from A as a1 join A as a2 on a1.a = a2.a
+--aql select * from A join B on A.a = B.a
+
+--cleanup
+remove(A)
+remove(B)
+--stop-query-logging

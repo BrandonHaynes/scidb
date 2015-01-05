@@ -1,0 +1,16 @@
+--setup
+create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+
+--test
+scan(A)
+filter(A,a>1)
+filter(A,1)
+concat(filter(A,a>1),filter(A,1))
+concat(filter(A,a>1),filter(A,1=1))
+concat(filter(A,a>1),filter(A,0))
+concat(filter(A,a>1),filter(A,-1))
+
+
+--cleanup
+remove(A)

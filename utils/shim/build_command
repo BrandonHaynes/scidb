@@ -1,0 +1,9 @@
+#!/bin/bash
+################################################################
+# Build the shim
+#
+# ARGUMENTS
+SCIDB_SHORT_VERSION=$1
+################
+cd ../shim
+SCIDB=/opt/scidb/${SCIDB_SHORT_VERSION} make

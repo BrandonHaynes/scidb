@@ -1,0 +1,47 @@
+SCIDB QUERY : <load_library('misc')>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array ARRAY1 <v : int64> [I=0:2000,20,0, J=0:1000,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create temp array ARRAY2 <v : int64> [I=0:2000,20,0, J=0:1000,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(ARRAY1,I+J),ARRAY1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(ARRAY2,I+J),ARRAY2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=0),count(*))>
+{i} count
+{0} 500760
+
+SCIDB QUERY : <aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=1),count(*))>
+{i} count
+{0} 500760
+
+SCIDB QUERY : <aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=2),count(*))>
+{i} count
+{0} 500741
+
+SCIDB QUERY : <aggregate(filter(apply(ARRAY1, instanceid, instanceid()), instanceid=3),count(*))>
+{i} count
+{0} 500740
+
+SCIDB QUERY : <apply(ARRAY1,zz,injectError(2, 4))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <(... omitted ...)>
+[An error expected at this place for the query "(... omitted ...)". And it failed with error code = scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR. Expected error code = scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR.]
+
+SCIDB QUERY : <aggregate(filter(apply(join(ARRAY1,ARRAY2),attrDiff,ARRAY1.v - ARRAY2.v), attrDiff<>0),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <remove(ARRAY1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ARRAY2)>
+Query was executed successfully
+

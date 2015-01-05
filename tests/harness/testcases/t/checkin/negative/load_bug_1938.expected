@@ -1,0 +1,6 @@
+Query was executed successfully
+
+[An error expected at this place for the query "SELECT * FROM array ( < a : double >[x=0:2,3,0], '[(1.0),(2,0),(3.0)]')". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+Query was executed successfully
+

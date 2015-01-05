@@ -1,0 +1,13 @@
+--setup
+--test
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2 2 'store (build (<v : int64> [I=0:2000,1,0], I), ABRTEST)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+
+# this should fail due to the above abort
+--error --long=20 "remove(ABRTEST)"
+
+--cleanup
+
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"

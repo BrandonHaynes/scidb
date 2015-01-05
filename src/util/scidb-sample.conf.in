@@ -1,0 +1,83 @@
+{
+
+// This is a sample file of configuration for scidb instance.
+// To use this or another file use option --config:
+// scidb --config /path/to/config
+// In sample default values are set.
+// Before every parameter is short comment.
+// This config file has JSON format (www.json.org)
+
+
+// Required. Catalog connection string. In order to create use utils/scidb-prepare-db.sh
+    "CATALOG": "dbname=scidb",
+
+// Log4cxx properties file.
+    "LOG_PROPERTIES": "",
+
+// Option to start coordinator instance. It will works on default port or on port specified by port option.
+    "COORDINATOR": false,
+
+// Set port for server. Default - any free port, but 1239 if coodinator.
+    "PORT": 1239,
+
+// Interface for listening connections.
+    "INTERFACE": "",
+
+// Storage URL
+    "STORAGE": "./storage.scidb",
+
+// Plugins folder
+    "PLUGINS": "@CMAKE_INSTALL_PREFIX@/plugins",
+
+// File with metadata of system catalog
+    "METADATA": "@CMAKE_INSTALL_PREFIX@/share/scidb/meta.sql",
+
+// Size of storage cache (Mb)
+    "CACHE": 256,
+
+// Optimizer type: 0 - simple, 1 - Habilis (default), 2 - L2P.
+    "OPTIMIZER": 1,
+
+// Default density for sparse arrays (0.01 corresponds to 1% density).
+// SciDB uses this parameter to calculate size of memory which has to be preallocated in sparse chunk.
+    "SPARSE_CHUNK_INIT_SIZE": 0.01,
+
+// Maximal ratio of filled elements of sparse chunk
+    "SPARSE_CHUNK_THRESHOLD": 1.0,
+
+// Average string size (bytes)
+    "STRING_SIZE_ESTIMATION": 10,
+
+// Size of chunks cluster (bytes)
+    "CHUNK_CLUSTER_SIZE": 0,
+
+// Minimize memory footprint of SciDB
+    "SAVE_RAM": false,
+
+// Maximal size of memory used by temporary in-memory array (Mb)
+    "MEM_ARRAY_THREASHOLD": 1024,
+
+// Directory for SciDB temporary files
+    "TMP_PATH": "/tmp",
+
+// Number of execution threads
+    "EXEC_THREADS": 16,
+
+// Number of prefetch chunks for each query
+    "PREFETCHED_CHUNKS": 16,
+
+// Maximal size for in-memory sort buffer (Mb)
+    "MERGE_SORT_BUFFER": 0,
+
+// Size of memory used for network buffers (Mb)
+    "NETWORK_BUFFER": 512,
+
+// Time in seconds to wait before re-connecting to peer(s)
+    "RECONNECT_TIMEOUT": 10,
+
+// Time in seconds to wait before decalring a network-silent instance dead.
+    "LIVENESS_TIMEOUT": 30,
+
+// Do not start a watchdog process
+    "NO_WATCHDOG": true
+}

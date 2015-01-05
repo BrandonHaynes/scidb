@@ -1,0 +1,21 @@
+#5b.Vary the number of lines in the CSV file to be equal to specified chunk size * number of instances.
+--setup
+--start-query-logging
+
+--test
+
+--start-igdata
+--shell --command " cat ${TEST_DATA_DIR}/sm7.csv | loadcsv.py -a 'array_sm7_2' -s '<a:int64,b:int64,c:int64>[i=0:*,2,0]' -v -x -c 2 -l -L -b -d 'localhost' -p $IQUERY_PORT "
+
+
+
+--stop-igdata
+
+#scan( array_sm7_2 )
+sort(array_sm7_2,a)
+--cleanup
+
+remove(array_sm7_2)
+
+--stop-query-logging
+

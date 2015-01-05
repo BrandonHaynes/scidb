@@ -1,0 +1,23 @@
+--setup
+--start-query-logging
+create array A <a:string default 'test' compression 'rle'> [x=0:8,6,0]
+store(filter(build(A,x+10),x<>5),A)
+create array B <x:int64 compression 'dictionary'> [a(string)=9,6,0]
+store(redimension(A,B),B)
+
+--test
+thin(A,0,1)
+thin(A,0,2)
+thin(A,0,3)
+thin(A,1,2)
+thin(A,1,3)
+thin(A,2,3)
+
+store(thin(B,0,2),C)
+show(C)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+--stop-query-logging

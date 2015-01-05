@@ -1,0 +1,46 @@
+--setup
+--start-query-logging
+# Ticket number : 1604
+# Tests to verify the cells having null dimesions are eliminated by redimension_store.
+
+create array source < a : double NULL > [ b=0:10,2,0 ]
+store(build(source, iif(b%2=0, null, 10000 - b*3.2)), source)
+
+create array dest < b: int64 > [a(double) = 11,2,0]
+create array dest1 < b: int64 > [a(double) = 11,11,0]
+create array dest2 < b: int64 > [a(double) = 11,11,0]
+
+create array AA <a1: double null > [x=0:1,2,0]
+store(apply(build(AA, iif(x%2=0, null, 10000)), a2,iif(x%2=1, null, 1000.45)),ZZ)
+create array NN <x:int64> [a1(double)=2,2,0, a2(double)=2,2,0]
+
+
+--test
+store(redimension(source,dest),dest)
+store(redimension(repart(source,< a : double NULL > [ b=0:10,11,0 ]),dest1),dest1)
+
+--aql update source set a=NULL
+--aql select * from source
+
+store(redimension(source,dest2),dest2)
+
+## It eliminates the cell even if one of the two dimesions is null.( but not both the dimesnions are null: Here a1,a2)
+store(redimension(ZZ,NN),NN)
+
+--aql update ZZ  set a2=NULL
+store(redimension(ZZ,NN),NN)
+
+--aql update ZZ  set a1=NULL
+store(redimension(ZZ,NN),NN)
+
+
+--cleanup
+remove(source)
+remove(dest)
+remove(dest1)
+remove(dest2)
+remove(AA)
+remove(ZZ)
+remove(NN)
+
+--stop-query-logging

@@ -1,0 +1,134 @@
+SCIDB QUERY : <create array intensityFlat <category:string,elapsedTime:int64,measuredIntensity:int64 null>[i=0:*,10000,0]>
+Query was executed successfully
+
+SCIDB QUERY : < csv2scidb -s 1 -p SNN < $DOC_DATA/intensityBig.csv > $DOC_DATA/intensityBig.scidb >
+
+SCIDB QUERY : < csv2scidb -s 1 -p SNN < $DOC_DATA/intensity.csv > $DOC_DATA/intensity.scidb >
+
+SCIDB QUERY : <load intensityFlat from '../tests/harness/testcases/data/doc/intensity.scidb'>
+{i} category,elapsedTime,measuredIntensity
+{0} 'High',0,100
+{1} 'High',1,100
+{2} 'High',2,99
+{3} 'High',3,99
+{4} 'High',4,98
+{5} 'High',5,97
+{6} 'High',6,null
+{7} 'High',7,null
+{8} 'Medium',0,100
+{9} 'Medium',1,95
+{10} 'Medium',2,89
+{11} 'Medium',3,null
+{12} 'Medium',4,null
+{13} 'Medium',5,null
+{14} 'Medium',6,null
+{15} 'Medium',7,76
+{16} 'Low',0,100
+{17} 'Low',1,85
+{18} 'Low',2,71
+{19} 'Low',3,60
+{20} 'Low',4,50
+{21} 'Low',5,41
+{22} 'Low',6,35
+{23} 'Low',7,29
+
+SCIDB QUERY : <create array intensity <measuredIntensity:int64 null> [category(string)=3,3,0,elapsedTime=0:40000,10000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(redimension(intensityFlat,intensity),intensity)>
+{category,elapsedTime} measuredIntensity
+{'High',0} 100
+{'High',1} 100
+{'High',2} 99
+{'High',3} 99
+{'High',4} 98
+{'High',5} 97
+{'High',6} null
+{'High',7} null
+{'Low',0} 100
+{'Low',1} 85
+{'Low',2} 71
+{'Low',3} 60
+{'Low',4} 50
+{'Low',5} 41
+{'Low',6} 35
+{'Low',7} 29
+{'Medium',0} 100
+{'Medium',1} 95
+{'Medium',2} 89
+{'Medium',3} null
+{'Medium',4} null
+{'Medium',5} null
+{'Medium',6} null
+{'Medium',7} 76
+
+SCIDB QUERY : <SAVE intensity INTO CURRENT INSTANCE 'intensity_data.opaque' AS 'OPAQUE'>
+{category,elapsedTime} measuredIntensity
+{'High',0} 100
+{'High',1} 100
+{'High',2} 99
+{'High',3} 99
+{'High',4} 98
+{'High',5} 97
+{'High',6} null
+{'High',7} null
+{'Low',0} 100
+{'Low',1} 85
+{'Low',2} 71
+{'Low',3} 60
+{'Low',4} 50
+{'Low',5} 41
+{'Low',6} 35
+{'Low',7} 29
+{'Medium',0} 100
+{'Medium',1} 95
+{'Medium',2} 89
+{'Medium',3} null
+{'Medium',4} null
+{'Medium',5} null
+{'Medium',6} null
+{'Medium',7} 76
+
+SCIDB QUERY : <SELECT * FROM show(intensity)>
+{i} schema
+{0} 'intensity<measuredIntensity:int64 NULL DEFAULT null> [category(string)=3,3,0,elapsedTime=0:40000,10000,0]'
+
+SCIDB QUERY : <CREATE ARRAY intensityCopy < measuredIntensity:int64 NULL > [ exposure(string)=3,3,0, duration=0:40000,10000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <LOAD intensityCopy FROM CURRENT INSTANCE 'intensity_data.opaque' AS 'OPAQUE'>
+{exposure,duration} measuredIntensity
+{'High',0} 100
+{'High',1} 100
+{'High',2} 99
+{'High',3} 99
+{'High',4} 98
+{'High',5} 97
+{'High',6} null
+{'High',7} null
+{'Low',0} 100
+{'Low',1} 85
+{'Low',2} 71
+{'Low',3} 60
+{'Low',4} 50
+{'Low',5} 41
+{'Low',6} 35
+{'Low',7} 29
+{'Medium',0} 100
+{'Medium',1} 95
+{'Medium',2} 89
+{'Medium',3} null
+{'Medium',4} null
+{'Medium',5} null
+{'Medium',6} null
+{'Medium',7} 76
+
+SCIDB QUERY : <drop array intensityFlat>
+Query was executed successfully
+
+SCIDB QUERY : <drop array intensity>
+Query was executed successfully
+
+SCIDB QUERY : <drop array intensityCopy>
+Query was executed successfully
+

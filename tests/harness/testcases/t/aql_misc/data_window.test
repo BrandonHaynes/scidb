@@ -1,0 +1,25 @@
+--setup
+--start-query-logging
+
+--aql select * into foo from array(<a:int32>[x=0:2,3,0, y=0:2,3,0], '[[(1),(2),(3)][(4),(5),(6)][(7),(8),(9)]]')
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_WINDOW_ERROR4 --aql "select sum(a) from foo variable window as (partition by x 0 preceding and 0 following)"
+
+--aql select sum(a) from foo variable window as (partition by x 1 preceding and 0 following)
+
+--aql select sum(a) from foo variable window as (partition by x 2 preceding and 1 following)
+
+--aql select sum(a) from foo variable window as (partition by x 0 preceding and unbound following)
+
+--aql select sum(a) from foo variable window as (partition by x unbound preceding and unbound following)
+
+--aql select sum(a) over W from foo variable window W as (partition by x 2 preceding and 1 following)
+
+--aql select sum(a) over W1, sum(a) over W2 from foo variable window W1 as (partition by x 2 preceding and 1 following), variable window W2 as (partition by y 2 preceding and 1 following)
+
+--aql select sum(a) over W1 + sum(a) over W2 from foo variable window W1 as (partition by x 2 preceding and 1 following), variable window W2 as (partition by y 2 preceding and 1 following)
+
+--cleanup
+--aql drop array foo
+--stop-query-logging

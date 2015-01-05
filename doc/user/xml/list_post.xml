@@ -1,0 +1,186 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="listOperator">
+  <refnamediv>
+    <refname>list</refname>
+
+    <refpurpose><indexterm>
+        <primary>list operator</primary>
+      </indexterm>Lists contents of SciDB namespace.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>list(<replaceable>element</replaceable>[,<replaceable>version_flag</replaceable>])</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>versions</secondary>
+      </indexterm><indexterm>
+        <primary>versions</primary>
+
+        <secondary>arrays</secondary>
+      </indexterm>The list operator allows you to get a list of elements in
+    the current SciDB instance. The input is one of the following
+    strings:</para>
+
+    <informaltable frame="all">
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="20*"/>
+
+        <colspec colname="c2" colwidth="60*"/>
+
+        <tbody>
+          <row>
+            <entry><indexterm>
+                <primary>aggregates</primary>
+
+                <secondary>listing</secondary>
+              </indexterm>aggregates</entry>
+
+            <entry>Show all operators that take as input a SciDB array and
+            return a scalar.</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>arrays</primary>
+
+                <secondary>listing</secondary>
+              </indexterm>arrays</entry>
+
+            <entry>Show all arrays. If <replaceable>version_flag</replaceable>
+            is true, the operator lists all versions of each array. Thus, if
+            an array has n versions, the output will include n+1 rows for that
+            array.</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>functions</primary>
+
+                <secondary>listing</secondary>
+              </indexterm>functions</entry>
+
+            <entry>Show all functions and the libraries in which they
+            reside.</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>instances</primary>
+
+                <secondary>listing</secondary>
+              </indexterm>instances</entry>
+
+            <entry>Show all SciDB instances. Each instance will be listed with
+            its port, id number, and time and date stamps for when it came
+            online.</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>libraries</primary>
+
+                <secondary>listing</secondary>
+              </indexterm>libraries</entry>
+
+            <entry>Show all libraries that are loaded in the current SciDB
+            session, and the SciDB version information. For each instance,
+            this parameter returns the SciDB version information, and the
+            version information for each library that is loaded for that
+            instance.</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>operators</primary>
+
+                <secondary>listing</secondary>
+              </indexterm>operators</entry>
+
+            <entry>Show all operators and the libraries in which they
+            reside.</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>data types</primary>
+              </indexterm>types</entry>
+
+            <entry>Show all the data types the SciDB supports.</entry>
+          </row>
+
+          <row>
+            <entry><indexterm>
+                <primary>queries</primary>
+
+                <secondary>listing active</secondary>
+              </indexterm>queries</entry>
+
+            <entry>Show all active queries. The number of cells in the result
+            will typically exceed the number of active queries, because each
+            SciDB instance reports about each query it is working on. Each
+            cell of the result will show the reporting instance, an arbitrary
+            value for dimension n, the query_id, the coordinating instance for
+            the query, the query string (appearing only on the cell describing
+            the coordinating instance), the creation time, any applicable
+            error code, the error status, and the idle flag (a boolean where
+            TRUE means that the query is idle).</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+
+    <para>Invoking the list operator without an argument,<literal>
+    list()</literal>, is equivalent to passing in the 'arrays' string. That
+    is, the following statements are equivalent:<programlisting>%AFL list();
+%AFL list('arrays');
+</programlisting></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para><para>This example shows sample output from the <literal>list</literal>
+      operator.</para>
+
+      <procedure>
+        <step>
+          <para>List all arrays:<para><programlisting>AFL% list('arrays');  </programlisting><screen>name,id,schema,availability
+'vector0',305,'vector0&lt;val:double&gt; [i=0:4,5,0]',true
+'vector1',307,'vector1&lt;val:string&gt; [i=0:4,5,0]',true
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>List all versions of all arrays:<para><programlisting>AFL% list('arrays',true);  </programlisting><screen>name,id,schema,availability
+'vector0',305,'vector0&lt;val:double&gt; [i=0:4,5,0]',true
+'vector0@1',306,'vector0@1&lt;val:double&gt; [i=0:4,5,0]',true
+'vector1',307,'vector1&lt;val:string&gt; [i=0:4,5,0]',true
+'vector1@1',308,'vector1@1&lt;val:string&gt; [i=0:4,5,0]',true
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>List all SciDB aggregates:<para><programlisting>AFL% list('aggregates');  </programlisting><screen>name
+'ApproxDC'
+'avg'
+'count'
+'max'
+'min'
+'prod'
+'stdev'
+'sum'
+'var'
+</screen></para></para>
+        </step>
+      </procedure>
+    </para></informalexample>
+  </refsect1>
+</refentry>

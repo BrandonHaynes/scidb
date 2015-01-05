@@ -1,0 +1,8 @@
+--setup
+create array C <a:int32>[x=0:2,3,0]
+
+--test
+--error --code=scidb::SCIDB_SE_ARRAY_WRITER::SCIDB_LE_CANT_OPEN_FILE --aql "save C into '/tmp'"
+
+--cleanup
+remove(C)

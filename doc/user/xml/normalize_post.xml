@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="normalizeOperator">
+  <refnamediv>
+    <refname>normalize</refname>
+
+    <refpurpose><indexterm>
+        <primary>normalize</primary>
+      </indexterm><indexterm>
+        <primary>vectors, normalization</primary>
+      </indexterm>Produces a result array that scales the values of a
+    vector.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>normalize(<replaceable>array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The normalize operator divides each element of a 1-attribute vector
+    by the square root of the sum of squares.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <para>The normalize operator can only take 1-dimensional, 1-attribute
+    arrays.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>Scale a vector whose values are between 1 and 10.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1x10 array.<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:9,10,0],(i+1)),unscaled);  </programlisting><screen>[(1),(2),(3),(4),(5),(6),(7),(8),(9),(10)]
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Normalize the vector.<para><programlisting>AFL% normalize(unscaled)  </programlisting><screen>[(0.0509647),(0.101929),(0.152894),(0.203859),(0.254824),(0.305788),(0.356753),(0.407718),(0.458682),(0.509647)]
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

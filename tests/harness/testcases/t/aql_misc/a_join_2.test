@@ -1,0 +1,19 @@
+--setup
+--start-query-logging
+create array A <a:int64, b:int64> [x=0:2,3,0]
+create array B <c:int64, d:int64> [p=0:2,3,0]
+
+--test
+--aql select * into A from build(<a:int64>[x=0:2,3,0],x+1),build(<a:int64>[x=0:2,3,0],x+10)
+--aql select * into B from build(<a:int64>[x=0:2,3,0],x+2),build(<a:int64>[x=0:2,3,0],x+12)
+--aql select * from A as a1 join A as a2 on a1.a=a2.a
+--aql select * from A as a1 join B as a2 on a1.a=a2.c
+
+--aql update B set c=p+11, d=p+2
+--aql select * from A as a1 join B as a2 on a2.c=a1.b
+--aql select * from A as a1 join B as a2 on a1.a=a2.d
+
+--cleanup
+remove(A)
+remove(B)
+--stop-query-logging

@@ -1,0 +1,21 @@
+#
+# 
+# Load the library with the various misc. operations.
+./iquery -a -q "load_library ( 'libmisc.so' )"
+#
+# Check that the new library's type (at least) has been loaded. The list of functions 
+# returned by this operation shouyld include 'sleep'. 
+./iquery -a -q "list ('functions')"
+#
+# Hygiene.
+./iquery -a -q "remove ( misc_example_1 )"
+#
+# The first array we'll use.
+./iquery -a -q "create array misc_example_1 < N : int64 > [ I=0:9,10,0 ]"
+#
+# Check the basic query that creates an array of data in the appropriate 
+# structure, and populated in the appropriate way.
+./iquery -a -q "join ( build ( misc_example_1, I + 1 ) AS N, build ( misc_example_1, 11 - I ) AS D)"
+# 
+# This is a quick test query to show how this is supposed to work.
+./iquery -a -q "apply ( join ( build ( misc_example_1, I + 1 ) AS N, build ( misc_example_1, 11 - I ) AS D), R, sleep ( N.N, 10 ))"

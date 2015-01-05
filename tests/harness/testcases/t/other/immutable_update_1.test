@@ -1,0 +1,19 @@
+--setup
+
+create array bounded <a:int64>[x=0:170,5,0]
+load(bounded,'${TEST_DATA_DIR}/unbounded.txt')
+
+--test
+--start-query-logging
+
+
+--aql update bounded set a=99
+
+
+scan(bounded)  
+
+
+--stop-query-logging
+--cleanup
+
+remove(bounded) 

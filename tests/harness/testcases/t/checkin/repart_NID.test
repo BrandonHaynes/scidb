@@ -1,0 +1,24 @@
+--setup
+create array one<dummy : string> [a=0:3,4,0]
+store(build(one, string(a)), one)
+create array two<dummy : string, x : int64> [a=0:3,4,0]
+store(apply(one, x, a/2), two)
+create array three<dummy : string, x : int64, y : string> [a=0:3,4,0]
+store(apply(two, y, string(a%2)), three)
+
+create array source <dummy : string> [x=0:1,2,0, y(string)=*,2,0]
+store(redimension(three, source), source)
+create array result <dummy : string> [x=0:1,2,0, y(string)=*,2,1]
+
+--test
+scan(source)
+repart(source, result)
+store(repart(source, result), result)
+scan(result)
+
+--cleanup
+remove(one)
+remove(two)
+remove(three)
+remove(source)
+remove(result)

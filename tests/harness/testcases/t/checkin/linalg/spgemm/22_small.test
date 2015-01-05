@@ -1,0 +1,26 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+# should be enough to cause distribution to all instances, no matter how distributed
+create array spLeft  <v:double>[row=1:12,3,0, col=1:13,3,0]
+create array spRight <v:double>[row=1:13,3,0, col=1:1,1,0]
+
+--test
+store( filter(build(spLeft, row+col), true), spLeft )
+store( filter(build(spRight, row/col), true), spRight )
+spgemm(spLeft, spRight)
+spgemm(spLeft, spRight, 'min.+')
+spgemm(spLeft, spRight, 'max.+')
+
+store( filter(build(spLeft, row), row=col), spLeft )
+store( filter(build(spRight, 1),  true), spRight )
+spgemm(spLeft, spRight)
+spgemm(spLeft, spRight, 'min.+')
+spgemm(spLeft, spRight, 'max.+')
+
+--cleanup
+remove(spLeft)
+remove(spRight)
+
+--stop-query-logging

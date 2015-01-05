@@ -1,0 +1,92 @@
+SCIDB QUERY : <create array data_array < A: int64 > [ X=0:9,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(data_array, 1+X), data_array)>
+{X} A
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+
+SCIDB QUERY : <create array UB <a:int64>[x=0:*,5,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(UB, '${TEST_DATA_DIR}/unbounded_cross.txt')">
+{x} a
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <merge(UB,data_array)>
+{x} a
+{0} 0
+{1} 2
+{2} 1
+{3} 4
+{4} 2
+{5} 6
+{6} 3
+{7} 8
+{8} 4
+{9} 10
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <merge(data_array,UB)>
+{X} A
+{0} 1
+{1} 2
+{2} 3
+{3} 4
+{4} 5
+{5} 6
+{6} 7
+{7} 8
+{8} 9
+{9} 10
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
+
+SCIDB QUERY : <remove(data_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(UB)>
+Query was executed successfully
+

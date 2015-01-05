@@ -1,0 +1,21 @@
+--setup
+--start-query-logging
+create array A <a:int64, b:int64> [x=0:2,3,0]
+create array B <c:int64, d:int64> [p=0:2,3,0]
+create array C <c:int64, d:int64> [p=0:2,3,0]
+
+--test
+--aql select * into A from build(<a:int64>[x=0:2,3,0],x+1),build(<a:int64>[x=0:2,3,0],x+10)
+--aql select * into B from build(<a:int64>[x=0:2,3,0],x+2),build(<a:int64>[x=0:2,3,0],x+12)
+--aql select * from A as a1 join A as a2 on a1.a=a2.a
+--aql select * from A as a1 join B as a2 on a1.a=a2.c
+
+--aql select p+11, p+2 into C from B
+--aql select * from A as a1 join C as a2 on a2.c=a1.b
+--aql select * from A as a1 join C as a2 on a1.a=a2.d
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+--stop-query-logging

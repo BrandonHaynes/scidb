@@ -1,0 +1,22 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(build(<val1:double>[i=0:3,4,0],1),indices1)  
+store(build(<val1:double>[i=0:3,4,0],i),indices2)  
+--set-format dcsv
+store(join(indices1,indices2),pattern_array)  
+--set-format dense
+store(build(<val:double>[i=0:3,4,0,j=0:3,4,0],i*4+j+100),source_array)  
+lookup(pattern_array,source_array)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(indices1)
+remove(indices2)
+remove(pattern_array)
+remove(source_array)

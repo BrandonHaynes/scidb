@@ -1,0 +1,225 @@
+##
+# BEGIN_COPYRIGHT
+#
+# This file is part of SciDB.
+# Copyright (C) 2008-2014 SciDB, Inc.
+#
+# SciDB is free software: you can redistribute it and/or modify
+# it under the terms of the AFFERO GNU General Public License as published by
+# the Free Software Foundation.
+#
+# SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+# INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+# NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+# the AFFERO GNU General Public License for the complete license terms.
+#
+# You should have received a copy of the AFFERO GNU General Public License
+# along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+#
+# END_COPYRIGHT
+##
+
+################################################################################
+Update as of Version 13.12
+################################################################################
+
+The operators uniq and index_lookup, which used to be part of this tutorial,
+have been promoted to fully productized in the core scidb engine.
+The reader may still find it very useful to read through their source code,
+and other operator code for that matter, found under src/query/ops  
+
+################################################################################
+Writing SciDB User-Defined Operators
+For Version 13.6
+################################################################################
+
+The purpose of this document is to provide an introduction and instructions in
+writing User-Defined operators for SciDB. The target audience is expected to be
+familiar with the SciDB User Guide, fluent in C++ and some basic boost libraries
+and have a basic understanding of database internals and distributed algorithms.
+This document appears as part of the example_udos archive directory, complete
+with sample UDO code, Makefile and example queries. We expect that most of the
+learning will be done by reading actual UDO code, making changes to the examples
+and running them on sample data.  To facilitate this process, you will need the
+following:
+1)  A system with a working SciDB installation (version 13.6).
+    SciDB may be installed from www.scidb.org/forum
+2)  A copy of the SciDB source tree (version 13.6).
+    Also available from www.scidb.org/forum
+3)  The enclosing example_udos directory.
+4)  Some extra packages and libraries required for compilation
+
+The files surrounding this guide contain the following key items:
+1)  hello_instances – the most basic “Hello World!” operator.
+2)  instance_stats – an operator that builds on HelloInstances, iterates over a
+    given array and performs a very basic computation
+3)  uniq – the first “serious” operator that implements a non-trivial algorithm,
+    and extends SciDB by adding previously unavailable functionality.
+    NOTE: As of 13.12 this code has been promoted to scidb proper
+4)  index_lookup – another complex operator that uses a few additional features
+    of SciDB.
+    NOTE: As of 13.12 this code has been promoted to scidb proper
+5)  A Makefile that builds the four operators above into a single plugin called 
+    “libexample_udos.so” which can be installed into SciDB
+6)  SampleQueries – scripts that load some NYSE trading data into SciDB and 
+    execute some simple queries, demonstrating the above UDOs in action.
+
+We recommend you proceed with the following steps:
+1)  Build, install and test the example UDOs on a running system
+2)  Read and examine the operator code in increasing complexity: first
+    HelloInstances, then InstanceStats, then Uniq then IndexLookup.
+3)  Examine the SampleQueries script to understand how the operators work,
+    execute some custom queries to understand the behavior.
+4)  Make tweaks, modifications, and try to write your own UDOs.
+
+We proceed by providing detailed build instructions, and a brief description of 
+how the operators are structured.
+
+################################################################################
+Building and Running the Example UDOs
+################################################################################
+Assuming you have all of the required materials, perform the following steps:
+
+0) If you build the entire SciDB source tree, these operators will be built
+   automatically and you do not need to tak any extra steps. Read on if you'd
+   like to see how to build these operatos standalone, without having to build
+   SciDB itself.
+
+1) Install the packages needed for compilation. This includes the basic
+   compiler tools, the special scidb-boost package and libraries and so forth.
+   The easiest way to perform this step is to run the deploy.sh script that is 
+   part of the SciDB source tree:
+
+   $ cd scidb-13.6-source-tree/deployment/
+   $ ./deploy.sh prepare_toolchain localhost USERNAME
+
+   This step requires that the user running the script is able to execute
+   ssh root@localhost
+   without a password. See information for setting up password-less ssh in the
+   user guide. This should place all the packages you might need on your system.
+
+2) You do not need to build SciDB itself. Copy the example_udos directory to a
+   separate location. Rename the file "standalone_makefile" to "Makefile". Then,
+   point this makefile to the SciDB source directory for compilation. Example:
+
+   $ cd example_udos
+   $ make SCIDB_SOURCE_DIR=/home/user/scidb-13.6-source-tree
+
+   This should be a simple, quick build process that produces a file called
+   “libexample_udos.so” in the local directory.
+
+3) You can now install and run the UDOs. Copy the file into the SciDB
+   “pluginsdir” directory. For example:
+
+   $ sudo cp libexample_udos.so /opt/scidb/13.6/lib/scidb/plugins/
+
+   If you have an installation that spans multiple machines, you need to copy 
+   the file to the plugins directory on every machine.
+
+4) Having copied the file, we can load and run it:
+
+   $ iquery -aq "load_library('example_udos')"
+   Query was executed successfully
+
+   $ iquery –aq "list('libraries')"
+   No,name,major,minor,patch,build
+   0,"libexample_udos.so",13,6,0,0
+
+   $ iquery -aq "hello_instances()"
+   instance_no,instance_status
+   0,"Hello, World! This is instance 0"
+   1,"Hello, World! This is instance 1"
+   2,"Hello, World! This is instance 2"
+   3,"Hello, World! This is instance 3"
+
+   After you have completed the above steps successfully, you can run the sample 
+   queries script:
+
+   $ cd SampleQueries/
+   $ ./load_trades.sh
+
+   This will load a small sample of NYSE stock trading data – a handful of 
+   stocks over one day – into SciDB. Running the script
+
+   $ ./sample_queries.sh
+
+   will execute some of the queries with the sample UDOs and output some
+   statistics about the trading data.
+
+################################################################################
+Issues Around Reloading the Library File
+################################################################################
+
+Once a .so file has been loaded, it is registered with the SciDB catalog. Every
+time SciDB restarts, it will reload all the registered .so files. This is good
+efficient behavior in a production environment.
+
+However, when developing a plugin, it is often necessary to recompile, reload
+and retest the code. Worse, due to some linker settings, SciDB will crash if a
+loaded .so file changes as it’s running. Thus, in order to retest some code 
+changes, the user needs to do the following:
+
+$ scidb.py stopall mydb
+$ sudo cp libexample_udos.so /opt/scidb/13.6/lib/scidb/plugins/
+$ scidb.py startall mydb
+
+You would need to recopy the .so on all running nodes, so it’s best to do
+development on a single-motherboard (but multiple instances) installation first.
+
+It is recommended you automate the steps above in a script and open up the
+permissions on “pluginsdir” if the “sudo” aspect is problematic.
+
+################################################################################
+About the Example UDOs
+################################################################################
+
+Each UDO has 2 or 3 source files in a separate directory named after the
+operator. Each operator is independent and can be compiled into a separate .so
+file if needed. We chose to use one file to contain all four only as a matter of
+convenience.
+
+Each UDO has two files, named as Logical[Name].cpp and Physical[Name].cpp. Three
+of the UDOs also have a Settings.h file. In all cases, you should read the
+Logical[Name].cpp file first as it contains a large header comment describing 
+what the operator does. We recommend you start with hello_instances.
+
+HelloInstances is as basic as a UDO can get. InstanceStats builds upon
+HelloInstances. It provides an example of how to read data from an input array,
+how to write data to the log file, perform simple computations and exchange
+small bits of data between instances. Operator Uniq illustrates a more
+interesting algorithm, a more complex communication pattern, an example of 
+writing a large output array, and an example of using SciDB’s data
+redistribution / chunk merge mechanism. Index_lookup demonstrates the virtual
+array pattern, random-access reading of output and some memory management tips.
+
+Functionality-wise, HelloInstances and InstanceStats are of little interest.
+However, HelloInstances can be extended to provide, for example, the uptime,
+CPU, Ram and Disk utilization on each instance – making it a powerful operator
+that reports system health. InstanceStats can be extended to provide more
+valuable information about stored arrays – chunk counts, chunk density, chunk 
+sizes and so forth.
+
+Uniq and IndexLookup are more important. They provide completely new
+functionality that is not otherwise available in SciDB. In particular, these
+operators are very useful at converting a non-integer dimension to integer. Read
+the example_queries.sh file to see how this is facilitated. Users who are having
+problems with non-integer dimensions may use these operators to go around some
+of the problems. Uniq has other applications to general data analysis as well.
+
+################################################################################
+Notes on the API
+################################################################################
+
+The API between SciDB and the UDOs is still immature and absolutely subject to 
+change in future releases. The example UDOs are supposed to build and work
+against SciDB release 13.6 only. We will maintain these examples and update them
+as future releases come out.
+
+These examples cover the most important SciDB functions and objects: Arrays,
+iterators, configuration, MemArray, DelegateArray, redistribute(), loggers, send
+and receive. In general, UDOs are also capable of accessing the system catalog,
+writing stored arrays, compiling and evaluating algebraic expressions,
+interacting with the file system, invoking MPI and Scalapack routines, et
+cetera. The SciDB source code for the existing built-in operators is a great
+resource of information and provides many other examples of how to accomplish
+various tasks.

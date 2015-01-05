@@ -1,0 +1,24 @@
+# ticket no. 903
+
+--setup
+--start-query-logging
+create array A <a:int32 null> [x=0:2,3,0]
+--aql select * into A from build(A,x+10)
+--aql update A set a=null where x=1
+
+--test
+--aql select a+100 from A
+--aql select 100+a from A
+--aql select 100+a+200 from A
+--aql select null+a from A
+--aql select a-null from A
+--aql select null-a from A
+--aql select a*null from A
+--aql select null*a from A
+--aql select a/null from A
+--aql select null/a from A
+
+--cleanup
+remove(A)
+--stop-query-logging
+

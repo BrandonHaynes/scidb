@@ -1,0 +1,322 @@
+SCIDB QUERY : <create array A <a:int32 null> [x=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(A,x+10),x<>2 and x<>5),A)>
+{x} a
+{0} 10
+{1} 11
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <update A set a=null where x=1>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <apply(A,z,a+10)>
+{x} a,z
+{0} 10,20
+{1} null,null
+{3} 13,23
+{4} 14,24
+{6} 16,26
+{7} 17,27
+{8} 18,28
+
+SCIDB QUERY : <between(A,0,3)>
+{x} a
+{0} 10
+{1} null
+{3} 13
+
+SCIDB QUERY : <cross_join(A,A)>
+{x,x} a,a
+{0,0} 10,10
+{0,1} 10,null
+{1,0} null,10
+{1,1} null,null
+{0,3} 10,13
+{0,4} 10,14
+{1,3} null,13
+{1,4} null,14
+{0,6} 10,16
+{0,7} 10,17
+{0,8} 10,18
+{1,6} null,16
+{1,7} null,17
+{1,8} null,18
+{3,0} 13,10
+{3,1} 13,null
+{4,0} 14,10
+{4,1} 14,null
+{3,3} 13,13
+{3,4} 13,14
+{4,3} 14,13
+{4,4} 14,14
+{3,6} 13,16
+{3,7} 13,17
+{3,8} 13,18
+{4,6} 14,16
+{4,7} 14,17
+{4,8} 14,18
+{6,0} 16,10
+{6,1} 16,null
+{7,0} 17,10
+{7,1} 17,null
+{8,0} 18,10
+{8,1} 18,null
+{6,3} 16,13
+{6,4} 16,14
+{7,3} 17,13
+{7,4} 17,14
+{8,3} 18,13
+{8,4} 18,14
+{6,6} 16,16
+{6,7} 16,17
+{6,8} 16,18
+{7,6} 17,16
+{7,7} 17,17
+{7,8} 17,18
+{8,6} 18,16
+{8,7} 18,17
+{8,8} 18,18
+
+SCIDB QUERY : <cross_join(A as a1,A as a2,a1.x,a2.x)>
+{x} a,a
+{0} 10,10
+{1} null,null
+{3} 13,13
+{4} 14,14
+{6} 16,16
+{7} 17,17
+{8} 18,18
+
+SCIDB QUERY : <concat(A,A)>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+{9} 10
+{10} null
+{12} 13
+{13} 14
+{15} 16
+{16} 17
+{17} 18
+
+SCIDB QUERY : <filter(A,x%2=1)>
+{x} a
+{1} null
+{3} 13
+{7} 17
+
+SCIDB QUERY : <filter(A,x%2<>1)>
+{x} a
+{0} 10
+{4} 14
+{6} 16
+{8} 18
+
+SCIDB QUERY : <join(A,A)>
+{x} a,a
+{0} 10,10
+{1} null,null
+{3} 13,13
+{4} 14,14
+{6} 16,16
+{7} 17,17
+{8} 18,18
+
+SCIDB QUERY : <merge(A,A@1)>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <merge(A@1,A)>
+{x} a
+{0} 10
+{1} 11
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <project(apply(A,z,a+10),z)>
+{x} z
+{0} 20
+{1} null
+{3} 23
+{4} 24
+{6} 26
+{7} 27
+{8} 28
+
+SCIDB QUERY : <reverse(A)>
+{x} a
+{0} 18
+{1} 17
+{2} 16
+{4} 14
+{5} 13
+{7} null
+{8} 10
+
+SCIDB QUERY : <reshape(A,<a:int32 null> [x=0:8,2,0])>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <repart(A,<a:int32 null> [x=0:8,2,0])>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <bernoulli(A,0.5,1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <bernoulli(A,0.5,1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <lookup(build(<a:int32>[x=0:2,3,0],x+1),A)>
+{x} a
+{0} null
+{2} 13
+
+SCIDB QUERY : <slice(A)>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <sort(A,a desc)>
+{n} a
+{0} 18
+{1} 17
+{2} 16
+{3} 14
+{4} 13
+{5} 10
+{6} null
+
+SCIDB QUERY : <sort(A,a)>
+{n} a
+{0} null
+{1} 10
+{2} 13
+{3} 14
+{4} 16
+{5} 17
+{6} 18
+
+SCIDB QUERY : <thin(A,0,1)>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <transpose(A)>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <unpack(A,z)>
+{z} x,a
+{0} 0,10
+{1} 1,null
+{2} 3,13
+{3} 4,14
+{4} 6,16
+{5} 7,17
+{6} 8,18
+
+SCIDB QUERY : <xgrid(A,2)>
+{x} a
+{0} 10
+{1} 10
+{2} null
+{3} null
+{6} 13
+{7} 13
+{8} 14
+{9} 14
+{12} 16
+{13} 16
+{14} 17
+{15} 17
+{16} 18
+{17} 18
+
+SCIDB QUERY : <adddim(A,z)>
+{z,x} a
+{0,0} 10
+{0,1} null
+{0,3} 13
+{0,4} 14
+{0,6} 16
+{0,7} 17
+{0,8} 18
+
+SCIDB QUERY : <deldim(adddim(A,z))>
+{x} a
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <cast(A,<z:int32 null> [y=0:8,3,0])>
+{y} z
+{0} 10
+{1} null
+{3} 13
+{4} 14
+{6} 16
+{7} 17
+{8} 18
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

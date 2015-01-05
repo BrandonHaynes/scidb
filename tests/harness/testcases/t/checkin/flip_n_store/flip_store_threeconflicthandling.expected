@@ -1,0 +1,64 @@
+SCIDB QUERY : <create array A <i:int32, j:int32, v:int64>[dummy=0:8,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A_rand <v:int64>[i=1:3,2,0, j=1:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A_aggr <countV:Uint64 null, sumV:int64 null>[i=1:3,2,0, j=1:3,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A_newdim <v:int64>[i=1:3,2,0, j=1:3,2,0, synthetic=0:*,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A,'${TEST_DATA_DIR}/redimension_threeconflicthandling.txt')">
+{dummy} i,j,v
+{0} 1,1,8
+{1} 1,1,8
+{2} 1,2,12
+{3} 2,2,16
+{4} 3,1,7
+{5} 3,1,7
+{6} 3,1,7
+{7} 3,3,32
+{8} 3,3,32
+
+SCIDB QUERY : <store(redimension(A, A_rand), A_rand)>
+{i,j} v
+{1,1} 8
+{1,2} 12
+{2,2} 16
+{3,1} 7
+{3,3} 32
+
+SCIDB QUERY : <store(redimension(A, A_aggr, count(v) as countV, sum(v) as sumV), A_aggr)>
+{i,j} countV,sumV
+{1,1} 2,16
+{1,2} 1,12
+{2,2} 1,16
+{3,1} 3,21
+{3,3} 2,64
+
+SCIDB QUERY : <store(redimension(A, A_newdim), A_newdim)>
+{i,j,synthetic} v
+{1,1,0} 8
+{1,1,1} 8
+{1,2,0} 12
+{2,2,0} 16
+{3,1,0} 7
+{3,1,1} 7
+{3,1,2} 7
+{3,3,0} 32
+{3,3,1} 32
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A_rand)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A_aggr)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A_newdim)>
+Query was executed successfully
+

@@ -1,0 +1,27 @@
+--setup
+--start-query-logging
+
+## Ticket number: 1602
+## Testcases for multi-attribute merge and different alignment and differnt chunk/overlap with work-arrounds.
+
+store(filter(build(<a:char NULL>[x=10:15,3,2],string(x-10)),x<>11),A)
+store(apply(A,b,a+'_s'),A1)
+store(filter(build(<b:char NULL>[x=1:10,2,0],string(x+2)),x<6),B)
+store(apply(B,c,b+'_Zebra'),B1)
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(A1,B1)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(B1,A1)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3 "merge(A1,repart(B1,<b:char>[x=10:20,3,2]))"
+## Work-arround for the above querries
+merge(subarray(A1, null, null),subarray(repart(B1,<b:char>[x=1:10,3,2]), null, null))
+merge(subarray(A, null, null),subarray(repart(B,<b:char NULL>[x=1:10,3,2]), null, null))
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(A,B)"
+
+--cleanup
+remove(A)
+remove(A1)
+remove(B)
+remove(B1)
+
+--stop-query-logging

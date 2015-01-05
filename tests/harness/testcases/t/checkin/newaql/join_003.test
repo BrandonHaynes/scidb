@@ -1,0 +1,30 @@
+--setup
+
+--start-query-logging
+create array v1 <a:double, b:int64> [x=1:3,2,0, y=1:3,2,0]
+CREATE ARRAY v2 <c: string> [x=1:3,2,0]
+
+CREATE ARRAY k <b:int64, c: float> [x=1:9,3,0]
+
+store(join(build(<a:double> [x=1:3,2,0,y=1:3,2,0], x+y), build(<b:int64> [x=1:3,2,0,y=1:3,2,0], x*y)), v1)
+
+store(build(<c: string> [x=1:3,2,0], 'addr_'+string(x)+string(x)), v2)
+
+store(join(build(<b:int64> [x=1:9,3,0], x), build(<c:float> [x=1:9,3,0], x/1.777)), k)
+
+--test
+--echo "DD join int64"
+--aql select * from v1 join v2 on v1.x = v2.x
+
+--echo "AA join int64"
+--aql select * from v1 join k on v1.b = k.b
+
+--echo "AD join int64"
+--aql select * from v1 join k on v1.b = k.x
+
+--cleanup
+--aql drop array v1
+--aql drop array v2
+--aql drop array k
+
+--stop-query-logging

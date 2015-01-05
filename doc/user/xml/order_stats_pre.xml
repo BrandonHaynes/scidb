@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<section>
+  <title>Order Statistics</title>
+
+  <para>SciDB offers the following ordering and ranking capabilities.</para>
+
+  <itemizedlist>
+    <listitem>
+      <para>Sort, which can be used to return a sorted vector of all array
+      elements.</para>
+    </listitem>
+
+    <listitem>
+      <para>Rank and avg_rank. These methods can be used to assign an ordinal
+      rank to each element of the array. These can be calculated for the
+      entire array, or on a per dimension basis.</para>
+    </listitem>
+
+    <listitem>
+      <para>Quantiles. These can be calculated for the entire array, or on a
+      per dimension basis.</para>
+    </listitem>
+  </itemizedlist>
+
+  <section remap="h3">
+    <title>Sort</title>
+
+    <para><indexterm>
+        <primary>sort</primary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>sorting</secondary>
+      </indexterm>The sort operator takes as input a multi-dimensional array
+    and produces a one-dimensional vector of elements sorted by the specified
+    attribute.</para>
+
+    <para>If you specify multiple attributes, all attributes are used for
+    sorting. Array elements are sorted first by the first attribute, and then
+    for each value of the first attribute, they are sorted by the second
+    attribute, and so on for each specified attribute.</para>
+
+    <para>If multiple elements have the same attribute value—for an attribute
+    that is not specified in the sort operator—the sort operator selects an
+    arbitrary ordering of elements when producing the sorted output.</para>
+
+    <para>The result array contains only non-empty cells from the source
+    array. Consider the array <code>m4x4_empty</code>, which is a
+    2-dimensional array with some empty cells. Each element contains two
+    attributes. Here are the contents of the array:<programlisting
+    language="test">--afl create array A &lt;val:double&gt; [i=0:3,4,0, j=0:3,4,0]; --show-query=no --show-output=no
+--afl store(build(A,'[[(13),(),(),()],[(8),(),(6),(7)],[(4),(),(7),()],[(),(0),(14),()]]',true),A);
+      --show-output=no --show-query=no
+--afl create array C &lt;label:string NULL default NULL&gt;[i=0:3,4,0, j=0:3,4,0];
+      --show-query=no --show-output=no
+--afl store(build(C,'[[(sand),(),(first),()],[(peanut),(),(pastry),(doc)],[(four),(),(carl),()],[(),(livia),(Apostrophe),()]]',true),C);
+      --show-query=no --show-output=no
+--afl create array m4x4_empty&lt;val:double, label:string NULL&gt;[i=0:3,4,0, j=0:3,4,0]; --show-query=no --show-output=no
+--afl store(join(A,C),m4x4_empty); --show-query=no --show-output=no
+
+--afl scan(m4x4_empty) --show-query=no --output-format=dense --chunkify=yes
+</programlisting></para>
+
+    <para> To sort the array elements by <code>val</code>, use the following
+    query:</para>
+
+    <programlisting language="test">--aql SELECT * 
+      FROM sort(m4x4_empty, val); --output-format=dcsv 
+</programlisting>
+
+    <para>To sort the array by val, and then by label, use the following
+    query.</para>
+
+    <programlisting language="test">--aql 
+SELECT * 
+FROM sort(m4x4_empty, val, label); --output-format=dcsv
+</programlisting>
+
+    <para>To use a descending sort, use the following command:</para>
+
+    <programlisting language="test">--aql 
+SELECT * 
+FROM sort(m4x4_empty, val desc); 
+</programlisting>
+  </section>
+
+  <section remap="h3">
+    <title>Ranking Methods</title>
+
+    <para><indexterm>
+        <primary>rank</primary>
+      </indexterm>The <code>rank</code> and <code>avg_rank</code> operators
+    rank the elements of an array or within subgroups of an array.</para>
+
+    <para>Consider the following examples using the <code>m4x4_double</code>
+    array.</para>
+
+    <para><indexterm>
+        <primary>ranking methods</primary>
+
+        <secondary>rank</secondary>
+      </indexterm>You can rank the elements of <code>m4x4_double</code> by
+    dimension with the rank operator. For example, this query returns an array
+    where the second attribute of each cell is the rank of the element for
+    dimension j (columns):</para>
+
+    <programlisting language="test">
+--afl CREATE ARRAY m4x4_double &lt; val:double &gt;[i=0:3,4,0,j=0:3,4,0]; --show-query=yes --show-output=no
+--afl load(m4x4_double, '../tests/harness/testcases/data/doc/m4x4_double.scidb'); --show-query=no --show-output=no 
+--schema m4x4_double --show-output=yes --show-query=no
+--afl scan(m4x4_double); --show-query=yes --show-output=yes --output-format=auto --chunkify=yes
+</programlisting>
+
+    <programlisting language="test">
+--aql SELECT * FROM rank(m4x4_double,val,j); --output-format=auto --chunkify=yes 
+</programlisting>
+
+    <para><indexterm>
+        <primary>ranking methods</primary>
+
+        <secondary>avg_rank</secondary>
+      </indexterm>The operators rank and avg_rank offer different ways to
+    handle ties. For example, consider the array <code>m4x4_floor</code>:
+    <programlisting language="test">
+--aql 
+SELECT floor(val) 
+INTO m4x4_floor
+FROM m4x4_double; --output-format=auto
+</programlisting></para>
+
+    <para>Ranking by dimension j produces ties. There are two cells with value
+    7 in the last column. The <code>rank</code> operator assigns the tied
+    values the same rank. The <code>avg_rank</code> operator assigns the
+    average of the rank positions occupied by the tied values.</para>
+
+    <programlisting language="test">
+--aql 
+SELECT *
+FROM rank(m4x4_floor,expr,j); --output-format=auto --chunkify=yes 
+--aql 
+SELECT *
+FROM avg_rank(m4x4_floor,expr,j); --output-format=auto --chunkify=yes 
+</programlisting>
+  </section>
+
+  <section>
+    <title>Calculating Quantiles</title>
+
+    <para><indexterm>
+        <primary>quantile</primary>
+      </indexterm>The <code>quantile</code> operator calculates quantiles over
+    array attributes. A <emphasis>q</emphasis>-quantile is a point taken at a
+    specified interval on a sorted data set that divides the data set into q
+    subsets. The 2-quantile is the <emphasis>median</emphasis>, that is, the
+    numerical value separating the lower half and upper half of the data set.
+    For example, consider the data set represented by the array
+    <code>m4x4_floor</code>: <programlisting language="test">
+--schema m4x4_floor;
+--afl scan(m4x4_floor); --output-format=auto --chunkify=yes 
+</programlisting></para>
+
+    <para>The lowest value in <code>m4x4_floor</code> is 0, the median value
+    is 7, and the highest value is 11. <programlisting language="test">
+--aql 
+SELECT * 
+FROM quantile(m4x4_floor,2); 
+</programlisting> The result of the 8-quantile for <code>m4x4_floor</code> is
+    shown below. <programlisting language="test">
+--aql 
+SELECT * 
+FROM quantile(m4x4_floor,8); 
+</programlisting></para>
+  </section>
+</section>

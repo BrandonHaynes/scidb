@@ -1,0 +1,58 @@
+--setup
+--start-query-logging
+# Ticket number: 1950
+# Testing INSERT operator on Unbounded arrays 1D/2D
+# Test covers multi-attribute insert by using join/apply
+# Test covers sparse and dense insert on unbounded arrays
+
+
+create array A <val:double> [x=1:*,4,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A, '${TEST_DATA_DIR}/unbound_ins.txt')""
+
+create array B <val:double> [x=1:20,4,0]
+store(build(B,101.5*x+100),B)
+
+create array AA <a:string> [x=0:*,4,0, y=0:*,2,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(AA, '${TEST_DATA_DIR}/unbound_string')""
+
+create array ZZ <a:string> [x=0:3,4,0, y=0:3,2,0]
+create array BB <a:string, b:string> [x=0:*,4,0, y=0:*,2,0]
+create array TT <a:string> [x=0:2,4,0,y=0:2,2,0]
+
+
+--test
+insert(B,A)
+insert(A@1,B)
+insert(A,B)
+insert(B@1,B)
+insert(B@2,A)
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_CANT_ACCESS_ARRAY_VERSION "insert(B@1,B@2)"
+insert(filter(build(ZZ, string(3+y)+'amigos!1-insert '), x=0 and y=0),AA)
+insert(store(filter(build(ZZ, string(3+y)+'amigos!2-insert '), x=0 and y=2),ZZ),AA)
+scan(ZZ)
+insert(ZZ,ZZ)
+insert(join(ZZ,AA),BB)
+scan(BB)
+
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_ATTRIBUTE_TYPE "insert(apply(build(ZZ,x*y+10),b, x),BB)"
+--error --code scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ILLEGAL_OPERATION "insert(build(ZZ,x*y+10),BB)"
+insert(apply(build(ZZ,x*y+10),b,'SciDB'+a),BB)
+insert(concat(ZZ,ZZ),AA)
+insert(between(concat(ZZ,ZZ),1,1,2,2),AA)
+insert(subarray(insert(between(concat(ZZ,ZZ),1,1,2,2),AA),2,2,4,4),TT)
+
+aggregate(versions(AA),count(*))
+aggregate(versions(BB),count(*))
+aggregate(versions(ZZ),count(*))
+aggregate(versions(TT),count(*))
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(AA)
+remove(ZZ)
+remove(BB)
+remove(TT)
+--stop-query-logging

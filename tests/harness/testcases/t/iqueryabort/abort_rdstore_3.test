@@ -1,0 +1,39 @@
+--setup
+--start-query-logging
+
+create array ABR1 <a:float,b:float>[x=0:3000,3,0]
+create array ABR2 <a:float>[x=0:3000,3,0]
+create array ABR3 <b:float>[a(float)=4000,1,0]
+store(join(filter(build(ABR2, x+1.321 ),1),filter(build(ABR2, x+1.123), 1)),ABR1)
+
+--test 
+--echo "issuing redim"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2 2 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --store --command "cat /tmp/${HPID}_1.stdout"
+
+--shell --command "${TEST_UTILS_DIR}/killquery.sh -afl 2 15 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_2.stdout || echo FAILURE"
+# log the output
+--shell --store --command "cat /tmp/${HPID}_2.stdout"
+
+--shell --command "${TEST_UTILS_DIR}/killquery.sh -afl 2 9 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+
+--echo "should be empty..."
+aggregate(ABR3,count(*))
+versions(ABR3)
+--error "scan(ABR3:a)"
+
+--echo "should be no mapping arrays..."
+project(sort(filter(list('arrays'), regex(name,'ABR.*'))),name,schema)
+
+--cleanup
+--stop-query-logging
+remove(ABR1)
+remove(ABR2)
+remove(ABR3)
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_3.stdout 2>/dev/null"

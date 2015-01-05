@@ -1,0 +1,15 @@
+SCIDB QUERY : <filter(setopt('read-ahead-size', '134217728'), No = 0)>
+No,old,new
+0,'67108864','134217728'
+
+SCIDB QUERY : <filter(setopt('read-ahead-size', '8589934592'), No = 0)>
+No,old,new
+0,'134217728','8589934592'
+
+SCIDB QUERY : <setopt('read-ahead-size', '-42')>
+[An error expected at this place for the query "setopt('read-ahead-size', '-42')". And it failed with error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ERROR_NEAR_CONFIG_OPTION. Expected error code = scidb::SCIDB_SE_EXECUTION::SCIDB_LE_ERROR_NEAR_CONFIG_OPTION.]
+
+SCIDB QUERY : <filter(setopt('read-ahead-size', '67108864'), No = 0)>
+No,old,new
+0,'8589934592','67108864'
+

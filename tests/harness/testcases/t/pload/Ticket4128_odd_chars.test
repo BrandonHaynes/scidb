@@ -1,0 +1,33 @@
+# CSV (and TSV) files ought to be able to contain SciDB-format special
+# characters such as []{} etc.
+
+--setup
+
+create array t4128_a <id:uint64, s1:string, s2:string, code:uint64, s3:string, s4:string>[i=0:*,1000000,0]
+create array t4128_b <id:uint64, s1:string, s2:string, code:uint64, s3:string, s4:string>[i=0:*,1000000,0]
+
+--test
+
+# Make sure the same data loads.
+--echo Load the odd characters.
+--shell --command "cat ${TEST_DATA_DIR}/oddchars.csv | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -a t4128_a -n 1"
+aggregate(t4128_a, count(*))
+scan(t4128_a)
+
+# Save and reload that!  SciDB format...
+--echo Save and reload those odd chars.
+save(t4128_a, '/tmp/t4128.scidb')
+load(t4128_b, '/tmp/t4128.scidb')
+
+--echo Re-save...
+save(t4128_b, '/tmp/t4128_b.scidb')
+--echo ...and diff.  Still the same?
+--shell --command "diff /tmp/t4128.scidb /tmp/t4128_b.scidb"
+--echo I hope so.
+
+# TO DO: save and restore in TSV and CSV format.
+
+--cleanup
+--shell --command "rm -f /tmp/t4128.*"
+remove(t4128_a)
+remove(t4128_b)

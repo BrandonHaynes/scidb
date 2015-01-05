@@ -1,0 +1,16 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(build(<val:double>[i=0:2,3,0,j=0:2,3,0],i*3+j),m3x3)  
+--set-format dcsv
+slice(m3x3,j,1)  
+redimension(between(m3x3,0,1,2,1),<val:double>[i=0:2,3,0])  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m3x3)

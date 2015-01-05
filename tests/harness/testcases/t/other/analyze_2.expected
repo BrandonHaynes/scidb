@@ -1,0 +1,129 @@
+Query was executed successfully
+
+{x,y} val,val2
+{0,0} 1,7
+{0,1} 2,8
+{1,0} 2,1
+{1,1} 3,2
+{2,0} 3,5
+{2,1} 4,6
+{0,2} 3,8
+{0,3} 4,1
+{1,2} 4,8
+{1,3} 5,2
+{2,2} 5,9
+{2,3} 6,2
+{3,0} 4,3
+{3,1} 5,4
+{3,2} 6,5
+{3,3} 7,null
+
+Query was executed successfully
+
+{x,y} val,val2
+{0,0} nan,7
+{0,1} 2,8
+{1,0} 2,1
+{1,1} 3,2
+{2,0} 3,5
+{2,1} 4,6
+{0,2} nan,8
+{0,3} 4,1
+{1,2} 4,8
+{1,3} 5,2
+{2,2} 5,9
+{2,3} 6,2
+{3,0} 4,3
+{3,1} 5,4
+{3,2} 6,5
+{3,3} 7,nan
+
+Query was executed successfully
+
+{x,y} val,val2
+{0,0} nan,7
+{0,1} 2,8
+{1,0} 2,1
+{1,1} 3,2
+{2,0} 3,5
+{2,1} 4,6
+{0,2} nan,8
+{0,3} 4,1
+{1,2} 4,8
+{1,3} 5,2
+{2,2} 5,9
+{2,3} 6,2
+{3,0} 4,3
+{3,1} 5,4
+{3,2} 6,5
+{3,3} 7,nan
+
+Query was executed successfully
+
+{x,y} val,val2
+{0,0} inf,7
+{0,1} 2,8
+{1,0} 2,1
+{1,1} 3,2
+{2,0} 3,5
+{2,1} 4,6
+{0,2} inf,8
+{0,3} 4,1
+{1,2} 4,8
+{1,3} 5,2
+{2,2} 5,9
+{2,3} 6,2
+{3,0} 4,3
+{3,1} 5,4
+{3,2} 6,5
+{3,3} 7,inf
+
+Query was executed successfully
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'val','1','7',7,16
+{1} 'val2','1','9',9,15
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'val','2','7',6,14
+{1} 'val2','1','9',9,15
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'val','2','7',6,14
+{1} 'val2','1','9',9,15
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'val','2','inf',7,16
+{1} 'val2','1','inf',10,16
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a',null,null,0,0
+
+{x} a
+{0} null
+{1} null
+{2} inf
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','inf','inf',1,1
+
+{x} a
+{0} null
+{1} null
+{2} 0
+{3} 1
+{4} -1
+
+{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'a','-1','1',3,3
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

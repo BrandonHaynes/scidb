@@ -1,0 +1,20 @@
+--setup
+--start-query-logging
+create array A <i:int32, j:int32, v:int64>[dummy=0:8,3,0]
+create array A_rand <v:int64>[i=1:3,2,0, j=1:3,2,0]
+create array A_aggr <countV:Uint64 null, sumV:int64 null>[i=1:3,2,0, j=1:3,2,0]
+create array A_newdim <v:int64>[i=1:3,2,0, j=1:3,2,0, synthetic=0:*,3,0]
+
+--shell  --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A,'${TEST_DATA_DIR}/redimension_threeconflicthandling.txt')""
+
+--test
+store(redimension(A, A_rand), A_rand)
+store(redimension(A, A_aggr, count(v) as countV, sum(v) as sumV), A_aggr)
+store(redimension(A, A_newdim), A_newdim)
+
+--cleanup
+remove(A)
+remove(A_rand)
+remove(A_aggr)
+remove(A_newdim)
+--stop-query-logging

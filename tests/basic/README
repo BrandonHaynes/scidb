@@ -1,0 +1,15 @@
+README
+
+Here we have a very basic testing framework which will be replaced by something better later (however the tests will stay)
+
+  run.py - this is the test script, takes the connect string as an argument
+    This script will run all the create queries, then all the load queries, and then all queries in the remaning subdirectories (except for data).
+
+    The output of each "xxx.aql" file is written in "xxx.aql.tmp" file and later diffed against "xxx.aql.res" file
+    Hence to add a test, you need to create the "xxx.aql" file in the folder of your choice, run the script, 
+    check "aql.tmp" result, and if its correct, move it to "xxx.aql.res" and commit both files.
+    All queries also generate a "xxx.aql.stderr" file that can be used to check exceptions. If the query doesn't produce a
+    result, its output is checked against the run.xxx.aql.err file to check the error message
+
+# This is a comment.
+# This is also a comment.

@@ -1,0 +1,132 @@
+/*
+**
+* BEGIN_COPYRIGHT
+*
+* This file is part of SciDB.
+* Copyright (C) 2008-2014 SciDB, Inc.
+*
+* SciDB is free software: you can redistribute it and/or modify
+* it under the terms of the AFFERO GNU General Public License as published by
+* the Free Software Foundation.
+*
+* SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+* INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+* NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+* the AFFERO GNU General Public License for the complete license terms.
+*
+* You should have received a copy of the AFFERO GNU General Public License
+* along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+*
+* END_COPYRIGHT
+*/
+
+/****************************************************************************/
+
+/**
+ *  @see http://www.scidb.org/forum/viewtopic.php?f=18&t=1091.
+ */
+chunk_skew() =
+    project(
+     cross_join(
+
+      redimension(
+       apply(
+        filter(
+         list('chunk map'),
+         inst=instn and attid=0),
+        iid, int64(inst),
+        aid, int64(arrid)),
+       <nchunks   : uint64 null,
+        min_ccnt  : uint32 null,
+        avg_ccnt  : double null,
+        max_ccnt  : uint32 null,
+        total_cnt : uint64 null>
+        [iid = 0:*,1000,0,aid= 0:*,1000,0],
+       count(*)   as nchunks,
+       min(nelem) as min_ccnt,
+       avg(nelem) as avg_ccnt,
+       max(nelem) as max_ccnt,
+       sum(nelem) as total_cnt
+      ) as A,
+
+      redimension(
+       apply( list('arrays', true), aid, int64(id)),
+       <name: string null>
+       [aid = 0:*,1000,0]
+      ) as B,
+      A.aid, B.aid
+     ),
+     name, nchunks, min_ccnt, avg_ccnt, max_ccnt, total_cnt
+    );
+
+/**
+ *  Return the Euclidean distance between the two points (x1,y1) and (x2,y2).
+ */
+distance(x1,y1,x2,y2) = sqrt(sq(x2-x1) + sq(y2-y1)) where
+{
+    sq(x) = x * x;
+};
+
+/**
+ *  Calculate difference of two squares two ways and check they're equal.
+ */
+dts(x,y) = dts1(x,y) = dts2(x,y) where
+{
+    sq(x)     = x * x;
+    dts1(x,y) = (x - y) * (x + y);
+    dts2(x,y) = sq(x) - sq(y);
+};
+
+/**
+ *  Return the number of non empty cells in the array 'A'. A simple alias for 
+ *  the now deprecated count() aggregate.
+ */
+cnt(A) = aggregate(A,count(*));
+
+/**
+ *  Discard the entire contents of the array  'A'; useful when writing tests.
+ */
+discard(A) = filter(A,false);
+
+/**
+ *  Apply the expression 'e' to each element of the array 'A'.
+ */
+map(A,a,e) = project(apply(A,a,e),a);
+
+/**
+ *  Bryan's toy example of an outer_join.
+ */
+outer_join(A,B) = join(mg(A,C),mg(C,A)) where
+{
+    nulls(A) = map(A,v,null);
+    mg(A,B)  = merge(A,nulls(B));
+    C        = repart(B,A);
+};
+
+/**
+ * Return the number of cells in which 'A.a' and 'B.b' differ.
+ */
+difference(A,B,a,b) = cnt(nonzero(map(join(A,B),a - b,_diff))) where
+{
+    nonzero(A) = filter(A, _diff <> 0);
+};
+
+/**
+ *  Return the length of the dimension 'd' of array 'A'.
+ */
+dimension_length(A,d) = project(filter(dimensions(A),No=d),length);
+
+/**
+ *  Center the columns 'c' of the real valued 'a'  matrix 'M'.
+ */
+center(M,a,c) = zero(map(cj(M,a,c),centered,value - mean)) where
+{
+    cj(M,a,c) = cross_join(cast(M,                    <value:double null>[i,j]) as input,
+                           cast(aggregate(M,avg(a),c),<mean :double null>[j])   as means,
+                           input.j,
+                           means.j);
+    zero(A) = substitute(A,build(<a:double>[i=0:0,1,0],0));
+};
+
+/****************************************************************************/
+

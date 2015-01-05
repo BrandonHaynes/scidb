@@ -1,0 +1,55 @@
+--setup
+--start-query-logging
+# Ticket number: 4285
+# Testing arrays with multiple versions
+
+load_library('misc')
+store (build (<v : int64> [I=0:3,1,0], I), NODE_ID)
+
+create array INH_UINT32 <X:uint32> [chromid=1:5,1,0,pos=1:25000,2500,0,id=1:43,43,0]
+create array INH_CH <ref:char>     [chromid=1:5,1,0,pos=1:25000,2500,0,id=1:43,43,0]
+create array INH_DOUBLE <X:double> [chromid=1:5,1,0,pos=1:25000,2500,0,id=1:43,43,0]
+
+--test
+#limit virtual memory size to 2GB
+apply(NODE_ID, foo, setMemCap (0, 2*1024*1024*1024))
+apply(NODE_ID, foo, setMemCap (1, 2*1024*1024*1024))
+apply(NODE_ID, foo, setMemCap (2, 2*1024*1024*1024))
+apply(NODE_ID, foo, setMemCap (3, 2*1024*1024*1024))
+
+--start-igdata
+
+store(build(INH_CH, char(string(random()))), INH_CH)
+store(build(INH_UINT32, uint32(random())), INH_UINT32)
+store(build(INH_DOUBLE, uint32(random())), INH_DOUBLE)
+
+store(join( INH_CH, join( join(INH_UINT32,INH_UINT32), join( join(join(INH_UINT32,INH_UINT32),join(INH_UINT32,INH_DOUBLE)), join(join(INH_UINT32,INH_UINT32),join(INH_UINT32,INH_DOUBLE)) ) ) ), INHXXX)
+store(filter(INHXXX, (X+X_2+X_3+X_4+X_5+X_6)%2 = 0), INHXXX)
+store(INHXXX,INHXXX_2)
+store(filter(INHXXX, (chromid+pos+id)%2=0), INHXXX)
+store(filter(INHXXX, (chromid%2=0 or pos%2=0 or id%2=0)), INHXXX)
+store(filter(INHXXX, (X=0)), INHXXX)
+--stop-igdata
+
+# make sure we see all the versions
+aggregate(filter(list('arrays', true), regex(name,'INHXXX@.*')), count(*))
+
+show(INHXXX)
+
+# make sure a particular array version is correct
+aggregate(filter(join(INHXXX_2 as left, INHXXX@2 as right), left.X<>right.X or left.ref<>right.ref or left.X_2<>right.X_2 or left.X_3<>right.X_3 or left.X_4<>right.X_4 or left.X_5<>right.X_5 or left.X_6<>right.X_6 or left.X_7<>right.X_7 or left.X_8<>right.X_8 or left.X_9<>right.X_9 or left.X_10<>right.X_10), count(*))
+
+--cleanup
+#un-limit virtual memory size
+apply(NODE_ID, foo, setMemCap (0, -1))
+apply(NODE_ID, foo, setMemCap (1, -1))
+apply(NODE_ID, foo, setMemCap (2, -1))
+apply(NODE_ID, foo, setMemCap (3, -1))
+
+remove(INH_UINT32)
+remove(INH_CH)
+remove(INH_DOUBLE)
+remove(INHXXX)
+remove(INHXXX_2)
+
+--stop-query-logging

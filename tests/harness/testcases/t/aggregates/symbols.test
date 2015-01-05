@@ -1,0 +1,31 @@
+# ticket # 1449
+#
+
+--setup
+--start-query-logging
+CREATE ARRAY Raw_Data_One < Symbol:string, ID:int32, Qty:int32 > [ Line=0:*,100,0]
+--igdata "load ( Raw_Data_One, '../tests/harness/testcases/data/symbols_1.txt' )"
+CREATE ARRAY Raw_Data_Two < Symbol:string, Time:string, Price:double > [Line=0:*,100,0]
+--igdata "load ( Raw_Data_Two, '../tests/harness/testcases/data/symbols_2.txt' )"
+CREATE array Symbols < ID:int32, Qty:int32 > [ Symbol(string)=*,30,0 ]
+--igdata "store(redimension(Raw_Data_One,Symbols),Symbols)"
+CREATE array Timeseries < Price : double > [ Symbol(string)=*,100,0, Time(string)=*,100,0 ]
+--igdata "store(redimension(Raw_Data_Two,Timeseries),Timeseries)"
+
+
+--test
+count ( Symbols )
+--set-format lcsv+
+scan ( Symbols )
+aggregate (Timeseries,avg ( Price ),Symbol)
+--set-format csv+
+scan ( Symbols )
+aggregate (Timeseries,avg ( Price ),Symbol)
+
+
+--cleanup
+remove(Raw_Data_One)
+remove(Raw_Data_Two)
+remove(Symbols)
+remove(Timeseries)
+

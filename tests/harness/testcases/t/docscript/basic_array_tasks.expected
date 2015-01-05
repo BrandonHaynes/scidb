@@ -1,0 +1,99 @@
+SCIDB QUERY : <CREATE ARRAY A <val_a:double>[i=0:9,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE ARRAY B <val_b:double>[j=0:9,10,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(A,i+1),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(B,j+101),B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <SELECT * FROM A>
+[(1),(2),(3),(4),(5),(6),(7),(8),(9),(10)]
+
+SCIDB QUERY : <SELECT * FROM B>
+[(101),(102),(103),(104),(105),(106),(107),(108),(109),(110)]
+
+SCIDB QUERY : <SELECT * from show(A)>
+[('A<val_a:double> [i=0:9,10,0]')]
+
+SCIDB QUERY : <SELECT * from show(B)>
+[('B<val_b:double> [j=0:9,10,0]')]
+
+SCIDB QUERY : <SELECT j from B>
+[(0),(1),(2),(3),(4),(5),(6),(7),(8),(9)]
+
+SCIDB QUERY : <SELECT val_b from B>
+[(101),(102),(103),(104),(105),(106),(107),(108),(109),(110)]
+
+SCIDB QUERY : <SELECT j FROM B WHERE j > 3 and j < 7>
+[(),(),(),(),(4),(5),(6),(),(),()]
+
+SCIDB QUERY : <SELECT sqrt(val_b) FROM B WHERE j>3 and j<7>
+[(),(),(),(),(10.247),(10.2956),(10.3441),(),(),()]
+
+SCIDB QUERY : <SELECT * FROM A,B>
+[(1,101),(2,102),(3,103),(4,104),(5,105),(6,106),(7,107),(8,108),(9,109),(10,110)]
+
+SCIDB QUERY : <SELECT * INTO C FROM A, B>
+[(1,101),(2,102),(3,103),(4,104),(5,105),(6,106),(7,107),(8,108),(9,109),(10,110)]
+
+SCIDB QUERY : <show(C)>
+{i} schema
+{0} 'C<val_a:double,val_b:double> [i=0:9,10,0]'
+
+SCIDB QUERY : <SELECT * INTO D FROM C,B>
+[(1,101,101),(2,102,102),(3,103,103),(4,104,104),(5,105,105),(6,106,106),(7,107,107),(8,108,108),(9,109,109),(10,110,110)]
+
+SCIDB QUERY : <SELECT * FROM show(D)>
+[('D<val_a:double,val_b:double,val_b_2:double> [i=0:9,10,0]')]
+
+SCIDB QUERY : <SELECT C.val_b + D.val_b FROM C,D>
+[(202),(204),(206),(208),(210),(212),(214),(216),(218),(220)]
+
+SCIDB QUERY : <SELECT a1.val_a,a2.val_a+2 FROM A as a1,A as a2>
+[(1,3),(2,4),(3,5),(4,6),(5,7),(6,8),(7,9),(8,10),(9,11),(10,12)]
+
+SCIDB QUERY : <store(build(<a:double> [i=1:3,3,0,j=1:3,3,0],(i-1)*3+(j-1)),m3x3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(m3x3)>
+{i} schema
+{0} 'm3x3<a:double> [i=1:3,3,0,j=1:3,3,0]'
+
+SCIDB QUERY : <scan(m3x3)>
+[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]]
+
+SCIDB QUERY : <store(build(<b:double> [k=1:3,3,0],'[(21),(20.5),(20.3333)]',true),vector3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(vector3)>
+{i} schema
+{0} 'vector3<b:double> [k=1:3,3,0]'
+
+SCIDB QUERY : <scan(vector3)>
+[(21),(20.5),(20.3333)]
+
+SCIDB QUERY : <SELECT * FROM m3x3 JOIN vector3 ON m3x3.j = vector3.k>
+[[(0,21),(1,20.5),(2,20.3333)],[(3,21),(4,20.5),(5,20.3333)],[(6,21),(7,20.5),(8,20.3333)]]
+
+SCIDB QUERY : < SELECT data.i*10 FROM A AS data WHERE A.i < 5>
+[(0),(10),(20),(30),(40),(),(),(),(),()]
+
+SCIDB QUERY : <SELECT pow(c,2) FROM (SELECT A.val_a + B.val_b AS c FROM A,B) WHERE i > 5>
+[(),(),(),(),(),(),(12996),(13456),(13924),(14400)]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

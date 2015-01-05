@@ -1,0 +1,423 @@
+SCIDB QUERY : <create array A <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:string,b:int32> [x=0:5,3,0,y=0:3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array TS <a:string> [x=0:5,3,0,y=0:3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <b:int32> [x=0:5,3,0,y=0:3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+1),A)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <store(join(build(TS,string(x)+'-'+string(y)),build(T,x+y)),B)>
+{x,y} a,b
+{0,0} '0-0',0
+{0,1} '0-1',1
+{0,2} '0-2',2
+{1,0} '1-0',1
+{1,1} '1-1',2
+{1,2} '1-2',3
+{2,0} '2-0',2
+{2,1} '2-1',3
+{2,2} '2-2',4
+{0,3} '0-3',3
+{1,3} '1-3',4
+{2,3} '2-3',5
+{3,0} '3-0',3
+{3,1} '3-1',4
+{3,2} '3-2',5
+{4,0} '4-0',4
+{4,1} '4-1',5
+{4,2} '4-2',6
+{5,0} '5-0',5
+{5,1} '5-1',6
+{5,2} '5-2',7
+{3,3} '3-3',6
+{4,3} '4-3',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(A)>
+{i} schema
+{0} 'A<a:int64> [x=0:2,3,0]'
+
+SCIDB QUERY : <store(repart(A,<b:int64> [y=0:2,1,0]),A1)>
+{y} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <show(A1)>
+{i} schema
+{0} 'A1<a:int64> [y=0:2,1,0]'
+
+SCIDB QUERY : <store(repart(A,<b:int64> [x=0:2,2,0]),A2)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <show(A2)>
+{i} schema
+{0} 'A2<a:int64> [x=0:2,2,0]'
+
+SCIDB QUERY : <store(repart(A,<a:int64> [y=0:2,1,0]),A3)>
+{y} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <show(A3)>
+{i} schema
+{0} 'A3<a:int64> [y=0:2,1,0]'
+
+SCIDB QUERY : <store(repart(A,<a:int64> [x=0:2,2,0]),A4)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <show(A4)>
+{i} schema
+{0} 'A4<a:int64> [x=0:2,2,0]'
+
+SCIDB QUERY : <show(B)>
+{i} schema
+{0} 'B<a:string,b:int32> [x=0:5,3,0,y=0:3,3,0]'
+
+SCIDB QUERY : <store(repart(B,<c:string,b:int32> [x=0:5,1,0,y=0:3,1,0]),B1)>
+{x,y} a,b
+{0,0} '0-0',0
+{0,1} '0-1',1
+{0,2} '0-2',2
+{0,3} '0-3',3
+{1,0} '1-0',1
+{1,1} '1-1',2
+{1,2} '1-2',3
+{1,3} '1-3',4
+{2,0} '2-0',2
+{2,1} '2-1',3
+{2,2} '2-2',4
+{2,3} '2-3',5
+{3,0} '3-0',3
+{3,1} '3-1',4
+{3,2} '3-2',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{4,1} '4-1',5
+{4,2} '4-2',6
+{4,3} '4-3',7
+{5,0} '5-0',5
+{5,1} '5-1',6
+{5,2} '5-2',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B1)>
+{i} schema
+{0} 'B1<a:string,b:int32> [x=0:5,1,0,y=0:3,1,0]'
+
+SCIDB QUERY : <store(repart(B,<c:string,d:int32> [x=0:5,2,0,y=0:3,2,0]),B2)>
+{x,y} a,b
+{0,0} '0-0',0
+{0,1} '0-1',1
+{1,0} '1-0',1
+{1,1} '1-1',2
+{0,2} '0-2',2
+{0,3} '0-3',3
+{1,2} '1-2',3
+{1,3} '1-3',4
+{2,0} '2-0',2
+{2,1} '2-1',3
+{3,0} '3-0',3
+{3,1} '3-1',4
+{2,2} '2-2',4
+{2,3} '2-3',5
+{3,2} '3-2',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{4,1} '4-1',5
+{5,0} '5-0',5
+{5,1} '5-1',6
+{4,2} '4-2',6
+{4,3} '4-3',7
+{5,2} '5-2',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B2)>
+{i} schema
+{0} 'B2<a:string,b:int32> [x=0:5,2,0,y=0:3,2,0]'
+
+SCIDB QUERY : <store(repart(B,<a:string,d:int32> [x=0:5,1,0,y=0:3,4,0]),B3)>
+{x,y} a,b
+{0,0} '0-0',0
+{0,1} '0-1',1
+{0,2} '0-2',2
+{0,3} '0-3',3
+{1,0} '1-0',1
+{1,1} '1-1',2
+{1,2} '1-2',3
+{1,3} '1-3',4
+{2,0} '2-0',2
+{2,1} '2-1',3
+{2,2} '2-2',4
+{2,3} '2-3',5
+{3,0} '3-0',3
+{3,1} '3-1',4
+{3,2} '3-2',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{4,1} '4-1',5
+{4,2} '4-2',6
+{4,3} '4-3',7
+{5,0} '5-0',5
+{5,1} '5-1',6
+{5,2} '5-2',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B3)>
+{i} schema
+{0} 'B3<a:string,b:int32> [x=0:5,1,0,y=0:3,4,0]'
+
+SCIDB QUERY : <store(repart(B,<a:string,b:int32> [x=0:5,2,0,y=0:3,1,0]),B4)>
+{x,y} a,b
+{0,0} '0-0',0
+{1,0} '1-0',1
+{0,1} '0-1',1
+{1,1} '1-1',2
+{0,2} '0-2',2
+{1,2} '1-2',3
+{0,3} '0-3',3
+{1,3} '1-3',4
+{2,0} '2-0',2
+{3,0} '3-0',3
+{2,1} '2-1',3
+{3,1} '3-1',4
+{2,2} '2-2',4
+{3,2} '3-2',5
+{2,3} '2-3',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{5,0} '5-0',5
+{4,1} '4-1',5
+{5,1} '5-1',6
+{4,2} '4-2',6
+{5,2} '5-2',7
+{4,3} '4-3',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B4)>
+{i} schema
+{0} 'B4<a:string,b:int32> [x=0:5,2,0,y=0:3,1,0]'
+
+SCIDB QUERY : <store(repart(B,<a:string,b:int32> [p=0:5,1,0,y=0:3,2,0]),B5)>
+{p,y} a,b
+{0,0} '0-0',0
+{0,1} '0-1',1
+{0,2} '0-2',2
+{0,3} '0-3',3
+{1,0} '1-0',1
+{1,1} '1-1',2
+{1,2} '1-2',3
+{1,3} '1-3',4
+{2,0} '2-0',2
+{2,1} '2-1',3
+{2,2} '2-2',4
+{2,3} '2-3',5
+{3,0} '3-0',3
+{3,1} '3-1',4
+{3,2} '3-2',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{4,1} '4-1',5
+{4,2} '4-2',6
+{4,3} '4-3',7
+{5,0} '5-0',5
+{5,1} '5-1',6
+{5,2} '5-2',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B5)>
+{i} schema
+{0} 'B5<a:string,b:int32> [p=0:5,1,0,y=0:3,2,0]'
+
+SCIDB QUERY : <store(repart(B,<a:string,b:int32> [p=0:5,1,0,q=0:3,3,0]),B6)>
+{p,q} a,b
+{0,0} '0-0',0
+{0,1} '0-1',1
+{0,2} '0-2',2
+{0,3} '0-3',3
+{1,0} '1-0',1
+{1,1} '1-1',2
+{1,2} '1-2',3
+{1,3} '1-3',4
+{2,0} '2-0',2
+{2,1} '2-1',3
+{2,2} '2-2',4
+{2,3} '2-3',5
+{3,0} '3-0',3
+{3,1} '3-1',4
+{3,2} '3-2',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{4,1} '4-1',5
+{4,2} '4-2',6
+{4,3} '4-3',7
+{5,0} '5-0',5
+{5,1} '5-1',6
+{5,2} '5-2',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B6)>
+{i} schema
+{0} 'B6<a:string,b:int32> [p=0:5,1,0,q=0:3,3,0]'
+
+SCIDB QUERY : <store(repart(B,<a:string,b:int32> [x=0:5,2,0,q=0:3,4,0]),B7)>
+{x,q} a,b
+{0,0} '0-0',0
+{0,1} '0-1',1
+{0,2} '0-2',2
+{0,3} '0-3',3
+{1,0} '1-0',1
+{1,1} '1-1',2
+{1,2} '1-2',3
+{1,3} '1-3',4
+{2,0} '2-0',2
+{2,1} '2-1',3
+{2,2} '2-2',4
+{2,3} '2-3',5
+{3,0} '3-0',3
+{3,1} '3-1',4
+{3,2} '3-2',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{4,1} '4-1',5
+{4,2} '4-2',6
+{4,3} '4-3',7
+{5,0} '5-0',5
+{5,1} '5-1',6
+{5,2} '5-2',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B7)>
+{i} schema
+{0} 'B7<a:string,b:int32> [x=0:5,2,0,q=0:3,4,0]'
+
+SCIDB QUERY : <store(repart(B,<d:string,c:int32> [p=0:5,2,0,q=0:3,1,0]),B8)>
+{p,q} a,b
+{0,0} '0-0',0
+{1,0} '1-0',1
+{0,1} '0-1',1
+{1,1} '1-1',2
+{0,2} '0-2',2
+{1,2} '1-2',3
+{0,3} '0-3',3
+{1,3} '1-3',4
+{2,0} '2-0',2
+{3,0} '3-0',3
+{2,1} '2-1',3
+{3,1} '3-1',4
+{2,2} '2-2',4
+{3,2} '3-2',5
+{2,3} '2-3',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{5,0} '5-0',5
+{4,1} '4-1',5
+{5,1} '5-1',6
+{4,2} '4-2',6
+{5,2} '5-2',7
+{4,3} '4-3',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B8)>
+{i} schema
+{0} 'B8<a:string,b:int32> [p=0:5,2,0,q=0:3,1,0]'
+
+SCIDB QUERY : <store(repart(B,<d:string,c:int32> [q=0:5,4,0,p=0:3,2,0]),B9)>
+{q,p} a,b
+{0,0} '0-0',0
+{0,1} '0-1',1
+{1,0} '1-0',1
+{1,1} '1-1',2
+{2,0} '2-0',2
+{2,1} '2-1',3
+{3,0} '3-0',3
+{3,1} '3-1',4
+{0,2} '0-2',2
+{0,3} '0-3',3
+{1,2} '1-2',3
+{1,3} '1-3',4
+{2,2} '2-2',4
+{2,3} '2-3',5
+{3,2} '3-2',5
+{3,3} '3-3',6
+{4,0} '4-0',4
+{4,1} '4-1',5
+{5,0} '5-0',5
+{5,1} '5-1',6
+{4,2} '4-2',6
+{4,3} '4-3',7
+{5,2} '5-2',7
+{5,3} '5-3',8
+
+SCIDB QUERY : <show(B9)>
+{i} schema
+{0} 'B9<a:string,b:int32> [q=0:5,4,0,p=0:3,2,0]'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TS)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B3)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B4)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B5)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B6)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B7)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B8)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B9)>
+Query was executed successfully
+

@@ -1,0 +1,9 @@
+--setup
+create array timestamps<val:datetimetz null> [x=0:10,10,0]
+load(timestamps, '${TEST_DATA_DIR}/timestamps.txt')
+
+--test
+apply(apply(apply(apply(apply(timestamps, f, strip_offset(val)), g, togmt(val)), h, get_offset(val)), i, apply_offset(g,h)), j, append_offset(f,h))
+
+--cleanup
+remove(timestamps)

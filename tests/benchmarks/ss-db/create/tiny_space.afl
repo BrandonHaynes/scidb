@@ -1,0 +1,1 @@
+CREATE IMMUTABLE ARRAY tiny_space <I:int32, J:int32, index:int32>[id=0:19,20,0]

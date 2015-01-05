@@ -1,0 +1,1 @@
+create empty array projection<center:bool null>[i=500000:500099,100,0,j=500000:500099,100,0]

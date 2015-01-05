@@ -1,0 +1,56 @@
+SCIDB QUERY : <csv2scidb -s 1 -p SNN < $DOC_DATA/int4error.csv > $DOC_DATA/int4error.scidb>
+
+SCIDB QUERY : <CREATE ARRAY intensityFlat < exposure:string,elapsedTime:int64,measuredIntensity:int64 null > [i=0:6,1000000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD intensityFlat FROM '${TEST_DATA_DIR}/doc/int4error.scidb' AS 'text' ERRORS 99 SHADOW ARRAY intensityFlatShadow">
+{i} exposure,elapsedTime,measuredIntensity
+{0} 'High',777,100
+{1} 'High',0,99
+{2} 'Medium',777,100
+{3} 'Medium',888,95
+{4} 'Medium',0,null
+{5} 'Low',0,null
+{6} 'Low',1888,null
+
+SCIDB QUERY : <SELECT * FROM show(intensityFlatShadow)>
+{i} schema
+{0} 'intensityFlatShadow<exposure:string NULL DEFAULT null,elapsedTime:string NULL DEFAULT null,measuredIntensity:string NULL DEFAULT null,row_offset:int64> [i=0:6,1000000,0]'
+
+SCIDB QUERY : <SELECT * FROM intensityFlatShadow>
+{i} exposure,elapsedTime,measuredIntensity,row_offset
+{1} null,'Failed to parse string \'Jack\' as int64',null,35
+{4} null,'Failed to parse string \'Jess\' as int64','Failed to parse string \'Jill\' as int64',94
+{5} null,'Assigning NULL to non-nullable attribute','Failed to parse string \'Josh\' as int64',110
+
+SCIDB QUERY : <SELECT * FROM intensityFlat>
+{i} exposure,elapsedTime,measuredIntensity
+{0} 'High',777,100
+{1} 'High',0,99
+{2} 'Medium',777,100
+{3} 'Medium',888,95
+{4} 'Medium',0,null
+{5} 'Low',0,null
+{6} 'Low',1888,null
+
+SCIDB QUERY : <SELECT intensityFlat.exposure AS exposureDATUM, intensityFlatShadow.exposure AS exposureMSG, intensityFlat.elapsedTime AS elapsedTimeDATUM, intensityFlatShadow.elapsedTime AS elapsedTimeMSG, intensityFlat.measuredIntensity AS measuredIntensityDATUM, intensityFlatShadow.measuredIntensity AS measuredIntensityMSG, row_offset INTO intensityFlatBadCells FROM intensityFlat, intensityFlatShadow>
+{i} exposureDATUM,exposureMSG,elapsedTimeDATUM,elapsedTimeMSG,measuredIntensityDATUM,measuredIntensityMSG,row_offset
+{1} 'High',null,0,'Failed to parse string \'Jack\' as int64',99,null,35
+{4} 'Medium',null,0,'Failed to parse string \'Jess\' as int64',null,'Failed to parse string \'Jill\' as int64',94
+{5} 'Low',null,0,'Assigning NULL to non-nullable attribute',null,'Failed to parse string \'Josh\' as int64',110
+
+SCIDB QUERY : <SELECT * FROM intensityFlatBadCells>
+{i} exposureDATUM,exposureMSG,elapsedTimeDATUM,elapsedTimeMSG,measuredIntensityDATUM,measuredIntensityMSG,row_offset
+{1} 'High',null,0,'Failed to parse string \'Jack\' as int64',99,null,35
+{4} 'Medium',null,0,'Failed to parse string \'Jess\' as int64',null,'Failed to parse string \'Jill\' as int64',94
+{5} 'Low',null,0,'Assigning NULL to non-nullable attribute',null,'Failed to parse string \'Josh\' as int64',110
+
+SCIDB QUERY : <drop array intensityFlat>
+Query was executed successfully
+
+SCIDB QUERY : <drop array intensityFlatShadow>
+Query was executed successfully
+
+SCIDB QUERY : <drop array intensityFlatBadCells>
+Query was executed successfully
+

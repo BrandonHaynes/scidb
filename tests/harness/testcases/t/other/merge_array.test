@@ -1,0 +1,24 @@
+--setup
+--start-query-logging
+# Ticket number:1668 : Regression Tests similar to previous commit on ticket 1602 merge tests.
+# This file is duplication of file other/t/merge_data_array.test.
+# Removed tests from this file as tests are present in merge_data_array.test
+
+create array data_array < A: int64 > [ X=0:9,5,0]
+store(build(data_array, 1+X), data_array)
+
+create array UB <a:int64>[x=0:*,5,0]
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(UB, '${TEST_DATA_DIR}/unbounded_cross.txt')""
+
+--test
+
+merge(UB,data_array)
+merge(data_array,UB)
+
+--cleanup
+
+remove(data_array)
+remove(UB)
+
+--stop-query-logging
+

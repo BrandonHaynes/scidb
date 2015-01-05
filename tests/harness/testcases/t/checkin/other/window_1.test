@@ -1,0 +1,9 @@
+--setup
+create array win<x:double>[i=1:10,5,1, j=1:10,5,1]
+store(build(win, 1), win)
+
+--test
+window(win, 1, 1, 1, 1, sum(x),count(x))
+
+--cleanup
+remove(win)

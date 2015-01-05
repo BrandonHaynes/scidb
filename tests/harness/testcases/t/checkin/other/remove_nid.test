@@ -1,0 +1,42 @@
+--setup
+--start-query-logging
+create array us_presidents <first_name:string, middle_name: string null, last_name:string, years_in_office: uint8 null, died_in_office:bool null, assassinated: bool> [president_number=1:44,10,0]
+load(us_presidents, '${TEST_DATA_DIR}/us_presidents.txt')
+create array president_stats <count:uint64 null, total_years_in_office: uint64 null, any_assassinated:bool null> [first_name(string)=*,10,0]
+
+--test
+store(redimension(us_presidents, president_stats, count(last_name) as count, sum(years_in_office) as total_years_in_office, max(assassinated) as any_assassinated), president_stats)
+
+store(president_stats, A)
+store(A, B)
+store(B, C)
+--shell --command " iquery -o lcsv+ -aq 'scan(A)' " --store
+--shell --command " iquery -o lcsv+ -aq 'scan(B)' " --store
+--shell --command " iquery -o lcsv+ -aq 'scan(C)' " --store
+--shell --command " iquery -o lcsv+ -aq 'scan(president_stats)' " --store
+
+remove(president_stats)
+--shell --command " iquery -o lcsv+ -aq 'scan(A)' " --store
+--shell --command " iquery -o lcsv+ -aq 'scan(B)' " --store
+--shell --command " iquery -o lcsv+ -aq 'scan(C)' " --store
+
+remove(A)
+--shell --command " iquery -o lcsv+ -aq 'scan(B)' " --store
+--shell --command " iquery -o lcsv+ -aq 'scan(C)' " --store
+
+remove(B)
+--shell --command " iquery -o lcsv+ -aq 'scan(C)' " --store
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "scan(president_stats@1:first_name)"
+
+remove(C)
+
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_ARRAY_DOESNT_EXIST "scan(president_stats@1:first_name)"
+
+--cleanup
+remove(us_presidents)
+--error "remove(president_stats)"
+--error "remove(A)"
+--error "remove(B)"
+--error "remove(C)"
+--stop-query-logging
+

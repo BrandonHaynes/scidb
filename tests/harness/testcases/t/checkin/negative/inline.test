@@ -1,0 +1,14 @@
+--setup
+--start-query-logging
+
+--test
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_CHUNK_SIZE "build(<a:int64> [x=0:2,0,0], 9)"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_OVERLAP_CANT_BE_LARGER_CHUNK "build(<a:int64> [x=0:2,1,2], 9)"
+--error --code=scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR "build(<a:int64> [x=*:*,5,1], 9)"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_HIGH_SHOULDNT_BE_LESS_LOW "build(<a:int64> [x=4:2,1,0], 9)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_BUILD_ERROR2 "build(<a:int64,b:int64> [x=0:2,3,0], x+1)"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME "build(<x:int64> [x=0:2,3,0], 1)"
+--error --code=scidb::SCIDB_SE_SYNTAX::SCIDB_LE_DUPLICATE_DIMENSION_NAME "build(<x:int64> [x=0:2,3,0, x=0:2,3,0], 1)"
+
+--cleanup
+--stop-query-logging

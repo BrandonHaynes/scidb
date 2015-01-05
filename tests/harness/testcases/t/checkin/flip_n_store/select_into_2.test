@@ -1,0 +1,58 @@
+--setup
+--start-query-logging
+create array A <a:int64> [x=0:2,3,0]
+create array B <x:int64> [a=0:15,3,0]
+store(B,C)
+store(C,D)
+store(D,E)
+store(E,F)
+store(F,G)
+store(G,H)
+store(build(A,x+10),A)
+
+--test
+
+--aql select * into B from A as Az
+
+--aql select a,x from B
+
+--aql select count(B)
+
+--aql select * into C from A where a=11
+
+--aql select a,x from C
+
+--aql select count(C)
+
+--aql select a into D from A where a<>11
+
+--aql select a,x from D
+
+--aql select x into E from A where a<=11
+
+--aql select a,x from D
+
+--aql select count(E)
+
+--aql select a,x into F from B
+
+--aql select count(F)
+
+--aql select x,a into G from B
+
+--aql select count(G)
+
+--aql select x,a,x,a into H from D
+
+--aql select count(H)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+remove(F)
+remove(G)
+remove(H)
+--stop-query-logging

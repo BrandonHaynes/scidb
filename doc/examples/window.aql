@@ -1,0 +1,2 @@
+select max(a), min(b) from A window 2, 2 as W;
+

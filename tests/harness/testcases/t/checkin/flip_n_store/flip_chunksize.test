@@ -1,0 +1,18 @@
+# ( ticket no. 3637 --- check the case where the input size is an even multiple of the intermediate array default chunk size (10240))
+
+--setup
+--start-query-logging
+create array A <a:uint64> [x=1:1024,1024,0,y=1:100,10,0]
+--igdata "store(build(A, random()%(1024*1024)), A)"
+--igdata "store(join(A,A), C)"
+create array T <a:uint64> [x=1:1024,1024,0,y=1:100,10,0,a_2=1:(1024*1024),1024,0]
+
+--test
+--igdata "store(redimension(C,T),T)"
+
+
+--cleanup
+remove(A)
+remove(C)
+remove(T)
+--stop-query-logging

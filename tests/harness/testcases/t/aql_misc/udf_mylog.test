@@ -1,0 +1,15 @@
+--setup
+--aql create array A <a:int32> [x=0:2,3,0]
+load_library('more_math')
+store(build(A,x+2),A)
+
+--test
+--aql select mylog(a,1) from A
+--aql select mylog(1,0) from A
+--aql select mylog(0,0) from A
+--aql select mylog(0,1) from A
+--aql select mylog(a,x+1) from A
+--aql select mylog(x,a+1) from A
+
+--cleanup
+--aql drop array A

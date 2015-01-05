@@ -1,0 +1,80 @@
+--setup
+--start-query-logging
+create array foo<i:int64,r:double,s:string>[x=1:*,10,0]
+create array foo2<i:int64,r:double,s:string>[x=1:*,10,0]
+create array foo3<i:int64,r:double,s:string>[x=1:*,10,0]
+create array foo4<i:int64,r:double,s:string>[x=1:*,10,0]
+create array foo5<i:double,s:string>[x=1:*,10,0]
+create array foo6<i:int64,r:double,s:string>[x=1:*,10,0]
+create array foo_null<i:int64 null,r:double null,s:string null>[x=1:*,10,0]
+
+create array foo2_null<i:int64 null,r:double null,s:string null>[x=1:*,10,0]
+create array spa<a:double>[x=1:*,100,10, y=1:*,100,10]
+create array spa2<b:double>[i=1:*,100,10, j=1:*,100,10]
+create array stars<ra:float, decl:float>[i=1:*,100,0]
+create array sky<i:int64>[ra(float)=*,100,0, decl(float)=*,100,0]
+create array sky2<i:int64>[ra(float)=*,100,0, decl(float)=*,100,0]
+create array table<x:int64>[i=1:*,2,0]
+
+--test
+--set-format csv+
+load(foo, '${TEST_DATA_DIR}/foo.txt')
+save(foo, 'foo.out', -2, '(int32,float,string)')
+load(foo2, 'foo.out', -2, '(int32,float,string)')
+load(foo_null, '${TEST_DATA_DIR}/foo_null.txt')
+save(foo_null, 'foo_null.out', -2, '(int64 null,float null,string null)')
+save(foo_null, 'foo_null.txt', -1)
+--igdata "load(foo3, 'foo_null.out', -2, '(int64 null,float null,string null)', 20)"
+--igdata "load(foo4, 'foo_null.out', -2, '(int64 null,float null,string null)', 10, foo_shadow)"
+--igdata "scan(foo_shadow)"
+aggregate(versions(foo_shadow),count(*))
+
+--error --code=scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED "load(foo6, 'foo_null.txt', -1, 'text', 1)"
+--igdata "load(foo6, 'foo_null.txt', -1, 'text', 10, foo6_shadow)"
+--igdata "scan(foo6_shadow)"
+aggregate(versions(foo6_shadow),count(*))
+
+load(foo5, 'foo.out', -2, '(int32,dummy(4),string)')
+save(foo5, 'foo.out', -2, '(float,string(10))')
+load(foo5, 'foo.out', -2, '(float,string(10))')
+save(foo,  'foo.out', -2, '(double,int64,dummy)')
+load(foo5, 'foo.out', -2, '(double,int64)')
+
+--start-igdata
+store(filter(build(<a:double>[x=1:1000,100,10, y=1:1000,100,10], x), x = y and x % 200 = 0), spa)
+save(spa, 'spa.out', -1, 'opaque')
+load(spa2, 'spa.out', -1, 'opaque')
+store(join(build(<ra:float>[i=1:1000,100,0], i), build(<decl:float>[i=1:1000,100,0], i)), stars)
+store(redimension(stars, sky), sky)
+save(sky, 'sky.out', -2, 'opaque')
+load(sky2, 'sky.out', -2, 'opaque')
+--stop-igdata
+
+aggregate(filter(sky, ra=decl),count(*))
+aggregate(filter(sky2, ra=decl),count(*))
+
+--reset-format
+save(build(<x:int64>[i=1:10,2,0], 1), 'table.dmp', -1, '(int32)')
+load(table, 'table.dmp', -1, '(int32)')
+
+
+
+--cleanup
+remove(foo)
+remove(foo2)
+remove(foo3)
+remove(foo4)
+remove(foo5)
+remove(foo6)
+remove(foo_null)
+remove(foo2_null)
+remove(spa)
+remove(spa2)
+remove(stars)
+remove(sky)
+remove(sky2)
+remove(table)
+remove(foo_shadow)
+remove(foo6_shadow)
+--stop-query-logging
+

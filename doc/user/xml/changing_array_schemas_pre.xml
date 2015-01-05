@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<chapter id="ChangingArraySchemas">
+  <title>Changing Array Schemas</title>
+
+  <para>This chapter describes several ways to transform SciDB arrays:</para>
+
+  <itemizedlist>
+    <listitem>
+      <para><link linkend="redimSection">Change the dimensions of an
+      array</link>.</para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="rearrangeSection">Rearrange the data in the
+      array</link> using the following operators: reshape, unpack reverse and
+      sort.</para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="reduceSection">Reduce an array</link> by selecting
+      some subset of its data by using the following operators: subarray,
+      slice, thin.</para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="changeAttributes">Change the attributes of an
+      array</link>.</para>
+    </listitem>
+
+    <listitem>
+      <para><link linkend="changeDim">Change the dimensions of an
+      array</link>.</para>
+    </listitem>
+  </itemizedlist>
+
+  <section id="redimSection">
+    <title>Redimensioning an Array</title>
+
+    <para><indexterm>
+        <primary>redimension</primary>
+      </indexterm>A common use case for creating and loading SciDB arrays is
+    using data from a data warehouse. This data set may be very large and
+    formatted as a csv file. You can use the csv2scidb utility to convert a
+    csv file to the 1-dimensional array format and load the file into a SciDB
+    array. Once you have a 1-dimensional SciDB array, you can redimension the
+    array to convert the attributes to dimensions.</para>
+
+    <para>For example, suppose you have a one-dimensional SciDB array,
+    <emphasis role="bold">device_probe</emphasis>:<programlisting
+    language="test">--afl store(build(&lt;device_id:int64&gt;[i=1:25,5,0],(i-1)%5),devices); --show-query=no --show-output=no
+--afl store(build(&lt;probe_id:int64&gt;[i=1:25,5,0],(i-1)/5),probes); --show-query=no --show-output=no
+--afl store(build(&lt;val:double&gt;[i=1:25,5,0],' 
+   [(0.01),(2.04),(6.09),(12.16),(20.25),
+   (30.36),(42.49),(56.64),(72.81),(91),
+   (111.21),(133.44),(157.69),(183.96),(212.25),
+   (242.56),(274.89),(309.24),(345.61),(384),
+   (424.41),(466.84),(511.29),(557.76),(606.25)]',
+   true),values); --show-query=no --show-output=no
+
+--afl store(join(devices,(join(probes,values))),device_probe); --show-query=no --output-format=dcsv</programlisting>This
+    array has three attributes, two of which are integers and one which is a
+    floating-point number. The dimension name is i, the dimension size is 25,
+    and the chunk size is 5.</para>
+
+    <para>When you examine the data, notice that it could be expressed in a
+    2-dimensional format like this: <informaltable frame="all">
+        <?dbfo keep-together="always" ?>
+
+        <tgroup cols="6">
+          <colspec colwidth="15*"/>
+
+          <colspec colname="_2" colwidth="15*"/>
+
+          <colspec colname="_3" colwidth="15*"/>
+
+          <colspec colname="_4" colwidth="15*"/>
+
+          <colspec colname="_5" colwidth="15*"/>
+
+          <colspec colname="_6" colwidth="15*"/>
+
+          <tbody>
+            <row>
+              <entry/>
+
+              <entry><emphasis role="bold">Probe ID= 0</emphasis></entry>
+
+              <entry><emphasis role="bold">Probe ID = 1</emphasis></entry>
+
+              <entry><emphasis role="bold">Probe ID = 2</emphasis></entry>
+
+              <entry><emphasis role="bold">Probe ID = 3</emphasis></entry>
+
+              <entry><emphasis role="bold">Probe ID = 4</emphasis></entry>
+            </row>
+
+            <row>
+              <entry><emphasis role="bold">Device ID = 0</emphasis></entry>
+
+              <entry>0.01</entry>
+
+              <entry>30.36</entry>
+
+              <entry>111.21</entry>
+
+              <entry>242.56</entry>
+
+              <entry>424.41</entry>
+            </row>
+
+            <row>
+              <entry><emphasis role="bold">Device ID = 1</emphasis></entry>
+
+              <entry>2.04</entry>
+
+              <entry>42.49</entry>
+
+              <entry>133.44</entry>
+
+              <entry>274.89</entry>
+
+              <entry>466.84</entry>
+            </row>
+
+            <row>
+              <entry><emphasis role="bold">Device ID = 2</emphasis></entry>
+
+              <entry>6.09</entry>
+
+              <entry>56.64</entry>
+
+              <entry>157.69</entry>
+
+              <entry>309.24</entry>
+
+              <entry>511.29</entry>
+            </row>
+
+            <row>
+              <entry><emphasis role="bold">Device ID = 3</emphasis></entry>
+
+              <entry>12.16</entry>
+
+              <entry>72.81</entry>
+
+              <entry>183.96</entry>
+
+              <entry>345.61</entry>
+
+              <entry>557.76</entry>
+            </row>
+
+            <row>
+              <entry><emphasis role="bold">Device ID = 4</emphasis></entry>
+
+              <entry>20.25</entry>
+
+              <entry>91</entry>
+
+              <entry>212.25</entry>
+
+              <entry>384</entry>
+
+              <entry>606.25</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable><indexterm>
+        <primary>redimension</primary>
+
+        <secondary>example</secondary>
+      </indexterm>SciDB allows you to redimension the data so that you can
+    store it in this 2-dimensional format. First, create an array with 2
+    dimensions: <programlisting language="test">--afl create array two_dim&lt;val:double&gt;[device_id=0:4,5,0, probe_id=0:4,5,0]; --show-query=yes --show-output=no    </programlisting>Each
+    of the dimensions is of size 5, corresponding to a dimension in the 5-by-5
+    table. Now, you can use the <code>redimension()</code> operator to
+    redimension the array device_probe into the array two_dim: <programlisting
+    language="test">--afl store(redimension(device_probe, two_dim),two_dim); --show-query=yes --show-output=yes --output-format=dense --chunkify=yes</programlisting><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>from</secondary>
+      </indexterm><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>where</secondary>
+      </indexterm>Now the data is stored so that device and probe numbers are
+    the dimensions of the array. This means that you can use the dimension
+    indices to select data from the array. For example, to select the second
+    device from the third probe, use the dimension indices: <programlisting
+    language="test">--aql SELECT val FROM two_dim WHERE device_id=2 and probe_id=3; --show-output=yes --show-query=yes  --output-format=dense --chunkify=yes
+</programlisting></para>
+
+    <section>
+      <title>Cell Collisions</title>
+
+      <para><indexterm>
+          <primary>collisions</primary>
+        </indexterm><indexterm>
+          <primary>cell collisions</primary>
+        </indexterm>The redimension operator can yield result arrays with
+      fewer cells than the source array. This can occur when there are "cell
+      collisions." A cell collision occurs when a single cell location of the
+      result array has more than one corresponding cell in the source
+      array.</para>
+
+      <para>There are three techniques for handling cell
+      collisions:<itemizedlist>
+          <listitem>
+            <para><indexterm>
+                <primary>dimensions</primary>
+
+                <secondary>synthetic</secondary>
+              </indexterm><indexterm>
+                <primary>synthetic dimensions</primary>
+              </indexterm><emphasis role="bold">Include a synthetic
+            dimension.</emphasis> A synthetic dimension is a vector that
+            consists of the counts for all the candidate cell values for each
+            cell location.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">Perform aggregation.</emphasis></para>
+          </listitem>
+        </itemizedlist><itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">Select randomly.</emphasis> Randomly
+            choose a cell from among the candidate cells.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>For details on these techniques, see the <link
+      linkend="redimension">redimension</link> operator reference
+      section.</para>
+    </section>
+
+    <section>
+      <title>Redimensioning Arrays Containing Null Values</title>
+
+      <para><indexterm>
+          <primary>redimension</primary>
+
+          <secondary>nulls</secondary>
+        </indexterm><indexterm>
+          <primary>nulls</primary>
+
+          <secondary>redimensioning</secondary>
+        </indexterm>Nullable attributes are handled in a special manner by
+      redimension. If the source array contains null values for the attribute
+      being transformed, these cells will be dropped during the redimension.
+      For example, consider the 1-dimensional array <emphasis
+      role="bold">redim_missing</emphasis>: <programlisting language="test">--afl store(build(&lt;val1:int64&gt;[i=0:9,10,0],i/5),first); --show-query=no --show-output=no
+--afl store(build(&lt;val2:int64 null&gt;[i=0:9,10,0],iif(i!=5,i%5,null)),second);
+       --show-query=no --show-output=no
+--afl store(build(&lt;val3:double&gt;[i=0:9,10,0], '[(1),(0.540302),
+       (-0.416147),(-0.989992),(-0.653644),(0.7),(0.841471),(0.909297),
+       (0.14112),(-0.756802)]',true),third); --show-query=no --show-output=no
+--afl store(join(first,join(second,third)),redim_missing); --show-query=no --output-format=dcsv</programlisting></para>
+
+      <para>Suppose you want to change the first two attributes into dimension
+      indices and store the third attribute in the resulting 2-dimensional
+      array. Create an array redim_target to store the redimension results:
+      <programlisting language="test">--afl CREATE ARRAY redim_target &lt;val3:double&gt; [val1=0:2,2,0, val2=0:5,5,0]; --show-output=no --show-query=yes</programlisting><programlisting
+      language="test">--afl store(redimension(redim_missing,redim_target),redim_target);
+      --show-output=yes --show-query=yes --output-format=dense --chunkify=yes
+</programlisting></para>
+
+      <para>If it is important to preserve cells with NULL attribute values,
+      you must first use the <literal>substitute</literal> operator to convert
+      NULL values into non-NULL values. This procedure is described in the
+      <link linkend="substituteOperator">substitute</link> reference
+      topic.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Array Transformations</title>
+
+    <para><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>changing schema</secondary>
+      </indexterm><indexterm>
+        <primary>transformations</primary>
+      </indexterm><indexterm>
+        <primary>redimension</primary>
+
+        <secondary>schema</secondary>
+      </indexterm>Once you have created, loaded, and redimensioned a SciDB
+    array, you may want to change some aspect of that array. SciDB offers
+    functionality to transform the variables of an array in several ways
+    (attributes and dimensions).</para>
+
+    <para>The array transformation operations produce a result array with a
+    new schema. They do not modify the source array. Array transformation
+    operations have the signature: <synopsis>AQL% <command>SELECT </command> * 
+      <command>FROM </command> operation( <replaceable>source_array </replaceable>, <replaceable>parameters </replaceable>)
+      </synopsis> This query outputs a SciDB array. To store that array
+    result, use the <code> <command>INTO</command> </code> clause: <synopsis>AQL% <command>SELECT </command> * 
+      <command>INTO</command>	<replaceable>result_array</replaceable>
+      <command>FROM </command> operation( <replaceable>source_array </replaceable>, <replaceable>parameters </replaceable>)
+      </synopsis></para>
+
+    <section id="rearrangeSection">
+      <title>Rearranging Array Data</title>
+
+      <para><indexterm>
+          <primary>redimension</primary>
+
+          <secondary>rearranging data</secondary>
+        </indexterm><indexterm>
+          <primary>data</primary>
+
+          <secondary>rearranging</secondary>
+        </indexterm>SciDB offers functionality to rearrange an array data:
+      <itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">Reshaping </emphasis> an array by
+            changing the dimension sizes. This is performed with the
+            <code>reshape </code> operator.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">Unpacking </emphasis> a
+            multidimensional array into a 1-dimensional array is performed
+            with the <code>unpack </code> operator.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">Reversing </emphasis> the cells in an
+            array is performed with the <code>reverse </code> operator.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">Sorting </emphasis> the cells in an
+            array or within subarrays corresponding to each dimension, is
+            performed with the <code>sort </code> operator.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>For example, you might want to reshape your array from an
+      <emphasis>m </emphasis>-by- <emphasis>n </emphasis> array to a 2
+      <emphasis>m </emphasis>-by- <emphasis>n </emphasis>/2 array. The
+      <code>reshape </code> operator allows you to transform an array into
+      another compatible schema. Consider a 4 <symbol role="symbolfont">×
+      </symbol>4 array, <code>m4x4 </code>, with contents and schema as
+      follows: <programlisting language="test">--afl CREATE ARRAY m4x4 &lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0]; --show-output=no --show-query=yes
+--afl store(build(m4x4,i*4+j),m4x4); --show-output=no --show-query=no 
+--afl scan(m4x4); --show-query=yes --show-output=yes --output-format=dense --chunkify=yes
+--schema m4x4 --show-query=yes --show-output=yes</programlisting> As long as
+      the two array schemas have the same number of cells, you can use reshape
+      to transform one schema into the other. A 4 <symbol role="symbolfont">×
+      </symbol>4 array has 16 cells, so you can use any schema with 16 cells,
+      such as 8 <symbol role="symbolfont">× </symbol>2, as the new schema:
+      <programlisting language="test">---aql SELECT  * INTO m8x2 FROM reshape(m4x4,&lt;val:double&gt; [i2=0:7,8,0,j2=0:1,2,0]); --output-format=dense --chunkify=yes
+</programlisting></para>
+
+      <para><indexterm>
+          <primary>unpack</primary>
+        </indexterm><indexterm>
+          <primary>arrays</primary>
+
+          <secondary>reshaping</secondary>
+        </indexterm>A special case of reshaping is unpacking a
+      multidimensional array to a 1-dimensional result array. When you unpack
+      an array, the coordinates of the array cells are stored in the
+      attributes to the result array. This is particularly useful if you are
+      planning to save your data to csv format. Unpacking also excludes all
+      empty cells from the result array.</para>
+
+      <para>The <code>unpack</code> operator takes the second and higher
+      dimensions of an array and transforms them into attributes along the
+      first dimension. The result array consists of the dimension values of
+      the input array with the attribute values from the corresponding cells
+      appended. So, an attribute value <code>val </code> that was in row 1,
+      column 3 of a 2-dimensional array will be transformed into a cell with
+      attribute values 1,3, <code>val</code>. For example, a 2-dimensional,
+      1-attribute array will output a 1-dimensional, 3-attribute array as
+      follows: <programlisting language="test">--afl CREATE ARRAY m3x3  &lt; val:double &gt;[i=0:2,3,0,j=0:2,3,0]; --show-output=no
+--afl load(m3x3, '../tests/harness/testcases/data/doc/m3x3.txt'); --show-query=no --show-output=no
+--aql SELECT * INTO m1 FROM unpack(m3x3,k); --show-query=yes --show-output=yes  --output-format=dense
+--schema m1 --show-query=no --show-output=yes 
+</programlisting></para>
+
+      <para>You can reverse the ordering of the data in each dimension of an
+      array with the <code>reverse </code> operator: <programlisting
+      language="test">--schema m3x3  --show-query=no --show-output=yes
+--aql SELECT * FROM m3x3;  --show-query=yes --show-output=yes --output-format=dense --chunkify=yes
+--aql SELECT * FROM reverse(m3x3); --show-query=yes --show-output=yes --output-format=dense --chunkify=yes
+</programlisting></para>
+    </section>
+
+    <section id="reduceSection">
+      <title>SciDB Array Reducing Operators</title>
+
+      <para><indexterm>
+          <primary>arrays</primary>
+
+          <secondary>reducing</secondary>
+        </indexterm><indexterm>
+          <primary>redimension</primary>
+
+          <secondary>reducing</secondary>
+        </indexterm><indexterm>
+          <primary>subarray</primary>
+        </indexterm>One common array task is selecting subsets of an array.
+      SciDB allows you to reduce an array to contiguous subsets of the array
+      cells or noncontiguous subsets of the array's cells. <itemizedlist>
+          <listitem>
+            <para>A <emphasis role="bold">subarray </emphasis> is a contiguous
+            block of cells from an array. This action is performed by the
+            <code>subarray </code>operator.</para>
+          </listitem>
+
+          <listitem>
+            <para>An array <emphasis role="bold">slice </emphasis> is a subset
+            of the array defined by planes of the array. This action is
+            performed by the <code>slice </code>operator.</para>
+          </listitem>
+
+          <listitem>
+            <para>A dimension can be winnowed or <emphasis role="bold">thinned
+            </emphasis> by selecting data at intervals along its entirety.
+            This action is performed by the <code>thin </code>operator.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>You can select part of an existing array into another array with
+      the <code>subarray </code>operator. For example, you can select a 2-by-2
+      array of the last two values from each dimension of the array <code>m4x4
+      </code>with the following <code>subarray </code>query: <programlisting
+      language="test">--schema m4x4 --show-output=yes --show-query=yes
+--afl scan(m4x4); --show-query=yes --show-output=yes --output-format=dense --chunkify=yes	</programlisting>
+      <programlisting language="test">
+--aql SELECT * FROM subarray(m4x4, 2, 2, 3, 4); --show-query=yes --show-output=yes --output-format=dense --chunkify=yes</programlisting></para>
+
+      <para>If you have a 3-dimensional array, you might want to select just a
+      flat 2-dimensional slice, as like the cross-hatched section of this
+      image.</para>
+
+      <figure>
+        <title>Select a 2-d slice from a 3-d array</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" contentwidth="181" depth="170"
+                       fileref="../graphics/slice_3d.png" valign="top"
+                       width="208"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>For example, you can select the data in a horizontal slice in the
+      middle of a 3-dimensional array <code>m3x3x3 </code> by using the
+      <code>slice </code>operator and specifying the value for dimension
+      <code>k</code>: <programlisting language="test">--afl CREATE ARRAY m3x3x3 &lt; val: double &gt;[i=0:2,3,0,j=0:2,3,0,k=0:2,3,0]; --show-query=no --show-output=no 
+--schema m3x3x3
+--afl store(build(m3x3x3, i+j+k), m3x3x3); --show-query=no --show-output=no --output-format=dense --chunkify=yes
+--afl scan(m3x3x3);  --output-format=dense --chunkify=yes
+--afl slice(m3x3x3,k,1); --output-format=dense --chunkify=yes
+</programlisting></para>
+
+      <para>You may want to sample data uniformly across an entire dimension.
+      The <code>thin </code> operator selects elements from given array
+      dimensions at defined intervals. For example, you can select every other
+      element from every other row: <programlisting language="test">--schema m4x4 --show-query=yes --show=output=yes
+--afl scan(m4x4); --show-query=yes --show=output=yes --output-format=dense --chunkify=yes
+--afl thin(m4x4, 0, 2, 0, 2); --show-query=yes --show=output=yes --output-format=dense --chunkify=yes</programlisting></para>
+
+      <para><indexterm>
+          <primary>reducing, example</primary>
+        </indexterm><indexterm>
+          <primary>array reductions</primary>
+
+          <secondary>example</secondary>
+        </indexterm>Let's look at a single array to compare the three SciDB
+      reduction operators.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 16<symbol role="symbolfont">×16</symbol> array,
+          square_array: <programlisting language="test">--afl create array square_array &lt;val:int64&gt;[i=0:15,16,0,j=0:15,16,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put values of 0–255 into square_array: <programlisting
+          language="test">--afl store(build(square_array,i*16+j),square_array); --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Select a 4x4 <emphasis role="bold">subarray</emphasis> from
+          the interior of square_array: <programlisting language="test">--afl subarray(square_array,5,5,8,8); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para><emphasis role="bold">Slice </emphasis>the sixth column (j=5),
+          and then the tenth row (i=9) from square_array: <programlisting
+          language="test">--afl slice(square_array,j,5); --output-format=dense</programlisting><programlisting
+          language="test">--afl slice(square_array,i,9); --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Use the <emphasis role="bold">thin </emphasis>operator to
+          uniformly sample data from square_array: <programlisting
+          language="test">--afl thin(square_array,0,4,0,8); --output-format=dense --chunkify=yes</programlisting><programlisting
+          language="test">--afl thin(square_array,0,8,0,2); --output-format=dense --chunkify=yes</programlisting><programlisting
+          language="test">--afl thin(square_array,2,8,1,2); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+      </procedure>
+    </section>
+  </section>
+
+  <section id="changeAttributes">
+    <title>Changing Array Attributes</title>
+
+    <para><indexterm>
+        <primary>attributes</primary>
+      </indexterm><indexterm>
+        <primary>changing attributes</primary>
+      </indexterm><indexterm>
+        <primary>transforming attributes</primary>
+      </indexterm>An array's attributes contain the data stored in the array.
+    You can transform attributes by <itemizedlist>
+        <listitem>
+          <para>Changing the name of the attribute.</para>
+        </listitem>
+
+        <listitem>
+          <para>Adding an attribute.</para>
+        </listitem>
+
+        <listitem>
+          <para>Changing the order of attributes in a cell.</para>
+        </listitem>
+
+        <listitem>
+          <para>Deleting an attribute.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>renaming</secondary>
+      </indexterm>You can change the name of an attribute with the
+    <code>attribute_rename </code> operator: <programlisting language="test">--aql SELECT * INTO m3x3_new FROM attribute_rename(m3x3,val,val2); --show-query=yes --show-output=yes --output-format=dense --chunkify=yes
+--schema m3x3_new --show-query=yes --show-output=yes      </programlisting></para>
+
+    <para><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>adding</secondary>
+      </indexterm>You can add attributes to an existing array with the
+    <code>apply</code> operator: <programlisting language="test">--aql SELECT * INTO m3x3_new_attr FROM apply(m3x3,val2,val+10,val3,pow(val,2)); --output-format=dense --chunkify=yes
+--schema m3x3_new_attr</programlisting></para>
+
+    <para><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>selecting</secondary>
+      </indexterm>You can select a subset of an array's attributes and return
+    them using the following statement. <programlisting language="test">--aql SELECT val2, val3 FROM m3x3_new_attr; --output-format=dense --chunkify=yes      </programlisting></para>
+  </section>
+
+  <section id="changeDim">
+    <title>Changing Array Dimensions</title>
+
+    <section>
+      <title>Changing Chunk Size</title>
+
+      <para><indexterm>
+          <primary>dimensions</primary>
+
+          <secondary>changing chunk size</secondary>
+        </indexterm><indexterm>
+          <primary>chunks</primary>
+
+          <secondary>changing</secondary>
+        </indexterm>If you have created an array with a particular chunk size
+      and then later find that you need a different chunk size, you can use
+      the <code>repart </code> operator to change the chunk size. For example,
+      suppose you have an array that is 1000-by-1000 with chunk size 100 in
+      each dimension: <programlisting language="test">--afl create array chunks&lt;val1:double,val2:double&gt;[i=0:999,100,0,j=0:999,100,0]; --show-query=no --show-output=no
+--afl show(chunks); --output-format=dense
+</programlisting> You can repartition the chunks to be 10 along one dimension
+      and 1000 in the other:</para>
+
+      <programlisting language="test">--aql SELECT * INTO chunks_part
+    FROM repart(chunks,&lt;val1:double,val2:double&gt;
+    [i=0:999,10,0,j=0:999,1000,0]); --show-output=no
+--afl show(chunks_part); --output-format=dense</programlisting>
+
+      <para>Repartitioning is also important if you want the change the chunk
+      overlap to speed up nearest-neighbor or window aggregate
+      queries.<programlisting language="test">--aql SELECT * INTO chunks_overlap
+    FROM repart(chunks,&lt;val1:double,val2:double&gt;
+     [i=0:999,100,10,j=0:999,100,10]); --show-output=no</programlisting></para>
+    </section>
+
+    <section>
+      <title>Appending a Dimension</title>
+
+      <para><indexterm>
+          <primary>dimensions</primary>
+
+          <secondary>appending</secondary>
+        </indexterm><indexterm>
+          <primary>adddim</primary>
+        </indexterm>You may need to append dimensions to existing arrays,
+      particularly when you want to do more complicated transformations to
+      your array. This example demonstrates how you can take slices from an
+      existing array and then reassemble them into a array with a different
+      schema. Consider the following 2-dimensional array: <programlisting
+      language="test">--afl store(two_dim, Dsp); --show-query=no --show-output=no
+--afl scan(Dsp) --show-output=yes --show-query=yes
+--schema Dsp --show-output=yes --show-query=yes
+</programlisting></para>
+
+      <para>Suppose you want to examine a sample plane from each dimension of
+      the array. You can use the slice operator to select array slices from
+      array <code>Dsp </code>: <programlisting language="test">--aql SELECT * INTO Dsp_slice_0 FROM slice(Dsp, device_id, 0); --show-query=yes
+--aql SELECT * INTO Dsp_slice_1 FROM slice(Dsp, device_id, 1); --show-query=yes
+--aql SELECT * INTO Dsp_slice_2 FROM slice(Dsp, device_id, 2); --show-query=yes</programlisting>The
+      slices are 1-dimensional. <programlisting language="test">--schema Dsp_slice_2 --show-query=yes --show-output=yes</programlisting>
+      Concatenating these slices will create a 1-d array: <programlisting
+      language="test">--aql SELECT * INTO Dsp_1d FROM concat(Dsp_slice_0, Dsp_slice_2); --show-query=yes --show-output=yes
+--schema Dsp_1d --show-query=yes --show-output=yes</programlisting> To
+      concatenate these arrays into a 2-dimensional array, you need to add a
+      dimension to both. The <code>adddim</code> operator will add a stub
+      dimension to the array to increase its dimensionality. <programlisting
+      language="test">--aql SELECT * into Dsp_new FROM concat(adddim(Dsp_slice_0, d), adddim(Dsp_slice_2, d));
+--schema Dsp_new</programlisting></para>
+    </section>
+  </section>
+</chapter>

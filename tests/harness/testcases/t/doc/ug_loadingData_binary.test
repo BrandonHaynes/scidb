@@ -1,0 +1,32 @@
+--setup
+--start-query-logging
+
+--aql create array intensityFlat <exposure:string,elapsedTime:int64,measuredIntensity:int64 null>[i=0:*,1000000,0]
+--shell  --store --command " csv2scidb -s 1 -p SNN < $DOC_DATA/intensity.csv > $DOC_DATA/intensity.scidb "
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load intensityFlat from '${TEST_DATA_DIR}/doc/intensity.scidb'""
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "save intensityFlat into '${TEST_DATA_DIR}/doc/intensity_data2.bin' as '(string, int64, int64 null)'""
+--aql drop array intensityFlat
+
+--test
+--aql CREATE ARRAY intensityFlat < exposure:string,elapsedTime:int64,measuredIntensity:int64 null > [i=0:*,1000000,0]
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load intensityFlat FROM '${TEST_DATA_DIR}/doc/intensity_data2.bin' AS '(string, int64, int64 null)'""
+--aql SELECT * FROM analyze(intensityFlat)
+
+
+--aql drop array intensityFlat
+
+--aql CREATE ARRAY intensityFlat < exposure:string,elapsedTime:int64,measuredIntensity:int64 null > [i=0:*,1000000,0]
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load intensityFlat FROM '${TEST_DATA_DIR}/doc/intensity_data2.bin' AS '(string,int64,int64 null)'""
+
+--aql CREATE ARRAY intensityFlat_NoExposure < elapsedTime:int64,measuredIntensity:int64 null > [i=0:*,1000000,0]
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load intensityFlat_NoExposure FROM '${TEST_DATA_DIR}/doc/intensity_data2.bin' AS '(skip,int64,int64 null)'""
+
+--aql CREATE ARRAY intensityFlat_NoTime_NoMeasurement < exposure:string > [i=0:*,1000000,0]
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "load intensityFlat_NoTime_NoMeasurement FROM '${TEST_DATA_DIR}/doc/intensity_data2.bin' AS '(string,skip(8),skip(8) null)'""
+
+--cleanup
+--aql drop array intensityFlat
+--aql drop array intensityFlat_NoExposure
+--aql drop array intensityFlat_NoTime_NoMeasurement
+
+--stop-query-logging

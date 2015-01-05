@@ -1,0 +1,1 @@
+project ( join ( apply ( build ( decile, double(Bucket) * 10.0 ), Min, val), apply ( build ( decile, (double(Bucket) + 1.0) * 10.0 ), Max, val)), Min, Max)

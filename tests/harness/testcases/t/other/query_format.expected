@@ -1,0 +1,64 @@
+SCIDB QUERY : <create array Q_F <a:int32> [x=0:99,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(Q_F,x),x<5 or x>97),Q_F)>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{98} 98
+{99} 99
+
+"default output format: auto"
+SCIDB QUERY : <scan(Q_F)>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{98} 98
+{99} 99
+
+"output format sparse"
+SCIDB QUERY : <scan(Q_F)>
+{0}[{0}(0),{1}(1),{2}(2),{3}(3),{4}(4)];{98}[{98}(98),{99}(99)]
+
+"trying some non-existent format: invalid1"
+SCIDB QUERY : <scan(Q_F)>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{98} 98
+{99} 99
+
+"output format lcsv+"
+SCIDB QUERY : <scan(Q_F)>
+x,a
+0,0
+1,1
+2,2
+3,3
+4,4
+98,98
+99,99
+
+"reset to default format: auto"
+SCIDB QUERY : <scan(Q_F)>
+{x} a
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{98} 98
+{99} 99
+
+SCIDB QUERY : <remove(Q_F)>
+Query was executed successfully
+

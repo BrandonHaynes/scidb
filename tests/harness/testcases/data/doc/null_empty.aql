@@ -1,0 +1,27 @@
+set lang afl; 
+
+remove(T);
+remove(T1);
+remove(T2);
+remove(T3);
+
+create  empty array T < x: int64 NULL > [ i=1:5,5,0, j=1:5,5,0 ];
+
+store(build_sparse(T, i+j, i <> j), T1);
+store(build_sparse(T, i+j, i <> j), T2);
+
+
+set lang aql;
+update T1 set x=null where i=1;
+update T2 set x=null where j=1 and i=3;
+
+select * from show(T1);
+select * from show(T2);
+
+select * into T3 from T1, T2;
+
+select count(x) as a, count(x_2) as b, count(*) as c from T3;
+
+select sum(x) as a, sum(x_2) as b, count(*) as c from T3;
+
+

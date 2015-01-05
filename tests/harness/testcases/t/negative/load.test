@@ -1,0 +1,19 @@
+--test
+--start-query-logging
+
+--set-format dcsv
+
+CREATE ARRAY intensityFlat < exposure:string, elapsedTime:int64, measuredIntensity:int64 null > [i=0:*,5,0]
+
+--shell --command "cp $DOC_DATA/intensity_data.bin /tmp/tmp.bin"
+--shell --command "chmod 0000 /tmp/tmp.bin"
+
+--error --code=scidb::SCIDB_SE_EXECUTION::SCIDB_LE_CANT_OPEN_FILE "load(intensityFlat,'/tmp/tmp.bin',-2, '(string, int64, int64 null)')"
+
+--shell --command "rm -f /tmp/tmp.bin"
+
+--stop-query-logging
+
+--cleanup
+
+remove(intensityFlat)

@@ -1,0 +1,9 @@
+--setup
+store(build(<val:double>[i=0:9,5,0,j=0:9,5,0],i),A)
+
+--test
+save(apply(between(A,4,0,9,9),I,i,J,j),'/tmp/A',0,'(double,int64,int64)')
+
+--cleanup
+remove(A)
+--shell --command "rm -f /tmp/A >& /dev/null"

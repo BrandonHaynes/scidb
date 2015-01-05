@@ -1,0 +1,9 @@
+--setup
+create array dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+load(dense,'${TEST_DATA_DIR}/dense.txt')
+
+--test
+between(dense, 1, 2, 4, 4)
+
+--cleanup
+remove (dense)

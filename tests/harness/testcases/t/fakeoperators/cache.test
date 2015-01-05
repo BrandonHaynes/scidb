@@ -1,0 +1,9 @@
+
+--test
+--start-query-logging
+
+load_library('misc')
+test_cache() 
+
+--stop-query-logging
+--cleanup

@@ -1,0 +1,22 @@
+--setup
+create  array A <a:int32>[x=0:2,3,0]
+create  array B <a:string>[y=0:2,3,0]
+store(build(A,x+1),A)
+store(build(B,string(y+10)),B)
+
+
+--test
+--aql select * into C from A,B
+--aql update A set a = a + 10
+
+--aql update B set a = a + '_'
+
+--aql select * into D from B,A
+--aql select * into E from C cross join D
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)

@@ -1,0 +1,131 @@
+SCIDB QUERY : <cat $DOC_DATA/raw.csv>
+pos,device,val
+1,1,1.334
+1,2,1.334
+1,3,1.334
+1,4,1.334
+1,5,1.334
+2,1,2.445
+2,3,2.445
+2,4,2.445
+2,5,2.667
+3,1,0.998
+3,2,1.998
+3,3,1.667
+3,4,2.335
+4,1,2.004
+4,2,2.006
+4,3,2.889
+4,5,2.365
+5,1,2.008
+5,2,2.119
+5,3,2.118
+5,4,2.667
+5,5,2.556
+
+
+SCIDB QUERY : <CREATE ARRAY raw <pos: int64, device: int64, val: float> [offset=0:*,5,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD raw FROM '${TEST_DATA_DIR}/doc/raw.scidb'">
+{offset} pos,device,val
+{0} 1,1,1.334
+{1} 1,2,1.334
+{2} 1,3,1.334
+{3} 1,4,1.334
+{4} 1,5,1.334
+{5} 2,1,2.445
+{6} 2,3,2.445
+{7} 2,4,2.445
+{8} 2,5,2.667
+{9} 3,1,0.998
+{10} 3,2,1.998
+{11} 3,3,1.667
+{12} 3,4,2.335
+{13} 4,1,2.004
+{14} 4,2,2.006
+{15} 4,3,2.889
+{16} 4,5,2.365
+{17} 5,1,2.008
+{18} 5,2,2.119
+{19} 5,3,2.118
+{20} 5,4,2.667
+{21} 5,5,2.556
+
+SCIDB QUERY : <create array A <val: float> [device=1:5,5,0, pos=1:5,5,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <redimension(raw, A)>
+{device,pos} val
+{1,1} 1.334
+{1,2} 2.445
+{1,3} 0.998
+{1,4} 2.004
+{1,5} 2.008
+{2,1} 1.334
+{2,3} 1.998
+{2,4} 2.006
+{2,5} 2.119
+{3,1} 1.334
+{3,2} 2.445
+{3,3} 1.667
+{3,4} 2.889
+{3,5} 2.118
+{4,1} 1.334
+{4,2} 2.445
+{4,3} 2.335
+{4,5} 2.667
+{5,1} 1.334
+{5,2} 2.667
+{5,4} 2.365
+{5,5} 2.556
+
+SCIDB QUERY : <store(redimension(raw, A),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(A)>
+{i} schema
+{0} 'A<val:float> [device=1:5,5,0,pos=1:5,5,0]'
+
+SCIDB QUERY : <scan(A)>
+{device,pos} val
+{1,1} 1.334
+{1,2} 2.445
+{1,3} 0.998
+{1,4} 2.004
+{1,5} 2.008
+{2,1} 1.334
+{2,3} 1.998
+{2,4} 2.006
+{2,5} 2.119
+{3,1} 1.334
+{3,2} 2.445
+{3,3} 1.667
+{3,4} 2.889
+{3,5} 2.118
+{4,1} 1.334
+{4,2} 2.445
+{4,3} 2.335
+{4,5} 2.667
+{5,1} 1.334
+{5,2} 2.667
+{5,4} 2.365
+{5,5} 2.556
+
+SCIDB QUERY : <create array Position <minVal:float null, avgVal:double null, maxVal:float null> [pos=1:5,5,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <redimension(A,Position, min(val) as minVal, avg(val) as avgVal, max(val) as maxVal)>
+{pos} minVal,avgVal,maxVal
+{1} 1.334,1.334,1.334
+{2} 2.445,2.5005,2.667
+{3} 0.998,1.7495,2.335
+{4} 2.004,2.316,2.889
+{5} 2.008,2.2936,2.667
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

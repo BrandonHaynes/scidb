@@ -1,0 +1,11 @@
+# testing create operator
+# http://trac.scidb.org/ticket/301#comment:18
+
+--setup
+create array A <A:int64>[x=-4611686018427387902:20,5,0]
+
+--test
+dimensions(A)
+
+--cleanup
+remove(A)

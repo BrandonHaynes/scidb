@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<chapter>
+  <title>Updating Arrays</title>
+
+  <para>When you use AQL or AFL to manipulate the contents of SciDB, the
+  operators and statements you use can have several effects:</para>
+
+  <itemizedlist>
+    <listitem>
+      <para>Most statements produce a result array without changing the
+      original array. For example, the AFL <code>filter()</code> operator
+      produces a result array based on data from an array you supply, but it
+      does not change the supplied array in any way.</para>
+    </listitem>
+
+    <listitem>
+      <para>Some statements change the metadata of an array in place, without
+      changing the data and without producing a result array. For example, the
+      AFL <code>rename()</code> operator changes the name of an array, but
+      does not produce a result array (which means that you cannot use the
+      <code>rename()</code> operator as an operand in any other AFL
+      operator.)</para>
+    </listitem>
+
+    <listitem>
+      <para>Some statements change the data of an array in place, and
+      simultaneously produce a result array that you can use as an operand of
+      another AQL operator. For example, the AFL <code>insert()</code>
+      operator modifies the contents—i,e., the data rather than the schema
+      definition—of an array, and also produces a result array that reflects
+      the contents of the stored array after the insertion operation.</para>
+    </listitem>
+  </itemizedlist>
+
+  <para>This chapter describes some AQL statements that fall into the third
+  category—that is, AQL statements that perform write-in-place updates to
+  stored array data.</para>
+
+  <para>When you modify the contents of a persistent array (that is, an array
+  created without the TEMP keyword), SciDB uses a "no overwrite" storage
+  model. No overwrite means that data can be updated but previous values can
+  be accessed for as long as the array exists in the SciDB namespace. Every
+  time you update data in a persistent array, SciDB creates a new array
+  version, much like source control systems for software development.</para>
+
+  <para>This chapter describes the following AQL statements that perform
+  in-place updates:<itemizedlist>
+      <listitem>
+        <para><indexterm>
+            <primary>update</primary>
+          </indexterm>The AQL UPDATE ... SET statement lets you update the
+        values of attributes within cells that already exist in an array. The
+        new values come from an expression you supply. The UPDATE ... SET
+        statement is designed for "point" updates or selective updates; it is
+        especially useful after a large data set has been imported and some
+        values contain errors that you want to correct.</para>
+      </listitem>
+
+      <listitem>
+        <para><indexterm>
+            <primary>insert</primary>
+
+            <secondary>into</secondary>
+          </indexterm>The AQL INSERT INTO statement lets you update attribute
+        values and insert new cells into an existing array. The new values
+        come from another array with a compatible schema. The INSERT INTO
+        statement is designed for bulk or batch updates of new data to be
+        appended to existing data, such as including daily incremental feeds
+        of financial data. The INSERT INTO statement has both add and update
+        semantics. That is, if a cell already exists, you can use INSERT to
+        update its values, and if a cell does not yet exist, INSERT INTO will
+        create a new cell and populate it with attribute values.</para>
+      </listitem>
+    </itemizedlist></para>
+
+  <section>
+    <title>The INSERT INTO statement</title>
+
+    <para><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>insert into</secondary>
+      </indexterm><indexterm>
+        <primary>insert</primary>
+
+        <secondary>literals</secondary>
+      </indexterm>The AQL INSERT statement can modify an array's contents by
+    changing values in existing cells, inserting values in empty cells, or
+    both.<programlisting>AQL% <command>INSERT 
+         INTO</command> <replaceable>named_arrray</replaceable> <replaceable>
+         select_statement</replaceable> | <replaceable>array_literal </replaceable>;</programlisting></para>
+
+    <para>The most straightforward AQL INSERT statement simply inserts the
+    contents of one array into another. The following statement inserts the
+    contents of A into B:<programlisting lang="test" language="test">--aql create array aFlat 
+      &lt;row:int64, col:int64, value:string null&gt; 
+      [csvRow=0:5,6,0]
+ --show-query=no
+ --show-output=no
+
+--shell --command=csv2scidb -s 1 -p NNs 
+            &lt; ${DOC_DATA}/aInsert.csv &gt; 
+              ${DOC_DATA}/aInsert.scidb
+ --show-query=no
+ --show-output=no
+
+--aql load aFlat 
+      from '${DOC_DATA}/aInsert.scidb'
+ --show-query=no
+ --show-output=no
+
+--aql create array A 
+      &lt;value:string null&gt; 
+      [row=1:3,3,0, col=1:3,3,0]
+ --show-query=no
+ --show-output=no
+
+--afl store(redimension(aFlat,A),A)
+ --show-query=no
+ --show-output=no
+
+--aql create array bFlat 
+      &lt;row:int64, col:int64, value:string null&gt; 
+      [csvRow=0:5,6,0]
+ --show-query=no
+ --show-output=no
+
+--shell --command=csv2scidb -s 1 -p NNs 
+                   &lt; ${DOC_DATA}/bInsert.csv &gt; 
+                   ${DOC_DATA}/bInsert.scidb
+ --show-query=no
+ --show-output=no
+
+--aql load bFlat from '${DOC_DATA}/bInsert.scidb'
+ --show-query=no
+ --show-output=no
+
+--aql create array B 
+             &lt;value:string null&gt; 
+             [row=1:3,3,0, col=1:3,3,0]
+ --show-query=no
+ --show-output=no
+
+--afl store(redimension(bFlat,B),B)
+ --show-query=no
+ --show-output=no
+
+--aql insert 
+          into B 
+          select * from A
+ --show-query=yes
+ --show-output=no
+
+--afl store(redimension(bFlat,B),B)
+ --show-query=no
+ --show-output=no
+</programlisting></para>
+
+    <para><indexterm>
+        <primary>insert into</primary>
+
+        <secondary>compatibility</secondary>
+      </indexterm>Although the syntax is straightforward, the operation of
+    this statement deserves elaboration. First, array A and B must have
+    compatible schemas. For the INSERT operations, compatibility includes the
+    same number of dimensions and attributes, same data-types and
+    null/not-null setting on each corresponding pair of attributes, and
+    restrictions on dimension starting indexes, chunk sizes, and chunk
+    overlaps. For the complete list of compatibility rules for insertion
+    operations, see the <link linkend="insertOperator">insert operator</link>
+    AFL reference topic.</para>
+
+    <para>Here is the schema for array A:</para>
+
+    <para><programlisting lang="test" language="test">--schema A 
+ --show-output=yes
+ --anon=no
+</programlisting>And here is the schema for array B. Note that A and B are
+    insert-compatible:</para>
+
+    <para><programlisting lang="test" language="test">--schema B
+ --show-output=yes
+ --anon=no
+</programlisting>Provided the two arrays are schema compatible, the insert
+    operator writes values into individual cells of the target array according
+    to the following rules:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>If the corresponding cell location of the source array is empty,
+        the insert operator does not change anything in the target array. At
+        that cell location of the target array, an empty cell would remain
+        empty, null values would remain null, and other values would remain
+        unchanged.</para>
+      </listitem>
+
+      <listitem>
+        <para>If the corresponding cell location of the source array is
+        non-empty, the insert operator changes the corresponding cell of the
+        target array to match the value of the source. Note that this means
+        that null values in the source can overwrite non-null values in the
+        target. Note that it also means that if the cell location of the
+        target array was initially empty, it will be non-empty after the
+        insert operation.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Continuing with the preceding example, here are the contents of A
+    and B before the insert operation:</para>
+
+    <para><programlisting lang="test" language="test">--afl store(redimension(aFlat,A),A)
+ --show-query=no
+ --show-output=no
+
+--aql select * from A
+ --output-format=dense
+ --chunkify=yes
+ --show-output=yes
+ --show-query=yes
+
+--afl store(redimension(bFlat,B),B)
+ --show-query=no
+ --show-output=no
+
+--aql select * from B
+ --output-format=dense
+ --chunkify=yes
+ --show-output=yes
+ --show-query=yes
+</programlisting>And here is the result of the insert operation:</para>
+
+    <para><programlisting lang="test" language="test">--aql insert 
+          into B 
+          select * from A
+ --output-format=dense
+ --chunkify=yes
+ --show-query=yes
+ --show-output=yes
+</programlisting><indexterm>
+        <primary>insert into</primary>
+
+        <secondary>results</secondary>
+      </indexterm>Compare the original and modified versions of array B and
+    note the following:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Where A contained empty cells, the corresponding cells of B are
+        unchanged. See row 1 of the output.</para>
+      </listitem>
+
+      <listitem>
+        <para>Where A contained non-empty cells, the corresponding cells of B
+        are changed. This includes replacing non-null values of B with null
+        values from the corresponding cells of A. (See cell [2,3].)</para>
+      </listitem>
+
+      <listitem>
+        <para>The count of non-empty cells in B has increased. (See the cells
+        at [2,1] and [3,1].)</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Although the source and target arrays must be compatible, you can
+    still insert values into one array from a seemingly incompatible array
+    with some judicious projecting. For example, consider array C, which has
+    two attributes:<programlisting lang="test" language="test">--aql create array cFlat 
+      &lt;row:int64, col:int64, value:string null, value2:string null&gt; 
+      [csvRow=0:8,9,0]
+ --show-query=no
+ --show-output=no
+
+--shell --command=csv2scidb -s 1 -p NNsS 
+            &lt; ${DOC_DATA}/cInsert.csv &gt; 
+              ${DOC_DATA}/cInsert.scidb
+ --show-query=no
+ --show-output=no
+
+--aql load cFlat 
+      from '${DOC_DATA}/cInsert.scidb'
+ --show-query=no
+ --show-output=no
+
+--aql create array C 
+      &lt;value:string null, value2:string null&gt; 
+      [row=1:3,3,0, col=1:3,3,0]
+ --show-query=no
+ --show-output=no
+
+--afl store(redimension(cFlat,C),C)
+ --show-query=no
+ --show-output=no
+
+--schema C 
+ --show-output=yes
+ --anon=no
+
+--aql select * from C
+ --output-format=dense
+ --chunkify=yes
+ --show-query=yes
+ --show-output=yes</programlisting></para>
+
+    <para>Although C is not insert-compatible with B (because B has fewer
+    attributes), you can insert values from C into B by projecting to exclude
+    one of C's attributes from the source of the insert statement, as
+    follows:</para>
+
+    <para><programlisting lang="test" language="test">--afl store(redimension(bFlat,B),B)
+ --show-query=no
+ --show-output=no
+
+--aql insert 
+          into B 
+          select value from C
+ --output-format=dense
+ --chunkify=yes
+ --show-query=yes
+ --show-output=yes
+</programlisting></para>
+
+    <para>Note that to be insert-compatible, two arrays must have the same
+    number of attributes and dimensions, but the attributes and dimensions do
+    not need to have the same names. The insert operator aligns dimensions
+    from the respective arrays in left-to-right order, and aligns attributes
+    from the respective arrays in the same way. The names of the attributes
+    and dimensions are immaterial. For example, following statement inserts
+    data from an attribute named value2 into array B, whose sole attribute is
+    named value:</para>
+
+    <para><programlisting lang="test" language="test">--afl store(redimension(bFlat,B),B)
+ --show-query=no
+ --show-output=no
+
+--aql insert 
+          into B 
+          select value2 from C
+ --output-format=dense
+ --chunkify=yes
+ --show-query=yes
+ --show-output=yes
+</programlisting></para>
+
+    <para><indexterm>
+        <primary>insert into</primary>
+
+        <secondary>literals</secondary>
+      </indexterm><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>literals</secondary>
+      </indexterm><indexterm>
+        <primary>literals, inserting</primary>
+      </indexterm>When supplying the array to be inserted in the source array,
+    you are not limited to a select statement. Alternative syntax lets you use
+    an array literal, as in the following command:</para>
+
+    <para><programlisting lang="test" language="test">--afl store(redimension(bFlat,B),B)
+ --show-query=no
+ --show-output=no
+
+--aql insert 
+          into B 
+          '[
+           [()()(333333333)]
+           [()(555555555)()]
+           [(777777777)()()]
+           ]'
+ --output-format=dense
+ --chunkify=yes
+ --show-query=yes
+ --show-output=yes
+</programlisting></para>
+  </section>
+
+  <section>
+    <title>The UPDATE ... SET statement</title>
+
+    <para><indexterm>
+        <primary>update</primary>
+      </indexterm><indexterm>
+        <primary>AQL</primary>
+
+        <secondary>update set</secondary>
+      </indexterm>To update data in an existing SciDB array, use the
+    statement:<programlisting>AQL% <command>UPDATE</command> <replaceable>array</replaceable> <command>SET</command> "<replaceable>attr</replaceable> = <replaceable>expr</replaceable>", ... [ <command>WHERE</command> <replaceable>condition</replaceable> ];</programlisting></para>
+
+    <para>Consider the following 2-dimensional array,
+    <code>m4x4</code>:<programlisting language="test">--afl store(build(&lt;val:double&gt;[i=0:3,4,0,j=0:3,4,0],i*4+j),m4x4); --show-query=yes --output-format=dense --chunkify=yes</programlisting>To
+    change every value in <code>val</code> to its additive inverse, run the
+    following:<programlisting language="test">--aql UPDATE m4x4 SET val=-val; --output-format=dense --chunkify=yes</programlisting>Use
+    the <code><command>WHERE</command></code> clause to choose attributes
+    based on conditions. For example, you can select only cells with absolute
+    values greater than 5 to set their multiplicative inverse:<programlisting
+    language="test">--aql UPDATE m4x4 SET val=-pow(val,-1) WHERE abs(val) &gt; 5; --output-format=dense --chunkify=yes</programlisting></para>
+  </section>
+
+  <section id="arrayVersions">
+    <title>Array Versions</title>
+
+    <para><indexterm>
+        <primary>arrays</primary>
+
+        <secondary>versions</secondary>
+      </indexterm><indexterm>
+        <primary>array versions</primary>
+      </indexterm><indexterm>
+        <primary>versions</primary>
+
+        <secondary>arrays</secondary>
+      </indexterm>When a persistent array is updated, a new array version is
+    created. SciDB stores the array versions. For example, in the previous
+    section, SciDB stored every version of m4x4 created by the
+    <code><command>UPDATE</command></code> command. Use the
+    <code>versions()</code> operator to see a list of the existing versions
+    for an array:<programlisting language="test">--afl versions(m4x4); --show-output-in-test-file=no</programlisting>You
+    can see the contents of any previous version of the array by using the
+    version number:<programlisting language="test">--afl scan(m4x4@1); --show-output-in-test-file=no --output-format=dense --chunkify=yes</programlisting>Or
+    the array timestamp:<programlisting>AQL% <command>SELECT</command> * <command>FROM</command> scan(m4x4@datetime('2012-11-19 1:20:50'));</programlisting><screen>[
+[0),(1),(2),(3)],
+[(4),(5),(6),(7)],
+[(8),(9),(10),(11)],
+[(12),(13),(14),(15)]
+]</screen></para>
+
+    <para>You can use the array version name in any query. The unqualified
+    name of the array always refers to the most recent version as of the start
+    of the query.</para>
+
+    <para>The AFL operator <command>remove_versions()</command> removes all
+    versions of an array older than the version you specify. See <xref
+    linkend="removeVersionsOperator"/> for details.</para>
+  </section>
+</chapter>

@@ -1,0 +1,1 @@
+subarray(vec, 1, length('vec', 'i')-1)

@@ -1,0 +1,15 @@
+--setup
+create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+store(build(A,x+2),B)
+create array C <c:int32>[y=0:2,3,0]
+store(build(C,y+10),C)
+
+--test
+cross_join(A,B,A.x,B.x)
+cross_join(A,C,x,y)
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

@@ -1,0 +1,127 @@
+SCIDB QUERY : <create array A <a:int32 null default 5> [x=0:2,3,0,y=2:5,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from filter(build(A,iif(x=0,y,null)),x<>1)>
+{x,y} a
+{0,2} 2
+{0,3} 3
+{2,2} null
+{2,3} null
+{0,4} 4
+{0,5} 5
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <select a from A>
+{x,y} a
+{0,2} 2
+{0,3} 3
+{2,2} null
+{2,3} null
+{0,4} 4
+{0,5} 5
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <select a+0 from A>
+{x,y} expr
+{0,2} 2
+{0,3} 3
+{2,2} null
+{2,3} null
+{0,4} 4
+{0,5} 5
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <select 0+a from A>
+{x,y} expr
+{0,2} 2
+{0,3} 3
+{2,2} null
+{2,3} null
+{0,4} 4
+{0,5} 5
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <update A set a = a + 1>
+{x,y} a
+{0,2} 3
+{0,3} 4
+{2,2} null
+{2,3} null
+{0,4} 5
+{0,5} 6
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <update A set a = a - 1>
+{x,y} a
+{0,2} 2
+{0,3} 3
+{2,2} null
+{2,3} null
+{0,4} 4
+{0,5} 5
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <update A set a = a * 1>
+{x,y} a
+{0,2} 2
+{0,3} 3
+{2,2} null
+{2,3} null
+{0,4} 4
+{0,5} 5
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <update A set a = a / 1>
+{x,y} a
+{0,2} 2
+{0,3} 3
+{2,2} null
+{2,3} null
+{0,4} 4
+{0,5} 5
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <update A set a = a * 10>
+{x,y} a
+{0,2} 20
+{0,3} 30
+{2,2} null
+{2,3} null
+{0,4} 40
+{0,5} 50
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <update A set a = a / 10>
+{x,y} a
+{0,2} 2
+{0,3} 3
+{2,2} null
+{2,3} null
+{0,4} 4
+{0,5} 5
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <update A set a = a / 2>
+{x,y} a
+{0,2} 1
+{0,3} 1
+{2,2} null
+{2,3} null
+{0,4} 2
+{0,5} 2
+{2,4} null
+{2,5} null
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

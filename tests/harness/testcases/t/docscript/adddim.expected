@@ -1,0 +1,36 @@
+SCIDB QUERY : <store(build(<val:double>[i=0:4,5,0],0),vector0)>
+{i} val
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+
+SCIDB QUERY : <store(build(<val:double>[j=0:4,5,0],1),vector1)>
+{j} val
+{0} 1
+{1} 1
+{2} 1
+{3} 1
+{4} 1
+
+SCIDB QUERY : <concat(vector0,vector1)>
+{i} val
+{0} 0
+{1} 0
+{2} 0
+{3} 0
+{4} 0
+{5} 1
+{6} 1
+{7} 1
+{8} 1
+{9} 1
+
+SCIDB QUERY : <concat(adddim(vector0,x),adddim(vector1,y))>
+[[(0),(0),(0),(0),(0)],[(1),(1),(1),(1),(1)]]
+
+Query was executed successfully
+
+Query was executed successfully
+

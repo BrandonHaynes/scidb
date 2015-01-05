@@ -1,0 +1,113 @@
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array event <event:string> [i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array year <year:int64>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array person <person:string>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array country <country:string>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array time <time:double>[i=0:11,12,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(event,iif(i<4,'dash',iif(i<8,'steeplechase','marathon'))),event)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(year,1996+(i%4 * 4)),year)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei, Kemboi,Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya, Kenya,Kenya,USA,Ethiopia,Italy,Kenya]',true),country)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12), (503.17),(485.81),(490.34),(7956),(7811),(7855),(7596)]',true),time)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(join(event,join(person,join(year,join(country,time)))),winnersFlat)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array event_index<event:string>[event_id=0:*,5,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(uniq(sort(project(winnersFlat,event)),'chunk_size=5'),event_index)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create_array(champions,<person:string,country:string,time:double> [year=1996:2008,13,0,event_id=0:3,3,0])>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension (project(index_lookup(winnersFlat,event_index, winnersFlat.event, event_id),person,year,country,time,event_id) ,champions),champions)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(champions)>
+{i} schema
+{0} 'champions<person:string,country:string,time:double> [year=1996:2008,13,0,event_id=0:3,3,0]'
+
+SCIDB QUERY : <select * into championsAbridged from project(champions,person)>
+{year,event_id} person
+{1996,0} 'Bailey'
+{1996,1} 'Thugwane'
+{1996,2} 'Keter'
+{2000,0} 'Greene'
+{2000,1} 'Abera'
+{2000,2} 'Kosgei'
+{2004,0} 'Gatlin'
+{2004,1} 'Baldini'
+{2004,2} 'Kemboi'
+{2008,0} 'Bolt'
+{2008,1} 'Wanjiru'
+{2008,2} 'Kipruto'
+
+SCIDB QUERY : <select * from show(championsAbridged)>
+{i} schema
+{0} 'championsAbridged<person:string> [year=1996:2008,13,0,event_id=0:3,3,0]'
+
+SCIDB QUERY : <store(build(<val1:double> [i=0:4,32,0, j=0:0,32,0], i),A)>
+[[(0)],[(1)],[(2)],[(3)],[(4)]]
+
+SCIDB QUERY : <store(build(<val2:double> [i=0:0,32,0, j=0:4,32,0], 10-j),B)>
+[[(10),(9),(8),(7),(6)]]
+
+SCIDB QUERY : <store(build(<val3:double> [i=0:4,32,0, j=0:4,32,0], 0),C)>
+[[(0),(0),(0),(0),(0)],[(0),(0),(0),(0),(0)],[(0),(0),(0),(0),(0)],[(0),(0),(0),(0),(0)],[(0),(0),(0),(0),(0)]]
+
+SCIDB QUERY : <show('gemm(A,B,C)','afl')>
+[('GEMM<gemm:double> [i=0:4,32,0,j=0:4,32,0]')]
+
+SCIDB QUERY : <show('select sum(val1) from A')>
+[('not empty A@1<sum:double NULL DEFAULT null> [i=0:0,1,0]')]
+
+SCIDB QUERY : <show('select stdev(val1) from A')>
+[('not empty A@1<stdev:double NULL DEFAULT null> [i=0:0,1,0]')]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

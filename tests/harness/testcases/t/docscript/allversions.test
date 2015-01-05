@@ -1,0 +1,18 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(build(<val:double>[i=0:2,3,0,j=0:2,3,0],0),m3x3)  
+store(build(m3x3,100),m3x3)  
+store(build(m3x3,200),m3x3)  
+allversions(m3x3)  
+--set-format dcsv
+show('allversions(m3x3)','afl') 
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m3x3)

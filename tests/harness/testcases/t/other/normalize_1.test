@@ -1,0 +1,35 @@
+# ticket no. 1444
+
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:2,3,0]
+create array B <a:double> [x=0:2,3,0]
+create array C <a:double> [x=0:2,3,0]
+create array D <a:double null> [x=0:2,3,0]
+create array E <a:double null> [x=0:2,3,0,y=-1:2,2,1]
+create array F <a:double null> [x=0:2,3,0,y=-1:2,2,1]
+
+store(build(A,x+10),A)
+store(build(B,x+10.5),B)
+store(filter(build(C,x+10.5),x<>1),C)
+store(build(D,iif(x=2,null,x+10.5)),D)
+store(build(E,iif(x=2,null,x+10.5)),E)
+store(filter(build(F,iif(x=2,null,x+10.5)),x<>0 and y<>0),F)
+
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR3 "normalize(A)"
+normalize(B)
+normalize(C)
+normalize(D)
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR2 "normalize(E)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_NORMALIZE_ERROR2 "normalize(F)"
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+remove(F)
+--stop-query-logging

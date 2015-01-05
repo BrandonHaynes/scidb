@@ -1,0 +1,23 @@
+--setup
+create  array A <a:int32>[x=0:2,3,0,y=1:6,3,0]
+store(build(A,x+y),A)
+store(build(A,x+y),B)
+create  array C <c:int32>[p=0:2,3,0,q=1:6,3,0]
+store(build(C,p-q),C)
+
+--test
+--aql update A set a = a + 20
+
+--aql update C set c = c + 50
+
+--aql select * from A join B on A.x = B.x
+--aql select * from A join B on B.y = A.y
+--aql select * from A join C on A.x = C.p
+--aql select * from A join C on C.q = A.y
+--aql select * from A join B on A.x = B.x and B.y = A.y
+--aql select * from C join A on A.x = C.p and C.q = A.y
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

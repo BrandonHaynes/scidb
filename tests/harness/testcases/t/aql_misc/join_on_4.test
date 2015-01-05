@@ -1,0 +1,17 @@
+--setup
+create array A <a:int32>[x=0:2,3,0]
+create array B <b:string>[y=0:2,3,0]
+store(build(A,x+1),A)
+store(build(B,'b'+string(y+1)),B)
+store(join(A,B),C)
+store(join(A,B),D)
+
+--test
+--aql select * from C join D on C.x = D.x
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+

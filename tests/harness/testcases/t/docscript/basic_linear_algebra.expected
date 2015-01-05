@@ -1,0 +1,88 @@
+SCIDB QUERY : <store(build(<val:double>[i=0:3,1000,0, j=0:3,1000,0], '[[1,2,3,4],[0,1,2,1],[0,0,-1,-5],[1,0,0,6]]',true),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(A)>
+[[(1),(2),(3),(4)],[(0),(1),(2),(1)],[(0),(0),(-1),(-5)],[(1),(0),(0),(6)]]
+
+SCIDB QUERY : <transpose( gemm( project(apply( cross_join( gesvd(A,'left') as X, gesvd(A, 'values') as Y, X.i_2, Y.i), val, u / sigma),val), gesvd(A,'right'),build(A,0)) )>
+[[(-6),(12),(6),(7)],[(9),(-17),(-7),(-9)],[(-5),(10),(4),(5)],[(1),(-2),(-1),(-1)]]
+
+SCIDB QUERY : <create array m2x3 <val:double> [row=0:1,32,0,col=0:2,32,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(m2x3,'[[.5,1.5,2.5],[1,2,3]]',true),m2x3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array m3x2 <val:double> [row=0:2,32,0,col=0:1,32,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(m3x2,'[[0,2],[1,3],[2,4]]',true),m3x2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(m2x3)>
+{i} schema
+{0} 'm2x3<val:double> [row=0:1,32,0,col=0:2,32,0]'
+
+SCIDB QUERY : <scan(m2x3)>
+[[(0.5),(1.5),(2.5)],[(1),(2),(3)]]
+
+SCIDB QUERY : <show(m3x2)>
+{i} schema
+{0} 'm3x2<val:double> [row=0:2,32,0,col=0:1,32,0]'
+
+SCIDB QUERY : <scan(m3x2)>
+[[(0),(2)],[(1),(3)],[(2),(4)]]
+
+SCIDB QUERY : <store(build(<val:double>[row=0:1,32,0, col=0:1,32,0],0),Zeros)>
+[[(0),(0)],[(0),(0)]]
+
+SCIDB QUERY : <gemm(m2x3,m3x2,Zeros)>
+[[(6.5),(15.5)],[(8),(20)]]
+
+SCIDB QUERY : <store(build(<val:double> [row=0:2,3,0,col=0:2,3,0],row*3+col),m3x3)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <scan(m3x3)>
+[[(0),(1),(2)],[(3),(4),(5)],[(6),(7),(8)]]
+
+SCIDB QUERY : <transpose(m3x3)>
+[[(0),(3),(6)],[(1),(4),(7)],[(2),(5),(8)]]
+
+SCIDB QUERY : <store(repart(m3x2,<val:double> [row=0:2,32,0, col=0:3,32,0]),new_m3x2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(m3x2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <rename(new_m3x2,m3x2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <show(m3x2)>
+{i} schema
+{0} 'm3x2<val:double> [row=0:2,32,0,col=0:3,32,0]'
+
+SCIDB QUERY : <scan(m3x2)>
+[[(0),(2),(),()],[(1),(3),(),()],[(2),(4),(),()]]
+
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <SELECT * FROM gesvd(m3x2, 'right')>
+[[(-0.362523),(-0.931975),(0),(0)],[(0.931975),(-0.362523),(0),(0)],[(0),(0),(1),(0)]]
+
+SCIDB QUERY : <SELECT * FROM gesvd(m3x2, 'left')>
+[[(-0.32311),(-0.853776),(0.408248)],[(-0.547507),(-0.18322),(-0.816497)],[(-0.771904),(0.487337),(0.408248)]]
+
+SCIDB QUERY : <SELECT * FROM gesvd(m3x2, 'values')>
+[(5.76878),(0.849223),(0)]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

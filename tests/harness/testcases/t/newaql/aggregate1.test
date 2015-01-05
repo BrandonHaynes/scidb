@@ -1,0 +1,67 @@
+--setup
+--start-query-logging
+# Ticket no: 1609
+# Tests for AQL
+# Tests for the Aggregates using fixed window and regrid of different size on 1-D arrays.
+# Tests involving dimension and attributes in the functions
+# Use repart to make overlap/chunk size compatible for natural join.
+# Use of Alias
+
+create array A <a:double> [x=-3:8,4,0]
+create array B <a:double> [x=-3:8,4,2]
+store(build(A,x*2),A)
+store(build(B,x*2),B)
+
+
+--test
+--aql select x,sum(a) from A group by x
+--aql select count(A)
+--aql select min(A)
+--aql select max(A)
+--aql select avg(A)
+--aql select sum(A)
+--aql select stdev(A)
+--aql select var(A)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 1)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 3)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 5)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 11)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 14)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 0 preceding and 1 following)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 1 preceding and 2 following)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 5 preceding and 6 following)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 7 preceding and 7 following)
+--aql select count ((select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 2)))
+--aql select count ((select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 0 preceding and 1 following)))
+--aql select count ((select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 3)))
+--aql select count ((select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A fixed window as (partition by x 1 preceding and 1 following)))
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from B
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from B regrid as (partition by x 1)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from B regrid as (partition by x 3)
+--aql select sum(a),max(a),min(a),avg(a),stdev(a),var(a),count(a) from A regrid as (partition by x 14)
+--aql select sin(a*x) from A
+--aql select x,sum(a) from A where x>3 group by x
+--aql select cos(a*a*2*x) from A where sqrt(a)<=x
+--aql select x,cos(a*a*2*x) from B where sqrt(a)<=x
+--aql select x,tan(a*a*2*x) from B
+--aql select  pow(sin(a), 2), pow(cos(x), 2) FROM B where x<0
+--aql select x,sin(x),cos(2*a*a*x/2),tan(a) from A where sqrt(x)>1
+--aql select x,sin(x),cos(2*a*a*x/2),tan(a) from A where (sqrt(x)+x)<3
+--aql select x,sin(x),cos(2*a*a*x/2),tan(a) from B where (sqrt(x)+x)<3
+--aql select * from A,B
+--aql select * from A,repart(B,<a:double> [x=-3:8,4,0])
+--aql select * from A,reverse(A)
+--aql select * from A,reverse(repart(B,<a:double> [x=-3:8,4,0]))
+--aql select * from A,reverse(A),reshape( subarray(sort(A,a,4),0,11), <a:double> [x=-3:8,4,0])
+--aql select * from A,reverse(A),reshape( subarray(sort(A,a,4),0,11), <a:double> [x=-3:8,4,0]) where x>0 and x<3
+--aql select Arr.x + 10 from A as Arr
+--aql select (Arr.a + 1),(Arr.a*10) from A as Arr
+--aql select (Brr.a + 1)+(Brr.a*10) from B as Brr
+
+
+--cleanup
+remove(A)
+remove(B)
+
+--stop-query-logging

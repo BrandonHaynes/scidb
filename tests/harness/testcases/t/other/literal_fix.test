@@ -1,0 +1,46 @@
+--setup
+--start-query-logging
+# Ticket number : 1859 & 1646
+# Tests to verify agggregate, filter, repart and joins-concat works with build literal.
+
+
+--test
+repart(build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),<a1:int64> [x=0:1,1,0, y=0:1,1,0])
+repart(build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),<a1:int64> [x=0:1,3,0, y=0:1,3,0])
+store(repart(build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),<a1:int64> [x=0:1,1,0, y=0:1,1,0]),Test1)
+show(Test1)
+
+join(build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true))
+
+join(build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),build(<a1:string> [x=0:1,2,0, y=0:1,2,0],'[[(alpha),(beta)],[(gamma),(theta)]]',true))
+
+join(build(<a1:int64,b1:char> [x=0:1,2,0, y=0:1,2,0],'[[(2,A),(-100,A)],[(-199,B),(-1,D)]]',true),build(<a1:string> [x=0:1,2,0, y=0:1,2,0],'[[(alpha),(beta)],[(gamma),(theta)]]',true))
+
+concat(build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true))
+
+cross_join(build(<a1:int64> [i=0:1,2,0, j=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),j,y)
+
+cross_join(build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true),build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[(2),(-100)],[(-199),(-1)]]',true))
+
+filter(build(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1),num>1)
+filter(build(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1),num=1)
+filter(build(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1),num<>1)
+filter(build(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1),num<>1 and num<>10)
+filter(build(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1),num<>1 and num<4 or num>9)
+
+--aql select max(a),max(b) from array(<a:double, b:float, c:string> [x=0:2,1,0], '[(1.4,inf,Bio)];[(4.6,inf,Phy)];[(0.5,7,Math)]')
+
+--aql select c+'hi' from array(<a:double, b:float, c:string> [x=0:2,1,0], '[(1.4,inf,Bio)];[(4.6,inf,Phy)];[(0.5,7,Math)]')
+
+--aql select sum(a) from array(<a:double, b:float, c:string> [x=0:2,1,0], '[(1.4,inf,Bio)];[(4.6,inf,Phy)];[(0.5,7,Math)]') fixed window W as (partition by x 0 preceding and 1 following)
+
+--aql select sum(a) from array(<a:double, b:float, c:string> [x=0:2,1,0], '[(1.4,inf,Bio)];[(4.6,inf,Phy)];[(0.5,7,Math)]') variable  window W as (partition by x unbound preceding and unbound following)
+
+--aql select a,sum(x+1),sum(a),sin(a),min(b) from array(<a:double, b:float, c:string> [x=0:2,1,0], '[(1.4,inf,Bio)];[(4.6,inf,Phy)];[(0.5,7,Math)]') variable  window W as (partition by x unbound preceding and unbound following)
+
+
+
+--cleanup
+remove(Test1)
+
+--stop-query-logging

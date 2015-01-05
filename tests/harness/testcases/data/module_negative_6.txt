@@ -1,0 +1,3 @@
+
+f() = g();  // 'f' is recursive (well, could be...)
+g() = 78;

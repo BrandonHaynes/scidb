@@ -1,0 +1,55 @@
+[Query was executed successfully, ignoring data output by this query.]
+
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <load(pairs_scale20,'/public/data/Kronecker/KroneckerGraph_scale20_edgefactor16.scidb')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(apply(pairs_scale20, v, 1.0), mat_scale20),mat_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale20, mat_scale20), product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(pairs_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(mat_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(product_scale20)>
+[Query was executed successfully, ignoring data output by this query.]
+

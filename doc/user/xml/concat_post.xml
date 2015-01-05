@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="concatOperator">
+  <refnamediv>
+    <refname>concat</refname>
+
+    <refpurpose><indexterm>
+        <primary>concatenate</primary>
+      </indexterm>Returns a result array that consists of all of the cells of
+    the first array, followed by all of the cells of the second
+    array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>concat(<replaceable>left_array</replaceable>,<replaceable>right_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The concat operator concatenates two arrays with the same number of
+    dimensions. Concatenation is performed by the left-most dimension. All
+    other dimensions of the input arrays must match. The left-most dimension
+    of both arrays must have a fixed size (not unbounded) and same chunk size
+    and overlap. Both inputs must have the same attributes.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example concatenates a 3<symbol role="symbolfont">×</symbol>2
+      matrix and a 2<symbol role="symbolfont">×</symbol>2 matrix.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 3<symbol role="symbolfont">×</symbol>2
+          matrix.<para><programlisting>AFL% store(build(&lt;val:double&gt;[row=0:2,6,0, col=0:1,2,0],row*2+col),left_array);
+       </programlisting><screen>[
+[(0),(1)],
+[(2),(3)],
+[(4),(5)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create a 2<symbol role="symbolfont">×</symbol>2array.<para><programlisting>AFL% store(build(&lt;val:double&gt;[row=0:1,6,0, col=0:1,2,0],pow( double(row*2+col+1),2.0)),right_array);
+       </programlisting><screen>[
+[(1),(4)],
+[(9),(16)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Concatenate left_array and right_array.<para><programlisting>AFL% concat(left_array,right_array);  </programlisting><screen>[
+[(0),(1)],
+[(2),(3)],
+[(4),(5)],
+[(1),(4)],
+[(9),(16)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>The schema of the result looks like this:<para><screen>{i} schema
+{0} 'left_array@1right_array@1&lt;val:double&gt; [row=0:4,6,0,col=0:1,2,0]'
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

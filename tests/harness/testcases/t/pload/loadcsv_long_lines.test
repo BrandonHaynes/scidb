@@ -1,0 +1,16 @@
+# Load a CSV file with lines longer than the initial size of "workbuf"
+# in tsv2scidb.cpp (currently 128).
+
+--setup
+--start-query-logging
+
+CREATE ARRAY Long_Lines < Probe_ID : string, Platform_ID : string, Entrez_Gene_ID : int32, Symbol   : string, Synonyms : string, Description : string, TaxOn_ID : int32, Count_Gene  : int32, Count_RefSeq  : int32, Unique_to_Gene : bool, Unique_to_Genome : bool, Unique_to_RefSeq : bool > [ Line=0:*,10,0]
+
+--test
+
+--shell --command "cat ${TEST_DATA_DIR}/long_lines_0.csv | loadcsv.py -n 1 -a Long_Lines -d ${IQUERY_HOST} -p ${IQUERY_PORT}"
+
+scan(Long_Lines)
+
+--cleanup
+remove(Long_Lines)

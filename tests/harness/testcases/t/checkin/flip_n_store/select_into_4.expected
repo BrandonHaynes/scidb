@@ -1,0 +1,51 @@
+SCIDB QUERY : <create array A <a:int32, b:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array T <a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <a:int32> [b(int32)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into C from B>
+{b} a
+
+SCIDB QUERY : <select * into A from build(T,x+1),build(T,x+10)>
+{x} a,b
+{0} 1,10
+{1} 2,11
+{2} 3,12
+
+SCIDB QUERY : <select * into B from A>
+{b} a
+{10} 1
+{11} 2
+{12} 3
+
+SCIDB QUERY : <select b,a into C from A>
+{b} a
+{10} 1
+{11} 2
+{12} 3
+
+SCIDB QUERY : <select b into D from A>
+{x} b
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(T)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+

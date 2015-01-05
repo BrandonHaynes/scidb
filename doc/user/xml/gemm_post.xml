@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="gemmOperator">
+  <refnamediv>
+    <refname>gemm</refname>
+
+    <refpurpose><indexterm>
+        <primary>gemm</primary>
+      </indexterm>Produces <emphasis><emphasis role="bold">AB</emphasis></emphasis> + <emphasis><emphasis role="bold">C</emphasis></emphasis>, given three matrix arrays
+    <emphasis><emphasis role="bold">A</emphasis></emphasis>,
+    <emphasis><emphasis role="bold">B</emphasis></emphasis>, and
+    <emphasis><emphasis role="bold">C</emphasis></emphasis>.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>gemm(<replaceable>A_matrix</replaceable>, <replaceable>B_matrix</replaceable>, <replaceable>C_matrix</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Library</title>
+
+    <para>The <code>gemm</code> operator resides in the Dense Linear Algebra
+    library. Run the following query to load this library:<programlisting>AFL% load_library('dense_linear_algebra');</programlisting></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The gemm operator multiplies matrices <emphasis><emphasis role="bold">A</emphasis></emphasis> and <emphasis><emphasis role="bold">B</emphasis></emphasis> then adds <emphasis><emphasis role="bold">C</emphasis></emphasis>. Matrices <emphasis><emphasis role="bold">A</emphasis></emphasis> and <emphasis><emphasis role="bold">B</emphasis></emphasis> must must be compatible for matrix
+    multiplication and addition.</para>
+
+    <para>Given that <emphasis><emphasis role="bold">A</emphasis></emphasis>
+    has dimensions <emphasis><constant>m</constant></emphasis> <symbol role="symbolfont">×</symbol> <emphasis><constant>n</constant></emphasis>,
+    then <emphasis><emphasis role="bold">B</emphasis></emphasis> must have
+    dimensions <emphasis><constant>n</constant></emphasis> <symbol role="symbolfont">×</symbol> <emphasis><constant>p</constant></emphasis>.
+    That is, the number of columns of <emphasis><emphasis role="bold">A</emphasis></emphasis> must equal the number of rows of
+    <emphasis><emphasis role="bold">B</emphasis></emphasis>.
+    <emphasis><emphasis role="bold"> C</emphasis></emphasis> must have
+    dimensions <emphasis><constant>m</constant></emphasis> <symbol role="symbolfont">×</symbol> <emphasis><constant>p</constant></emphasis>.
+    The result has the same dimensions as <emphasis><emphasis role="bold">C</emphasis></emphasis>.</para>
+
+    <para>For more information, see the following web pages:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Matrix multiplication in general: <ulink url="http://en.wikipedia.org/wiki/Matrix_multiplication">http://en.wikipedia.org/wiki/Matrix_multiplication</ulink></para>
+      </listitem>
+
+      <listitem>
+        <para>GEMM: <ulink url="http://en.wikipedia.org/wiki/General_Matrix_Multiply">http://en.wikipedia.org/wiki/General_Matrix_Multiply</ulink></para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <itemizedlist>
+      <listitem>
+        <para>The first attribute of all three arrays must be of type
+        <literal>double</literal>. All other attributes are ignored.</para>
+      </listitem>
+
+      <listitem>
+        <para>The chunks of the input matrices must be square, and must have a
+        chunk interval between 32 and 1024.</para>
+      </listitem>
+
+      <listitem>
+        <para>Each dimension of each matrix must have the following
+        characteristics:<itemizedlist mark="endash">
+            <listitem>
+              <para>Currently, the starting index must be zero.</para>
+            </listitem>
+
+            <listitem>
+              <para>The ending index cannot be '*'.</para>
+            </listitem>
+
+            <listitem>
+              <para>Currently, the chunk overlap must be zero.</para>
+            </listitem>
+          </itemizedlist></para>
+      </listitem>
+
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example creates three matrices and calculates the
+      gemm.</para>
+
+      <procedure>
+        <step>
+          <para>Ensure that the <literal>dense_linear_algebra</literal>
+          library is loaded.<para><programlisting>AFL% load_library('dense_linear_algebra');  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Create matrices <emphasis><emphasis role="bold">A</emphasis></emphasis>, <emphasis><emphasis role="bold">B</emphasis></emphasis>, and <emphasis><emphasis role="bold">C</emphasis></emphasis>. <para><programlisting>AFL% CREATE ARRAY A &lt;val:double&gt; [i=0:1,32,0,j=0:1,32,0];  </programlisting><programlisting>AFL% store(build (A, i*2 + j + 1), A);  </programlisting><screen>[
+[(1),(2)],
+[(3),(4)]
+]</screen><para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:1,32,0,j=0:1,32,0],iif(i=j,1,0)),B);
+    </programlisting><screen>[
+[(1),(0)],
+[(0),(1)]
+]</screen><para><programlisting>AFL% CREATE ARRAY C &lt;val:double&gt; [i=0:1,32,0,j=0:1,32,0];  </programlisting><programlisting>AFL% store(build (C, 1), C);  </programlisting><screen>[
+[(1),(1)],
+[(1),(1)]
+]</screen></para></para></para></para>
+        </step>
+
+        <step>
+          <para>Perform the gemm calculation.<para><programlisting>AFL% gemm(A,B,C);  </programlisting><screen>[
+[(2),(3)],
+[(4),(5)]
+]</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

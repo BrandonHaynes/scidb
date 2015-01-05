@@ -1,0 +1,206 @@
+SCIDB QUERY : <load_library('point')>
+Query was executed successfully
+
+SCIDB QUERY : <create array A <a:int32>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:point>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <c:rational>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Z <a:int32,b:point,c:point> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Y <a:int32,b:point,c:rational> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x+1),A)>
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+SCIDB QUERY : <store(apply(apply(A,b,point2str(str2point('(1,1)'))) As N1,c,point2str(str2point('(3,2)'))) As N2,ZZ)>
+{x} a,b,c
+{0} 1,'(1,1)','(3,2)'
+{1} 2,'(1,1)','(3,2)'
+{2} 3,'(1,1)','(3,2)'
+
+SCIDB QUERY : <store(apply(apply(A,b,point2str(str2point('(1,1)'))) As N1,c,str(rational(x+3,2))) As N2,YY)>
+{x} a,b,c
+{0} 1,'(1,1)','(3/2)'
+{1} 2,'(1,1)','(2/1)'
+{2} 3,'(1,1)','(5/2)'
+
+SCIDB QUERY : <select * from show(ZZ)>
+{i} schema
+{0} 'ZZ<a:int32,b:string,c:string> [x=0:2,3,0]'
+
+SCIDB QUERY : <select * from show(YY)>
+{i} schema
+{0} 'YY<a:int32,b:string,c:string> [x=0:2,3,0]'
+
+SCIDB QUERY : <save ZZ into current instance 'zzz.txt' as 'text'>
+{x} a,b,c
+{0} 1,'(1,1)','(3,2)'
+{1} 2,'(1,1)','(3,2)'
+{2} 3,'(1,1)','(3,2)'
+
+SCIDB QUERY : <load Z from current instance 'zzz.txt' as 'text'>
+{x} a,b,c
+{0} 1,'(1,1)','(3,2)'
+{1} 2,'(1,1)','(3,2)'
+{2} 3,'(1,1)','(3,2)'
+
+SCIDB QUERY : <save YY into current instance 'yyy.txt' as 'text'>
+{x} a,b,c
+{0} 1,'(1,1)','(3/2)'
+{1} 2,'(1,1)','(2/1)'
+{2} 3,'(1,1)','(5/2)'
+
+SCIDB QUERY : <load Y from current instance 'yyy.txt' as 'text'>
+{x} a,b,c
+{0} 1,'(1,1)','(3/2)'
+{1} 2,'(1,1)','(2/1)'
+{2} 3,'(1,1)','(5/2)'
+
+SCIDB QUERY : <save ZZ into current instance 'mathio.bin' as '(int32,point,point)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3,2)'
+{1} 2,'(1,1)','(3,2)'
+{2} 3,'(1,1)','(3,2)'
+
+SCIDB QUERY : <load Z from  current instance 'mathio.bin' as '(int32,point,point)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3,2)'
+{1} 2,'(1,1)','(3,2)'
+{2} 3,'(1,1)','(3,2)'
+
+SCIDB QUERY : <save YY into current instance 'trigno.bin' as '(int32,point,rational)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3/2)'
+{1} 2,'(1,1)','(2/1)'
+{2} 3,'(1,1)','(5/2)'
+
+SCIDB QUERY : <load Y from current instance 'trigno.bin' as '(int32,point,rational)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3/2)'
+{1} 2,'(1,1)','(2/1)'
+{2} 3,'(1,1)','(5/2)'
+
+SCIDB QUERY : <save ZZ into current instance 'mat.dmp' as '(int32,string,string)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3,2)'
+{1} 2,'(1,1)','(3,2)'
+{2} 3,'(1,1)','(3,2)'
+
+SCIDB QUERY : <save YY into current instance 'tri.dmp' as '(int32,string,string)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3/2)'
+{1} 2,'(1,1)','(2/1)'
+{2} 3,'(1,1)','(5/2)'
+
+SCIDB QUERY : <load Z from  current instance 'mathio.bin' as '(int32,point,point)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3,2)'
+{1} 2,'(1,1)','(3,2)'
+{2} 3,'(1,1)','(3,2)'
+
+SCIDB QUERY : <load Z from  current instance 'mat.dmp' as '(int32,string,string)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3,2)'
+{1} 2,'(1,1)','(3,2)'
+{2} 3,'(1,1)','(3,2)'
+
+SCIDB QUERY : <load Y from  current instance 'mat.dmp' as '(int32,string,string)'>
+[An error expected at this place for the query "load Y from  current instance 'mat.dmp' as '(int32,string,string)'". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load Y from  current instance 'mat.dmp' as '(int32,string,string)' errors 100 shadow array Y_shad>
+{x} a,b,c
+{0} 1,'(1,1)','(0/1)'
+{1} 2,'(1,1)','(0/1)'
+{2} 3,'(1,1)','(0/1)'
+
+SCIDB QUERY : <load Y from current instance 'tri.dmp' as '(int32,string,string)'>
+{x} a,b,c
+{0} 1,'(1,1)','(3/2)'
+{1} 2,'(1,1)','(2/1)'
+{2} 3,'(1,1)','(5/2)'
+
+SCIDB QUERY : <load B from  current instance 'mat.dmp' as '(dummy(4),string,dummy(10))'>
+{x} b
+{0} '(1,1)'
+{1} '(1,1)'
+{2} '(1,1)'
+
+SCIDB QUERY : <load B from  current instance 'mat.dmp' as '(dummy(4),dummy(10),string)'>
+{x} b
+{0} '(3,2)'
+{1} '(3,2)'
+{2} '(3,2)'
+
+SCIDB QUERY : <load C from  current instance 'tri.dmp' as '(dummy(4),string,dummy(10))'>
+[An error expected at this place for the query "load C from  current instance 'tri.dmp' as '(dummy(4),string,dummy(10))'". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load C from  current instance 'tri.dmp' as '(dummy(4),string,dummy(10))' errors 100 shadow array C_shad>
+{x} c
+{0} '(0/1)'
+{1} '(0/1)'
+{2} '(0/1)'
+
+SCIDB QUERY : <load C from  current instance 'tri.dmp' as '(dummy(4),dummy(10),string)'>
+{x} c
+{0} '(3/2)'
+{1} '(2/1)'
+{2} '(5/2)'
+
+SCIDB QUERY : <load C from  current instance 'tri.dmp' as '(dummy(4),dummy(10),rational)'>
+[An error expected at this place for the query "load C from  current instance 'tri.dmp' as '(dummy(4),dummy(10),rational)'". And it failed with error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED. Expected error code = scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED.]
+
+SCIDB QUERY : <load B from  current instance 'mathio.bin' as '(dummy(4),dummy(16),point)'>
+{x} b
+{0} '(3,2)'
+{1} '(3,2)'
+{2} '(3,2)'
+
+SCIDB QUERY : <load C from current instance 'trigno.bin' as '(dummy(4),dummy(16),rational)'>
+{x} c
+{0} '(3/2)'
+{1} '(2/1)'
+{2} '(5/2)'
+
+SCIDB QUERY : <load B from current instance 'trigno.bin' as '(dummy(4),point,dummy(16))'>
+{x} b
+{0} '(1,1)'
+{1} '(1,1)'
+{2} '(1,1)'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Y)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ZZ)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(YY)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Y_shad)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C_shad)>
+Query was executed successfully
+

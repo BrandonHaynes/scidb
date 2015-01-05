@@ -1,0 +1,32 @@
+SCIDB QUERY : <create array A <a:string> [x=-2:3,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <show('select * from A')>
+{i} schema
+{0} 'A<a:string> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show('select sum(a) from A')>
+{i} schema
+{0} 'not empty A<sum:string NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <show('select sum(a) from A', 'aql')>
+{i} schema
+{0} 'not empty A<sum:string NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <show('select sum(a) from A', 'AQL')>
+{i} schema
+{0} 'not empty A<sum:string NULL DEFAULT null> [i=0:0,1,0]'
+
+SCIDB QUERY : <show('scan(A)', 'afl')>
+{i} schema
+{0} 'A<a:string> [x=-2:3,2,1]'
+
+SCIDB QUERY : <show('scan(A)', 'blah')>
+[An error expected at this place for the query "show('scan(A)', 'blah')". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_LANGUAGE_STRING. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_LANGUAGE_STRING.]
+
+SCIDB QUERY : <show('scan(A)')>
+[An error expected at this place for the query "show('scan(A)')". And it failed with error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR. Expected error code = scidb::SCIDB_SE_PARSER::SCIDB_LE_QUERY_PARSING_ERROR.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

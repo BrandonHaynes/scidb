@@ -1,0 +1,411 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="redimension">
+    <refname>redimension</refname>
+
+    <refpurpose><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>adding</secondary>
+      </indexterm><indexterm>
+        <primary>dimensions</primary>
+
+        <secondary>redimensioning</secondary>
+      </indexterm><indexterm>
+        <primary>redimension</primary>
+
+        <secondary>operator</secondary>
+      </indexterm>Produces a result array using some or all of the variables
+    of a source array, potentially changing some or all of those variables
+    from dimensions to attributes or vice versa, and optionally calculating
+    aggregates to be included in the result array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>AFL% redimension(<replaceable>source_array</replaceable>,<replaceable>
+                 template_array</replaceable>|<replaceable>schema_definition
+                 </replaceable><optional>, <replaceable>aggregate_call_n </replaceable>(source_attribute) 
+                            [as result_attribute]</optional>...)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The redimension operator produces a result array using data from a
+    source array.</para>
+
+    <para>When you use redimension, you must decide two things:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>How will the variables of the source array appear in the result
+        array?</para>
+      </listitem>
+
+      <listitem>
+        <para>How will cell collisions be handled?</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>For each variable of the source array, you have these choices for
+    how to use it in the result array:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Include the variable without modification (i.e., an attribute
+        remains an attribute and a dimension remains a dimension).</para>
+
+        <para>To include an attribute without modification, simply include in
+        the schema definition of the result array an attribute of the same
+        data type with the same name. The analogous rule holds for including
+        dimensions without modification.</para>
+      </listitem>
+
+      <listitem>
+        <para>Include the variable, but convert it (from an attribute to a
+        dimension or vice versa)</para>
+
+        <para>To convert an attribute to a dimension, simply include in the
+        schema definition for the result array a dimension with the same name
+        and datatype as the attribute from the source array. The analogous
+        process holds for converting dimensions to attributes.</para>
+      </listitem>
+
+      <listitem>
+        <para>Exclude the variable</para>
+
+        <para>To exclude a variable, simply omit it from the schema definition
+        of the result array. Even if you exclude a variable, its data can
+        still contribute to the result array through aggregates.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Note that a single use of the redimension operator can make all of
+    the above kinds of modifications to the various variables in the source
+    array.</para>
+
+    <para>Depending on how you arrange the source array's variables in the
+    target array, the redimension operator might encounter cell collisions. A
+    cell collision occurs when the redimension operator generates multiple
+    candidate cell values for a single cell location of the target
+    array.</para>
+
+    <para><indexterm>
+        <primary>collisions</primary>
+      </indexterm><indexterm>
+        <primary>cell collisions</primary>
+      </indexterm>If the redimension operator produces a collision at a cell
+    location, SciDB will produce a single cell from all of the candidate
+    cells. The attributes of that cell in the target array will be populated
+    as follows:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>If the target attribute was declared as the value of an
+        aggregate function, the value will be the value of that function
+        calculated over the set of candidate cells for that cell location. For
+        each aggregate you calculate, a nullable attribute to accommodate it
+        must exist in the target array's schema. The attribute must have the
+        appropriate datatype for that aggregate function.</para>
+      </listitem>
+
+      <listitem>
+        <para>If the target attribute is simply the value of an attribute from
+        the source array (rather than an aggregate function), the value of the
+        target attribute will be from an arbitrarily chosen candidate cell for
+        that location. If there are several such attributes in the target
+        array, their values will all come from the same candidate cell.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The schema for the result array must accommodate the output of the
+    redimension operator. Specifically:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>If a variable in the source array appears in the result array,
+        the two variables must match in name and data type.</para>
+      </listitem>
+
+      <listitem>
+        <para>If the redimension operator uses an aggregate, an attribute for
+        that aggregate value must exist in the result array. The attribute
+        must allow nulls and must be of the appropriate datatype for that
+        aggregate function.</para>
+      </listitem>
+
+      <listitem>
+        <para>The result array cannot include any other variables besides
+        variables that appear in the source array, and attributes to
+        accommodate aggregate values.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Inputs</title>
+
+    <para>The <literal>redimension</literal> operator takes the following
+    arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">source_array</emphasis>: a source array
+          with one or more attributes and one or more dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">template_array |
+          schema_definition</emphasis>: an array or schema from which the
+          output attributes and dimensions can be acquired. All the dimensions
+          in the target must exist either in the source array attributes or
+          dimensions, with one exception. One new, synthetic dimension is
+          allowed. All the target attributes (other than those that are the
+          results of aggregate calls) must exist either in the source array
+          attributes or dimensions.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">aggregate_call</emphasis>_<replaceable>n</replaceable>:
+          Zero or more aggregate calls.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Limitations</title>
+
+    <itemizedlist>
+      <listitem>
+        <para>Each attribute or dimension to be changed must be of type
+        int64.</para>
+      </listitem>
+
+      <listitem>
+        <para>Except for newly added aggregate values, the variables in the
+        new array must be a subset of the variables in the source
+        array.</para>
+      </listitem>
+
+      <listitem>
+        <para>If a dimension of the new array corresponds to an attribute of
+        the source array:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>The dimension must be large enough to accommodate all
+            distinct values of that attribute present in the source
+            array.</para>
+          </listitem>
+
+          <listitem>
+            <para>The attribute in the source array can allow null values, but
+            cells for which the attribute is null will not be included in the
+            output.</para>
+          </listitem>
+        </itemizedlist>
+      </listitem>
+
+      <listitem>
+        <para>If you use aggregates as part of the redimension operator, the
+        destination attributes—the attributes that will contain the aggregate
+        values—must allow null values.</para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example redimensions a raw 1-dimensional array into a
+      2-dimensional array by transforming two of the attributes into
+      dimensions. This example uses the data set in the file raw.csv shown
+      here: <para><screen>pos,device,val
+1,1,1.334
+1,2,1.334
+1,3,1.334
+1,4,1.334
+1,5,1.334
+2,1,2.445
+2,3,2.445
+2,4,2.445
+2,5,2.667
+3,1,0.998
+3,2,1.998
+3,3,1.667
+3,4,2.335
+4,1,2.004
+4,2,2.006
+4,3,2.889
+4,5,2.365
+5,1,2.008
+5,2,2.119
+5,3,2.118
+5,4,2.667
+5,5,2.556
+
+</screen></para></para>
+
+      <procedure>
+        <step>
+          <para>Create an array named raw, to accommodate the data shown in
+          the listing above. <para><programlisting>AQL% <command>CREATE ARRAY</command> raw 
+      &lt;pos: int64, device: int64, val: float&gt; 
+      [offset=0:*,5,0];
+  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Convert the csv file to SciDB format. You will need to exit
+          your iquery session or do this in a new terminal window because the
+          csv2scidb tool is run at the command line.<para><programlisting>$ csv2scidb -p NNN -s 1 
+          &lt; $DOC_DATA/raw.csv &gt; 
+            $DOC_DATA/raw.scidb
+  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Load the data:<para><programlisting>AQL% <command>LOAD</command> raw <command>FROM</command> '../tests/harness/testcases/data/doc/raw.scidb';
+  </programlisting><screen>{offset} pos,device,val
+{0} 1,1,1.334
+{1} 1,2,1.334
+{2} 1,3,1.334
+{3} 1,4,1.334
+{4} 1,5,1.334
+{5} 2,1,2.445
+{6} 2,3,2.445
+{7} 2,4,2.445
+{8} 2,5,2.667
+{9} 3,1,0.998
+{10} 3,2,1.998
+{11} 3,3,1.667
+{12} 3,4,2.335
+{13} 4,1,2.004
+{14} 4,2,2.006
+{15} 4,3,2.889
+{16} 4,5,2.365
+{17} 5,1,2.008
+{18} 5,2,2.119
+{19} 5,3,2.118
+{20} 5,4,2.667
+{21} 5,5,2.556
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create an array with dimensions device and pos to be the
+          redimension target:<para><programlisting>AQL% <command>CREATE ARRAY</command> A
+      &lt;val: float&gt;
+      [device=1:5,5,0, pos=1:5,5,0];
+  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Redimension the source array raw into result array
+          A:<para><programlisting>AFL% redimension(raw, A);
+  </programlisting><screen>{device,pos} val
+{1,1} 1.334
+{1,2} 2.445
+{1,3} 0.998
+{1,4} 2.004
+{1,5} 2.008
+{2,1} 1.334
+{2,3} 1.998
+{2,4} 2.006
+{2,5} 2.119
+{3,1} 1.334
+{3,2} 2.445
+{3,3} 1.667
+{3,4} 2.889
+{3,5} 2.118
+{4,1} 1.334
+{4,2} 2.445
+{4,3} 2.335
+{4,5} 2.667
+{5,1} 1.334
+{5,2} 2.667
+{5,4} 2.365
+{5,5} 2.556
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Redimension the source array raw into result array A and store
+          the result. Remember, the redimension operator produces a result
+          array, but does not store the result.<para><programlisting>AFL% store(redimension(raw, A),A);
+  </programlisting></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example redimensions a 2-dimensional source array into a
+      1-dimensional result array with aggregates. The result array has one
+      cell for each row of the source array.</para>
+
+      <procedure>
+        <step>
+          <para>Show the schema of the 2-dimensional source
+          array:<para><programlisting>AFL% show(A);
+  </programlisting><screen>{i} schema
+{0} 'A&lt;val:float&gt; [device=1:5,5,0,pos=1:5,5,0]'
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Show the contents of the 2-dimensional source
+          array:<para><programlisting>AFL% scan(A);
+  </programlisting><screen>{device,pos} val
+{1,1} 1.334
+{1,2} 2.445
+{1,3} 0.998
+{1,4} 2.004
+{1,5} 2.008
+{2,1} 1.334
+{2,3} 1.998
+{2,4} 2.006
+{2,5} 2.119
+{3,1} 1.334
+{3,2} 2.445
+{3,3} 1.667
+{3,4} 2.889
+{3,5} 2.118
+{4,1} 1.334
+{4,2} 2.445
+{4,3} 2.335
+{4,5} 2.667
+{5,1} 1.334
+{5,2} 2.667
+{5,4} 2.365
+{5,5} 2.556
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create an array for the 1-dimensional result; note that the
+          attributes are declared to allow null values:<para><programlisting>AQL% <command>CREATE ARRAY</command> Position 
+         &lt;minVal:float null, 
+          avgVal:double null, 
+          maxVal:float null&gt; 
+         [pos=1:5,5,0];
+  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Use the redimension operator to produce the 1-dimensional
+          result array that includes aggregates:<para><programlisting>AFL% redimension(A,Position,
+            min(val) as minVal, 
+            avg(val) as avgVal, 
+            max(val) as maxVal);
+  </programlisting><screen>{pos} minVal,avgVal,maxVal
+{1} 1.334,1.334,1.334
+{2} 2.445,2.5005,2.667
+{3} 0.998,1.7495,2.335
+{4} 2.004,2.316,2.889
+{5} 2.008,2.2936,2.667
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

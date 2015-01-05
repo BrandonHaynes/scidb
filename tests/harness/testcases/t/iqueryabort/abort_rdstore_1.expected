@@ -1,0 +1,55 @@
+SCIDB QUERY : <CREATE ARRAY ABRLOAD <a:double compression 'dictionary'> [x=0:1999,10,0, y=0:1999,10,0]>
+Query was executed successfully
+
+SCIDB QUERY : <CREATE array ABRREDIM <x:int64>[a(double)=*,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(ABRLOAD, x+y), ABRLOAD)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <count(ABRLOAD)>
+{i} count
+{0} 4000000
+
+SCIDB QUERY : <count(ABRREDIM)>
+{i} count
+{0} 0
+
+"killquery redimension_store (signal 2)"
+SCIDB QUERY : <../utils/killquery.sh -afl 2 1 'store(redimension(ABRLOAD, ABRREDIM), ABRREDIM)' 1> /tmp/${HPID}_1.stdout || echo FAILURE>
+
+"killquery redimension_store (signal 15)"
+SCIDB QUERY : <../utils/killquery.sh -afl 15 1 'store(redimension(ABRLOAD, ABRREDIM), ABRREDIM)' 1> /tmp/${HPID}_2.stdout || echo FAILURE>
+
+"killquery redimension_store (signal 9)"
+SCIDB QUERY : <../utils/killquery.sh -afl 9 1 'store(redimension(ABRLOAD, ABRREDIM), ABRREDIM)' 1> /tmp/${HPID}_3.stdout || echo FAILURE>
+
+SCIDB QUERY : <count(ABRLOAD)>
+{i} count
+{0} 4000000
+
+SCIDB QUERY : <project(versions(ABRLOAD),version_id)>
+{VersionNo} version_id
+{1} 1
+
+"should be empty..."
+SCIDB QUERY : <count(ABRREDIM)>
+{i} count
+{0} 0
+
+SCIDB QUERY : <versions(ABRREDIM)>
+{VersionNo} version_id,timestamp
+
+SCIDB QUERY : <project(sort(filter(list('arrays'), regex(name,'ABR.*'))),name,schema)>
+{n} name,schema
+{0} 'ABRLOAD','ABRLOAD<a:double COMPRESSION \'dictionary\'> [x=0:1999,10,0,y=0:1999,10,0]'
+{1} 'ABRREDIM','ABRREDIM<x:int64> [a(double)=*,20,0]'
+
+SCIDB QUERY : <scan(ABRREDIM:a)>
+[An error expected at this place for the query "scan(ABRREDIM:a)". And it failed.]
+
+"should be no mapping arrays..."
+Query was executed successfully
+
+Query was executed successfully
+

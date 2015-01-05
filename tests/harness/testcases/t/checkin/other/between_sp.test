@@ -1,0 +1,54 @@
+--setup
+--aql create array xyz <a:double> [x=0:1999,100,0, y=0:1999,100,0]
+load(xyz,'${TEST_DATA_DIR}/xyz_small.txt')
+create array bar <val:int64> [x=0:1000000000,1,0,y=0:1000000000,1,0]
+store(merge(merge(between(build(bar, x+y),10,10,10,10), between(build(bar,x+y), 123456,123456,123456,123456) ), between(build(bar,x+y),10000000,10,10000000,10)), bar)
+create array bar2 <val:int64>[x=0:1000000000,1,0,y=0:1000000000,1,0,z=0:1000000000,1,0]
+store(merge(between(build(bar2,x+y),10,10,10,10,10,10), between(build(bar2,x+y),123456,123456,123456,123456,123456,123456)),bar2)
+create array evil_matrix<int32_attr:int32,int64_attr:int64,double_attr:double> [I=0:1130,1028,0,J=0:1130,1028,0]
+--igdata "load(evil_matrix, '${TEST_DATA_DIR}/evil_matrix.txt')"
+
+--test
+between(xyz, 0, 0, 1000, 1000)
+between(bar, 0,0,10,10)
+between(bar, 0,0,123456,123456)
+between(bar, 0,0,1234560,1234560)
+between(bar, 123456,10,10000000,10)
+between(bar, 0,10,10000000,10)
+between(bar, 0,10,123456000,10)
+between(bar, 0,10,123456000,123456)
+
+aggregate(apply(between(xyz, 0, 0, 1000, 1000), s, x+y), sum(s))
+aggregate(apply(between(xyz, 10, 10, 1421, 1597), s, x+y), sum(s))
+
+aggregate(apply(between(evil_matrix, 113, 113, 9*113, 9*113), a, 1), sum(a))
+aggregate(apply(between(evil_matrix, 0, 0, 1130, 1130), a, 1), sum(a))
+aggregate(apply(between(evil_matrix, 113, 113, 1130, 1130), a, 1), sum(a))
+aggregate(apply(between(evil_matrix, 0, 0, 9*113, 9*113), a, 1), sum(a))
+
+aggregate(apply(between(bar, 0,0,10,10), s, x+y), sum(s))
+aggregate(apply(between(bar, 0,0,123456,123456), s, x+y), sum(s))
+aggregate(apply(between(bar, 0,0,1234560,1234560), s, x+y), sum(s))
+aggregate(apply(between(bar, 123456,10,10000000,10), s, x+y), sum(s))
+aggregate(apply(between(bar, 0,10,10000000,10), s, x+y), sum(s))
+aggregate(apply(between(bar, 0,10,123456000,10), s, x+y), sum(s))
+aggregate(apply(between(bar, 0,10,123456000,123456), s, x+y), sum(s))
+
+subarray(bar, 0,0,10,10)
+subarray(bar, 0,0,123456,123456)
+subarray(bar, 0,0,1234560,1234560)
+subarray(bar, 123456,10,10000000,10)
+subarray(bar, 0,10,10000000,10)
+subarray(bar, 0,10,123456000,10)
+subarray(bar, 0,10,123456000,123456)
+
+slice(bar2, x, 10)
+slice(bar2, y, 10)
+slice(bar2, z, 123456)
+slice(bar2, z, 11)
+
+--cleanup
+remove (xyz)
+remove (bar)
+remove (bar2)
+remove (evil_matrix)

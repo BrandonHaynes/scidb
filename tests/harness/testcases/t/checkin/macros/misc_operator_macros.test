@@ -1,0 +1,11 @@
+--setup
+
+--test
+#
+#   1. Test that it works in both AFL and AQL
+#
+op_count ( filter ( join ( op_now() AS FIRST, op_now() AS SECOND ), FIRST.when = SECOND.when ))
+op_count ( filter ( join ( op_now() AS FIRST, op_now() AS SECOND ), FIRST.when <> SECOND.when ))
+--aql SELECT COUNT(*) FROM op_now() AS A, op_now() AS B WHERE A.when = B.when
+
+--cleanup

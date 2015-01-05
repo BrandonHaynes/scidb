@@ -1,0 +1,32 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+create array event <event:string>[i=0:12,12,0]  
+store(build(event, '[("dash"),("dash"),("steeplechase"),("marathon"),("marathon"),("marathon")]', true),event)  
+create array year <year:int64>[i=0:12,12,0]  
+store(build(year, '[1996,2000,2000,1996,2000,2008]',true),year)  
+create array person <person:string>[i=0:12,12,0]  
+store(build(person, '[("Bailey"),("Greene"),("Kosgei"),("Thugwane"),("Abera"),("Wanjiru")]', true),person)  
+create array country <country:string>[i=0:12,12,0]  
+store(build(country, '[("Canada"),("USA"),("Kenya"),("Kenya"),("Ethiopia"),("Kenya")]', true),country)  
+create array time <time:double>[i=0:12,12,0]  
+store(build(time, '[9.84,9.87,503.17,7956,7811,7596]', true),time)  
+--stop-igdata
+store(join(year, join(event, join(person, join(country,time)))),winnersFlat)  
+store(attribute_rename(project(winnersFlat,year, event, country, time), time,time_in_seconds),result)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(event)
+remove(year)
+remove(person)
+remove(country)
+remove(time)
+remove(winnersFlat)
+remove(result)

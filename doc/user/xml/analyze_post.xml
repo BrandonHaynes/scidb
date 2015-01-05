@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="analyze">
+    <refname>analyze</refname>
+
+    <refpurpose><indexterm>
+        <primary>analyze</primary>
+      </indexterm><indexterm>
+        <primary>attributes</primary>
+
+        <secondary>analyze</secondary>
+      </indexterm>Produces a 1-dimensional result array where each cell
+    describes some simple statistics about the values in one attribute of a
+    stored array.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>analyze(<replaceable>array</replaceable><optional>, <replaceable>attribute1</replaceable>, <replaceable>attribute2</replaceable>, ...</optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The analyze operator helps you characterize the contents of an
+    array. Each cell in the result array includes the following
+    attributes:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>attribute_number: An index for the one-dimensional result
+        array.</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>atttribute_name: The name of an attribute from the source
+        array.</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>min: The lowest value for the attribute in the source
+        array.</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>max: The highest value for the attribute in the source
+        array.</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>distinct_count: An estimate of the number of different values
+        appearing in the source array.</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>non_null_count: The number of cells in the array with non-null
+        values for the attribute.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>You can use the analyze operator to characterize some or all of the
+    attributes in an array. To characterize some, name them explicitly with
+    the attribute parameter. To characterize all attributes, you can name them
+    all explicitly, or you can omit the attribute parameter entirely.</para>
+
+    <para>You can use the analyze operator in the FROM clause of an AQL SELECT
+    statement, as a stand-alone operator in a AFL statement, or as an operand
+    within other SciDB operators.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example first shows a 1-dimensional array, then analyzes its
+      attributes, then analyzes only its numeric attributes.</para>
+
+      <procedure>
+        <step>
+          <para>Show the schema for the 1-dimensional source
+          array:<para><programlisting>AFL% show(winnersFlat)</programlisting><screen><command>winnersFlat</command>
+
+&lt; event:string,
+person:string,
+year:int64,
+country:string,
+time:double &gt;
+
+[i=0:11,12,0]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create a result array describing the attributes of the source
+          array:<para><programlisting>AFL% attributes(winnersFlat);</programlisting><screen>{No} name,type_id,nullable
+{0} 'event','string',false
+{1} 'person','string',false
+{2} 'year','int64',false
+{3} 'country','string',false
+{4} 'time','double',false
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create a result array characterizing the values of the
+          attributes of the source array:<para><programlisting>AFL% analyze(winnersFlat);</programlisting><screen>{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'country','Canada','USA',6,12
+{1} 'event','dash','steeplechase',3,12
+{2} 'person','Abera','Wanjiru',12,12
+{3} 'time','9.69','7956',12,12
+{4} 'year','1996','2008',4,12
+</screen></para></para>
+        </step>
+
+        <step>
+          <para>Create a result array characterizing the values of the numeric
+          attributes (time and year) of the source array:<para><programlisting>AFL% analyze(winnersFlat,year,time);</programlisting><screen>{attribute_number} attribute_name,min,max,distinct_count,non_null_count
+{0} 'time','9.69','7956',12,12
+{1} 'year','1996','2008',4,12
+</screen></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

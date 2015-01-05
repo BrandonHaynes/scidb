@@ -1,0 +1,143 @@
+--setup
+load_library('linear_algebra')
+
+--start-query-logging
+
+
+# the "canonical" arrays.
+# repart to these will cause all output to go to one chunk before being
+# formatted for output.
+# this will preserve a single order, for all different chunkings
+# used in the test, which makes it easier to compare answers across
+# the various chunksizes used for the operator under test, spgemm.
+
+create array FMT2 <v:double>[i=0:1,2,0, j=0:1,2,0]
+create array FMT3 <v:double>[i=0:2,3,0, j=0:2,3,0]
+create array FMT5 <v:double>[i=0:4,5,0, j=0:4,5,0]
+
+#
+# now the test arrays
+#
+
+# 2x2 array, chunksize 1 to 3
+create array s2_c1 <v:double>[i=0:1,1,0, j=0:1,1,0]
+create array s2_c2 <v:double>[i=0:1,2,0, j=0:1,2,0]
+create array s2_c3 <v:double>[i=0:1,3,0, j=0:1,3,0]
+
+repart(store( filter(build(s2_c1, 1+10*i+2*j), true), s2_c1 ), FMT2)
+repart(store( filter(build(s2_c2, 1+10*i+2*j), true), s2_c2 ), FMT2)
+repart(store( filter(build(s2_c3, 1+10*i+2*j), true), s2_c3 ), FMT2)
+
+# 3x3 array, chunksize 1 to 4
+create array s3_c1 <v:double>[i=0:2,1,0, j=0:2,1,0]
+create array s3_c2 <v:double>[i=0:2,2,0, j=0:2,2,0]
+create array s3_c3 <v:double>[i=0:2,3,0, j=0:2,3,0]
+create array s3_c4 <v:double>[i=0:2,4,0, j=0:2,4,0]
+
+repart(store( filter(build(s3_c1, 1+10*i+2*j), true), s3_c1 ), FMT3)
+repart(store( filter(build(s3_c2, 1+10*i+2*j), true), s3_c2 ), FMT3)
+repart(store( filter(build(s3_c3, 1+10*i+2*j), true), s3_c3 ), FMT3)
+repart(store( filter(build(s3_c4, 1+10*i+2*j), true), s3_c4 ), FMT3)
+
+# 5x5 array, chunksizes 1 to 6
+create array s5_c1 <v:double>[i=0:4,1,0, j=0:4,1,0]
+create array s5_c2 <v:double>[i=0:4,2,0, j=0:4,2,0]
+create array s5_c3 <v:double>[i=0:4,3,0, j=0:4,3,0]
+create array s5_c4 <v:double>[i=0:4,4,0, j=0:4,4,0]
+create array s5_c5 <v:double>[i=0:4,5,0, j=0:4,5,0]
+create array s5_c6 <v:double>[i=0:4,6,0, j=0:4,6,0]
+
+repart(store( filter(build(s5_c1, 1+10*i+2*j), true), s5_c1 ), FMT5)
+repart(store( filter(build(s5_c2, 1+10*i+2*j), true), s5_c2 ), FMT5)
+repart(store( filter(build(s5_c3, 1+10*i+2*j), true), s5_c3 ), FMT5)
+repart(store( filter(build(s5_c4, 1+10*i+2*j), true), s5_c4 ), FMT5)
+repart(store( filter(build(s5_c5, 1+10*i+2*j), true), s5_c5 ), FMT5)
+repart(store( filter(build(s5_c6, 1+10*i+2*j), true), s5_c6 ), FMT5)
+
+
+--test
+
+#
+# now the tests
+#
+
+#
+# cases where numChunks are less than the typical numInstances=4
+#
+
+#
+# 2x2 array, chunksize 1 to 3
+#
+#repart(testSpgemm(s2_c3, s2_c3),FMT3)
+repart(spgemm(s2_c3, s2_c3),FMT3)
+repart(spgemm(s2_c2, s2_c2),FMT3)
+repart(spgemm(s2_c1, s2_c1),FMT3)
+# min.+ variant
+repart(spgemm(s2_c3, s2_c3, 'min.+'),FMT3)
+repart(spgemm(s2_c2, s2_c2, 'min.+'),FMT3)
+repart(spgemm(s2_c1, s2_c1, 'min.+'),FMT3)
+# max.+ variant
+repart(spgemm(s2_c3, s2_c3, 'max.+'),FMT3)
+repart(spgemm(s2_c2, s2_c2, 'max.+'),FMT3)
+repart(spgemm(s2_c1, s2_c1, 'max.+'),FMT3)
+
+# 3x3 array, chunksize 1 to 4
+#repart(testSpgemm(s3_c4, s3_c4),FMT3)
+repart(spgemm(s3_c4, s3_c4),FMT3)
+repart(spgemm(s3_c3, s3_c3),FMT3)
+repart(spgemm(s3_c2, s3_c2),FMT3)
+repart(spgemm(s3_c1, s3_c1),FMT3)
+# min.+ variant
+repart(spgemm(s3_c4, s3_c4, 'min.+'),FMT3)
+repart(spgemm(s3_c3, s3_c3, 'min.+'),FMT3)
+repart(spgemm(s3_c2, s3_c2, 'min.+'),FMT3)
+repart(spgemm(s3_c1, s3_c1, 'min.+'),FMT3)
+# max.+ variant
+repart(spgemm(s3_c4, s3_c4, 'max.+'),FMT3)
+repart(spgemm(s3_c3, s3_c3, 'max.+'),FMT3)
+repart(spgemm(s3_c2, s3_c2, 'max.+'),FMT3)
+repart(spgemm(s3_c1, s3_c1, 'max.+'),FMT3)
+
+
+#
+# cases where numChunks are greater than the typical numInstances=4
+#
+
+# 5x5 array, chunksize 1 to 6
+#repart(testSpgemm(s5_c6, s5_c6),FMT5)
+repart(spgemm(s5_c6, s5_c6),FMT5)
+repart(spgemm(s5_c5, s5_c5),FMT5)
+repart(spgemm(s5_c4, s5_c4),FMT5)
+repart(spgemm(s5_c3, s5_c3),FMT5)
+repart(spgemm(s5_c2, s5_c2),FMT5)
+repart(spgemm(s5_c1, s5_c1),FMT5)
+# min.+ variant
+# max.+ variant
+
+
+
+
+--cleanup
+remove(FMT2)
+remove(FMT3)
+remove(FMT5)
+
+remove(s2_c1)
+remove(s2_c2)
+remove(s2_c3)
+
+remove(s3_c1)
+remove(s3_c2)
+remove(s3_c3)
+remove(s3_c4)
+
+remove(s5_c1)
+remove(s5_c2)
+remove(s5_c3)
+remove(s5_c4)
+remove(s5_c5)
+remove(s5_c6)
+
+
+--stop-query-logging
+

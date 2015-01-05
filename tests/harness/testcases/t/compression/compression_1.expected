@@ -1,0 +1,52 @@
+SCIDB QUERY : <create array Ts <a:string> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ti32 <b:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ti64 <c:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array A <a:string compression 'rle', b:int32 compression 'rle', c:int64 compression 'dictionary'> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * from build(Ts,string(x+1)),build(Ti32,x+10),build(Ti64,x+100)>
+{x} a,b,c
+{0} '1',10,100
+{1} '2',11,101
+{2} '3',12,102
+
+SCIDB QUERY : <select * into A from build(Ts,string(x+1)),build(Ti32,x+10),build(Ti64,x+100)>
+{x} a,b,c
+{0} '1',10,100
+{1} '2',11,101
+{2} '3',12,102
+
+SCIDB QUERY : <select * into A from filter(build(Ts,string(x+1)),true),filter(build(Ti32,x+20),true),filter(build(Ti64,x+200),true)>
+{x} a,b,c
+{0} '1',20,200
+{1} '2',21,201
+{2} '3',22,202
+
+SCIDB QUERY : <select * into A from filter(build(Ts,string(x+1)),true),filter(build(Ti32,x+30),true),filter(build(Ti64,x+300),false)>
+{x} a,b,c
+
+SCIDB QUERY : <select * into A from filter(build(Ts,string(x+1)),x<>0),filter(build(Ti32,x+10),x<>1),filter(build(Ti64,x+100),x<>2)>
+{x} a,b,c
+
+SCIDB QUERY : <select * into A from filter(build(Ts,string(x+1)),x<>0),filter(build(Ti32,x+20),x<>0),filter(build(Ti64,x+200),x<>1)>
+{x} a,b,c
+{2} '3',22,202
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ti32)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ti64)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

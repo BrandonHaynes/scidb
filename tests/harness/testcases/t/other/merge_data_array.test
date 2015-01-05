@@ -1,0 +1,58 @@
+--setup
+--start-query-logging
+# Ticket number : 1668
+
+create array data_array < A: int64 > [ X=0:9,5,0]
+store(build(data_array, 1+X), data_array)
+
+create array UB <a:int64>[x=0:*,5,0]
+load(UB, '${TEST_DATA_DIR}/unbounded_cross.txt')
+
+create array Media_B < val : double > [ g=1:3,2,1, h=1:3,2,1]
+store(build(Media_B, g*g+h/(1.0)), Media_B)
+
+create array Media_C < val : double > [ I=1:3,2,1, J=1:3,2,2]
+store(build(Media_C, I*I+J/(1.0)), Media_C)
+
+create array merge_array < A: string > [ X=0:4,5,0, Y=0:4,5,0 ]
+store(build (merge_array, iif(X=3 OR Y=2,100,25)),merge_array)
+
+## create array non_integer<val:double> [ID(string)=10,10,0]
+## load(non_integer, '${TEST_DATA_DIR}/nid_array.txt')
+
+## create array non_integer_newA <val:double> [ID(string)=30,10,0]
+## load(non_integer_newA, '${TEST_DATA_DIR}/unbounded_cross.txt')
+## store(repart( non_integer,< val : int64 > [ID(string)=10,5,0]),non_int)
+
+--test
+
+merge(UB,data_array)
+merge(data_array,UB)
+--aql select * into data_array_merge from data_array where X%2 = 0
+merge(data_array_merge,UB)
+merge(UB,data_array_merge)
+
+--aql select * from merge((select * from merge_array where X=2),(select * from build (merge_array, iif(X=3 OR Y=2,100,25)) where Y=2))
+--aql  select * from merge((select * from merge_array where A='2'),(select * from build (merge_array, iif(X=3 OR Y=2,100,25)) where Y=2))
+merge(repart(Media_B,< val : double > [ I=1:3,2,1, J=1:3,2,2]),Media_C)
+merge(Media_C,repart( Media_B,< val : double > [ I=1:3,2,1, J=1:3,2,2]))
+
+## merge(non_integer_newA,non_integer)
+## merge(non_integer,non_integer_newA)
+## --error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(non_integer,non_int)"
+
+
+
+
+--cleanup
+
+remove(data_array)
+remove(UB)
+remove(Media_B)
+remove(Media_C)
+remove(merge_array)
+remove(data_array_merge)
+
+
+--stop-query-logging
+

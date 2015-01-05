@@ -1,0 +1,35 @@
+SCIDB QUERY : <load_library('misc')>
+Query was executed successfully
+
+SCIDB QUERY : <store (build (<v : int64> [I=0:7,1,0], I), NODE_ID)>
+{I} v
+{0} 0
+{1} 1
+{2} 2
+{3} 3
+{4} 4
+{5} 5
+{6} 6
+{7} 7
+
+SCIDB QUERY : <subarray(apply (NODE_ID, foo, injectError (0, 1)),0,0)>
+{I} v,foo
+{0} 0,1
+
+SCIDB QUERY : <store(NODE_ID, NODE_ID_RENAMED)>
+[An error expected at this place for the query "store(NODE_ID, NODE_ID_RENAMED)". And it failed.]
+
+SCIDB QUERY : <subarray(apply (NODE_ID, foo, injectError (1, 1)),0,1)>
+{I} v,foo
+{0} 0,-1
+{1} 1,1
+
+SCIDB QUERY : <store(NODE_ID, NODE_ID_RENAMED)>
+[An error expected at this place for the query "store(NODE_ID, NODE_ID_RENAMED)". And it failed.]
+
+SCIDB QUERY : <remove(NODE_ID)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(NODE_ID_RENAMED)>
+[An error expected at this place for the query "remove(NODE_ID_RENAMED)". And it failed.]
+

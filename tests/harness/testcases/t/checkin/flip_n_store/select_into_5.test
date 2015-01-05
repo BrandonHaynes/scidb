@@ -1,0 +1,36 @@
+--setup
+--start-query-logging
+create array A <a:int32, b:int32, c:string> [x=0:2,3,0]
+create array T <a:int32> [x=0:2,3,0]
+create array TS <a:string> [x=0:2,3,0]
+create array B <a:int32, c:string> [b(int32)=3,3,0]
+create array F <c:string, ad:double, b:int32, c2:string> [x=0:2,3,0]
+
+--test
+
+--aql select * into C from B
+
+--aql select * into A from build(T,x+1),build(T,x+10),build(TS,'c_'+string(x))
+
+--aql select * into B from A
+
+--aql select b,a,c into C from A
+
+--aql select b into D from A
+
+--aql select b,c,a,a,c into E from A
+
+store(project(apply(A, ad, double(a)*1.8), c, ad, b, c), F)
+remove(A)
+scan(E)
+scan(F)
+
+--cleanup
+remove(T)
+remove(TS)
+remove(B)
+remove(C)
+remove(D)
+remove(E)
+remove(F)
+--stop-query-logging

@@ -1,0 +1,33 @@
+--setup
+--start-query-logging
+# Tests on 1D array with overlaps& non-zero start cordinates
+# Tests for sort-rank and quantile
+
+create array A <a:double> [x=-3:8,4,2]
+store(build(A,3.567/(3.0+x)),A)
+
+--test
+
+sort(A)
+sort(A,a)
+sort(A,a desc)
+sort(filter(A, x<1))
+sort(filter(A, x=-1 or x=0))
+sort(filter(A, x=-1 or x=0),a desc)
+
+rank(A)
+rank(A,a)
+rank(filter(A, x<1))
+rank(filter(A, x=-1 or x=0))
+
+quantile(A,2)
+quantile(A,4)
+quantile(A,10)
+aggregate(quantile(A,100),count(*))
+quantile(filter(A, x<1),3)
+quantile(filter(A, x<1),10)
+quantile(filter(A, x=-1 or x=0),2,a)
+
+--cleanup
+remove(A)
+--stop-query-logging

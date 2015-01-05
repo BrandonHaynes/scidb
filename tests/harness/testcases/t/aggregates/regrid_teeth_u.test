@@ -1,0 +1,10 @@
+--setup
+create array teeth_u <val:int64 null> [x=0:*,2,0,y=0:*,2,0]
+
+load(teeth_u, '${TEST_DATA_DIR}/teeth.txt')
+
+--test
+regrid(teeth_u,3,3,sum(val),avg(val),count(val),count(*))
+
+--cleanup
+remove(teeth_u)

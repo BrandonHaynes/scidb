@@ -1,0 +1,15 @@
+SCIDB QUERY : <build ( < a : double, b: int64> [ I=0:2,3,0, J=0:2,3,0 ], 1.0 * I + 10.0 * J)>
+[An error expected at this place for the query "build ( < a : double, b: int64> [ I=0:2,3,0, J=0:2,3,0 ], 1.0 * I + 10.0 * J)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_BUILD_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_BUILD_ERROR2.]
+
+SCIDB QUERY : <build ( <a : double> [ I=0:2,3,0, J=0:2,3,0 ], 1.0 * I + 10.0 * J)>
+{I,J} a
+{0,0} 0
+{0,1} 10
+{0,2} 20
+{1,0} 1
+{1,1} 11
+{1,2} 21
+{2,0} 2
+{2,1} 12
+{2,2} 22
+

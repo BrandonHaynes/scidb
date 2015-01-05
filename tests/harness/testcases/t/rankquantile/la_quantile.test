@@ -1,0 +1,27 @@
+--setup
+CREATE ARRAY p4_quantile_test1 <a:double> [x=0:11,12,0, y=0:11,12,0]
+CREATE ARRAY p4_quantile_test2 <a:double> [x=0:14,5,0, y=0:7,4,0]
+CREATE ARRAY dense <a: double > [x=0:5,3,0, y=0:5,3,0]
+create array evec <a:double NOT NULL>[x=0:9,10,0, y=0:0,1,0]
+
+load( p4_quantile_test1, '${TEST_DATA_DIR}/p4_quantile_test1.txt', 0)
+load( p4_quantile_test2, '${TEST_DATA_DIR}/p4_quantile_test2.txt', 0)
+
+load(dense, '${TEST_DATA_DIR}/dense.txt')
+load(evec, '${TEST_DATA_DIR}/evec.txt')
+
+--test
+quantile(p4_quantile_test1,5)
+quantile(p4_quantile_test2,10)
+quantile(p4_quantile_test2,5,a,x)
+
+quantile(dense,10,a,x)
+quantile(dense,10,a,y)
+quantile(evec,2,a,x)
+
+
+--cleanup
+remove(p4_quantile_test1)
+remove(p4_quantile_test2)
+remove(dense)
+remove(evec)

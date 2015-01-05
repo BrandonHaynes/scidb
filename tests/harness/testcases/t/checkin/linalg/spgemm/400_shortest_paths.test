@@ -1,0 +1,39 @@
+--setup
+load_library('linear_algebra')
+
+--justrun "remove(GRAPH_TRIPLETS_6_9)"
+create array GRAPH_TRIPLETS_6_9 <v0:int64, v1:int64, w:float>[dummy=0:*,1000*1000,0]
+
+--justrun "remove(GRAPH_WEIGHTS_6_9)"
+create array GRAPH_WEIGHTS_6_9 <w:float>[v0=0:5,10,0, v1=0:5,10,0]
+
+--start-query-logging
+--start-igdata
+
+# csv to .scidb
+#--shell --command "csv2scidb < ${TEST_DATA_DIR}/graph_triplets6_9.csv > /tmp/graph_triplets6_9.scidb.txt"
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(GRAPH_TRIPLETS_6_9, '${TEST_DATA_DIR}/graph_triplets6_9.scidb.txt')""
+# turn list of triplets into adjacency matrix
+store(redimension(GRAPH_TRIPLETS_6_9, GRAPH_WEIGHTS_6_9),GRAPH_WEIGHTS_6_9)
+
+--stop-igdata
+
+# now call bellmanFord, finding the distances from the 0 vertex
+--justrun "remove(SHORTEST_PATHS_VEC)"
+--shell --command "bellman_ford_example.sh GRAPH_WEIGHTS_6_9 SHORTEST_PATHS_VEC 0"
+--echo "shortest paths from vertex 0"
+scan(SHORTEST_PATHS_VEC)
+
+# and again from vertex 2
+--justrun "remove(SHORTEST_PATHS_VEC)"
+--shell --command "bellman_ford_example.sh GRAPH_WEIGHTS_6_9 SHORTEST_PATHS_VEC 2"
+--echo "shortest paths from vertex 2"
+scan(SHORTEST_PATHS_VEC)
+
+--cleanup
+remove(GRAPH_TRIPLETS_6_9)
+remove(GRAPH_WEIGHTS_6_9)
+remove(SHORTEST_PATHS_VEC)
+
+
+

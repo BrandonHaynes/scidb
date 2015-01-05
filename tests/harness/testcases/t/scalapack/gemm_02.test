@@ -1,0 +1,44 @@
+--setup
+--start-query-logging
+# Tests for gemm with MxN type arrays and it's subarrays
+
+load_library('dense_linear_algebra')
+create array M20x20 <x:double>[i=0:19,32,0, j=0:19,32,0]
+store(build(M20x20, pow(2,abs(j-i))), M20x20)
+
+
+--test
+gemm(M20x20, build(M20x20, 0), build(M20x20, 0))
+gemm(M20x20, build(M20x20, 0), build(M20x20, 1))
+gemm(M20x20, M20x20, build(M20x20, 1))
+gemm(M20x20, M20x20, M20x20)
+
+--echo test the output with the identity matrix
+gemm(build(M20x20, iif(i=j, 1,0)), build(M20x20, iif(i=j, 1,0)) , build(M20x20,0))
+gemm(M20x20, build(M20x20, iif(i=j, 1,0)) , build(M20x20,0))
+gemm(build(M20x20, iif(i=j, 1,0)) ,M20x20, build(M20x20,0))
+gemm(build(M20x20, iif(i=j, 1,0)) ,M20x20, build(M20x20,i*j+2))
+
+--echo tests on the subarrays of the matrix
+--echo obtaining the square of a matrix using gemm : A*A
+gemm(subarray(M20x20, 0,0, 3,3), subarray(M20x20, 0,0,3,3), filter(subarray(M20x20, 0,0,3,3), false))
+
+--echo obtaining the (A*A + A) & (A*B +C) using gemm + subarray 
+gemm(subarray(M20x20, 0,0, 3,3), subarray(M20x20, 0,0,3,3), subarray(M20x20, 0,0,3,3))
+
+--echo test to chech A*A -A / A*A - 3*A
+gemm(subarray(M20x20, 0,0, 3,3), subarray(M20x20, 0,0,3,3),  project(apply(subarray(M20x20, 0,0,3,3), y, -1*x), y))
+gemm(subarray(M20x20, 0,0, 3,3), subarray(M20x20, 0,0,3,3),  project(apply(subarray(M20x20, 0,0,3,3), y, 3*x), y))
+gemm(subarray(M20x20, 0,0, 3,3), subarray(M20x20, 0,0,3,3),  project(apply(subarray(M20x20, 0,0,3,3), y, 05*x), y))
+gemm(subarray(M20x20, 0,0, 3,3), subarray(M20x20, 3,3,6,6),  project(apply(subarray(M20x20, 0,0,3,3), y, 05*x), y))
+
+--echo test on the rectangular matrix
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR4 "gemm(subarray(M20x20, 1,1, 3,3), subarray(M20x20, 3,3,6,6),  project(apply(subarray(M20x20, 0,0,3,3), y, 05*x), y))"
+
+gemm(subarray(M20x20, 1,1, 3,3), subarray(M20x20, 3,3,5,5),  project(apply(subarray(M20x20, 7,7,9,9), y, 05*x), y))
+
+
+--cleanup
+remove(M20x20)
+
+--stop-query-logging

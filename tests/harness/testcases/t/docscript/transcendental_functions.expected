@@ -1,0 +1,54 @@
+SCIDB QUERY : <create array trig_1 <val:float>[x=0:5,6,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(trig_1,(2.0/3.0)*acos(0)*x),trig_1)>
+[(0),(1.0472),(2.0944),(3.14159),(4.18879),(5.23599)]
+
+SCIDB QUERY : <select cos(val) from trig_1>
+[(1),(0.5),(-0.5),(-1),(-0.5),(0.5)]
+
+SCIDB QUERY : <select sin(val) from trig_1>
+[(0),(0.866025),(0.866025),(-8.74228e-08),(-0.866025),(-0.866025)]
+
+SCIDB QUERY : <select tan(val) from trig_1>
+[(0),(1.73205),(-1.73205),(8.74228e-08),(1.73205),(-1.73205)]
+
+SCIDB QUERY : <create array trig_2 <val:float>[x=0:5,6,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(trig_2,1.0/(x+1)),trig_2)>
+[(1),(0.5),(0.333333),(0.25),(0.2),(0.166667)]
+
+SCIDB QUERY : <select acos(val) from trig_2>
+[(0),(1.0472),(1.23096),(1.31812),(1.36944),(1.40335)]
+
+SCIDB QUERY : <select asin(val) from trig_2>
+[(1.5708),(0.523599),(0.339837),(0.25268),(0.201358),(0.167448)]
+
+SCIDB QUERY : <select atan(val) from trig_2>
+[(0.785398),(0.463648),(0.321751),(0.244979),(0.197396),(0.165149)]
+
+SCIDB QUERY : <create array logs <val:float>[x=0:5,6,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(logs,(1.7*(x+0.01))),logs)>
+[(0.017),(1.717),(3.417),(5.117),(6.817),(8.517)]
+
+SCIDB QUERY : <select exp(val) from logs>
+[(1.01715),(5.5678),(30.4778),(166.834),(913.241),(4999.04)]
+
+SCIDB QUERY : <store(build(logs, pow(10,x)),logs)>
+[(1),(10),(100),(1000),(10000),(100000)]
+
+SCIDB QUERY : <select log(val) from logs>
+[(0),(2.30259),(4.60517),(6.90776),(9.21034),(11.5129)]
+
+SCIDB QUERY : <select log10(val) from logs>
+[(0),(1),(2),(3),(4),(5)]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

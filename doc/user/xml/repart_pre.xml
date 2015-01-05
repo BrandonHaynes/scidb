@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="repartOperator">
+    <refname>repart</refname>
+
+    <refpurpose><indexterm>
+        <primary>repart</primary>
+      </indexterm><indexterm>
+        <primary>chunks</primary>
+
+        <secondary>changing</secondary>
+      </indexterm>Produces a result array similar to a source array, but with
+    different chunk sizes, different chunk overlaps, or both.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>AFL% repart(<replaceable>array</replaceable>,<replaceable>template_array</replaceable>|<replaceable>schema_definition</replaceable>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The repart operator produces a result array similar to a source
+    array, but with different chunk sizes, different chunk overlaps, or both.
+    The new array must conform to the schema of an existing template array or
+    to the schema definition supplied with the operator. The repart operator
+    does not alter the source array.</para>
+
+    <para>The new array must have the same attributes and dimensions as the
+    source array.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example repartitions a 4<symbol role="symbolfont">×</symbol>4
+      array with 16 1x1 chunks into a 4x4 array with four 2x2 chunks.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 2-dimensional array called source where each
+          dimension uses a chunk size of 1: <programlisting language="test">--afl CREATE ARRAY source &lt;val:double&gt; [x=0:3,1,0,y=0:3,1,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Add values of 0–15 to source:<programlisting language="test">--afl store(build(source,x*3+y),source);</programlisting></para>
+        </step>
+
+        <step>
+          <para>Repartition the array into 2-by-2 chunks and store the result
+          in an array called target: <programlisting language="test">--afl store(repart(source, &lt;val:double&gt; [x=0:3,2,0, y=0:3,2,0]),target);</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

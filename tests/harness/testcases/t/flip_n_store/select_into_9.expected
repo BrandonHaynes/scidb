@@ -1,0 +1,191 @@
+SCIDB QUERY : <create array A <a:int32>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:string>[x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <b:string,a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <b:string> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array E <a:int32> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array F <b:string> [a(int32)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array G <a:int32> [b(string)=3,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(C,C1)>
+{x} b,a
+
+SCIDB QUERY : <store(D,D1)>
+{x} b
+
+SCIDB QUERY : <store(E,E1)>
+{x} a
+
+SCIDB QUERY : <store(F,F1)>
+{a} b
+
+SCIDB QUERY : <store(G,G1)>
+{b} a
+
+SCIDB QUERY : <store(C,C2)>
+{x} b,a
+
+SCIDB QUERY : <store(D,D2)>
+{x} b
+
+SCIDB QUERY : <store(E,E2)>
+{x} a
+
+SCIDB QUERY : <store(F,F2)>
+{a} b
+
+SCIDB QUERY : <store(G,G2)>
+{b} a
+
+SCIDB QUERY : <store(build(A,x+10),A)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <store(build(B,string(x+10)),B)>
+{x} b
+{0} '10'
+{1} '11'
+{2} '12'
+
+SCIDB QUERY : <select * into C from A,B>
+{x} b,a
+{0} '10',10
+{1} '11',11
+{2} '12',12
+
+SCIDB QUERY : <select * into D from A,B>
+{x} b
+{0} '10'
+{1} '11'
+{2} '12'
+
+SCIDB QUERY : <select * into E from A,B>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select * into F from A,B>
+{a} b
+{10} '10'
+{11} '11'
+{12} '12'
+
+SCIDB QUERY : <select * into G from A,B>
+{b} a
+{'10'} 10
+{'11'} 11
+{'12'} 12
+
+SCIDB QUERY : <select * into C1 from A,B where x=0>
+{x} b,a
+{0} '10',10
+
+SCIDB QUERY : <select * into D1 from A,B where x<>0>
+{x} b
+{1} '11'
+{2} '12'
+
+SCIDB QUERY : <select * into E1 from A,B where x<=1>
+{x} a
+{0} 10
+{1} 11
+
+SCIDB QUERY : <select * into F1 from A,B where x>=1>
+{a} b
+{11} '11'
+{12} '12'
+
+SCIDB QUERY : <select * into G1 from A,B where x<>3>
+{b} a
+{'10'} 10
+{'11'} 11
+{'12'} 12
+
+SCIDB QUERY : <select * into C2 from A,B where a=10>
+{x} b,a
+{0} '10',10
+
+SCIDB QUERY : <select * into D2 from A,B where b<>'11'>
+{x} b
+{0} '10'
+{2} '12'
+
+SCIDB QUERY : <select * into E2 from A,B where a<11 or b>'11'>
+{x} a
+{0} 10
+{2} 12
+
+SCIDB QUERY : <select * into F2 from A,B where a<>10 and b<>'11'>
+{a} b
+{12} '12'
+
+SCIDB QUERY : <select * into G2 from A,B where a=10 or b='13' and a=12>
+{b} a
+{'10'} 10
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G2)>
+Query was executed successfully
+

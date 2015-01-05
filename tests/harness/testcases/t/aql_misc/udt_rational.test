@@ -1,0 +1,114 @@
+--setup
+--start-query-logging
+
+load_library('rational')
+create array A <a:int32>[x=0:2,3,0]
+create array B <b:rational>[x=0:2,3,0]
+
+--test
+
+attributes(B)
+
+store(build(A,x+1),A)
+
+apply(A,b,str(rational(1,2)))
+
+project(apply(build(B,rational(x,1)),c,str(b)),c)
+
+project(apply(build(B,rational(1,1)+rational(1,2)),c,str(b)),c)
+
+project(apply(build(B,rational(1,1)+rational(-1,-2)),c,str(b)),c)
+
+project(apply(build(B,rational(1,1)+rational(-1,2)),c,str(b)),c)
+
+project(apply(build(B,rational(-1,1)+rational(-1,2)),c,str(b)),c)
+
+project(apply(build(B,rational(-1,-1)+rational(-1,2)),c,str(b)),c)
+
+project(apply(store(build(B,rational(x,x+1)),B),c,str(b)),c)
+
+project(apply(B,c,str(b)),c)
+
+project(apply(B,c,str(b+b+b*b-b/6)),c)
+
+project(apply(B,c,str(b+rational(0))),c)
+
+project(apply(B,c,str(b+rational(1))),c)
+
+project(apply(B,c,str(b+rational(1/2))),c)
+
+project(apply(B,c,str(b+rational(1,2))),c)
+
+project(apply(B,c,str(b-rational(1,2))),c)
+
+project(apply(B,c,str(b*rational(1,2))),c)
+
+project(apply(B,c,str(b/rational(1,2))),c)
+
+project(apply(B,c,str(b/rational(1))),c)
+
+project(apply(B,c,str(b/1)),c)
+
+project(apply(B,c,str(b/6)),c)
+
+project(apply(aggregate(B,min(b)),c,str(b_min)),c)
+
+project(apply(aggregate(B,max(b)),c,str(b_max)),c)
+
+project(apply(aggregate(B,avg(b)),c,str(b_avg)),c)
+
+--aql select str(b) from B
+
+--aql select str(b)+' test' from B
+
+--aql select str(b+b+b+b+b) from B
+
+--aql select str(b+rational(9,9)) from B
+
+--aql select str(b) from B where x<1
+
+--aql select str(b) from B where str(b)='(1,1)'
+
+--aql select str(b) from B where str(b)='(1/2)'
+
+--aql select str(b) from B where b=rational(1,1)
+
+--aql select str(b+rational(2,4)) from B
+
+--aql select str(b+rational(-1)) from B
+
+--aql select getnumer(b) from B
+
+--aql select getnumer(b+rational(1)) from B
+
+--aql select getdenom(b+rational(5,3)) from B
+
+--aql select str(b-rational(5,3)) from B
+
+--aql select str(b*rational(5,3)) from B
+
+--aql select str(b/rational(5,3)) from B
+
+--aql select str(b) from B where b<rational(2,3)
+
+--aql select str(b) from B where b<=rational(1,2)
+
+--aql select str(b) from B where b>=rational(1,2)
+
+--aql select str(b) from B where b>rational(1,2)
+
+--aql select str(b/2) from B
+
+--aql select str(b/rational(1)) from B where x<>1
+
+--aql select str(b) from A,B
+
+--aql select a from A,B
+
+--aql select str(b/a) from A,B
+
+
+--cleanup
+remove(A)
+remove(B)
+--stop-query-logging

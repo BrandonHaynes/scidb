@@ -1,0 +1,17 @@
+SVD_METRIC_1 matrix type zero, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_2 matrix type zero, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_3 matrix type zero, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_4 matrix type zero, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_1 matrix type identity, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_2 matrix type identity, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_3 matrix type identity, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_4 matrix type identity, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_1 matrix type int_nz, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_2 matrix type int_nz, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_3 matrix type int_nz, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_4 matrix type int_nz, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_1 matrix type svdrandom, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_2 matrix type svdrandom, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_3 matrix type svdrandom, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+SVD_METRIC_4 matrix type svdrandom, RxC 5x5, chunk_size 32, error_limit 256 PASS : TRUE
+

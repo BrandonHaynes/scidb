@@ -1,0 +1,23 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+store(redimension (apply (build(<v:double>[i1=1:3,3,0,j1=1:3,3,0],1),i,iif(i1=j1,i1,null), j,iif(i1=j1,j1,null)), <v:double>[i=1:3,3,0,j=1:3,3,0]), m3x3)  
+aggregate(m3x3,count(v))  
+--set-format dcsv
+--start-igdata
+store(build(<value:string null> [row=0:2,3,0, col=0:2,3,0], '[[(),(),()],[(null),(null), (null)],[(a7),(a8),(a9)]]', true),A)  
+--set-format dense
+--stop-igdata
+scan(A)  
+--aql select count(*) from A  
+--aql select count(value) from A group by row  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(m3x3)
+remove(A)

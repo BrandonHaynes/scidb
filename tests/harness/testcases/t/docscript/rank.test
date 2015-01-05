@@ -1,0 +1,22 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY rank_array <val:int64>[i=0:3,4,0,j=0:3,4,0]  
+--set-format dense
+--stop-igdata
+store(build(rank_array, '[[9,1,0,6], [1,3,7,7], [2,3,9,8], [5,9,5,9]]',true),rank_array)  
+--set-format dcsv
+--start-igdata
+rank(rank_array,val,i)  
+rank(rank_array,val)  
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(rank_array)

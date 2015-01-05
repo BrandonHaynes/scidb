@@ -1,0 +1,400 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+  <title>SciDB functions</title>
+</head>
+<body>
+<ul>
+  <li><a href="#abs">abs</a></li>
+  <li><a href="#acos">acos</a></li>
+  <li><a href="#asin">asin</a></li>
+  <li><a href="#atan">atan</a></li>
+  <li><a href="#ceil">ceil</a></li>
+  <li><a href="#cos">cos</a></li>
+  <li><a href="#exp">exp</a></li>
+  <li><a href="#first">first</a></li>
+  <li><a href="#floor">floor</a></li>
+  <li><a href="#format">format</a></li>
+  <li><a href="#high">high</a></li>
+  <li><a href="#is_nan">is_nan</a></li>
+  <li><a href="#is_null">is_null</a></li>
+  <li><a href="#last">last</a></li>
+  <li><a href="#length">length</a></li>
+  <li><a href="#log">log</a></li>
+  <li><a href="#log10">log10</a></li>
+  <li><a href="#low">low</a></li>
+  <li><a href="#now">now</a></li>
+  <li><a href="#pow">pow</a></li>
+  <li><a href="#sin">sin</a></li>
+  <li><a href="#sqrt">sqrt</a></li>
+  <li><a href="#strchar">strchar</a></li>
+  <li><a href="#strftime">strftime</a></li>
+  <li><a href="#substr">substr</a></li>
+  <li><a href="#tan">tan</a></li>
+</ul>
+<h2><a name="abs">abs</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get absolute value
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>abs</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "filter(matrix, abs(A) &gt; 1)"</code></dd>
+</dl>
+<h2><a name="acos">acos</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate arc cosine
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>acos</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, acos(A))"</code></dd>
+</dl>
+<h2><a name="asin">asin</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate arc sine
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>asin</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, asin(A))"</code></dd>
+</dl>
+<h2><a name="atan">atan</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate arc tangent
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>atan</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, atan(A))"</code></dd>
+</dl>
+<h2><a name="ceil">ceil</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get smallest integer number greater or equal than specified </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>ceil</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, ceil(A))"</code></dd>
+</dl>
+<h2><a name="strchar">strchar</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get first char of the string. SciDB doesn't explicitly support
+char literal. 'x' is treated as string with
+length 1. If you need to use character in some query predicate, you
+should use char function to convert string to character.
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><code>String<code> <b>-&gt;</b> <code>char</code>
+    </code></code></dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>strchar</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "filter(Scan, Code=strchar('A'))"</code></dd>
+</dl>
+<h2><a name="strftime">strftime</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Print data according to specified format (see documantation of
+libc strftime function).
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><code>DateTime, String<code> <b>-&gt;</b> <code>String</code>
+    </code></code></dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>strftime</u> ( <i>date</i>, <i>format</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(Products, expired,
+strftime(expiration_date, '%D'))"</code></dd>
+</dl>
+<h2><a name="substr">substr</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get substring of the string.
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><code>String, Integer, Integer<code> <b>-&gt;</b> <code>String</code>
+    </code></code></dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>substr</u> ( <i>string<set></set></i>, <i>offset</i>, <i>length</i>
+) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(Scan, ExpirationDate, subftime(Expired,
+'%D'))"</code></dd>
+</dl>
+<h2><a name="cos">cos</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate cosine
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>cos</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, cos(A))"</code></dd>
+</dl>
+<h2><a name="exp">exp</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate exponent
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>exp</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, exp(A))"</code></dd>
+</dl>
+<h2><a name="first">first</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get first coordinate of specified dimension. If array has only
+one dimension, then dimension specifier can be omitted.
+Dimension is specified either by name, either by index (zero based
+poistion of dimension in array descriptor).
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd>(<code>string</code>, <code>string</code>) <b>-&gt;</b> <code>integer</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>first</u> ( <i>array-name</i> [ , <i>dimesnion-spec</i> ]
+) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "subarray(vec, first('vec') + 1, length('vec'))"</code></dd>
+</dl>
+<h2><a name="floor">floor</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get largest integer number smaller or equal than specified </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>floor</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, floor(A))"</code></dd>
+</dl>
+<h2><a name="format">format</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Printf double value using sptring format string
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd>(<i>double</i>, <i>string</i>) <b>-&gt;</b> <code>string</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>format</u> ( <i>expression</i>, <i>format-string</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, fx, format(x, '%.20f'))"</code></dd>
+</dl>
+<h2><a name="high">high</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get maximal coordinate for specified dimension. If array has only
+one dimension, then dimension specifier can be omitted.
+Dimension is specified either by name, either by index (zero based
+poistion of dimension in array descriptor).
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd>(<code>string</code>, <code>string</code>) <b>-&gt;</b> <code>integer</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>high</u> ( <i>array-name</i> [ , <i>dimesnion-spec</i> ] )
+  </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "subarray(vec, high('vec') - 1, high('vec'))"</code></dd>
+</dl>
+<h2><a name="is_null">is_null</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Check if expression value is null
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd>(<code>any</code>) <b>-&gt;</b> <code>boolean</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>is_null</u> ( <i>expression</i> ] ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "filter(vec, is_null(x))"</code></dd>
+</dl>
+<h2><a name="is_nan">is_nan</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Check if double value is NAN
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd>(<code>double</code>) <b>-&gt;</b> <code>boolean</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>is_nan</u> ( <i>expression</i> ] ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "filter(vec, is_nan(x))"</code></dd>
+</dl>
+<h2><a name="last">last</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get last coordinate of specified dimension. If array has only one
+dimension, then dimension specifier can be omitted.
+Dimension is specified either by name, either by index (zero based
+poistion of dimension in array descriptor).
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd>(<code>string</code>, <code>string</code>) <b>-&gt;</b> <code>integer</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>last</u> ( <i>array-name</i> [ , <i>dimesnion-spec</i> ] )
+  </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "subarray(vec, 1, last('vec') - 1)"</code></dd>
+</dl>
+<h2><a name="length">length</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get length of sepcified dimension of the array. If array has only
+one dimension, then dimension specifier can be omitted.
+Dimension is specified either by name, either by index (zero based
+poistion of dimension in array descriptor).
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd>(<code>string</code>, <code>string</code>) <b>-&gt;</b> <code>integer</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>length</u> ( <i>array-name</i> [ , <i>dimesnion-spec</i> ]
+) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "subarray(vec, 1, length('vec'))"</code></dd>
+</dl>
+<h2><a name="log">log</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate natural logarithm
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>log</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, log(A))"</code></dd>
+</dl>
+<h2><a name="log10">log10</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate decimal logarithm
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>log10</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, log10(A))"</code></dd>
+</dl>
+<h2><a name="low">low</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get minumum coordinate for specified dimension. If array has only
+one dimension, then dimension specifier can be omitted.
+Dimension is specified either by name, either by index (zero based
+poistion of dimension in array descriptor).
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd>(<code>string</code>, <code>string</code>) <b>-&gt;</b> <code>integer</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>low</u> ( <i>array-name</i> [ , <i>dimesnion-spec</i> ] ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "subarray(vec, low('vec') - 1, low('vec'))"</code></dd>
+</dl>
+<h2><a name="now">now</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Get current system time
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>None</i> <b>-&gt;</b> <code>DateTime</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>now</u> ( ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "filter(Product, Expired &lt;= now())"</code></dd>
+</dl>
+<h2><a name="pow">pow</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Raise number to the power
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric, Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>pow</u> ( <i>expression</i>, <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, cube, pow(A, 3))"</code></dd>
+</dl>
+<h2><a name="sin">sin</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate sine
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>sin</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, sin(A))"</code></dd>
+</dl>
+<h2><a name="sqrt">sqrt</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate square root
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>sqrt</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, sqrt(A))"</code></dd>
+</dl>
+<h2><a name="tan">tan</a></h2>
+<dl>
+  <dt><b>Description</b></dt>
+  <dd>Calculate tangent
+  </dd>
+  <dt><b>Domain</b></dt>
+  <dd><i>Numeric</i> <b>-&gt;</b> <code>double</code>
+  </dd>
+  <dt><b>Syntax</b></dt>
+  <dd> <u>tan</u> ( <i>expression</i> ) </dd>
+  <dt><b>Example</b></dt>
+  <dd><code>./iquery -q "apply(matrix, res, tan(A))"</code></dd>
+</dl>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="uniq">
+  <refnamediv>
+    <refname>uniq</refname>
+
+    <refpurpose><indexterm>
+        <primary>uniq</primary>
+      </indexterm><indexterm>
+        <primary>duplicate values</primary>
+      </indexterm>Returns a result array with duplicate values
+    removed.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>uniq(<replaceable>array</replaceable>[,'chunk_size=<replaceable>chunk_size</replaceable>']);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The uniq operator takes as input a one-dimensional, sorted array,
+    and returns an array with all duplicate values removed. It is analogous to
+    the Unix <emphasis role="bold">uniq</emphasis> command.</para>
+
+    <para>Note the following:<itemizedlist>
+        <listitem>
+          <para>The input array must have a single attribute of any type and a
+          single dimension.</para>
+        </listitem>
+
+        <listitem>
+          <para>For <command>uniq()</command> to work correctly, the data in
+          the input array must be sorted. The operator was designed to accept
+          the output produced by <command>sort()</command> (assuming the input
+          has a single attribute).</para>
+        </listitem>
+
+        <listitem>
+          <para>The result array has the same attribute as the input array,
+          and its sole dimension is named <emphasis role="bold">i</emphasis>,
+          starting at 0, and with a chunk size of one million (1,000,000). You
+          can control the chunk size of the resulting array by setting the
+          optional parameter to a specific value,
+          <replaceable>chunk_size</replaceable>.</para>
+        </listitem>
+
+        <listitem>
+          <para>Data is compared using a simple bitwise comparison of
+          underlying memory.</para>
+        </listitem>
+
+        <listitem>
+          <para>Null values are discarded from the output.</para>
+        </listitem>
+      </itemizedlist></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <informalexample>
+      <para>This example sorts a one-dimensional array, and then removes the
+      duplicate values.</para>
+
+      <procedure>
+        <step>
+          <para>Assume the following 2-dimensional array is loaded into
+          SciDB:<programlisting language="test">--afl store(build(&lt;val:double NULL&gt;[row=0:3,4,0, col=0:3,4,0],
+        '[[(1.15),(4.54),(1.54),(1.83)],
+         [(4.14),(4.99),(3.56),(1.15)],
+         [(1.54),null,(0.61),(3.99)],
+         [(4.14),(3.14),(3.56),null]]', true),A); --show-query=no --show-output=no
+--afl scan(A); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Now, use <command>sort()</command> to prepare the
+          array.<programlisting language="test">--afl store(sort(A),A_sorted); --output-format=dense</programlisting></para>
+        </step>
+
+        <step>
+          <para>Remove nulls and duplicate values using
+          <command>uniq()</command>, and set the chunk size of the result
+          array to 10.<programlisting language="test">--afl uniq(A_sorted,'chunk_size=10'); --output-format=dense</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+
+    <informalexample>
+      <para>This example projects an attribute from an array that contains
+      multiple attributes, and then removes duplicate values.</para>
+
+      <procedure>
+        <step>
+          <para>Assume the following array, <emphasis
+          role="bold">winnersFlat</emphasis>, is loaded into
+          SciDB:<programlisting language="test">--afl create array event &lt;event:string&gt; [i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array year &lt;year:int64&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array person &lt;person:string&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array country &lt;country:string&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl create array time &lt;time:double&gt;[i=0:11,12,0]; --show-query=no --show-output=no
+--afl store(build(event,iif(i&lt;4,'dash',iif(i&lt;8,'steeplechase','marathon'))),event);
+       --show-query=no --show-output=no
+--afl store(build(year,1996+(i%4 * 4)),year); --show-query=no --show-output=no
+--afl store(build(person,'[Bailey,Greene,Gatlin,Bolt,Keter,Kosgei,
+      Kemboi,Kipruto,Thugwane,Abera,Baldini,Wanjiru]',true),person); --show-query=no --show-output=no
+--afl store(build(country,'[Canada,USA,USA,Jamaica,Kenya,Kenya,
+      Kenya,Kenya,USA,Ethiopia,Italy,Kenya]',true),country); --show-query=no --show-output=no
+--afl store(build(time,'[(9.84),(9.87),(9.85),(9.69),(487.12),
+      (503.17),(485.81),(490.34),(7956),(7811),(7855),(7596)]',true),time); --show-query=no --show-output=no
+--afl store(join(event,join(person,join(year,join(country,time)))),winnersFlat);
+       --show-query=no --output-format=lcsv+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Project the year, and view the sorted, unique
+          values.<programlisting language="test">--afl uniq(sort(project(winnersFlat,year)),'chunk_size=4'); --output-format=auto</programlisting></para>
+        </step>
+
+        <step>
+          <para><command>uniq()</command> works on string attributes as
+          well.<programlisting language="test">--afl uniq(sort(project(winnersFlat,country)),'chunk_size=4'); --output-format=auto</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

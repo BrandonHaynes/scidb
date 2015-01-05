@@ -1,0 +1,22 @@
+
+--test
+--start-query-logging
+
+--set-format dense
+build(<val:double>[i=0:3,4,0,j=0:3,4,0],1)  
+build(<val:double>[i=0:3,4,0,j=0:3,4,0],iif(i=j,1,0))  
+build(<val:double>[i=0:3,4,0,j=0:3,4,0],i*4+j)  
+--set-format dcsv
+--start-igdata
+CREATE ARRAY identity_matrix <val:double>[i=0:3,4,0,j=0:3,4,0]  
+store(build(identity_matrix,iif(i=j,1,0)),identity_matrix)  
+--set-format dense
+--stop-igdata
+scan(identity_matrix)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(identity_matrix)

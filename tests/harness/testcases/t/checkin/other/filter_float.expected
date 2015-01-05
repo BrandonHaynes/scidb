@@ -1,0 +1,33 @@
+SCIDB QUERY : <create array FT <a:float> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(FT,x+0.05),FT)>
+{x} a
+{0} 0.05
+{1} 1.05
+{2} 2.05
+
+SCIDB QUERY : <filter(FT,a>1.04)>
+{x} a
+{1} 1.05
+{2} 2.05
+
+SCIDB QUERY : <filter(FT,a=float(1.05))>
+{x} a
+{1} 1.05
+
+SCIDB QUERY : <filter(FT,a=1.05)>
+{x} a
+
+SCIDB QUERY : <filter(FT,a<1.05)>
+{x} a
+{0} 0.05
+{1} 1.05
+
+SCIDB QUERY : <filter(FT,a>1.05)>
+{x} a
+{2} 2.05
+
+SCIDB QUERY : <remove(FT)>
+Query was executed successfully
+

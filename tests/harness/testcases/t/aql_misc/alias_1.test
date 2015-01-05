@@ -1,0 +1,40 @@
+--setup
+create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+10),A)
+
+--test
+--aql select * from A as B where B.x = 1
+--aql select * from A as B where B.a = 10
+--aql select x from A as B where B.a = 10
+--aql select x from A as B where B.x = 2
+--aql select * from A as B,A
+--aql select * into C from A
+--aql update A set a = x + 20
+--aql select * from A as B,C
+--aql select * from A as B,C where B.a = 21
+--aql select * from A,C,A,C as B where B.x = 0
+--aql select a+50 into E from A
+--aql select * from A as B,C as D,E where C.x = 2
+--aql select * from A as B,C as D,E where D.x = 2
+--aql select * from A as B,C as D,E where A.x = 1
+--aql select * from A as B,C as D,E where A.a = 20
+--aql select * from A as B,C as D,E where B.a = 20
+--aql select * from A as B,C as D,E where D.a = 11
+--aql select * from A as B,C as D,E where E.expr = 70
+--aql select * from A as B,C as D,E as F where F.expr = 70
+--aql select A.x from A as B,C as D,E
+--aql select B.x from A as B,C as D,E
+--aql select C.x from A as B,C as D,E where C.x = 2
+--aql select D.x from A as B,C as D,E
+--aql select B.a from A as B,C as D,E
+--aql select E.x from A as B,C as D,E where A.x = 2
+--aql select expr from A as B,C as D,E where E.expr <> 70
+--aql select E.expr from A as B,C as D,E as F where E.expr < 70
+--aql select F.expr from A as B,C as D,E as F where E.expr > 70
+
+
+--cleanup
+remove(A)
+remove(C)
+remove(E)
+

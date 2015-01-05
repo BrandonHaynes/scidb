@@ -1,0 +1,9 @@
+# This test is from Ticket #2360
+# It used to cause an exception due to a bad assertion.
+
+--setup
+
+--test
+cast(apply(filter(build(<a1:int64>[I=0:9,10,0],I),I%2=0),ATTR_1,int64(missing(missing_reason(null))),ATTR_2,a1*-1),<a1:int64,ATTR_1:int64 null,ATTR_2:int64 null>[I=0:9,10,0])
+
+--cleanup

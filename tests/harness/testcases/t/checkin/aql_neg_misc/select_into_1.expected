@@ -1,0 +1,19 @@
+Query was executed successfully
+
+Query was executed successfully
+
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+[An error expected at this place for the query "select * into B from A". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_CAN_NOT_STORE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_CAN_NOT_STORE.]
+
+{No} name,schema
+{0} 'A','A<a:int32> [x=0:2,3,0]'
+{1} 'B','B<x:int32> [a(int32)=3,3,0]'
+
+Query was executed successfully
+
+Query was executed successfully
+

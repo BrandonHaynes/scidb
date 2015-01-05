@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry>
+  <refnamediv id="stdevAggregate">
+    <refname>stdev</refname>
+
+    <refpurpose><indexterm>
+        <primary>aggregates</primary>
+
+        <secondary>stdev</secondary>
+      </indexterm><indexterm>
+        <primary>standard deviation</primary>
+      </indexterm>Aggregate that calculates the sample standard
+    deviation.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>AQL% <command>SELECT</command> stdev(<replaceable>attribute</replaceable>) <command>FROM</command> <replaceable>array</replaceable>;</synopsis>
+
+    <synopsis>AFL% aggregate(<replaceable>array</replaceable>,stdev(<replaceable>attribute</replaceable>)<optional>,<replaceable>dimension_1</replaceable>,<replaceable>dimension_2</replaceable>,...</optional>)</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <literal>stdev</literal> aggregate takes a set of scalar values
+    from an array attribute and returns the sample standard deviation of those
+    values. You can optionally specify one or more dimensions to group
+    by.</para>
+
+    <para>The standard deviation of an empty set is NULL. The standard
+    deviation of a set that contains only NULL values is also NULL. If the set
+    contains NULL and NOT NULL values, the <code>stdev</code> aggregate
+    considers only NOT NULL values.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example finds the standard deviation of each row of a
+      2-dimensional array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 1-attribute, 2-dimensional array called m3x3:
+          <programlisting language="test">--afl CREATE ARRAY m3x3 &lt;val:double&gt;[i=0:2,3,0,j=0:2,3,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Store values of random values between 0 and 1 in m3x3:
+          <programlisting language="test">--afl store(build(m3x3,random()%9/10.0),m3x3); --output-format=dense --chunkify=yes --show-output-in-test-file=no
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Select the standard deviation of each row of m3x3:
+          <programlisting language="test">--afl aggregate(m3x3,stdev(val),i); --output-format=dense --show-output-in-test-file=no</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

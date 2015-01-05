@@ -1,0 +1,32 @@
+Query was executed successfully
+
+{x} a
+{0} 1
+{1} 2
+{2} 3
+
+{x} a,a_2
+{0} 1,1
+{1} 2,2
+{2} 3,3
+
+{x} a,a_2
+{1} 2,2
+
+{x} a,a_2
+{2} 3,3
+
+{x} a,a_2
+{0} 1,1
+{2} 3,3
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -1,0 +1,13 @@
+--- a/boost/container/detail/allocator_version_traits.hpp
++++ b/boost/container/detail/allocator_version_traits.hpp
+@@ -141,7 +141,9 @@
+       else{
+          received_size = preferred_size;
+          BOOST_TRY{
+-            ret.first = a.allocate(received_size);
++	   if(preferred_size){
++	     ret.first = a.allocate(received_size);
++	   }
+          }
+          BOOST_CATCH(...){
+             if(!(command & nothrow_allocation)){

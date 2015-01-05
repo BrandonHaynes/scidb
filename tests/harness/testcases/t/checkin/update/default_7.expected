@@ -1,0 +1,205 @@
+SCIDB QUERY : <create array A <a:int32 default 10, b:string default 'b_default'> [x=0:2,3,0,y=2:5,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ti <a:int32 default 10> [x=0:2,3,0,y=2:5,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts <b:string default 'b_default'> [x=0:2,3,0,y=2:5,2,1]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into Ti from filter(build(Ti,x+y+3),x<>1)>
+{x,y} a
+{0,2} 5
+{0,3} 6
+{2,2} 7
+{2,3} 8
+{0,4} 7
+{0,5} 8
+{2,4} 9
+{2,5} 10
+
+SCIDB QUERY : <select * into Ts from filter(build(Ts,'b_'+string(x+y+3)),x<>1)>
+{x,y} b
+{0,2} 'b_5'
+{0,3} 'b_6'
+{2,2} 'b_7'
+{2,3} 'b_8'
+{0,4} 'b_7'
+{0,5} 'b_8'
+{2,4} 'b_9'
+{2,5} 'b_10'
+
+SCIDB QUERY : <select * into A from Ti,Ts>
+{x,y} a,b
+{0,2} 5,'b_5'
+{0,3} 6,'b_6'
+{2,2} 7,'b_7'
+{2,3} 8,'b_8'
+{0,4} 7,'b_7'
+{0,5} 8,'b_8'
+{2,4} 9,'b_9'
+{2,5} 10,'b_10'
+
+SCIDB QUERY : <update A set a = a + 1>
+{x,y} a,b
+{0,2} 6,'b_5'
+{0,3} 7,'b_6'
+{2,2} 8,'b_7'
+{2,3} 9,'b_8'
+{0,4} 8,'b_7'
+{0,5} 9,'b_8'
+{2,4} 10,'b_9'
+{2,5} 11,'b_10'
+
+SCIDB QUERY : <update A set a = a + 20>
+{x,y} a,b
+{0,2} 26,'b_5'
+{0,3} 27,'b_6'
+{2,2} 28,'b_7'
+{2,3} 29,'b_8'
+{0,4} 28,'b_7'
+{0,5} 29,'b_8'
+{2,4} 30,'b_9'
+{2,5} 31,'b_10'
+
+SCIDB QUERY : <update A set a = a - 21>
+{x,y} a,b
+{0,2} 5,'b_5'
+{0,3} 6,'b_6'
+{2,2} 7,'b_7'
+{2,3} 8,'b_8'
+{0,4} 7,'b_7'
+{0,5} 8,'b_8'
+{2,4} 9,'b_9'
+{2,5} 10,'b_10'
+
+SCIDB QUERY : <update A set a = 10>
+{x,y} a,b
+{0,2} 10,'b_5'
+{0,3} 10,'b_6'
+{2,2} 10,'b_7'
+{2,3} 10,'b_8'
+{0,4} 10,'b_7'
+{0,5} 10,'b_8'
+{2,4} 10,'b_9'
+{2,5} 10,'b_10'
+
+SCIDB QUERY : <select a from A>
+{x,y} a
+{0,2} 10
+{0,3} 10
+{2,2} 10
+{2,3} 10
+{0,4} 10
+{0,5} 10
+{2,4} 10
+{2,5} 10
+
+SCIDB QUERY : <select a + 0 from A>
+{x,y} expr
+{0,2} 10
+{0,3} 10
+{2,2} 10
+{2,3} 10
+{0,4} 10
+{0,5} 10
+{2,4} 10
+{2,5} 10
+
+SCIDB QUERY : <update A set a = a * 1>
+{x,y} a,b
+{0,2} 10,'b_5'
+{0,3} 10,'b_6'
+{2,2} 10,'b_7'
+{2,3} 10,'b_8'
+{0,4} 10,'b_7'
+{0,5} 10,'b_8'
+{2,4} 10,'b_9'
+{2,5} 10,'b_10'
+
+SCIDB QUERY : <update A set a = a / 1>
+{x,y} a,b
+{0,2} 10,'b_5'
+{0,3} 10,'b_6'
+{2,2} 10,'b_7'
+{2,3} 10,'b_8'
+{0,4} 10,'b_7'
+{0,5} 10,'b_8'
+{2,4} 10,'b_9'
+{2,5} 10,'b_10'
+
+SCIDB QUERY : <update A set a = a * 10>
+{x,y} a,b
+{0,2} 100,'b_5'
+{0,3} 100,'b_6'
+{2,2} 100,'b_7'
+{2,3} 100,'b_8'
+{0,4} 100,'b_7'
+{0,5} 100,'b_8'
+{2,4} 100,'b_9'
+{2,5} 100,'b_10'
+
+SCIDB QUERY : <update A set a = a / 10>
+{x,y} a,b
+{0,2} 10,'b_5'
+{0,3} 10,'b_6'
+{2,2} 10,'b_7'
+{2,3} 10,'b_8'
+{0,4} 10,'b_7'
+{0,5} 10,'b_8'
+{2,4} 10,'b_9'
+{2,5} 10,'b_10'
+
+SCIDB QUERY : <update A set a = a / 2>
+{x,y} a,b
+{0,2} 5,'b_5'
+{0,3} 5,'b_6'
+{2,2} 5,'b_7'
+{2,3} 5,'b_8'
+{0,4} 5,'b_7'
+{0,5} 5,'b_8'
+{2,4} 5,'b_9'
+{2,5} 5,'b_10'
+
+SCIDB QUERY : <select * into Ti from filter(build(Ti,x+y+3),x<>1)>
+{x,y} a
+{0,2} 5
+{0,3} 6
+{2,2} 7
+{2,3} 8
+{0,4} 7
+{0,5} 8
+{2,4} 9
+{2,5} 10
+
+SCIDB QUERY : <select * into Ts from filter(build(Ts,'b_'+string(x+y+3)),x<>1)>
+{x,y} b
+{0,2} 'b_5'
+{0,3} 'b_6'
+{2,2} 'b_7'
+{2,3} 'b_8'
+{0,4} 'b_7'
+{0,5} 'b_8'
+{2,4} 'b_9'
+{2,5} 'b_10'
+
+SCIDB QUERY : <select * into A from Ti,Ts>
+{x,y} a,b
+{0,2} 5,'b_5'
+{0,3} 6,'b_6'
+{2,2} 7,'b_7'
+{2,3} 8,'b_8'
+{0,4} 7,'b_7'
+{0,5} 8,'b_8'
+{2,4} 9,'b_9'
+{2,5} 10,'b_10'
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ti)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+

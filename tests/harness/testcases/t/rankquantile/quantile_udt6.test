@@ -1,0 +1,36 @@
+--setup
+--start-query-logging
+# Tests on UDT array
+# Tests for sort-rank and quantile
+
+load_library('rational')
+create array A <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+store(apply(A,b,rational('(1/3)')),B)
+show(B)
+
+
+--test
+--set-format dense
+--aql update B set b='(1/2)' where x=1
+--aql select * from B
+
+sort(B,b)
+sort(B,b desc)
+sort(filter(B,x<>1))
+
+rank(B,b)
+rank(filter(B,x<>1))
+rank(filter(B,x<>1),b)
+
+quantile(B,2,b)
+quantile(B,4,b)
+quantile(B,10,b)
+quantile(filter(B,x<>1),5,b)
+--error --code scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "quantile(filter(B,x<>1),10,a,b)"
+--reset-format
+
+--cleanup
+remove(A)
+remove(B)
+--stop-query-logging

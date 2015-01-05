@@ -1,0 +1,38 @@
+--setup
+--start-query-logging
+# Ticket number: 1646 
+# Tests covers Build literal in 3D forms.
+# Tests for build literal in sparse forms
+
+
+--test
+build(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(2),(2)],[(5),(5)]],[[(3),(3)],[(6),(6)]]]',1)
+build(<a:int64,b:double > [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1)
+build(<a:int64,b:double default 3.142> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1)
+
+build(<num:int64, val:char default 'A'> [x=1:2,1,0,y=1:2,1,0,z=1:2,1,0],'[[[(2)]]];[[[(2)]]];[[[(2)]]];[[[(2)]]];[[[(3)]]];[[[(3)]]];[[[(3)]]];[[[(3)]]]',true)
+
+sort(build(<a:int64,b:double default 3.142> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1))
+sort(build(<a:int64,b:double default 3.142> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1),a)
+
+aggregate(build(<a:int64,b:double default 3.142> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1),min(a))
+aggregate(build(<a:int64,b:double default 3.142> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]',1),min(a),max(b))
+
+--aql select * from array(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]')
+--aql select count(*) from array(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]')
+--aql select sum(a1)+10 from array(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[(2)],[()]]')
+--aql select sin(a1+0.25) from array(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[(2)],[()]]')
+--aql select * from array(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[{0,0}(2)],[{1,0}(-199),{1,1}(-1)]]')
+
+build(<a:double> [x=0:3,4,0],'[{0}(0),{1}(1),{2}(2),{3}(3)]',true)
+build(<a:double> [x=0:3,4,0],'[{0}(0),{1}(),{2}(2),{3}(3)]',1)
+build(<a1:double NULL> [x=0:1,2,0, y=0:1,2,0],'[[{0,0}(inf)]]',true)
+build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[{0,0}(2),{0,1}(-100)],[{1,0}(-199),{1,1}(-1)]]',true)
+build(<a1:int64> [x=0:1,2,0, y=0:1,2,0],'[[{0,0}(2)],[{1,0}(-199),{1,1}(-1)]]',true)
+
+--error --code scidb::SCIDB_SE_SYNTAX::SCIDB_LE_ATTRIBUTE_NOT_EXIST --aql="select count(*),min(b) from array(<num:int64> [x=1:2,2,0,y=1:2,2,0,z=1:2,2,0],'[[[(0),(1)],[(10),(10)]],[[(3),(3)],[(6),(6)]]]')"
+
+
+--cleanup
+
+--stop-query-logging

@@ -1,0 +1,19 @@
+# ticket no. 998
+
+--setup
+--start-query-logging
+create array A <a:string,b:double> [x=-2:3,2,1,y=0:2,2,2]
+create array Ts <a:string> [x=-2:3,2,1,y=0:2,2,2]
+create array Ti <b:double> [x=-2:3,2,1,y=0:2,2,2]
+--aql select * into A from filter(build(Ts,string(x)+'_'+string(y)),y<>2),filter(build(Ti,x+0.4),y<>2)
+
+--test
+save(A,'a_test.txt',-1,'store')
+load(A,'a_test.txt',-1)
+scan(A)
+
+--cleanup
+remove(A)
+remove(Ts)
+remove(Ti)
+--stop-query-logging

@@ -1,0 +1,66 @@
+--setup
+load_library('tile_integration')
+create array V <v:int64> [n=1:3571,727,0]
+--start-igdata
+# prime size tile
+setopt('tile-size','9941')
+store(build(V, 7), V)
+--stop-igdata
+--test
+--start-igdata
+store(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(V, prod0, v*v*n*ceil(n)*ceil(v)), prod1, prod0*prod0*n*ceil(n)*ceil(v)), prod2, prod1*prod1*n*ceil(n)*ceil(v)), prod3, prod2*prod2*n*ceil(n)*ceil(v)), prod4, prod3*prod3*n*ceil(n)*ceil(v)), prod5, prod4*prod4*n*ceil(n)*ceil(v)), prod6, prod5*prod5*n*ceil(n)*ceil(v)), prod7, prod6*prod6*n*ceil(n)*ceil(v)), prod8, prod7*prod7*n*ceil(n)*ceil(v)), prod9, prod8*prod8*n*ceil(n)*ceil(v)), prod10, prod9*prod9*n*ceil(n)*ceil(v)), prod11, prod10*prod10*n*ceil(n)*ceil(v)), D)
+store(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(V, prod0, v*v*n*ceil(n)*ceil(v)), prod1, prod0*prod0*n*ceil(n)*ceil(v)), prod2, prod1*prod1*n*ceil(n)*ceil(v)), prod3, prod2*prod2*n*ceil(n)*ceil(v)), prod4, prod3*prod3*n*ceil(n)*ceil(v)), prod5, prod4*prod4*n*ceil(n)*ceil(v)), prod6, prod5*prod5*n*ceil(n)*ceil(v)), prod7, prod6*prod6*n*ceil(n)*ceil(v)), prod8, prod7*prod7*n*ceil(n)*ceil(v)), prod9, prod8*prod8*n*ceil(n)*ceil(v)), prod10, prod9*prod9*n*ceil(n)*ceil(v)), prod11, prod10*prod10*n*ceil(n)*ceil(v)), C)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod11 - right.prod11), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod7 - right.prod7), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod1 - right.prod1), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod0 - right.prod0), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store(apply(V,      prod0, n*v*v*sqrt(n)*sqrt(v)), C)
+store(tile_apply(V, prod0, n*v*v*sqrt(n)*sqrt(v)), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod0 - right.prod0), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store( aggregate( apply      (V, f, sqrt(v)), stdev(f), n), C)
+store( aggregate( tile_apply (V, f, sqrt(v)), stdev(f), n), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.n - right.n), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+remove(V)
+create array V <v:int64> [n=1:3571,727,3]
+--start-igdata
+store(build(V, random()), V)
+--stop-igdata
+--start-igdata
+store(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(apply(V, prod0, v*v*n*ceil(n)*ceil(v)), prod1, prod0*prod0*n*ceil(n)*ceil(v)), prod2, prod1*prod1*n*ceil(n)*ceil(v)), prod3, prod2*prod2*n*ceil(n)*ceil(v)), prod4, prod3*prod3*n*ceil(n)*ceil(v)), prod5, prod4*prod4*n*ceil(n)*ceil(v)), prod6, prod5*prod5*n*ceil(n)*ceil(v)), prod7, prod6*prod6*n*ceil(n)*ceil(v)), prod8, prod7*prod7*n*ceil(n)*ceil(v)), prod9, prod8*prod8*n*ceil(n)*ceil(v)), prod10, prod9*prod9*n*ceil(n)*ceil(v)), prod11, prod10*prod10*n*ceil(n)*ceil(v)), D)
+store(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(tile_apply(V, prod0, v*v*n*ceil(n)*ceil(v)), prod1, prod0*prod0*n*ceil(n)*ceil(v)), prod2, prod1*prod1*n*ceil(n)*ceil(v)), prod3, prod2*prod2*n*ceil(n)*ceil(v)), prod4, prod3*prod3*n*ceil(n)*ceil(v)), prod5, prod4*prod4*n*ceil(n)*ceil(v)), prod6, prod5*prod5*n*ceil(n)*ceil(v)), prod7, prod6*prod6*n*ceil(n)*ceil(v)), prod8, prod7*prod7*n*ceil(n)*ceil(v)), prod9, prod8*prod8*n*ceil(n)*ceil(v)), prod10, prod9*prod9*n*ceil(n)*ceil(v)), prod11, prod10*prod10*n*ceil(n)*ceil(v)), C)
+ --stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod11 - right.prod11), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod1 - right.prod1), diff), diff <>0),count(*))
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod0 - right.prod0), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store(apply(V,      prod0, n*v*v*sqrt(n)*sqrt(v)), C)
+store(tile_apply(V, prod0, n*v*v*sqrt(n)*sqrt(v)), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.prod0 - right.prod0), diff), diff <>0),count(*))
+remove(C)
+remove(D)
+--start-igdata
+store( aggregate( apply      (V, f, sqrt(v)), stdev(f), n), C)
+store( aggregate( tile_apply (V, f, sqrt(v)), stdev(f), n), D)
+--stop-igdata
+aggregate(filter(project(apply(join(C as left , D as right), diff, left.n - right.n), diff), diff <>0),count(*))
+--cleanup
+--start-igdata
+setopt('tile-size','10000')
+--stop-igdata
+remove(C)
+remove(D)
+remove(V)

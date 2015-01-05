@@ -1,0 +1,12 @@
+--setup
+create array A <a:int64> [x=0:2,3,0]
+store(filter(build(A,x+10),x<>1),A)
+
+--test
+--aql select * from A as a1 join A as a2 on a1.a=a2.a
+--aql select * from store(filter(build(A,x+10),x<>2),B)
+--aql select * from A join B on A.a=B.a
+
+--cleanup
+remove(A)
+remove(B)

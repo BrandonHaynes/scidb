@@ -1,0 +1,13 @@
+[
+(),
+(21,"ice cream",50.5,"mango",true),
+(),
+(,"coffee",,"CCD",true),
+(),
+(61,,10,"nice",true),
+(,true),
+(),
+(91,,90.1,,true),
+(,,100,"Lays",true),
+()
+]

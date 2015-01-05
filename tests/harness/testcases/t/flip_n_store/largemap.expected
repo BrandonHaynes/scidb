@@ -1,0 +1,13 @@
+SCIDB QUERY : <create array H<i:int64>[a(string)=800000,800000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(<a:string>[i=0:799999,800000,0],format(i+0.0,'Gregor awoke one morning to find himself transformed into a gigantic insect. %f')),G)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(G,H),H)>
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+Query was executed successfully
+

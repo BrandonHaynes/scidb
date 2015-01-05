@@ -1,0 +1,30 @@
+--setup
+create array A <a:int32>[x=0:2,3,0]
+create array C <a:int32>[x=0:2,3,0]
+store(build(A,x+1),A)
+store(build(A,x+10),B)
+store(build(C,x+100),C)
+create array teeth_u <val:int64 null> [x=0:*,2,0,y=0:*,2,0]
+load(teeth_u, '${TEST_DATA_DIR}/teeth.txt')
+
+--test
+cross_join(A,B)
+cross_join(A,C)
+cross_join(teeth_u, A)
+store(cross_join(A, teeth_u), D)
+store(cross_join(teeth_u,teeth_u),E)
+aggregate(D,count(*))
+aggregate(E,count(*))
+aggregate(cross_join(teeth_u,teeth_u),count(*))
+cross_join(aggregate(teeth_u,sum(val)), aggregate(teeth_u,sum(val)))
+cross_join(teeth_u, aggregate(teeth_u,sum(val)))
+cross_join(aggregate(teeth_u,avg(val)), teeth_u)
+cross_join(teeth_u, build(<val:int64> [x=1:10,5,0], x))
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(teeth_u)
+remove(D)
+remove(E)

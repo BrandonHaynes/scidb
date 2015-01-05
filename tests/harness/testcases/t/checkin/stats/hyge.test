@@ -1,0 +1,56 @@
+--setup
+load_library('linear_algebra')
+
+--set-format dcsv
+# t.checkin.la_cdf
+CREATE ARRAY p4_cdf_test1 <a:double> [x=0:0,1,0, y=0:6,7,0]
+load(p4_cdf_test1, '${TEST_DATA_DIR}/p4_cdf_test1.txt')
+
+# t.checkin.linalg.function_hygecdf
+create array success_array <success:double> [x=0:0, 1,0]
+store(build(success_array, (x+2/1.0)),success_array)
+create array HCDF < val : double > [ I=1:3,2,0, J=1:3,2,0 ]
+store(build(HCDF, 1.0/(I+J-1)), HCDF)
+
+# t.checkin.linalg.hygecdf_special
+create array succesSpecial <success:double> [x=0:0, 1,0]
+store(build(succesSpecial,x+inf),succesSpecial)
+create array drawSpecial <drawings:double> [x=0:9,1,0]
+load(drawSpecial, '${TEST_DATA_DIR}/hdf.txt')
+
+--test
+# t.checkin.la_cdf
+project(apply(p4_cdf_test1, a_hygecdf, hygecdf(p4_cdf_test1.a,100,10,1)), a_hygecdf)
+project(apply(p4_cdf_test1, a_hygecdf, hygecdf(p4_cdf_test1.a,0,0,0)), a_hygecdf)
+project(apply(p4_cdf_test1, a_hygecdf, hygecdf(p4_cdf_test1.a,1,0,0)), a_hygecdf)
+project(apply(p4_cdf_test1, a_hygecdf, hygecdf(p4_cdf_test1.a,1,0,1)), a_hygecdf)
+project(apply(p4_cdf_test1, a_hygecdf, hygecdf(p4_cdf_test1.a,0,0,1)), a_hygecdf)
+project(apply(p4_cdf_test1, a_hygecdf, hygecdf(p4_cdf_test1.a,0,1,1)), a_hygecdf)
+project(apply(p4_cdf_test1, a_hygecdf, hygecdf(p4_cdf_test1.a,0,1,0,true)), a_hygecdf)
+project(apply(p4_cdf_test1, a_hygecdf, hygecdf(p4_cdf_test1.a,0,1,0,true)), a_hygecdf)
+
+# t.checkin.linalg.function_hygecdf
+apply(success_array,y,hygecdf(success,20,80,10))
+apply(HCDF,y,hygecdf(val,20,80,10))
+apply(HCDF,y,hygecdf(23,20,80,val,true))
+apply(HCDF,y,hygecdf(23,20,80,val,false))
+
+# t.checkin.linalg.hygecdf_special
+apply(succesSpecial,y,hygecdf(success,20,80,10))
+apply(succesSpecial,y,hygecdf(0.68122,20,80,success))
+apply(drawSpecial,output, hygecdf(.5,80,2,drawings))
+apply(drawSpecial,output, hygecdf(drawings,80,2,5,true))
+
+--cleanup
+# t.checkin.la_cdf
+remove(p4_cdf_test1)
+# t.checkin.linalg.function_hygecdf
+remove(success_array)
+# t.checkin.linalg.hygecdf_special
+remove(succesSpecial)
+
+remove(HCDF)
+remove(drawSpecial)
+unload_library('linear_algebra')
+
+--reset-format

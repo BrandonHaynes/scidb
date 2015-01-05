@@ -1,0 +1,79 @@
+SCIDB QUERY : <create array A <a:int64> [x=0:*,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <b:int64> [x=0:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <b:int64> [x=0:*,3,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array D <b:int64> [y=0:*,2,2]>
+Query was executed successfully
+
+SCIDB QUERY : <create array E <b:int64> [x=0:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array F <b:int64> [x=0:*,3,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array G <b:int64> [y=0:*,2,2]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into A from build(<a:int64> [x=0:2,3,0],x+10)>
+{x} a
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select * into B from A>
+{x} b
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select * into C from A>
+{x} b
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select * into D from A>
+{y} b
+{0} 10
+{1} 11
+{2} 12
+
+SCIDB QUERY : <select * into E from A where x<>1>
+{x} b
+{0} 10
+{2} 12
+
+SCIDB QUERY : <select * into F from A where a>10 and x>1>
+{x} b
+{2} 12
+
+SCIDB QUERY : <select * into G from A where a=10>
+{y} b
+{0} 10
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(D)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(E)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(F)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(G)>
+Query was executed successfully
+

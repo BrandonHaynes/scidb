@@ -1,0 +1,45 @@
+Query was executed successfully
+
+x,name
+42,'alex'
+
+x,name
+42,'alex'
+64,'bob'
+
+x,name
+42,'alex'
+64,'bob'
+1123456,'jake'
+
+x,name
+42,'alex'
+64,'bob'
+142,'john'
+1123456,'jake'
+
+x,name
+42,'alex'
+64,'bob'
+142,'john'
+1123456,'jake'
+1123457,null
+
+Query was executed successfully
+
+x,name,val
+42,0,421
+64,1,641
+142,3,1421
+1123456,2,11234561
+
+x,name,val_sum
+42,0,421
+64,1,641
+142,3,1421
+1123456,2,11234561
+
+Query was executed successfully
+
+Query was executed successfully
+

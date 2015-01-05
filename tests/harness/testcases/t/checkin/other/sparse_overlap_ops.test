@@ -1,0 +1,33 @@
+--setup
+--start-query-logging
+create array A <a:int32 null> [x=-2:8,5,0,y=0:2,2,1]
+store(filter(build(A,x+10*y),x<>2 and x<>5),A)
+
+--test
+--aql update A set a=null where x=1 or x=8
+apply(A,z,a+10)
+between(A,0,0,2,3)
+cross_join(A,A)
+cross_join(A as a1,A as a2,a1.x,a2.x)
+concat(A,A)
+filter(A,x%2=1)
+filter(A,x%2<>1)
+join(A,A)
+merge(A,A@1)
+merge(A@1,A)
+project(apply(A,z,a+10),z)
+reverse(A)
+repart(A,<a:int32 null> [x=-2:8,5,0,y=0:2,3,1])
+lookup(join(build(<x:int64>[j=0:2,3,0],j),build(<y:int64>[i=0:2,3,0],i)),A)
+aggregate(apply(between(A,0,0,4,1),x_attr,x), sum(x_attr))
+store(build(A,iif(x=1,null,x*10+y)),A)
+slice(A,x,1)
+store(build(A,iif(x=3,null,x+10)),A)
+transpose(A)
+unpack(A,z)
+xgrid(A,1,2)
+aggregate(apply(between(A,0,0,4,1),x_attr,x), sum(x_attr))
+
+--cleanup
+remove(A)
+--stop-query-logging

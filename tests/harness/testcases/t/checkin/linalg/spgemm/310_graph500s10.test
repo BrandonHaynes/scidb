@@ -1,0 +1,71 @@
+--setup
+load_library('linear_algebra')
+load_library('dense_linear_algebra')
+
+--justrun "remove(pairs_scale10)"
+create array pairs_scale10 <i:int64, j:int64>[dummy=0:*,1000*1000,0]
+--justrun "remove(mat_scale10)"
+
+#we'd like to use the following chunks size for spgemm, but we have to
+#accomodate gemm() in a test below, so we'll use 1024 as the chunk size
+#if we had the compare() operator this would not be a problem
+#create array mat_scale10 <v:double>[i=0:1023,262144,0, j=0:1023,262144,0]
+create array mat_scale10 <v:double>[i=0:1023,1024,0, j=0:1023,1024,0]
+
+--start-query-logging
+--start-igdata
+#
+# works with run.py, keeping here as an example of how to reference
+# a general file (vs one given to the load command)
+#--shell --command "csv2scidb -i data/graph500scale10.csv -o /tmp/graph500scale10.scidb"
+#  then: load(pairs_scale10, '/tmp/graph500scale10.scidb')
+#
+
+# load the list of v0,v1 edges (vertex pairs) (checked into the test/data directory)
+--shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(pairs_scale10, '${TEST_DATA_DIR}/graph500scale10.scidb.txt')""
+
+# turn into adjacency matrix
+store(redimension(apply(pairs_scale10, v, 1.0), mat_scale10),mat_scale10)
+#remove(pairs_scale10)
+
+--test
+
+# calculate spgemm 
+store(spgemm(mat_scale10, mat_scale10), product_scale10)
+
+# calculate it again with the dense operator gemm
+# (only because its so small can we do this)
+store(gemm(mat_scale10, mat_scale10, build(mat_scale10,0)), check_scale10)
+#remove(mat_scale10)
+
+# join, take difference, and count the non-identical elements
+store(join(product_scale10,check_scale10), joined_scale10)
+#remove(product_scale10)
+#remove(check_scale10)
+
+store(project(apply(joined_scale10,diff,multiply-gemm),diff), diffs_scale10)
+#remove(joined_scale10)
+
+# the output of this is the test result ... it should be 0
+--stop-igdata
+aggregate(filter(diffs_scale10,diff !=0),count(*))
+--start-igdata
+
+# count the number of multiplies required for the spgemm above:
+store(spgemm(mat_scale10, mat_scale10, 'count-mults'), num_mult_scale10)
+
+# the output of these two are the test result (since the above is too large to print out)
+aggregate(num_mult_scale10,count(*))
+aggregate(num_mult_scale10,sum(multiply))
+
+
+--cleanup
+remove(pairs_scale10)
+remove(mat_scale10)
+remove(product_scale10)
+remove(check_scale10)
+remove(joined_scale10)
+remove(diffs_scale10)
+remove(num_mult_scale10)
+
+--stop-query-logging

@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+%myents;
+]>
+<chapter id="plugins">
+  <title>User-Defined Types and Functions</title>
+
+  <para><indexterm>
+      <primary>user-defined objects</primary>
+    </indexterm><indexterm>
+      <primary>plugins</primary>
+    </indexterm><indexterm>
+      <primary>SciDB</primary>
+
+      <secondary>plugins</secondary>
+    </indexterm>Out of the box, SciDB provides users with a standard set of
+  data types, such as integers, floating-point numbers, and strings.
+  Scientific and large-scale analytic applications often require other data
+  types such as complex numbers, rational numbers, two-dimensional points, or
+  others. Some applications call for specific mathematical functions (such as
+  greatest common factor of two integers or non-uniform random number
+  generation) that SciDB does not provide by default. SciDB's extensibility
+  mechanism allows users to add their own implementation of types and
+  functions to the SciDB engine.</para>
+
+  <para>Suppose a SciDB application requires a rational number datatype.
+  Rather than use double precision, the user wants to store an integer-type
+  numerator and denominator pair. As part of the the new type's functionality,
+  users will also want to support basic arithmetic ( +, -, *, / ) and logical
+  (&lt;, &lt;=, =, &gt;=, &gt;, &lt;&gt;) functionality.</para>
+
+  <para>At the level of the AQL query language, the new type can be used as
+  follows:<programlisting>create array rational_example &lt; N : rational &gt; [ I=0:99,10,0, J=0:99,10,0 ]
+
+# Q1:
+
+SELECT COUNT(*)
+   FROM rational_example AS R
+   WHERE R.N = rational(1,2);
+
+# Q2: 
+
+SELECT str(R.N) 
+  FROM rational_example AS R
+  WHERE R.N + rational(1,4) &gt; rational(1,2);</programlisting></para>
+
+  <para>So far as a user's queries are concerned, there will be no difference
+  between the way a built-in type and a user-defined type (or function) works.
+  There are, however, a few items to consider: <itemizedlist>
+      <listitem>
+        <para>All type conversions need to be explicit. SciDB does not support
+        implicit casting.</para>
+      </listitem>
+
+      <listitem>
+        <para>Client applications can accommodate only a limited set of types:
+        doubles, integers, and strings. When you write queries (using iquery,
+        for example), the query's result needs to explicitly convert result
+        types into something that the client understands.</para>
+      </listitem>
+
+      <listitem>
+        <para>While it is possible to write complex and
+        computationally-expensive UDFs, we recommend that you build UDFs as
+        small, self-contained units of functionality. You can then use SciDB's
+        operator composition functionality to increase the power and
+        complexity of your operations.</para>
+      </listitem>
+
+      <listitem>
+        <para>SciDB does not support features such as embedding queries within
+        UDFs, nor plugins that do anything more sophisticated than take a
+        vector of scalar values and return a single scalar type result.</para>
+      </listitem>
+    </itemizedlist></para>
+
+  <para>To create and use UDTs and UDFs, read the following
+  topics:<itemizedlist>
+      <listitem>
+        <para><link linkend="pluginRecipe">Process to Implement a Plugin
+        Library</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="UDT_examples">User-Defined Type
+        Examples</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="UDF_examples">User-Defined Function
+        Examples</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="pluginArchitecture">Plugin
+        Architecture</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="pluginLoad">How to Load a Plugin</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="pluginTutorial">Steps to Create a SciDB
+        Plugin</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="registerUDFs">Register Your
+        Functions</link></para>
+      </listitem>
+    </itemizedlist></para>
+
+  <section xml:id="pluginRecipe">
+    <title>Process to Implement a Plugin Library</title>
+
+    <para>The easiest way to implement your own plugin library is to copy the
+    style of the provided examples.</para>
+
+    <procedure>
+      <step>
+        <para>Create a new directory parallel to one of the example
+        directories, for example <emphasis
+        role="bold">point1</emphasis>.</para>
+      </step>
+
+      <step>
+        <para>In the <emphasis
+        role="bold">~/examples/CMakeLists.txt</emphasis> file, add a new line
+        with the name of the new directory. For example, if your new directory
+        is "point1," you would add the following line:<programlisting>add_subdirectory("point1")</programlisting></para>
+      </step>
+
+      <step>
+        <para>Rename the C file that you copied to an appropriate name for
+        your library, for example <emphasis
+        role="bold">point1</emphasis>.</para>
+      </step>
+
+      <step>
+        <para>Change the contents of the <emphasis
+        role="bold">~/examples/point1/CMakeLists.txt</emphasis> to get the
+        server to build your new plugin library.</para>
+      </step>
+
+      <step>
+        <para>Make you modifications to the new source code file, for example
+        <emphasis role="bold">~/examples/point1/point1.cpp</emphasis>.</para>
+      </step>
+
+      <step>
+        <para>Using <command>make</command>, build <emphasis
+        role="bold">libpoint1.so</emphasis>. The system places the file into
+        the plugins directory, along with the other example plugin
+        files.</para>
+      </step>
+    </procedure>
+
+    <para>You can now load the library into SciDB, using the
+    <literal>load_library</literal> operator.</para>
+  </section>
+
+  <section id="UDT_examples">
+    <title>User-Defined Type Examples</title>
+
+    <para>The SciDB distribution includes several example extensions in the
+    <literal>~/examples</literal> folder located beneath the SciDB root
+    directory. The following user-defined type (UDT) examples are
+    available:<informaltable frame="all">
+        <?dbfo keep-together="auto" ?>
+
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="15*"/>
+
+          <colspec align="left" colname="c2" colwidth="50*"/>
+
+          <thead>
+            <row>
+              <entry>Example Name</entry>
+
+              <entry>Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>complex</entry>
+
+              <entry>Complex number UDT (a + b.i), together with the
+              associated algebraic operations, and equality.</entry>
+            </row>
+
+            <row>
+              <entry>rational</entry>
+
+              <entry>Rational number UDT (int64 numerator and denominator)
+              together with the associated algebra operations and ordering
+              comparisons.</entry>
+            </row>
+
+            <row>
+              <entry>point</entry>
+
+              <entry>Two-dimensional (2-D) point UDT. Double precision X and
+              Y.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable></para>
+
+    <para>There is also a selection of user-defined functions (UDFs) available
+    in the <literal>~/examples/more_math</literal> folder.</para>
+  </section>
+
+  <section id="UDF_examples">
+    <title>User-Defined Function Examples</title>
+
+    <para>There is a selection of user-defined functions (UDFs) available in
+    the <literal>~/examples/more_math</literal> folder.</para>
+
+    <para><informaltable frame="all">
+        <?dbfo keep-together="auto" ?>
+
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="15*"/>
+
+          <colspec align="left" colname="c2" colwidth="50*"/>
+
+          <thead>
+            <row>
+              <entry>Example Name</entry>
+
+              <entry>Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>isprime</entry>
+
+              <entry>Function to determine whether the input integer is
+              prime.</entry>
+            </row>
+
+            <row>
+              <entry>fact</entry>
+
+              <entry>Function to find the factors of the input
+              integer.</entry>
+            </row>
+
+            <row>
+              <entry>lasso</entry>
+
+              <entry>Lasso (Least Absolute Shrinkage and Selection Operator)
+              function, a regularized version of of the least squares method
+              of solving a series of linear equations.</entry>
+            </row>
+
+            <row>
+              <entry>mylog</entry>
+
+              <entry>Function to calculate the logarithm, where you can
+              specify the base. SciDB provides base e and base 10 logarithmic
+              functions; this UDF can be used for other bases.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable></para>
+  </section>
+
+  <section id="pluginArchitecture">
+    <title>Plugin Architecture</title>
+
+    <para>The algorithms implemented within the SciDB engine are designed to
+    treat instances of data type values as black box memory segments. For
+    example, all that the SciDB engine knows about the contents of the Complex
+    Number data type is that it is 16 bytes long. The code that needs to know
+    about the contents of these 16 bytes is implemented by the user in their
+    own C/C++ code, which they compile into a shared library.</para>
+
+    <programlisting>//
+// This is the struct that describes how to organize the 16 bytes of data that
+// makes up an instance of a SciDB Complex UDT.
+struct Complex
+{
+    double re;
+    double im;
+};
+
+//
+// This is the code that takes data from the SciDB engine, performs the addition, and deposits
+// the return result in an appropriately sized "black box" of bytes. The SciDB engine takes 
+// this return result and stores it, or passes it on to another function. 
+static void addComplex(const Value** args, Value* res, void*)
+{
+    Complex&amp; a = *(Complex*)args[0]-&gt;data();
+    Complex&amp; b = *(Complex*)args[1]-&gt;data();
+    Complex&amp; c = *(Complex*)res-&gt;data();
+
+    c.re = a.re + b.re;    
+    c.im = a.im + b.im;
+}</programlisting>
+
+    <para>When SciDB parses a query like the one labeled "Q2" above, the SciDB
+    engine checks to ensure that it has been provided with a shared library
+    containing code to perform the addition (rational type, rational type
+    -&gt; rational type) operation.</para>
+
+    <para>In the case of the Complex type shown here, SciDB looks for a
+    function named "+" that takes two arguments of the appropriate type (in
+    this case, a pair of Complex number instances). Then, at run time, the
+    SciDB engine assembles the necessary 16-byte "black boxes", invokes the
+    function addComplex(), and deals with the value it computes.</para>
+
+    <para>As you can see from the example code above, SciDB uses a
+    t<code>ypesystem::Value</code> class to encapsulate information about all
+    type value instances. The Values class provides a set of methods for
+    getting and setting the "value" of the class for each of the SciDB
+    built-in types; <code>getType()</code> and <code>setType()</code>. Or, in
+    the case of a typesystem::Value val; instance that contains a string,
+    <code>val.getString()</code> and <code>val.setString()</code>.</para>
+
+    <para>From the perspective of the SciDB engine, all UDFs have the same
+    basic signature:<programlisting>void functionUDF(const Value** args, Value* res, void*)
+{
+
+}</programlisting></para>
+
+    <para>Each function must define how many arguments it is to receive. These
+    arguments are obtained from the vector of<code> typesystem::Value</code>
+    pointers that makes up the first argument. Each UDF returns a single
+    result. The location where this result is to be placed is passed in by
+    reference in the second argument. The final argument is a pointer to a
+    data structure that conveys information about the state of the engine, and
+    is a means of passing data between repeated calls to the UDF within the
+    same query.</para>
+  </section>
+
+  <section id="pluginLoad">
+    <title>How to Load a Plugin</title>
+
+    <para>All of the example plugins that are included with the SciDB
+    distribution are built at the same time the SciDB core engine is built.
+    However, SciDB does not load unregistered plugins when it starts. To use
+    an example, you need to load it into a SciDB instance. Use the following
+    statements to load the rational example shared library into SciDB.</para>
+
+    <para>In AFL, run the following query:<programlisting>AFL% load_library('rational');</programlisting></para>
+
+    <para>In AQL, run the following query:<programlisting>AQL% load library 'rational';</programlisting></para>
+
+    <para>These queries load a plugin named <emphasis
+    role="bold">librational.so</emphasis>. The default plugin folder is
+    <literal>/opt/scidb/&scidb_version;/lib/scidb/plugins</literal>.</para>
+
+    <para>The act of loading a shared library first registers the library in
+    the SciDB system catalogs. Then it opens and examines the shared library
+    to store its contents with SciDB's internal extension management
+    subsystem.</para>
+
+    <para>To unload a shared library, run either of the
+    following:<programlisting>AFL% unload_library('rational');</programlisting>or<programlisting>AQL% unload library 'rational';</programlisting></para>
+
+    <para>The unload query unregisters the library in the system catalog.
+    Note, however, that unloading a library does not take effect until the
+    next time you restart SciDB. This is done to protect any running queries
+    that may be using the library at the time the library is unloaded.</para>
+  </section>
+
+  <section xml:id="pluginTutorial">
+    <title>Steps to Create a SciDB Plugin</title>
+
+    <para>This section explains the steps needed for creating a new plugin for
+    SciDB.</para>
+
+    <para>After you create a new data type, you need to complete the following
+    steps before you can use that type in SciDB.</para>
+
+    <procedure>
+      <step>
+        <para><emphasis role="bold">Constructors. </emphasis>You need to
+        create User-Defined Functions (UDFs) that construct instances of your
+        new type based on the values of other types. In general, the types you
+        will use as input to these UDFs will be built-in types. For example,
+        it is typical to use a string as a source for a new data type's
+        contents. The following UDF converts a string with a particular format
+        into an instance of a rational number data type:<programlisting>//
+// This is the struct used to store the data inside SciDB. 
+typedef struct
+{
+    int64_t num;
+    int64_t denom;
+} SciDB_Rational;
+
+void str2Rational(const Value** args, Value* res, void*)
+{
+	int64_t n, d;
+    SciDB_Rational* r = (SciDB_Rational*)res-&gt;data();
+
+    if (sscanf(args[0]-&gt;getString(), "(%"PRIi64"/%"PRIi64")", &amp;n, &amp;d) != 2)
+        throw PLUGIN_USER_EXCEPTION("librational",
+         SCIDB_SE_UDO, RATIONAL_E_CANT_CONVERT_TO_RATIONAL)
+            &lt;&lt; args[0]-&gt;getString();
+
+	if ((0 == d) &amp;&amp; (0 == n))
+		d = 1;
+		
+	boost::rational&lt;int64_t&gt;rp0(n, d);
+	r-&gt;num   = rp0.numerator();
+	r-&gt;denom = rp0.denominator();
+
+}</programlisting>Note that the string to UDT conversion function,
+        <code>str2Rational</code>, is particularly important. This conversion
+        function is the UDF used by the <literal>load()</literal> operator to
+        bulk ingest data into SciDB.</para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Converters to built-in types.
+        </emphasis>You need UDFs that convert your UDT back into a built-in
+        type, or a number of built-in types. In the case of the complex type,
+        for example, you can either write a UDF that composes the 16 bytes
+        into a string, or else a pair of UDFs that extract the real and
+        imaginary portions of the type.<programlisting>static void reComplex(const Value** args, Value* res, void*)
+{
+   Complex&amp; a = *(Complex*)args[0]-&gt;data();
+   res-&gt;setDouble(a.re);
+}
+
+static void imComplex(const Value** args, Value* res, void*)
+{
+   Complex&amp; a = *(Complex*)args[0]-&gt;data();
+   res-&gt;setDouble(a.im);
+}</programlisting>Remember that SciDB does not perform implicit casting. You
+        need to include these UDFs in any queries that pull these values out
+        of an array.</para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Common functions. </emphasis> For some
+        data types, you may need functions to perform arithmetic and
+        comparisons. For others, you may not need all of these functions. For
+        example, it makes sense to support the full set of relational
+        operators for a data type that can be ordered (such as rational
+        numbers). Here are the UDFs for determining order for the rational
+        UDT.<programlisting>void rationalLT(const Value** args, Value* res, void * v)
+{
+    SciDB_Rational* r0 = (SciDB_Rational*)args[0]-&gt;data();
+    SciDB_Rational* r1 = (SciDB_Rational*)args[1]-&gt;data();
+
+	check_zero ( r0 );
+	check_zero ( r1 );
+
+	boost::rational&lt;int64_t&gt;rp0(r0-&gt;num, r0-&gt;denom);
+	boost::rational&lt;int64_t&gt;rp1(r1-&gt;num, r1-&gt;denom);
+
+	if ( rp0 &lt; rp1 ) 
+        res-&gt;setBool(true);
+	else
+        res-&gt;setBool(false);
+}
+
+void rationalEQ(const Value** args, Value* res, void * v)
+{
+    SciDB_Rational* r0 = (SciDB_Rational*)args[0]-&gt;data();
+    SciDB_Rational* r1 = (SciDB_Rational*)args[1]-&gt;data();
+
+	check_zero ( r0 );
+	check_zero ( r1 );
+
+	boost::rational&lt;int64_t&gt;rp0(r0-&gt;num, r0-&gt;denom);
+	boost::rational&lt;int64_t&gt;rp1(r1-&gt;num, r1-&gt;denom);
+
+	if ( rp0 == rp1 ) 
+        res-&gt;setBool(true);
+	else
+        res-&gt;setBool(false);
+}</programlisting></para>
+
+        <para>For unordered types, such as a data type to represent complex
+        numbers, you need less functionality. For example, for our complex
+        number data type, two values are equal or not equal. SciDB needs only
+        one UDF, to return TRUE when two type values are equal, and FALSE the
+        two values are not equal.</para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Integrators. </emphasis>UDFs that are
+        necessary to support the integration of the UDT with other facilities,
+        such as aggregates. For example, <literal>max()</literal> and
+        <literal>min()</literal> use the UDFs that order instance values. If
+        your type has specific requirements <literal>max()</literal> and
+        <literal>min()</literal>, you might need to add these UDFs.</para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Error Handling. </emphasis>Your UDFs need
+        to check for errors and exceptions in their code. SciDB provides
+        facilities to report to the SciDB engine that your UDF has encountered
+        an error, and the type of error. Doing this allows the SciDB engine to
+        terminate the query and report some useful status information to the
+        log file.</para>
+
+        <para>Errors and exceptions are thrown using a macro,
+        <command>USER_EXCEPTION (error_code, description : string)</command>.
+        See the listing for the function <literal>str2Rational</literal>, in
+        step 1 above. For a full list of the terse error codes that you can
+        throw from within a UDF, consult the <emphasis
+        role="bold">~/include/system/ErrorCodes.h</emphasis> file.</para>
+      </step>
+    </procedure>
+  </section>
+
+  <section id="registerUDFs">
+    <title>Register Your Functions</title>
+
+    <para>Once you have implemented your functions, you should register them
+    with the SciDB facilities for extracting information from a shared
+    library. The SciDB install provides a set of C macros to do this.</para>
+
+    <informaltable frame="all">
+      <?dbfo keep-together="auto" ?>
+
+      <tgroup cols="3">
+        <colspec align="left" colname="c1" colwidth="30*"/>
+
+        <colspec align="left" colname="c2" colwidth="40*"/>
+
+        <colspec align="left" colname="c3" colwidth="30*"/>
+
+        <thead>
+          <row>
+            <entry>Macro Name</entry>
+
+            <entry>Description</entry>
+
+            <entry>Example</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>REGISTER_TYPE ( name, length )</entry>
+
+            <entry>Instructs SciDB to register a new UDT in it's catalogs with
+            the name provided (note that this argument to the macro is not a
+            string) and the length, in bytes, of the type instance
+            values.</entry>
+
+            <entry>REGISTER_TYPE ( complex, 16 )</entry>
+          </row>
+
+          <row>
+            <entry>REGISTER_FUNCTION ( name, input argument types, output
+            argument type, function pointer)</entry>
+
+            <entry>Instructs SciDB to register a new UDF in its catalogs. The
+            new UDF can be called in AQL or AFL using the first argument name
+            (again, not a string), the the function is expected to take a list
+            of argument types as input, and return a value of the type
+            provided. The actual reference to the function you want SciDB to
+            call is the last argument to the macro.</entry>
+
+            <entry>REGISTER_FUNCTION (+, ("complex", "complex"), "complex",
+            addComplex);</entry>
+          </row>
+
+          <row>
+            <entry>REGISTER_CONVERTER (input type, output type, conversion
+            cost, function pointer)</entry>
+
+            <entry>From time to time SciDB needs to convert types, and it can
+            require UDFs to perform this operation. This macro is how you
+            register conversions.</entry>
+
+            <entry>REGISTER_CONVERTER (string, complex,
+            EXPLICIT_CONVERSION-_COST, string2complex);</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </section>
+</chapter>

@@ -1,0 +1,11 @@
+
+--test
+--start-query-logging
+
+help('show')  
+
+--stop-query-logging
+
+
+--cleanup
+

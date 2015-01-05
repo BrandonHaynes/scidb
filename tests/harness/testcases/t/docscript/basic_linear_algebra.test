@@ -1,0 +1,62 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+store(build(<val:double>[i=0:3,1000,0, j=0:3,1000,0], '[[1,2,3,4],[0,1,2,1],[0,0,-1,-5],[1,0,0,6]]',true),A)  
+--set-format dense
+--stop-igdata
+scan(A)  
+transpose( gemm( project(apply( cross_join( gesvd(A,'left') as X, gesvd(A, 'values') as Y, X.i_2, Y.i), val, u / sigma),val), gesvd(A,'right'),build(A,0)) )  
+--set-format dcsv
+--start-igdata
+create array m2x3 <val:double> [row=0:1,32,0,col=0:2,32,0]  
+store(build(m2x3,'[[.5,1.5,2.5],[1,2,3]]',true),m2x3)  
+create array m3x2 <val:double> [row=0:2,32,0,col=0:1,32,0]  
+store(build(m3x2,'[[0,2],[1,3],[2,4]]',true),m3x2)  
+--stop-igdata
+show(m2x3)
+--set-format dense
+scan(m2x3)  
+--set-format dcsv
+show(m3x2)
+--set-format dense
+scan(m3x2)  
+store(build(<val:double>[row=0:1,32,0, col=0:1,32,0],0),Zeros)  
+gemm(m2x3,m3x2,Zeros)  
+--set-format dcsv
+--start-igdata
+store(build(<val:double> [row=0:2,3,0,col=0:2,3,0],row*3+col),m3x3)  
+--set-format dense
+--stop-igdata
+scan(m3x3)  
+transpose(m3x3)  
+--set-format dcsv
+--start-igdata
+store(repart(m3x2,<val:double> [row=0:2,32,0, col=0:3,32,0]),new_m3x2)  
+remove(m3x2)  
+rename(new_m3x2,m3x2)  
+--stop-igdata
+show(m3x2)
+--set-format dense
+scan(m3x2)  
+--set-format dcsv
+--start-igdata
+load_library('dense_linear_algebra')  
+--set-format dense
+--stop-igdata
+--aql SELECT * FROM gesvd(m3x2, 'right')  
+--aql SELECT * FROM gesvd(m3x2, 'left')  
+--aql SELECT * FROM gesvd(m3x2, 'values')  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(A)
+remove(m2x3)
+remove(Zeros)
+remove(m3x3)
+remove(m3x2)

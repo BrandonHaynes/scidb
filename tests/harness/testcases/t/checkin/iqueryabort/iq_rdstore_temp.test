@@ -1,0 +1,29 @@
+--setup
+--start-query-logging
+create temp array ABR1 <a:double,b:double>[x=0:3000,30,0]
+create temp array ABR2 <a:double>[x=0:3000,30,0]
+create temp array ABR3 <x:int64>[a=0:*,30,0, b=0:*,30,0]
+--igdata "store(join(filter(build(ABR2, x+2 ),1),filter(build(ABR2, x+1), 1)),ABR1)"
+--test
+--echo "issuing redim"
+#redimension_store(ABR1,ABR3)
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 15 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_2.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_2.stdout"
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 9 1 'store(redimension(ABR1, ABR3), ABR3)' 1> /tmp/${HPID}_3.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_3.stdout"
+--echo "should be empty..."
+aggregate(ABR3,count(*))
+
+--cleanup
+--stop-query-logging
+remove(ABR1)
+remove(ABR2)
+remove(ABR3)
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_2.stdout 2>/dev/null"
+--shell --command "rm -f /tmp/${HPID}_3.stdout 2>/dev/null"

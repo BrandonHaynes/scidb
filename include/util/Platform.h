@@ -1,0 +1,151 @@
+/*
+**
+* BEGIN_COPYRIGHT
+*
+* This file is part of SciDB.
+* Copyright (C) 2008-2014 SciDB, Inc.
+*
+* SciDB is free software: you can redistribute it and/or modify
+* it under the terms of the AFFERO GNU General Public License as published by
+* the Free Software Foundation.
+*
+* SciDB is distributed "AS-IS" AND WITHOUT ANY WARRANTY OF ANY KIND,
+* INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+* NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. See
+* the AFFERO GNU General Public License for the complete license terms.
+*
+* You should have received a copy of the AFFERO GNU General Public License
+* along with SciDB.  If not, see <http://www.gnu.org/licenses/agpl-3.0.html>
+*
+* END_COPYRIGHT
+*/
+
+#ifndef UTIL_PLATFORM_H_
+#define UTIL_PLATFORM_H_
+
+/****************************************************************************/
+
+#include <assert.h>
+
+/****************************************************************************/
+namespace scidb {
+/****************************************************************************/
+
+/**
+ * Informs the compiler that the given function can never return. This enables
+ * it to optimize without regard to what would happen if the function ever did
+ * in fact return, and so generate slightly better code.  More importantly, it
+ * helps to prevent spurious warnings of uninitialized variables,  unreachable
+ * code, and the like. Defined with a macro as a nod toward portability, since
+ * the underlying mechanism is inherently compiler specific.
+ */
+#ifdef  __GNUC__
+# define SCIDB_NORETURN       __attribute__((__noreturn__))
+#else
+# define SCIDB_NORETURN
+#endif
+
+/**
+ * Informs the compiler that the point in the code is known a priori not be be
+ * reachable. This can be useful in situations where the compiler is otherwise
+ * unable to deduce the unreachability of the code. Consider, for example, the
+ * statement:
+ * @code
+ *
+ *     switch (enum color = ...)
+ *     {
+ *         default:    SCIDB_UNREACHABLE();   // cases are exhaustive
+ *         case red:   ...
+ *         case blue:  ...
+ *     }
+ *
+ * @endcode
+ * which can be compiled without the need for the usual bounds checks on the
+ * switch scrutinee.
+ *
+ * @see http://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html for additional
+ * examples.
+ */
+#ifdef __GNUC__
+# define SCIDB_UNREACHABLE()  do {assert(false);__builtin_unreachable();} while(0)
+#else
+# define SCIDB_UNREACHABLE()  assert(false)
+#endif
+
+/**
+ * Informs the compiler that an expression is known a priori to evaluate true.
+ * This can be useful when optimizing hotspots in a program.  If, for example,
+ * we know that our loop will run at least once, we can add an assume hint:
+ * @code
+ *
+ *     SCIDB_ASSUME(0 < n);  // Hint to the optimizer
+ *
+ *     for (size_t i=0; i < n; ++i) { ...
+ *
+ * @endcode
+ * enabling the compiler to eliminate the comparison of 'n' against zero prior
+ * to entering the loop body for the first time, but without rewriting it to a
+ * do-while structure, which is usually less desirable than a for-loop.
+ *
+ * @see http://en.chys.info/2010/07/counterpart-of-assume-in-gcc/ for further
+ * examples.
+ */
+#define SCIDB_ASSUME(e)       do {if (!(e))SCIDB_UNREACHABLE();} while(0)
+
+/**
+ * Returns the number of elements in a native one dimensional array - that is,
+ * an array whose length is visible to the compiler at compilation time.
+ *
+ * @param a a native C style array.
+ */
+#define SCIDB_SIZE(a)         (sizeof(a) / sizeof((a)[0]))
+
+/**
+ * Return true if invoked from within a release build - that is, if the NDEBUG
+ * preprocessor symbol is defined.  Helpful for obviating what would otherwise
+ * require a mess of preprocessor mumbo jumbo. For example:
+ * @code
+ *
+ *     if (!isRelease()) {only_in_a_debug_build();} else { ...
+ *
+ * @endcode
+ * has the advantage that the conditional code is still parsed,  type-checked,
+ * and analyzed for correctness in a release build,  while remaining every bit
+ * as efficient as the equivalent #ifdef version would be, since the optimizer
+ * has exactly the information it needs to omit the dead code from the release
+ * build.
+ */
+inline bool isRelease()
+{
+#if defined(NDEBUG)
+    return true;
+#else
+    return false;
+#endif
+}
+
+/**
+ * Return true if called from within a debugging build- that is, if the NDEBUG
+ * preprocessor symbol is undefined. Useful for obviating what would otherwise
+ * require a mess of preprocessor mumbo jumbo. For example:
+ * @code
+ *
+ *     if (isDebug()) {only_in_a_debug_build();} else { ...
+ *
+ * @endcode
+ * has the advantage that the conditional code is still parsed,  type-checked,
+ * and analyzed for correctness in a release build,  while remaining every bit
+ * as efficient as the equivalent #ifdef version would be, since the optimizer
+ * has exactly the information it needs to omit the dead code from the release
+ * build.
+ */
+inline bool isDebug()
+{
+    return !isRelease();
+}
+
+/****************************************************************************/
+}
+/****************************************************************************/
+#endif
+/****************************************************************************/

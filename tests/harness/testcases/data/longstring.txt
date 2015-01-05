@@ -1,0 +1,8 @@
+{0}[
+(0,0,1.0,"fool fda;lj flkad;s jldajf l;dsaj fd;lsaf jdl;kfj dlsa;jf dkl;j fd;lasfj dsal;jf das;lf jdslakfj l;dajf ld;ajf dlkaj fldkaj fl;daj fldkajf l;dakj fdl;aj fkldasjf l;dakjf dlkaj flkdasj fiojhiofe hfia;f jidoajgopa jfeq epq jfeqfeiop jfpwq jeoq ha;oif;ajf ;ea ei;a je;a ie;ai je;aj ei;ai e;a i;eaj r;eai e;aji;e ae;"),
+(0,1,2.0,"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"),
+(0,2,2.0,"foo"),
+(1,0,3.0,"foo"),
+(1,1,4.0,"bar"),
+(1,2,5.0,"foo")
+]

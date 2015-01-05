@@ -1,0 +1,6 @@
+Query was executed successfully
+
+[An error expected at this place for the query "aggregate(A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2.]
+
+Query was executed successfully
+

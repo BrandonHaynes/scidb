@@ -1,0 +1,3 @@
+CREATE IMMUTABLE ARRAY very_small <a:int32, b:int32, c:int32, d:int32, e:int32,f:int32,g:int32,h:int32, i:int32, j:int32, k:int32>[Z=0:39,40,0 ,J=0:1599,1600,0, I=0:1599,1600,0]
+CREATE IMMUTABLE ARRAY very_small_space <I:int32, J:int32, index:int32>[id=0:39,40,0]
+create empty array projection<center:bool null>[i=500000:501599,1600,0,j=500000:501599,1600,0]

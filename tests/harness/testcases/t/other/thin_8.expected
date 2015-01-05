@@ -1,0 +1,24 @@
+SCIDB QUERY : <create array A <a:int32> [x=0:1,2,0,y=1:2,1,0,z=0:2,1,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(A,x*100+y*10+z),A)>
+{x,y,z} a
+{0,1,0} 10
+{1,1,0} 110
+{0,1,1} 11
+{1,1,1} 111
+{0,1,2} 12
+{1,1,2} 112
+{0,2,0} 20
+{1,2,0} 120
+{0,2,1} 21
+{1,2,1} 121
+{0,2,2} 22
+{1,2,2} 122
+
+SCIDB QUERY : <thin(scan(A),0,1,0,0,1,1)>
+[An error expected at this place for the query "thin(scan(A),0,1,0,0,1,1)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR5. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_THIN_ERROR5.]
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+

@@ -1,0 +1,85 @@
+--setup
+load_library('linear_algebra')
+
+# here's some basic scale info on the twitter data and some cut-down versions of it
+# 409 MAXVERT=568770231 FILE=twitter_combined_unique.csv   1,768,149; sparsity = 321 (2420766 edges)
+# 408 MAXVERT=22309220 FILE=twitter_combined_unique_1280k.csv    sparsity =
+#     MAXVERT=62185119 FILE=twitter_combined_unique_1000k.csv  sparsity =62
+# 407 MAXVERT=22309220 FILE=twitter_combined_unique_640k.csv    sparsity =
+# 406 MAXVERT=15484730 FILE=twitter_combined_unique_320k.csv    sparsity =
+# 405 MAXVERT=10959642 FILE=twitter_combined_unique_160k.csv    sparsity =
+# 404  MAXVERT=4143281 FILE=twitter_combined_unique_80k.csv    sparsity =
+# 403   MAXVERT=818340 FILE=twitter_combined_unique_40k.csv    sparsity =
+# 402   MAXVERT=428333 FILE=twitter_combined_unique_20k.csv    sparsity = 1.2
+# 401    MAXVERT=12830 FILE=twitter_combined_unique_10k.csv    sparsity = 1.2
+# 40x      MAXVERT=422 FILE=twitter_combined_unique_1k.csv    truncated to square: <100 NZ's
+# 510 -- fullsize, pagerank
+
+--justrun "remove(GRAPH_PAIRS)"
+create array GRAPH_PAIRS <v0:int64, v1:int64>[dummy=0:*,10000*10000,0]
+
+
+--justrun "remove(GRAPH_WEIGHTS)"
+#--------------------------------------------        len/4                        len/4
+#create array GRAPH_WEIGHTS <w:float>[v0=0:568770231, 142192558,0,  v1=0:568770231,142192558,0]
+    # 1444 seconds redistribute:
+    #create array GRAPH_WEIGHTS <w:float>[v0=0:568770231,    1421925,0,  v1=0:568770231,142192558,0]
+    # (ran out of space) seconds redistribute:
+    #create array GRAPH_WEIGHTS <w:float>[v0=0:568770231,    1421925,0,  v1=0:568770231,1421925,0]
+
+# smaller:
+#409  full create array  GRAPH_WEIGHTS <w:float>[v0=0:568770231, 568770231/4+1,0, v1=0:568770231, 568770231/4+1,0]
+#408 1280k create array  GRAPH_WEIGHTS <w:float>[v0=0:xxxxxxxx,   xxxxxxxx/4+1,0,  v1=0:xxxxxxxx,  xxxxxxxx/4+1,0]
+#407  640k create array  GRAPH_WEIGHTS <w:float>[v0=0:22309220,   22309220/4+1,0,  v1=0:22309220,  22309220/4+1,0]
+#406  320k create array  GRAPH_WEIGHTS <w:float>[v0=0:15484730,   15484730/4+1,0,  v1=0:15484730,  15484730/4+1,0]
+#405  160k create array  GRAPH_WEIGHTS <w:float>[v0=0:10959642,   10959642/4+1,0,  v1=0:10959642,  10959642/4+1,0]
+#404   80k create array  GRAPH_WEIGHTS <w:float>[v0=0: 4143281,    4143281/4+1,0,  v1=0: 4143281,   4143281/4+1,0]
+# 403 40k
+# create array  GRAPH_WEIGHTS <w:float>[v0=0:  818340,     818340/4+1,0,    v1=0:818340,    818340/4+1,0]
+# 402 20k
+#  create array  GRAPH_WEIGHTS <w:float>[v0=0:  428333,     428333/4+1,0,    v1=0:428333,    428333/4+1,0]
+# 401 10k
+ create array  GRAPH_WEIGHTS <w:float>[v0=0:   12830,      12830/4+1,0,    v1=0: 12830,     12830/4+1,0]
+#create array  GRAPH_WEIGHTS <w:float>[v0=0:1000,        250,0,        v1=0:1000,      250,0]
+
+
+--start-query-logging
+--start-igdata
+
+# csv to .scidb
+--shell --command "csv2scidb < ${TEST_DATA_DIR}/twitter_combined_unique_10k.csv > /tmp/401_twitter.scidb.txt"
+# e.g. .5 s
+
+load(GRAPH_PAIRS,    '/tmp/401_twitter.scidb.txt')
+--shell --command "rm /tmp/401_twitter.scidb.txt"
+
+# turn list of pairs into adjacency matrix
+#   what should the initialization be?  1/n  where n is ... what?
+#store(redimension(apply(GRAPH_PAIRS, w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)
+#store(redimension(apply(filter(GRAPH_PAIRS, v0<=6210882 and v1<=6210882), w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)
+#store(redimension(apply(filter(GRAPH_PAIRS, v0<=818340 and v1<=818340), w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)
+#store(redimension(apply(filter(GRAPH_PAIRS, v0<=428333 and v1<=428333), w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)
+store(redimension(apply(filter(GRAPH_PAIRS, v0<=12830 and v1<=12830), w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)
+#store(redimension(apply(filter(GRAPH_PAIRS, v0<=422 and v1<=422), w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)
+
+--stop-igdata
+
+# now call bellmanFord, finding the distances from the 12 vertex
+--justrun "remove(SHORTEST_PATHS_VEC)"
+--shell --command "bellman_ford_example.sh GRAPH_WEIGHTS SHORTEST_PATHS_VEC 12"
+--echo "shortest paths from vertex 12"
+scan(SHORTEST_PATHS_VEC)
+
+# and again from vertex 422 (not yet, need some speedups in bellman_ford_example.sh first)
+#--justrun "remove(SHORTEST_PATHS_VEC)"
+#--shell --command "bellman_ford_example.sh GRAPH_WEIGHTS SHORTEST_PATHS_VEC 422"
+#--echo "shortest paths from vertex 422"
+#scan(SHORTEST_PATHS_VEC)
+
+--cleanup
+remove(GRAPH_PAIRS)
+remove(GRAPH_WEIGHTS)
+remove(SHORTEST_PATHS_VEC)
+
+
+

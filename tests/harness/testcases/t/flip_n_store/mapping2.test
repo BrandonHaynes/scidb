@@ -1,0 +1,30 @@
+# ticket #1495 comment:7 check
+#
+
+--setup
+--start-query-logging
+
+create array us_presidents_1 <first_name:string, middle_name: string null, last_name:string, years_in_office: uint8 null, died_in_office:bool null, assassinated: bool> [president_number=1:44,10,0]
+load(us_presidents_1, '${TEST_DATA_DIR}/us_presidents.txt')
+create array president_stats_1 <count:uint64 null, total_years_in_office: uint64 null, any_assassinated:bool null> [first_name(string)=*,10,0]
+store(redimension(us_presidents_1, president_stats_1, count(last_name) as count, sum(years_in_office) as total_years_in_office, max(assassinated) as any_assassinated), president_stats_1)
+store(president_stats_1, tA)
+store(redimension(us_presidents_1, president_stats_1, count(last_name) as count, sum(years_in_office) as total_years_in_office, max(assassinated) as any_assassinated), president_stats_1)
+store(president_stats_1, tB)
+remove(president_stats_1)
+create array president_stats_1 <count:uint64 null, total_years_in_office: uint64 null, any_assassinated:bool null> [first_name(string)=*,10,0]
+store(redimension(us_presidents_1, president_stats_1, count(last_name) as count, sum(years_in_office) as total_years_in_office, max(assassinated) as any_assassinated), president_stats_1)
+scan(president_stats_1)
+--set-format lcsv+ 
+scan(tA)
+scan(tB)
+store(tA, tC)
+scan(tC)
+--reset-format
+
+--cleanup
+remove(us_presidents_1)
+remove(tA)
+remove(tB)
+remove(president_stats_1)
+remove(tC)

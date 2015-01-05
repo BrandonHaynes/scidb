@@ -1,0 +1,14 @@
+--setup
+--start-query-logging
+
+create array foo <x:double> [i=1:10,10,0]
+store(build(foo, 1.0/i), foo)
+
+--test
+
+--shell --store --command "iquery -olcsv+ -aq 'scan(foo)'"
+--shell --store --command "iquery -olcsv+ -w 10 -aq 'scan(foo)'"
+
+--cleanup
+remove(foo)
+--stop-query-logging

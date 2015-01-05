@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd">
+<refentry id="reverseOperator">
+  <refnamediv>
+    <refname>reverse</refname>
+
+    <refpurpose><indexterm>
+        <primary>reverse</primary>
+      </indexterm>Returns a result array, where the values in each array
+    dimension are reversed.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>reverse(<replaceable>source_array</replaceable>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The reverse operator reverses all the values of each dimension in an
+    array.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example reverses a 3<symbol role="symbolfont">×</symbol>4
+      array.</para>
+
+      <procedure>
+        <step>
+          <para>Create a 3<symbol role="symbolfont">×</symbol>4 array,
+          m3x4:<programlisting language="test">--afl CREATE ARRAY m3x4&lt;val:double&gt;[i=0:2,3,0,j=0:3,4,0]; --show-output=no</programlisting></para>
+        </step>
+
+        <step>
+          <para>Put values of 1–12 into m3x4:<programlisting language="test">--afl store(build(m3x4,i*4+j+1),m3x4); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Reverse the values in m3x4:<programlisting language="test">--afl reverse(m3x4); --output-format=dense --chunkify=yes</programlisting>Compare
+          the <literal>transpose</literal> operator to reverse:<programlisting
+          language="test">--afl transpose(m3x4); --output-format=dense --chunkify=yes</programlisting></para>
+        </step>
+
+        <step>
+          <para>Reshape m3x4 into a 4x3 array, and then reverse the
+          values.<programlisting language="test">--afl reverse(reshape(m3x4,&lt;val:double&gt;[i=0:3,4,0, j=0:2,3,0])) --output-format=dense --chunkify=yes
+</programlisting></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

@@ -1,0 +1,21 @@
+--setup
+--aql create array A <a:int32> [x=1+2:3+4,5+6,8-7]
+create array B <a:int32> [x=1+2:3+4,5+6,8-7]
+
+--aql create array C <a:int32> [x(string)=10+20,5+6,8-7]
+create array D <a:int32> [x(string)=10+20,5+6,8-7]
+
+
+
+--test
+show(A)
+show(B)
+show(C)
+show(D)
+
+--cleanup
+--aql drop array A
+--aql drop array B
+--aql drop array C
+--aql drop array D
+

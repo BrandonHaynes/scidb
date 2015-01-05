@@ -1,0 +1,22 @@
+
+create array rrFlat_school <school:string>      [csvRow=1:1000,1000,0];
+create array rrFlat_leg    <leg:int64>          [csvRow=1:1000,1000,0];
+create array rrFlat_person <person:string>      [csvRow=1:1000,1000,0];
+create array rrFlat_start  <startTime:interval> [csvRow=1:1000,1000,0];
+create array rrFlat_stop   <stopTime:interval>  [csvRow=1:1000,1000,0];
+
+store(build(rrFlat_school,'[PU,PU,PU,PU,CC,CC,CC,CC,TS,TS,TS,TS]',true),rrFlat_school);
+store(build_sparse(rrFlat_leg,(csvRow-1)%4+1,csvRow<=12),rrFlat_leg);
+store(build(rrFlat_person,'[Adams, Behan, Cho, Dharglis, Edwards, Fleur, Georgopolis,
+   Henry, Isgro, Jarocek, Kiento, Lubacevski]',true),rrFlat_person);
+store(build(rrFlat_start,'[00:00:00, 00:00:50.400000, 00:01:41.600000, 00:02:33.050000,
+   00:00:00, 00:00:51.200000, 00:01:43, 00:02:33.050000, 00:00:00, 00:00:51.220000,
+   00:01:43.870000, 00:02:34.550000]',true),rrFlat_start);
+store(build(rrFlat_stop,'[00:00:50.400000, 00:01:41.600000, 00:02:33.050000,
+   00:03:23.750000, 00:00:51.200000, 00:01:43, 00:02:33.050000, 00:03:24.220000, 
+   00:00:51.220000, 00:01:43.870000, 00:02:34.550000, 00:03:31.600000,]',true),rrFlat_stop);
+
+store(join(rrFlat_school,rrFlat_leg),rrFlat_01);
+store(join(rrFlat_person,rrFlat_start),rrFlat_02);
+store(join(rrFlat_02,rrFlat_stop),rrFlat_03);
+store(join(rrFlat_01,rrFlat_03),rrFlat);

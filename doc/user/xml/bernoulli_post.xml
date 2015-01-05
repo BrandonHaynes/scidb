@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "docbookV4.5/docbookx.dtd">
+<refentry id="bernoulliOperator">
+  <refnamediv>
+    <refname>bernoulli</refname>
+
+    <refpurpose><indexterm>
+        <primary>bernoulli</primary>
+      </indexterm>Select random array cells.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <synopsis>bernoulli(<replaceable>array</replaceable>,<replaceable>probability</replaceable><optional>, <replaceable>seed</replaceable></optional>);</synopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Summary</title>
+
+    <para>The <literal>bernoulli</literal> operator evaluates each cell by
+    generating a random number and seeing if it lies in the range (0,
+    <replaceable>probability</replaceable>). If it does, the cell is included.
+    Use the optional, integer <replaceable>seed</replaceable> parameter to
+    reproduce results; each run using the same seed returns identical
+    results.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <informalexample>
+      <para>This example select cells at random from a 5<symbol role="symbolfont">×</symbol>5 array, and uses a seed value to select the
+      same cells in successive trials.</para>
+
+      <procedure>
+        <step>
+          <para>Create an array called bernoulli_array:<para><programlisting>AFL% CREATE ARRAY bernoulli_array&lt;val:double&gt;[i=0:4,5,0,j=0:4,5,0];  </programlisting></para></para>
+        </step>
+
+        <step>
+          <para>Store values of 1–25 in bernoulli_array:<para><programlisting>AFL% store(build(bernoulli_array,i*5+1+j),bernoulli_array);  </programlisting><screen>[
+[(1),(2),(3),(4),(5)],
+[(6),(7),(8),(9),(10)],
+[(11),(12),(13),(14),(15)],
+[(16),(17),(18),(19),(20)],
+[(21),(22),(23),(24),(25)]
+]</screen></para></para>
+        </step>
+
+        <step>
+          <para>Select cells at random with a probability of .5 that a cell
+          will be included. Each successive call to bernoulli will return
+          different results.<para><programlisting>AFL% bernoulli(bernoulli_array,0.5);  </programlisting><screen>[
+[(),(2),(3),(),(5)],
+[(),(),(8),(),()],
+[(11),(12),(),(14),()],
+[(),(17),(18),(19),(20)],
+[(),(22),(),(24),()]
+]</screen><para><para><programlisting>AFL% bernoulli(bernoulli_array,0.5);  </programlisting><screen>[
+[(),(2),(3),(4),(5)],
+[(),(7),(),(),(10)],
+[(),(12),(),(14),(15)],
+[(16),(17),(),(),()],
+[(),(22),(),(),()]
+]</screen></para></para></para></para>
+        </step>
+
+        <step>
+          <para>To reproduce earlier results, use a seed value. Seeds must be
+          an integer on the interval [0, INT_MAX].<para><programlisting>AFL% bernoulli(bernoulli_array,0.5,15);  </programlisting><screen>[
+[(),(2),(),(),()],
+[(6),(),(8),(9),(10)],
+[(),(),(),(14),()],
+[(16),(),(),(19),(20)],
+[(21),(22),(),(),()]
+]</screen><para><programlisting>AFL% bernoulli(bernoulli_array,0.5,15);  </programlisting><screen>[
+[(),(2),(),(),()],
+[(6),(),(8),(9),(10)],
+[(),(),(),(14),()],
+[(16),(),(),(19),(20)],
+[(21),(22),(),(),()]
+]</screen></para></para></para>
+        </step>
+      </procedure>
+    </informalexample>
+  </refsect1>
+</refentry>

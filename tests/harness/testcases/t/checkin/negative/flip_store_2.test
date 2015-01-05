@@ -1,0 +1,19 @@
+# for ticket no. 652
+
+--setup
+create array A <a:int64> [x=0:2,3,0]
+create array B <x:int64> [a=0:14,3,0]
+store(filter(build(A,10),x=0),A)
+
+
+--test
+store(redimension(A,B),B)
+store(filter(build(A,30),x=2),A)
+scan(B)
+--error --code=scidb::SCIDB_SE_OPERATOR::SCIDB_LE_INVALID_REDIMENSION_POSITION "store(redimension(A,B),B)"
+scan(B)
+
+
+--cleanup
+remove(A)
+remove(B)

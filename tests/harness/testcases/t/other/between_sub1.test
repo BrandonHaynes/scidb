@@ -1,0 +1,70 @@
+--setup
+--start-query-logging
+
+# Ticket number : 1624
+# Tests for between, subarray and slice operator.
+# Tests for large array with sparse data with non-zero start co-ordinates and different overlaps and chunk sizes.
+# Array types used:1) only first and last cell contain elements 2) only diagonal contains elements
+
+create array A <val:int64> [x=-100:199,10,2,y=-10:289,20,3]
+create array B <val:double> [x=-10:100,10,2,y=0:100,20,3]
+store(filter(build(A, x+100*y), x=-90+y),A)
+store(filter(build(B, x+100*y), (x=-10 and y=0) or (x=100 and y=100)),B)
+
+
+--test
+aggregate(A,count(*))
+between(A,171,261,191,281)
+between(A,0,0,10,100)
+aggregate(B,count(*))
+between(B,-10,0,100,100)
+between(B,-10,0,100,0)
+between(B,-10,50,0,99)
+
+show(A)
+store(subarray(A,null,null,null,null),AAA)
+show(AAA)
+show(B)
+store(subarray(B,null,null,null,null),BBB)
+show(BBB)
+subarray(A,171,261,191,281)
+subarray(A,0,0,10,100)
+subarray(B,-10,0,100,100)
+subarray(B,-10,0,100,0)
+subarray(B,-10,50,0,99)
+
+slice(A,x,0)
+slice(A,x,100)
+slice(A,x,-100)
+slice(A,y,-2)
+slice(A,y,200)
+slice(B,x,0)
+slice(B,x,100)
+slice(B,y,100)
+slice(B,y,99)
+
+store(between(A,171,261,191,281),XXX)
+store(subarray(A,171,261,191,281),ZZZ)
+aggregate(store(between(A,171,261,191,281),XXX),count(*))
+aggregate(store(subarray(A,171,261,191,281),ZZZ),count(*))
+show(XXX)
+show(ZZZ)
+aggregate(XXX,count(*))
+aggregate(ZZZ,count(*))
+aggregate(subarray(A,171,261,191,281),count(*))
+
+
+--cleanup
+remove(A)
+remove(B)
+remove(AAA)
+remove(BBB)
+remove(XXX)
+remove(ZZZ)
+
+--stop-query-logging
+
+
+
+
+

@@ -1,0 +1,11 @@
+SCIDB QUERY : <CREATE ARRAY m4x4 <val:double>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(m4x4,i*4+j),m4x4)>
+[[(0),(1),(2),(3)],[(4),(5),(6),(7)],[(8),(9),(10),(11)],[(12),(13),(14),(15)]]
+
+SCIDB QUERY : <window(m4x4,0,2,0,2,max(val),min(val))>
+[[(10,0),(11,1),(11,2),(11,3)],[(14,4),(15,5),(15,6),(15,7)],[(14,8),(15,9),(15,10),(15,11)],[(14,12),(15,13),(15,14),(15,15)]]
+
+Query was executed successfully
+

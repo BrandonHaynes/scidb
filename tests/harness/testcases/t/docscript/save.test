@@ -1,0 +1,38 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+store(build(<val:double>[i=0:2,3,0,j=0:2,3,0],i*3+j+100),array1)  
+store(build(<val:double>[i=0:2,3,0,j=0:2,3,0],i*3+j+200),array2)  
+--set-format dense
+--stop-igdata
+store(join(array1,array2),storage_array)  
+--set-format dcsv
+save(storage_array,'/tmp/storage_array.txt',-2,'dense')  
+--start-igdata
+CREATE ARRAY intensityFlat < exposure:string, elapsedTime:int64, measuredIntensity:int64 null > [i=0:24,5,0]  
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -odcsv -naq "load(intensityFlat,'${TEST_DATA_DIR}/doc/intensity_data.bin',-2, '(string, int64, int64 null)')""
+store(build(<elevation:int64>[i=0:24,5,0],random()%1000),plus)  
+store(join(intensityFlat,plus),saveExample)  
+--stop-igdata
+show(saveExample)
+--set-format dense
+--start-igdata
+scan(saveExample) 
+--set-format dcsv
+save(saveExample,'example.bin',-1,'(string, int64, int64 null, int64)')  
+--stop-igdata
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(array1)
+remove(array2)
+remove(storage_array)
+remove(intensityFlat)
+remove(plus)
+remove(saveExample)

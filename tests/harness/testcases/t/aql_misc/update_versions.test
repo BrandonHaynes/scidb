@@ -1,0 +1,61 @@
+--setup
+CREATE ARRAY updarr <a: double > [x=0:5,3,0, y=0:5,3,0]
+store(input(updarr, '${TEST_DATA_DIR}/dense.txt'), updarr)
+
+--test
+
+
+
+## ../../tests/basic/update/first.version.aql
+store(merge(input(updarr, '${TEST_DATA_DIR}/dense2.txt'), updarr), updarr)
+  
+
+
+## ../../tests/basic/update/version2.aql
+store(merge(input(updarr, '${TEST_DATA_DIR}/dense3.txt'), updarr), updarr)
+  
+
+
+## ../../tests/basic/update/version3.aql
+--aql select * from updarr
+  
+
+
+## ../../tests/basic/update/version4.aql
+--aql select * from updarr@datetime('02/20/2020')
+  
+
+
+## ../../tests/basic/update/version5.aql
+--aql select * from updarr@1
+  
+
+
+## ../../tests/basic/update/version6.aql
+--aql select * from updarr@2
+  
+
+
+## ../../tests/basic/update/version7.aql
+--aql select * from updarr@3
+  
+
+
+## ../../tests/basic/update/version8.aql
+project(versions(updarr), version_id)
+  
+
+
+## ../../tests/basic/update/version9.aql
+--aql select * from updarr@datetime('02/20/2020') where a > 100
+  
+
+
+## ../../tests/basic/update/versionA.aql
+--aql select * from updarr@(now()) where a > 100
+
+
+
+--cleanup
+
+remove(updarr)

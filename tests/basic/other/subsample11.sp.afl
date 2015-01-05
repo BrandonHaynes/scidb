@@ -1,0 +1,1 @@
+apply(join(subarray(dense, 1, 1, 3, 3) as d1, subarray(dense, 2, 2, 4, 4) as d2), diff, d2.a - d1.a)

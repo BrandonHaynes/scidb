@@ -1,0 +1,213 @@
+SCIDB QUERY : <create array batch_1 <name:string, data:double> [i=1:*,500000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array target_index <name:string> [i=0:*,100000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array target <data:double null> [name_index=0:*,500000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array batch_2 <name:string, data:double> [i=1:*,500000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <index_lookup(batch_1, target_index, batch_1.name, 'foobar')>
+[An error expected at this place for the query "index_lookup(batch_1, target_index, batch_1.name, 'foobar')". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_UNRECOGNIZED_PARAMETER. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_UNRECOGNIZED_PARAMETER.]
+
+SCIDB QUERY : <index_lookup(batch_1, target_index, batch_1.name, 'memory_limit=alex')>
+[An error expected at this place for the query "index_lookup(batch_1, target_index, batch_1.name, 'memory_limit=alex')". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_CANNOT_PARSE_INTEGER_PARAMETER. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_CANNOT_PARSE_INTEGER_PARAMETER.]
+
+SCIDB QUERY : <index_lookup(batch_1, target_index, batch_1.name, 'memory_limit=0')>
+[An error expected at this place for the query "index_lookup(batch_1, target_index, batch_1.name, 'memory_limit=0')". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_PARAMETER_NOT_POSITIVE_INTEGER. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_PARAMETER_NOT_POSITIVE_INTEGER.]
+
+SCIDB QUERY : <index_lookup(batch_1, batch_2, batch_1.name)>
+[An error expected at this place for the query "index_lookup(batch_1, batch_2, batch_1.name)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_IMPROPER_INDEX_SHAPE. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_IMPROPER_INDEX_SHAPE.]
+
+SCIDB QUERY : <index_lookup(batch_1, join(target_index,target_index), batch_1.name)>
+[An error expected at this place for the query "index_lookup(batch_1, join(target_index,target_index), batch_1.name)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_IMPROPER_INDEX_SHAPE. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_IMPROPER_INDEX_SHAPE.]
+
+SCIDB QUERY : <index_lookup(batch_1, target_index, target_index.name)>
+[An error expected at this place for the query "index_lookup(batch_1, target_index, target_index.name)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_NOT_AN_ATTRIBUTE_IN_INPUT. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_NOT_AN_ATTRIBUTE_IN_INPUT.]
+
+SCIDB QUERY : <index_lookup(batch_1, project(apply(target_index, d, int64(name)), d), batch_1.name)>
+[An error expected at this place for the query "index_lookup(batch_1, project(apply(target_index, d, int64(name)), d), batch_1.name)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_ATTRIBUTES_DO_NOT_MATCH_TYPES. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_ATTRIBUTES_DO_NOT_MATCH_TYPES.]
+
+SCIDB QUERY : <index_lookup(batch_1, project(apply(target_index, d, string(null)),d), batch_1.name)>
+[An error expected at this place for the query "index_lookup(batch_1, project(apply(target_index, d, string(null)),d), batch_1.name)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_ATTRIBUTE_CANNOT_BE_NULLABLE. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_ATTRIBUTE_CANNOT_BE_NULLABLE.]
+
+SCIDB QUERY : <index_lookup(batch_1, target_index, batch_1.name, 'index_sorted= foobar')>
+[An error expected at this place for the query "index_lookup(batch_1, target_index, batch_1.name, 'index_sorted= foobar')". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_CANNOT_PARSE_BOOLEAN_PARAMETER. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_CANNOT_PARSE_BOOLEAN_PARAMETER.]
+
+SCIDB QUERY : <index_lookup(batch_1, target_index, batch_1.name)>
+{i} name,data,name_index
+
+SCIDB QUERY : <index_lookup(batch_1, target_index, batch_1.name, 'index_sorted=true')>
+{i} name,data,name_index
+
+SCIDB QUERY : <store(join(build (<name:string> [i=1:2000000,500000,0], string( i % 400000)),  build(<data:double> [i=1:2000000,500000,0], sin(i) * 1000)), batch_1)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <between(index_lookup(batch_1, target_index, batch_1.name), 1, 10)>
+{i} name,data,name_index
+{1} '1',841.471,null
+{2} '2',909.297,null
+{3} '3',141.12,null
+{4} '4',-756.802,null
+{5} '5',-958.924,null
+{6} '6',-279.415,null
+{7} '7',656.987,null
+{8} '8',989.358,null
+{9} '9',412.118,null
+{10} '10',-544.021,null
+
+SCIDB QUERY : <between(index_lookup(batch_1, target_index, batch_1.name, 'index_sorted= true'), 1, 10)>
+{i} name,data,name_index
+{1} '1',841.471,null
+{2} '2',909.297,null
+{3} '3',141.12,null
+{4} '4',-756.802,null
+{5} '5',-958.924,null
+{6} '6',-279.415,null
+{7} '7',656.987,null
+{8} '8',989.358,null
+{9} '9',412.118,null
+{10} '10',-544.021,null
+
+SCIDB QUERY : <index_lookup(between(batch_1, 1,1), target_index, batch_1.name)>
+{i} name,data,name_index
+{1} '1',841.471,null
+
+SCIDB QUERY : <store(uniq(sort(project(batch_1, name)), 'chunk_size=100000'), target_index)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <index_lookup(between(batch_1, 1,1), target_index, batch_1.name)>
+{i} name,data,name_index
+{1} '1',841.471,1
+
+SCIDB QUERY : <index_lookup(between(batch_1, 1,1), target_index, batch_1.name, 'memory_limit=1')>
+{i} name,data,name_index
+{1} '1',841.471,1
+
+SCIDB QUERY : <index_lookup(between(batch_1, 1,1), target_index, batch_1.name, 'index_sorted= true')>
+{i} name,data,name_index
+{1} '1',841.471,1
+
+SCIDB QUERY : <index_lookup(between(batch_1, 1,1), target_index, batch_1.name, 'index_sorted=true', 'memory_limit= 1')>
+{i} name,data,name_index
+{1} '1',841.471,1
+
+SCIDB QUERY : <index_lookup(between(batch_1, 1,10),  filter(target_index, i%2 = 0), batch_1.name)>
+{i} name,data,name_index
+{1} '1',841.471,null
+{2} '2',909.297,111112
+{3} '3',141.12,null
+{4} '4',-756.802,333334
+{5} '5',-958.924,null
+{6} '6',-279.415,355556
+{7} '7',656.987,null
+{8} '8',989.358,377778
+{9} '9',412.118,null
+{10} '10',-544.021,2
+
+SCIDB QUERY : <index_lookup(between(batch_1, 1,10),  filter(target_index, i%2 = 0), batch_1.name, 'memory_limit=1')>
+{i} name,data,name_index
+{1} '1',841.471,null
+{2} '2',909.297,111112
+{3} '3',141.12,null
+{4} '4',-756.802,333334
+{5} '5',-958.924,null
+{6} '6',-279.415,355556
+{7} '7',656.987,null
+{8} '8',989.358,377778
+{9} '9',412.118,null
+{10} '10',-544.021,2
+
+SCIDB QUERY : <index_lookup(filter(batch_1, i=0 or i=1 or i=10 or i=1000 or i=10000 or i = 32768),  repart(filter(target_index, i>1 and i<5000), <name:string> [i=0:*,1,0] ), batch_1.name, 'memory_limit=1')>
+{i} name,data,name_index
+{1} '1',841.471,null
+{10} '10',-544.021,2
+{1000} '1000',826.88,4
+{10000} '10000',-305.614,5
+{32768} '32768',927.856,null
+
+SCIDB QUERY : <index_lookup(filter(batch_1, i=0 or i=1 or i=10 or i=1000 or i=10000 or i = 32768),  repart(filter(target_index, i>1 and i<5000), <name:string> [i=0:*,2,0] ), batch_1.name, 'memory_limit=1')>
+{i} name,data,name_index
+{1} '1',841.471,null
+{10} '10',-544.021,2
+{1000} '1000',826.88,4
+{10000} '10000',-305.614,5
+{32768} '32768',927.856,null
+
+SCIDB QUERY : <index_lookup(filter(batch_1, i=0 or i=1 or i=10 or i=1000 or i=10000 or i = 32768),  repart(filter(target_index, i>1 and i<5000), <name:string> [i=0:*,1,0] ), batch_1.name, 'index_sorted=true', 'memory_limit=1')>
+{i} name,data,name_index
+{1} '1',841.471,null
+{10} '10',-544.021,2
+{1000} '1000',826.88,4
+{10000} '10000',-305.614,5
+{32768} '32768',927.856,null
+
+SCIDB QUERY : <index_lookup(filter(batch_1, i=0 or i=1 or i=10 or i=1000 or i=10000 or i = 32768),  repart(filter(target_index, i>1 and i<5000), <name:string> [i=0:*,2,0] ), batch_1.name, 'memory_limit= 1', 'index_sorted= true')>
+{i} name,data,name_index
+{1} '1',841.471,null
+{10} '10',-544.021,2
+{1000} '1000',826.88,4
+{10000} '10000',-305.614,5
+{32768} '32768',927.856,null
+
+SCIDB QUERY : <store(redimension(index_lookup(batch_1, target_index, batch_1.name, name_index, 'memory_limit=1', 'index_sorted= true'), target, sum(data) as data), target)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(target, count(*), sum(data), stdev(data), avg(data))>
+{i} count,data_sum,data_stdev,data_avg
+{0} 400000,-103.631,3463.63,-0.000259077
+
+SCIDB QUERY : <aggregate(apply(target_index, v, double(name)), count(*), sum(v), avg(v))>
+{i} count,v_sum,v_avg
+{0} 400000,7.99998e+10,200000
+
+SCIDB QUERY : <store(join(build (<name:string> [i=1:2000000,500000,0], string((i % 400000 - 200000))),  build(<data:double> [i=1:2000000,500000,0], sin(i) * 1000)), batch_2)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(uniq(sort(project(batch_2, name)), 'chunk_size=100000'), batch_2_index)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(apply(batch_2_index, b2, int64(name)), sum(b2), avg(b2), min(b2), max(b2), count(*))>
+{i} b2_sum,b2_avg,b2_min,b2_max,count
+{0} -200000,-0.5,-200000,199999,400000
+
+SCIDB QUERY : <aggregate(index_lookup(batch_2_index, target_index, batch_2_index.name, idx, 'memory_limit=1'), count(idx), count(*))>
+{i} idx_count,count
+{0} 200000,400000
+
+SCIDB QUERY : <aggregate(index_lookup(batch_2_index, target_index, batch_2_index.name, idx, 'memory_limit=1', 'index_sorted=true'), count(idx), count(*))>
+{i} idx_count,count
+{0} 200000,400000
+
+SCIDB QUERY : <insert(redimension(apply(cross_join(project(unpack(filter(index_lookup(batch_2_index, target_index, batch_2_index.name, idx, 'memory_limit=32'), idx is null), j), name), aggregate(target_index, count(*) as cnt)), i2, j+cnt), <name:string> [i2=0:*,100000,0]), target_index)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <insert(redimension(index_lookup( batch_2, target_index, batch_2.name, name_index, 'memory_limit=32'), target, sum(data) as data), target)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(target, count(*), sum(data), stdev(data), avg(data))>
+{i} count,data_sum,data_stdev,data_avg
+{0} 600000,180.954,3463.63,0.00030159
+
+SCIDB QUERY : <aggregate(apply(target_index, v, double(name)), count(*), sum(v), avg(v))>
+{i} count,v_sum,v_avg
+{0} 600000,5.99997e+10,99999.5
+
+SCIDB QUERY : <remove(batch_1)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(target_index)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(target)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(batch_2)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(batch_2_index)>
+Query was executed successfully
+

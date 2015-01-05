@@ -1,0 +1,26 @@
+--setup
+
+--test
+
+# doSvd.sh <order-min> [order-max-verbose [order-max [order-step-type [order-step]]]] (last is "+" or "x" for mult)
+
+# just one verbose and one not, as a check
+--shell --store --command "SCRIPT_DIR=${TEST_BIN_DIR} ${TEST_BIN_DIR}/doSvd.sh 1 1 1 "
+--shell --store --command "SCRIPT_DIR=${TEST_BIN_DIR} ${TEST_BIN_DIR}/doSvd.sh 1 -1 1"
+
+# platform blas,64i: ~    4s 1024
+# platform blas:64is ~   11s 2048
+# platform blas:64is ~   42s 4096
+# platform blas:64is ~  3:38 8192
+--shell --store --command "SCRIPT_DIR=${TEST_BIN_DIR} ${TEST_BIN_DIR}/doSvd.sh 1024 -1 8194 x 2 "
+
+# move these to large
+#platform blas:64is - 1500s (0:25:00)
+#--shell --store --command "SCRIPT_DIR=${TEST_BIN_DIR} ${TEST_BIN_DIR}/doSvd.sh 16384 -1 16384 x 2  "
+# need a timing 
+#--shell --store --command "SCRIPT_DIR=${TEST_BIN_DIR} ${TEST_BIN_DIR}/doSvd.sh 24576 -1 24576 x 2  "
+# platform blas:64is - 12000s (3:20:00), won't go all the way to 32k, WORK would 
+#--shell --store --command "SCRIPT_DIR=${TEST_BIN_DIR} ${TEST_BIN_DIR}/doSvd.sh 32700 -1 32700 x 2 "
+
+--cleanup
+

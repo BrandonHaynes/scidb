@@ -1,0 +1,16 @@
+--setup
+create array A <a:int32>[x=0:2,3,0,y=1:6,3,0]
+store(build(A,x+y),A)
+store(build(A,x+y),B)
+create array C <c:int32>[p=0:2,3,0,q=1:6,3,0]
+store(build(C,p-q),C)
+
+--test
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_CROSSJOIN_ERROR1 "cross_join(A,B,A.y,B.y,A.y,B.y)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_CROSSJOIN_ERROR1 "cross_join(A,C,A.y,C.q,A.y,C.q)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_CROSSJOIN_ERROR1 "cross_join(A,C,A.y,C.q,A.x,C.p,A.y,C.q)"
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)

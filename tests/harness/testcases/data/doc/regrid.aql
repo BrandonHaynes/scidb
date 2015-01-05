@@ -1,0 +1,1 @@
+select avg(a), stdev(b) from A regrid 2, 2 as R;

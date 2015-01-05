@@ -1,0 +1,21 @@
+#5c.Vary the number of lines in the CSV file to be greater than specified chunk size * number of instances.
+--setup
+--start-query-logging
+
+--test
+
+--start-igdata
+
+--shell --command " cat ${TEST_DATA_DIR}/sm9.csv | loadcsv.py  -a 'array_sm9' -s '<a:int64,b:int64,c:int64>[i=0:*,5,0]' -v -x -c 5 -l -L -b -d 'localhost' -p $IQUERY_PORT "
+
+
+--stop-igdata
+
+#scan( array_sm9)
+sort(array_sm9,a)
+
+--cleanup
+
+
+--stop-query-logging
+

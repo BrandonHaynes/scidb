@@ -1,0 +1,11 @@
+# ticket no. 919
+
+--setup
+create array A <a:string default 'test'>[x=1:10,5,0]
+
+--test
+load(A,'${TEST_DATA_DIR}/empty_chunk.txt')
+scan(A)
+
+--cleanup
+remove(A)

@@ -1,0 +1,9 @@
+--setup
+--aql create array xyz <a:double> [x=0:1999,100,0, y=0:1999,100,0]
+load(xyz,'${TEST_DATA_DIR}/xyz_small.txt')
+
+--test
+merge(filter(xyz, x>=y), filter(xyz, x<y))
+
+--cleanup
+remove (xyz)

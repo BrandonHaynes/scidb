@@ -1,0 +1,25 @@
+--setup
+--start-query-logging
+create array A <a:int32> [x=0:8,3,0]
+store(build(A,x+10),A)
+
+--test
+
+store(build(A,x-2),A)
+
+--aql select sum(a),max(a) from A fixed window W as (partition by x 9 preceding and 8 following)
+--aql select max(a),var(a),stdev(a),count(a),sum(a),min(a) from A fixed window W as (partition by x 1 preceding and 1 following)
+--aql select min(a),count(*) from A fixed window W as (partition by x 1 preceding and 2 following)
+--aql select count(a),count(*) from A fixed window W as (partition by x 0 preceding and 1 following)
+--aql select count(*),sum(a) from A fixed window W as (partition by x 1 preceding and 1 following)
+--aql select stdev(a),avg(a) from A fixed window W as (partition by x 2 preceding and 2 following)
+--aql select var(a),stdev(a) from A fixed window W as (partition by x 4 preceding and 4 following)
+
+--aql select sum(a)+max(a) from A fixed window W as (partition by x 8 preceding and 9 following)
+--aql select sum(a + 1)*max(a + 2) from A fixed window W as (partition by x 8 preceding and 9 following)
+
+--aql select x, sum(a + 1)*max(a + 2) from A fixed window W as (partition by x 8 preceding and 9 following)
+
+--cleanup
+remove(A)
+

@@ -1,0 +1,96 @@
+SCIDB QUERY : <create array A <a:int64> [x=0:2,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array B <x:int64> [a=0:14,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array C <a:int64> [x=0:10,3,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(filter(build(A,10),x=0),A)>
+{x} a
+{0} 10
+
+SCIDB QUERY : <store(filter(build(C,7),x=9),C)>
+{x} a
+{9} 7
+
+SCIDB QUERY : <store(redimension(A,B),B)>
+{a} x
+{10} 0
+
+SCIDB QUERY : <store(redimension(C,B),B)>
+{a} x
+{7} 9
+
+SCIDB QUERY : <aggregate(B,max(x))>
+{i} x_max
+{0} 9
+
+SCIDB QUERY : <aggregate(B,min(x))>
+{i} x_min
+{0} 9
+
+SCIDB QUERY : <aggregate(B,avg(x))>
+{i} x_avg
+{0} 9
+
+SCIDB QUERY : <rename(B,B1)>
+Query was executed successfully
+
+SCIDB QUERY : <rename(B1,B)>
+Query was executed successfully
+
+SCIDB QUERY : <subarray(B,5,9)>
+{a} x
+{2} 9
+
+SCIDB QUERY : <between(B,5,9)>
+{a} x
+{7} 9
+
+SCIDB QUERY : <filter(B,x>1)>
+{a} x
+{7} 9
+
+SCIDB QUERY : <project(B,x)>
+{a} x
+{7} 9
+
+SCIDB QUERY : <join(B,B)>
+{a} x,x
+{7} 9,9
+
+SCIDB QUERY : <cross_join(B,B)>
+{a,a} x,x
+{7,7} 9,9
+
+SCIDB QUERY : <apply(B,z,x-a)>
+{a} x,z
+{7} 9,2
+
+SCIDB QUERY : <aggregate(B,count(*))>
+{i} count
+{0} 1
+
+SCIDB QUERY : <aggregate(B,sum(x))>
+{i} x_sum
+{0} 9
+
+SCIDB QUERY : <sort(B,x)>
+{n} x
+{0} 9
+
+SCIDB QUERY : <sort(B,x desc)>
+{n} x
+{0} 9
+
+SCIDB QUERY : <remove(A)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(B)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(C)>
+Query was executed successfully
+

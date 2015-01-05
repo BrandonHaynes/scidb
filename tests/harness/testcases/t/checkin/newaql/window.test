@@ -1,0 +1,18 @@
+--setup
+
+CREATE ARRAY overlap <a: double> [x=0:5,3,1, y=0:5,3,1]
+load(overlap, '${TEST_DATA_DIR}/overlap.txt')
+
+--test
+
+--aql select sum(a) from overlap fixed window W as (partition by x 1 preceding and 1 following, y 1 preceding and 1 following)
+--aql select count(*) from overlap fixed window W as (partition by x 1 preceding and 1 following, y 1 preceding and 1 following)
+--aql select count(*) over W from overlap fixed window W as (partition by x 1 preceding and 1 following, y 1 preceding and 1 following)
+--aql select avg(a) from overlap fixed window W as (partition by x 1 preceding and 1 following, y 1 preceding and 1 following)
+--aql select sum(a) over W from overlap fixed window W as (partition by x 1 preceding and 1 following, y 1 preceding and 1 following)
+
+--aql select sum(a) over W1, sum(a) over W2 from overlap fixed window W1 as (partition by x 1 preceding and 1 following, y 1 preceding and 1 following), fixed window W2 as (partition by x 2 preceding and 2 following, y 2 preceding and 2 following)
+
+--cleanup
+remove(overlap)
+

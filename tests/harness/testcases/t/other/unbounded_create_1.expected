@@ -1,0 +1,14 @@
+Query was executed successfully
+
+{i} count
+{0} 0
+
+{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
+{0} 'x',0,4611686018427387903,10,0,4611686018427387903,-4611686018427387903,'int64'
+{1} 'y',0,4611686018427387903,10,0,4611686018427387903,-4611686018427387903,'int64'
+
+{No} name,type_id,nullable
+{0} 'a','int64',false
+
+Query was executed successfully
+

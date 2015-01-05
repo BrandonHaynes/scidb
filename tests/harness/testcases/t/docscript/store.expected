@@ -1,0 +1,55 @@
+SCIDB QUERY : <store(build(<val: double>[i=0:2,3,0,j=0:2,3,0],0),zeros_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(zeros_array,1),ones_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <CREATE ARRAY random_array <val:double null>[i=0:3,4,0,j=0:3,4,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(random_array,random()%10),random_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(random_array,random()%10),random_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<v:int64>[i=0:19,10,0],i),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<v:int64>[i=0:19,10,0],i),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<v:int64>[i=0:19,10,0],i),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<v:int64>[i=0:19,10,0],i),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(build(<v:int64>[i=0:19,10,0],i),A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(versions(A),count(*))>
+{i} count
+{0} 5
+
+SCIDB QUERY : <store(A,B)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <rename(B,A)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(versions(A),count(*))>
+{i} count
+{0} 1
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

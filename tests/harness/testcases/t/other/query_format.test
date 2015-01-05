@@ -1,0 +1,30 @@
+# Sample file to demonstrate changing of query output format
+
+--setup
+--start-query-logging
+create array Q_F <a:int32> [x=0:99,10,0]
+store(filter(build(Q_F,x),x<5 or x>97),Q_F)
+
+--test
+--echo "default output format: auto"
+scan(Q_F)
+
+--echo "output format sparse"
+--set-format sparse
+scan(Q_F)
+
+--echo "trying some non-existent format: invalid1"
+--set-format invalid1
+scan(Q_F)
+
+--echo "output format lcsv+"
+--set-format lcsv+
+scan(Q_F)
+
+--echo "reset to default format: auto"
+--reset-format
+scan(Q_F)
+
+--cleanup
+remove(Q_F)
+--stop-query-logging

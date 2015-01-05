@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+%myents;
+]>
+<chapter id="plugins">
+  <title>Extending SciDB Functionality</title>
+
+  <para>User-defined extensions to SciDB functionality are referred to as
+  plugins. SciDB supports user-defined functions (UDFs), user-defined types
+  (UDTs), and user-defined operators (UDOs).</para>
+
+  <para>This chapter describes the process of extending SciDB, through the
+  creation of data types, functions, and operators.</para>
+
+  <section id="UDOperators">
+    <title>User-Defined Operators</title>
+
+    <para>The most complicated user-defined objects are user-defined
+    operators. Every operator in SciDB is a pair of objects:</para>
+
+    <para><itemizedlist>
+        <listitem>
+          <para>A <emphasis>logical operator</emphasis> class, and</para>
+        </listitem>
+
+        <listitem>
+          <para>A <emphasis>physical operator</emphasis> class</para>
+        </listitem>
+      </itemizedlist>The main purpose of logical operator is to do the
+    following two tasks:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Infer an array schema, and</para>
+      </listitem>
+
+      <listitem>
+        <para>Provide information about expected inputs and parameters of the
+        operator.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Ideally, the logical operator is common to every operator of the
+    same class. The logical operator can have several implementations called
+    physical operators. The main purpose of physical operator to execute
+    operator implementation.</para>
+
+    <para>Every operator, logical or physical, can have a
+    <emphasis>state</emphasis>. States are created by special factory methods.
+    Every instance of an operator is a new instance of the class. This means
+    that you can add a new field to inherited classes.</para>
+
+    <section>
+      <title>Creating a User-Defined Operator</title>
+
+      <para>The recommended way to create a new operator is to find the
+      closest built-in operator, copy its files into a new, separate folder,
+      and change the existing implementation into the desired
+      implementation.</para>
+
+      <para>The following sections provide short descriptions of base classes
+      for logical and physical operators and descriptive comments about class
+      members.</para>
+    </section>
+
+    <section>
+      <title>Logical Operator Example</title>
+
+      <para>The logical operator must inherit from the <emphasis
+      role="bold">LogicalOperator</emphasis> class and implement a constructor
+      and <emphasis role="bold">inferSchema</emphasis>:<programlisting>class LogicalStub : public LogicalOperator
+{
+public:
+    LogicalStub(const std::string&amp; logicalName, const std::string&amp; alias):
+        LogicalOperator(logicalName, alias)
+    {
+        /**
+         * See built-in operators implementation for example
+         */
+    }
+
+    ArrayDesc inferSchema(std::vector&lt;ArrayDesc&gt; schemas,
+       boost::shared_ptr&lt;Query&gt; query)
+    {
+        /**
+         * See built-in operators implementation for example
+         */
+        return ArrayDesc();
+    }
+};</programlisting></para>
+
+      <para>The constructor contains code for the declaration of possible
+      inputs and parameters. For example, the <literal>apply</literal>
+      operator has the following constructor:<programlisting>Apply(const std::string&amp; logicalName, const std::string&amp; alias):
+      LogicalOperator(logicalName, alias)
+{
+    _properties.tile = true;
+    ADD_PARAM_INPUT()
+    ADD_PARAM_OUT_ATTRIBUTE_NAME("void")//0
+    ADD_PARAM_EXPRESSION("void")        //1
+    ADD_PARAM_VARIES()
+}</programlisting></para>
+
+      <para>Details about the parameters:<itemizedlist>
+          <listitem>
+            <para><emphasis role="bold"> properties.tile</emphasis> is true if
+            operator can work in tile mode.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">ADD_PARAM_INPUT()</emphasis> indicates
+            that operator expects one more input (in this case, an input
+            array).</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis
+            role="bold">ADD_PARAM_OUT_ATTRIBUTE_NAME("void")</emphasis> means
+            that the operator will add a new attribute with the given data
+            type: "void" indicates that the parameter can have any data type.
+            The <emphasis role="bold">inferSchema</emphasis> method produces
+            the actual data types based on input schema.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis
+            role="bold">ADD_PARAM_EXPRESSION("void")</emphasis> indicates that
+            operator expect one expression with any data type. You may add
+            other attributes and attribute kinds as well.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">ADD_PARAM_VARIES()</emphasis> means
+            that <literal>apply</literal> can have a variable number of
+            parameters. In this case, you need to implement one more virtual
+            method, <emphasis role="bold">nextVaryParamPlaceholder</emphasis>.
+            See the <literal>apply</literal> implementation for details. The
+            <emphasis role="bold">inferSchema</emphasis> method provides the
+            schema for resultant array.</para>
+          </listitem>
+        </itemizedlist></para>
+    </section>
+
+    <section>
+      <title>Physical Operator Example</title>
+
+      <para>Physical operators must inherit from the <emphasis
+      role="bold">PhysicalOperator</emphasis> class and implement the
+      <emphasis role="bold">execute</emphasis> method.</para>
+
+      <programlisting>class PhysicalStub: public PhysicalOperator
+{
+public:
+    PhysicalStub(const std::string&amp; logicalName, const std::string&amp; physicalName,\
+    const Parameters&amp; parameters, const ArrayDesc&amp; schema):
+        PhysicalOperator(logicalName, physicalName, parameters, schema)
+        {
+        }
+
+    shared_ptr&lt;Array&gt; execute(std::vector&lt;shared_ptr&lt;Array&gt; &gt;&amp; inputArrays,\
+    shared_ptr&lt;Query&gt; query)
+        {
+        /**
+         * See built-in operators implementation for example
+         */
+        return shared_ptr&lt;Array&gt;();
+        }
+};</programlisting>
+
+      <para>For example, here is the code for the <literal>apply</literal>
+      operator.</para>
+
+      <programlisting>boost::shared_ptr&lt;Array&gt; execute(vector&lt; boost::shared_ptr&lt;Array&gt; &gt;&amp; inputArrays,\
+boost::shared_ptr&lt;Query&gt; query)
+{
+    assert(inputArrays.size() == 1);
+    assert(_parameters.size()%2 == 0);
+
+    vector&lt;shared_ptr&lt;Expression&gt; &gt; expressions(0);
+
+    size_t currentParam = 0;
+    for(size_t i =0; i&lt; _schema.getAttributes().size(); i++)
+        {
+        assert(_parameters[currentParam]-&gt;getParamType() == PARAM_ATTRIBUTE_REF);
+        assert(_parameters[currentParam+1]-&gt;getParamType() ==
+          PARAM_PHYSICAL_EXPRESSION);
+
+        string const&amp; schemaAttName = _schema.getAttributes()[i].getName();
+        string const&amp; paramAttName = \
+        ((boost::shared_ptr&lt;OperatorParamReference&gt;&amp;)_parameters[currentParam])-&gt;\
+        getObjectName();
+
+        if(schemaAttName!=paramAttName)
+        {
+            expressions.push_back\
+            ( shared_ptr&lt;Expression&gt; ());
+        }
+        else
+        {
+            expressions.push_back(((boost::shared_ptr\
+            &lt;OperatorParamPhysicalExpression&gt;&amp;)\
+           _parameters[currentParam+1])-&gt;getExpression());
+            currentParam+=2;
+        }
+
+        if(currentParam == _parameters.size())
+        {
+            for (size_t j = i+1; j&lt; _schema.getAttributes().size(); j++)
+            {
+                expressions.push_back( shared_ptr&lt;Expression&gt; () );
+            }
+            break;
+        }
+    }
+
+    assert(currentParam == _parameters.size());
+    assert(expressions.size() == _schema.getAttributes().size());
+
+    boost::shared_ptr&lt;Array&gt; input = inputArrays[0];
+    return boost::shared_ptr&lt;Array&gt;(new ApplyArray(_schema, input, \
+    expressions, query, _tileMode));
+}</programlisting>
+
+      <para>The <emphasis role="bold">execute</emphasis> method takes a number
+      of input arrays and a query context. It can use all methods of input
+      arrays and perform any evaluations. The result must be a new array
+      instance.</para>
+
+      <para>It is also possible to create a pipelined array instance which
+      will perform evaluations only when data will be requested. For example,
+      you may want to evaluate a chunk only when the <emphasis
+      role="bold">getChunk</emphasis> method is called. <emphasis
+      role="bold">ApplyArray</emphasis> in the above code is an example of
+      such an array.</para>
+    </section>
+  </section>
+</chapter>

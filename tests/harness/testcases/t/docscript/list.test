@@ -1,0 +1,28 @@
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+store(build(<val:double>[i=0:4,5,0],0),vector0)  
+store(build(<val:string>[i=0:4,5,0],''),vector1)  
+--set-format csv
+--stop-igdata
+--start-igdata
+list('arrays')  
+--stop-igdata
+--start-igdata
+list('arrays',true)  
+--set-format dcsv
+list('aggregates')  
+--set-format csv
+--stop-igdata
+filter(list('aggregates'),name != 'mad' and name != 'median' and name != 'top_five' and name !='first_value' and name!='last_value')  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(vector0)
+remove(vector1)

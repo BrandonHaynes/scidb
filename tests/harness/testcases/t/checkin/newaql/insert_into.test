@@ -1,0 +1,12 @@
+--setup
+create array A1 <a:int32> [x=0:2,3,0]
+create array A2 <b:int32> [y=0:2,2,0]
+
+--test
+--aql insert into A1 '[(1)()()]'
+--aql insert into A2 '[()()][(3)]'
+--aql insert into A1 select * from A2
+
+--cleanup
+remove(A1)
+remove(A2)

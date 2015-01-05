@@ -1,0 +1,19 @@
+--setup
+create  array A <a:int32>[x=0:2,3,0,y=1:6,3,0]
+create  array B <b:string>[p=0:2,3,0,q=1:6,3,0]
+store(build(A,x+1),A)
+store(build(B,'b'+string(p)+string(q)),B)
+
+--test
+--aql select * into C from A,B
+--aql select * into D from A,B
+--aql select * from C join D on C.x = D.x where C.x <> 1
+--aql select * from C join D on C.y = D.y where C.y <> 3
+--aql select * from C join D on C.x = D.x and D.y = C.y
+
+--cleanup
+remove(A)
+remove(B)
+remove(C)
+remove(D)
+
