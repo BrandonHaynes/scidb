@@ -1253,21 +1253,14 @@ namespace scidb
             struct addrinfo *address;
             int descriptor;
 
-            if((descriptor = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-              int error = errno;
-              LOG4CXX_DEBUG(logger, "Attempted to open output socket '"
-                            << "' and failed with ferror = " << error);
-            } else if(getaddrinfo(hostname.c_str(), port.c_str(), NULL, &address) != 0) {
-              int error = errno;
-              LOG4CXX_DEBUG(logger, "Attempted to get destination address '" << file
-                            << "' and failed with ferror = " << error);
-            } else if (connect(descriptor, address->ai_addr, sizeof(struct sockaddr)) == -1) {
-              int error = errno;
-              LOG4CXX_DEBUG(logger, "Attempted to bind output socket '" << file
-                            << "' and failed with ferror = " << error);
-            }
-
-            f = fdopen(descriptor, "w");
+            if((descriptor = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+              LOG4CXX_DEBUG(logger, "Attempted to open output socket '" << "' and failed with errno = " << errno);
+            else if(getaddrinfo(hostname.c_str(), port.c_str(), NULL, &address) != 0)
+              LOG4CXX_DEBUG(logger, "Attempted to get destination address '" << file << "' and failed with errno = " << errno);
+            else if (connect(descriptor, address->ai_addr, sizeof(struct sockaddr)) == -1)
+              LOG4CXX_DEBUG(logger, "Attempted to bind output socket '" << file << "' and failed with errno = " << errno);
+            else
+              f = fdopen(descriptor, "w");
         } else {
             f = fopen(file.c_str(), isBinary ? append ? "ab" : "wb" : append ? "a" : "w");
             if (NULL == f) {
