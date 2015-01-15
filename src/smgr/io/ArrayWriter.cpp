@@ -37,6 +37,9 @@
 #include <float.h>
 #include <string>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/format.hpp>
@@ -1243,6 +1246,43 @@ namespace scidb
             f = stdout;
         } else if (file == "stderr") { 
             f = stderr;
+        } else if(file.find("socket:") == 0) {
+            const string uris = file.substr(7);            
+            const stringstream stream(uris);
+            string uri;
+
+            for(int index = 0; index <= query->getInstanceID(); index++)
+                stream.getline(stream, uri, ',');
+
+            const stringstream pair(uri);
+            string scheme,hostname, port;
+            getline(pair, scheme, ':');
+            getline(pair, hostname, ':');
+            getline(pair, port, ':');
+            hostname = hostname.substr(2);
+
+            LOG4CXX_DEBUG(logger, "Save to Socket: Worker " << query->getInstanceID() << " exporting to " << hostname << ":" << port);
+
+            const struct sockaddr_in address = {AF_INET, htons(atoi(port.c_str())), {INADDR_ANY}, {'\0'} };
+            struct sockaddr client_address;
+            socklen_t client_address_length;
+            int server_descriptor, client_descriptor;
+
+            if((server_descriptor = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to open output socket and failed with errno = " << errno);
+            } else if(getaddrinfo(hostname.c_str(), port.c_str(), NULL, &address) != 0) {
+                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to get destination address '" << hostname << ":" << port << "' and failed with errno = " << errno);
+            } else if(::bind(server_descriptor, address->ai_addr, sizeof(struct sockaddr)) != 0) {
+                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to bind socket '" << hostname << ":" << port << "' and failed with errno = " << errno);
+            } else if(listen(server_descriptor, 1) != 0) {
+                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to listen on socket '" << hostname << ":" << port << "' and failed with errno = " << errno);
+            } else if((client_descriptor = accept(server_descriptor, &client_address, &client_address_length)) < 0) {
+                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to accept on socket '" << hostname << ":" << port << "' and failed with errno = " << errno);
+            } else if((f = fdopen(client_descriptor, isBinary ? "wb" : "w")) == NULL) {
+                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to convert descriptor '" << descriptor << "' failed with errno = " << errno);
+            } else {
+                success = true;
+            }
         } else {
             f = fopen(file.c_str(), isBinary ? append ? "ab" : "wb" : append ? "a" : "w");
             if (NULL == f) {
