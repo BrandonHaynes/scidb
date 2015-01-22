@@ -1269,15 +1269,15 @@ namespace scidb
             int server_descriptor, client_descriptor;
 
             if((server_descriptor = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to open output socket and failed with errno = " << errno);
+                throw USER_EXCEPTION(SCIDB_SE_ARRAY_WRITER, SCIDB_LE_CANT_OPEN_FILE) << "Save to Socket: Attempted to open output socket and failed with errno = " << errno;
             } else if(::bind(server_descriptor, (const sockaddr*)&address, sizeof(address)) != 0) {
-                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to bind socket '" << hostname << ":" << port << "' and failed with errno = " << errno);
+                throw USER_EXCEPTION(SCIDB_SE_ARRAY_WRITER, SCIDB_LE_CANT_OPEN_FILE) << "Save to Socket: Attempted to bind socket '" << hostname << ":" << port << "' and failed with errno = " << errno;
             } else if(listen(server_descriptor, 1) != 0) {
-                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to listen on socket '" << hostname << ":" << port << "' and failed with errno = " << errno);
+                throw USER_EXCEPTION(SCIDB_SE_ARRAY_WRITER, SCIDB_LE_CANT_OPEN_FILE) << "Save to Socket: Attempted to listen on socket '" << hostname << ":" << port << "' and failed with errno = " << errno;
             } else if((client_descriptor = accept(server_descriptor, &client_address, &client_address_length)) < 0) {
-                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to accept on socket '" << hostname << ":" << port << "' and failed with errno = " << errno);
+                throw USER_EXCEPTION(SCIDB_SE_ARRAY_WRITER, SCIDB_LE_CANT_OPEN_FILE) << "Save to Socket: Attempted to accept on socket '" << hostname << ":" << port << "' and failed with errno = " << errno;
             } else if((f = fdopen(client_descriptor, isBinary ? "wb" : "w")) == NULL) {
-                LOG4CXX_DEBUG(logger, "Save to Socket: Attempted to convert descriptor '" << client_descriptor << "' failed with errno = " << errno);
+                throw USER_EXCEPTION(SCIDB_SE_ARRAY_WRITER, SCIDB_LE_CANT_OPEN_FILE) << "Save to Socket: Attempted to convert descriptor '" << client_descriptor << "' failed with errno = " << errno;
             }
         } else {
             f = fopen(file.c_str(), isBinary ? append ? "ab" : "wb" : append ? "a" : "w");
