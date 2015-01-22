@@ -1265,7 +1265,7 @@ namespace scidb
 
             const struct sockaddr_in address = {AF_INET, htons(atoi(port.c_str())), {INADDR_ANY}, {'\0'} };
             struct sockaddr client_address;
-            socklen_t client_address_length;
+            socklen_t client_address_length = sizeof(client_address);
             int server_descriptor, client_descriptor;
 
             if((server_descriptor = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
