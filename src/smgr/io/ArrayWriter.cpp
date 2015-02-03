@@ -1102,9 +1102,19 @@ namespace scidb
     static uint64_t saveUsingTemplate(Array const& array,
                                       ArrayDesc const& desc,
                                       FILE* f,
-                                      string const& format,
+                                      string const& oformat, //<BH>
+                                      //string const& format, //</BH>
                                       boost::shared_ptr<Query> const& query)
     {
+      //<BH>                                                                   
+      string format = string(oformat);
+      string prefix = "(dimensions,";
+      bool emitCoordinates = format.compare(0, prefix.length(), prefix) == 0;
+      if(emitCoordinates)
+        format = const_cast<string const&>((const_cast<string&>(format)).erase\
+(1, prefix.length() - 1));
+      //</BH>                                                                  
+
         ExchangeTemplate templ = TemplateParser::parse(desc, format, false);
         int nAttrs = templ.columns.size();
         vector< boost::shared_ptr<ConstArrayIterator> > arrayIterators(nAttrs);
@@ -1139,6 +1149,14 @@ namespace scidb
                 }
             }
             while (!chunkIterators[firstAttr]->end()) {                
+                //<BH>
+                if (emitCoordinates) {
+                    Coordinates const& position = chunkIterators[firstAttr]->getPosition();
+                    for (unsigned index = 0; index < position.size(); ++index) 
+                        fwrite(&position[index], sizeof(position[index]), 1, f);
+                }
+                //</BH>
+
                 for (int i = firstAttr; i < nAttrs; i++) { 
                     ExchangeTemplate::Column const& column = templ.columns[i];
                     if (!column.skip) {
