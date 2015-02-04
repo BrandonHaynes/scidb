@@ -152,21 +152,18 @@ def executeIt(cmdList,
        stdIn = None
        if stdinFile:
           stdIn=open(stdinFile,"r")
-
        stdOut = None
        if stdoutFile:
-          # print "local - about to open stdoutFile log file:", stdoutFile
+          print "local - about to open stdoutFile log file:", stdoutFile
           stdOut=open(stdoutFile,"w")
        elif not waitFlag:
           stdOut=open("/dev/null","w")
-
        stdErr = None
        if stderrFile:
-          #print "local - about to open stderrFile log file:", stderrFile
+          print "local - about to open stderrFile log file:", stderrFile
           stdErr=open(stderrFile,"w")
        elif not waitFlag:
           stdErr=open("/dev/null","w")
-
        if collectOutput:
            if not waitFlag:
                raise Exception("Inconsistent arguments: waitFlag=%s and collectOutput=%s" % (str(waitFlag), str(collectOutput)))
@@ -174,9 +171,8 @@ def executeIt(cmdList,
                stdErr = subprocess.PIPE
            if not stdOut:
                stdOut = subprocess.PIPE
-
        printDebug("Executing: "+str(cmdList))
-
+       print cmdList
        p = subprocess.Popen(cmdList,
                             preexec_fn=subprocess_setup,
                             env=my_env, cwd=cwd,
@@ -184,7 +180,6 @@ def executeIt(cmdList,
                             shell=useShell, executable=cmd)
        if collectOutput:
            out, err = p.communicate() # collect stdout,stderr, wait
-
        if waitFlag:
           p.wait()
           ret = p.returncode
@@ -257,7 +252,6 @@ def runSetup(force, sourcePath,buildPath,installPath,defs={},name='scidb'):
     for (key, value) in defs.items():
         cmdList.append("-D%s=%s"%(key,str(value)))
     cmdList.append(sourcePath)
-
     ret = executeIt(cmdList,
                     cwd=buildPath)
     #..............................................................

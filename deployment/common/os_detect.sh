@@ -28,7 +28,7 @@ function detect ()
         OS="CentOS 6"
     fi
 
-    if [ `echo "${input}" | grep "Ubuntu" | grep "12.04" | wc -l` = "1" ]; then
+    if [ `echo "${input}" | grep "Ubuntu" | grep "14.04" | wc -l` = "1" ]; then
         OS="Ubuntu 12.04"
     fi
 

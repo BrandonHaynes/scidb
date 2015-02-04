@@ -242,7 +242,8 @@ find_package(LibRT REQUIRED)
 #
 # BOOST CONFIG
 #
-set(BOOST_ROOT /opt/scidb/${SCIDB_VERSION_MAJOR}.${SCIDB_VERSION_MINOR}/3rdparty/boost)
+#set(BOOST_ROOT /opt/scidb/${SCIDB_VERSION_MAJOR}.${SCIDB_VERSION_MINOR}/3rdparty/boost)
+set(BOOST_ROOT /usr/include/)
 set(Boost_NO_SYSTEM_PATHS TRUE)
 set(Boost_NO_BOOST_CMAKE TRUE)
 
