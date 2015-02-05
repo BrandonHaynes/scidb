@@ -1174,7 +1174,9 @@ CachedStorage::writeBytesToDataStore(DiskPos const& pos,
     {
         t0 = getTimeSecs();
     }
+
     ds->writeData(pos.offs, data, len, allocated);
+
     if (_writeLogThreshold >= 0)
     {
         t1 = getTimeSecs();
@@ -1199,10 +1201,14 @@ CachedStorage::writeChunkToDataStore(DataStore& ds, PersistentChunk& chunk, void
     {
         t0 = getTimeSecs();
     }
+#ifndef PREVENT_PAGING
     ds.writeData(chunk._hdr.pos.offs,
                  data,
                  chunk._hdr.compressedSize,
                  chunk._hdr.allocatedSize);
+#else
+        throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_DATASTORE_NOT_FOUND) << "Attempt to write to datastore, but writing is disabled";
+#endif
     if (_writeLogThreshold >= 0)
     {
         t1 = getTimeSecs();
@@ -1221,6 +1227,10 @@ CachedStorage::writeChunkToDataStore(DataStore& ds, PersistentChunk& chunk, void
 void
 CachedStorage::readChunkFromDataStore(DataStore& ds, PersistentChunk const& chunk, void* data)
 {
+#ifdef PREVENT_READ
+        throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_DATASTORE_NOT_FOUND) << "Attempt to write to datastore, but writing is disabled";
+#endif
+
     double t0 = 0, t1 = 0, readTime = 0;
     if (_writeLogThreshold >= 0)
     {

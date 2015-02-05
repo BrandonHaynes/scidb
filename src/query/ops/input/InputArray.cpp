@@ -46,6 +46,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#define SUPPORT_INPUT_FROM_SOCKET
 
 namespace scidb
 {
