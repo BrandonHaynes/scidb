@@ -145,7 +145,8 @@ ArrayDesc LogicalInput::inferSchema(std::vector< ArrayDesc> inputSchemas, boost:
         }
 
         //Such file not found on any instance. Failing with exception
-        if (!fileDetected)
+        // TODO: Removed exception for testing: Jane H
+        if (!fileDetected && path.find("@") == string::npos)
         {
             throw USER_QUERY_EXCEPTION(
                 SCIDB_SE_INFER_SCHEMA, SCIDB_LE_FILE_NOT_FOUND,
