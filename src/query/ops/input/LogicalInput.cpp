@@ -147,9 +147,9 @@ ArrayDesc LogicalInput::inferSchema(std::vector< ArrayDesc> inputSchemas, boost:
         //Such file not found on any instance. Failing with exception
         if (!fileDetected)
         {
-            throw USER_QUERY_EXCEPTION(
-                SCIDB_SE_INFER_SCHEMA, SCIDB_LE_FILE_NOT_FOUND,
-                _parameters[1]->getParsingContext()) << path;
+        //    throw USER_QUERY_EXCEPTION(
+        //        SCIDB_SE_INFER_SCHEMA, SCIDB_LE_FILE_NOT_FOUND,
+        //        _parameters[1]->getParsingContext()) << path;
         }
 
         //If some instances missing this file posting appropriate warning
