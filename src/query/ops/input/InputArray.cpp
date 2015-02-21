@@ -55,6 +55,7 @@ namespace scidb
 
     const int GETHOSTBYNAME_BUF_SIZE = 1*KiB;
 
+#define SUPPORT_INPUT_FROM_SOCKET
 
 #ifdef SUPPORT_INPUT_FROM_SOCKET // sockets support is not confirmed
     static int openSocket(string const& addr)
