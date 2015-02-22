@@ -1,6 +1,8 @@
 nodelist=$(cat /root/nodes.txt)
 nodes=${nodelist/$'\n'/ }
 
+cd /mnt/scidb
+
 /opt/scidb/14.8/bin/scidb.py stopall mydb
 
 #deployment/deploy.sh prepare_toolchain master
