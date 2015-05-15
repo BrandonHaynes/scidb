@@ -102,7 +102,7 @@ SCIDB QUERY : <gesvd(M8x8_ubi, 'right')>
 [An error expected at this place for the query "gesvd(M8x8_ubi, 'right')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5.]
 
 changing the attribute type from int64 to double with default and testing gesvd
-SCIDB QUERY : <gesvd(M8x8_default, 'values')>
+SCIDB QUERY : <gesvd(scan(M8x8_default,true), 'values')>
 {i} sigma
 {0} 8
 {1} 7
@@ -137,7 +137,7 @@ SCIDB QUERY : <gesvd(M8x8_default, 'values')>
 {30} 0
 {31} 0
 
-SCIDB QUERY : <gesvd(M8x8_default, 'left')>
+SCIDB QUERY : <gesvd(scan(M8x8_default,true), 'left')>
 {x,i} u
 {0,0} 0
 {0,1} 0
@@ -1164,7 +1164,7 @@ SCIDB QUERY : <gesvd(M8x8_default, 'left')>
 {31,30} 0
 {31,31} 1
 
-SCIDB QUERY : <gesvd(M8x8_default, 'right')>
+SCIDB QUERY : <gesvd(scan(M8x8_default,true), 'right')>
 {i,y} v
 {0,0} 0
 {0,1} 0
@@ -2191,15 +2191,15 @@ SCIDB QUERY : <gesvd(M8x8_default, 'right')>
 {31,30} 0
 {31,31} 1
 
-SCIDB QUERY : <aggregate(gesvd(M8x8_default, 'values'),count(sigma))>
+SCIDB QUERY : <aggregate(gesvd(scan(M8x8_default,true), 'values'),count(sigma))>
 {i} sigma_count
 {0} 32
 
-SCIDB QUERY : <aggregate(gesvd(M8x8_default, 'left'),count(u))>
+SCIDB QUERY : <aggregate(gesvd(scan(M8x8_default,true), 'left'),count(u))>
 {i} u_count
 {0} 1024
 
-SCIDB QUERY : <aggregate(gesvd(M8x8_default, 'right'),count(v))>
+SCIDB QUERY : <aggregate(gesvd(scan(M8x8_default,true), 'right'),count(v))>
 {i} v_count
 {0} 1024
 
@@ -2213,14 +2213,14 @@ SCIDB QUERY : <gesvd(M4x5c32x16, 'left')>
 SCIDB QUERY : <gesvd(M4x5c32x16, 'right')>
 [An error expected at this place for the query "gesvd(M4x5c32x16, 'right')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41.]
 
-SCIDB QUERY : <gesvd(M4x5c32x16_UB, 'values')>
-[An error expected at this place for the query "gesvd(M4x5c32x16_UB, 'values')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41.]
+SCIDB QUERY : <gesvd(scan(M4x5c32x16_UB,true), 'values')>
+[An error expected at this place for the query "gesvd(scan(M4x5c32x16_UB,true), 'values')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41.]
 
-SCIDB QUERY : <gesvd(M4x5c32x16_UB, 'left')>
-[An error expected at this place for the query "gesvd(M4x5c32x16_UB, 'left')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41.]
+SCIDB QUERY : <gesvd(scan(M4x5c32x16_UB,true), 'left')>
+[An error expected at this place for the query "gesvd(scan(M4x5c32x16_UB,true), 'left')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41.]
 
-SCIDB QUERY : <gesvd(M4x5c32x16_UB, 'right')>
-[An error expected at this place for the query "gesvd(M4x5c32x16_UB, 'right')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41.]
+SCIDB QUERY : <gesvd(scan(M4x5c32x16_UB,true), 'right')>
+[An error expected at this place for the query "gesvd(scan(M4x5c32x16_UB,true), 'right')". And it failed with error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41. Expected error code = DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41.]
 
 and when chunking is not the same, use repart to make it work
 SCIDB QUERY : <gesvd(repart(M4x5c32x16, <a:double> [x=0:3,32,0, y=0:4,32,0]), 'values')>
@@ -2409,7 +2409,7 @@ SCIDB QUERY : <gesvd(M4x5, 'values')>
 {2} 0.457489
 {3} 0.358316
 
-SCIDB QUERY : <gesvd(M4x5_UB, 'values')>
+SCIDB QUERY : <gesvd(scan(M4x5_UB,true), 'values')>
 {i} sigma
 {0} 2.50599
 {1} 0.613469
@@ -2463,7 +2463,7 @@ SCIDB QUERY : <gesvd(M4x5, 'left')>
 {3,2} -0.812566
 {3,3} -0.153222
 
-SCIDB QUERY : <gesvd(M4x5_UB, 'left')>
+SCIDB QUERY : <gesvd(scan(M4x5_UB,true), 'left')>
 {x,i} u
 {0,0} -0.442939
 {0,1} 0.426374
@@ -3513,7 +3513,7 @@ SCIDB QUERY : <gesvd(M4x5, 'right')>
 {3,3} -0.563926
 {3,4} -0.129235
 
-SCIDB QUERY : <gesvd(M4x5_UB, 'right')>
+SCIDB QUERY : <gesvd(scan(M4x5_UB,true), 'right')>
 {i,y} v
 {0,0} -0.14067
 {0,1} -0.513738

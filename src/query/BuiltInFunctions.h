@@ -29,6 +29,8 @@
  * BuiltIn scalar function implementations
  */
 
+#include <query/TypeSystem.h>
+
 typedef int8_t Int8;
 typedef int16_t Int16;
 typedef int32_t Int32;
@@ -54,268 +56,81 @@ typedef bool Bool;
  *  TM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to get value
  *  RM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to set value
  */
-#define BINARY_OP(LN, T, R, PN, CN, TM, RM)                                         \
-    void LN##_##T(const Value** args, Value* res, void*)                           \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector(args[0]->size()/sizeof(TM)*sizeof(RM));                    \
-            RM* dp = (RM*)res->data();                                               \
-            TM* lp = (TM*)args[0]->data();                                           \
-            TM* rp = (TM*)args[1]->data();                                           \
-            if (args[1]->isVector()) {                                               \
-                assert(args[0]->size() == args[1]->size());                           \
-                for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {  \
-                    dp[i] = lp[i] CN rp[i];                                         \
-                }                                                                   \
-            } else {                                                                \
-                TM imm = rp[0];                                                     \
-                for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {  \
-                    dp[i] = lp[i] CN imm;                                           \
-                }                                                                   \
-            }                                                                       \
-        } else if (args[1]->isVector()) {                                            \
-            res->setVector(args[1]->size()/sizeof(TM)*sizeof(RM));                    \
-            RM* dp = (RM*)res->data();                                               \
-            TM imm = *(TM*)args[0]->data();                                          \
-            TM* rp = (TM*)args[1]->data();                                           \
-            for (size_t i = 0, count = args[1]->size() / sizeof(TM); i < count; i++) {  \
-                dp[i] = imm CN rp[i];                                             \
-            }                                                                       \
-        } else {                                                                    \
-            if (args[0]->isNull() || args[1]->isNull()) {                             \
-                res->setNull(); /* What missing reason to set here? */               \
-            } else {                                                                \
-                res->set##RM(args[0]->get##TM() CN args[1]->get##TM());                \
-            }                                                                       \
-        }                                                                           \
+#define BINARY_OP(LN, T, R, PN, CN, TM, RM)                                     \
+    void LN##_##T(const Value** args, Value* res, void*)                        \
+    {                                                                           \
+        if (args[0]->isNull() || args[1]->isNull()) {                           \
+            res->setNull(); /* What missing reason to set here? */              \
+        } else {                                                                \
+            res->set##RM(args[0]->get##TM() CN args[1]->get##TM());             \
+        }                                                                       \
     }
 
-#define BINARY_BOP(LN, T, R, PN, CN, TM, RM)                                        \
-    void LN##_##T(const Value** args, Value* res, void*)                           \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector((args[0]->size()/sizeof(TM)+7) >> 3);                      \
-            char* dp = (char*)res->data();                                           \
-            TM* lp = (TM*)args[0]->data();                                           \
-            TM* rp = (TM*)args[1]->data();                                           \
-            if (args[1]->isVector()) {                                               \
-                assert(args[0]->size() == args[1]->size());                           \
-                for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {  \
-                    if (lp[i] CN rp[i]) dp[i >> 3] |= (1 << (i & 7)); else dp[i >> 3] &= ~(1 << (i & 7)); \
-                }                                                                   \
-            } else {                                                                \
-                TM imm = rp[0];                                                     \
-                for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {  \
-                    if (lp[i] CN imm) dp[i >> 3] |= (1 << (i & 7)); else dp[i >> 3] &= ~(1 << (i & 7)); \
-                }                                                                   \
-            }                                                                       \
-        } else if (args[1]->isVector()) {                                            \
-            res->setVector((args[1]->size()/sizeof(TM)+7) >> 3);                      \
-            char* dp = (char*)res->data();                                     \
-            TM imm = *(TM*)args[0]->data();                                          \
-            TM* rp = (TM*)args[1]->data();                                           \
-            for (size_t i = 0, count = args[1]->size() / sizeof(TM); i < count; i++) {  \
-                if (imm CN rp[i]) dp[i >> 3] |= (1 << (i & 7)); else dp[i >> 3] &= ~(1 << (i & 7)); \
-            }                                                                       \
-        } else {                                                                    \
-            if (args[0]->isNull() || args[1]->isNull()) {                             \
-                res->setNull(); /* What missing reason to set here? */               \
-            } else {                                                                \
-                res->set##RM(args[0]->get##TM() CN args[1]->get##TM());                \
-            }                                                                       \
-        }                                                                           \
+#define BINARY_BOP(LN, T, R, PN, CN, TM, RM)                                    \
+    void LN##_##T(const Value** args, Value* res, void*)                        \
+    {                                                                           \
+        if (args[0]->isNull() || args[1]->isNull()) {                           \
+            res->setNull(); /* What missing reason to set here? */              \
+        } else {                                                                \
+            res->set##RM(args[0]->get##TM() CN args[1]->get##TM());             \
+        }                                                                       \
     }
 
-#define BINARY_BBOP(LN, T, R, PN, CN, TM, RM)                                       \
-    void LN##_##T(const Value** args, Value* res, void*)                           \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector(args[0]->size());                                          \
-            char* dp = (char*)res->data();                                           \
-            char* lp = (char*)args[0]->data();                                       \
-            char* rp = (char*)args[1]->data();                                       \
-            if (args[1]->isVector()) {                                               \
-                assert(args[0]->size() == args[1]->size());                           \
-                for (size_t i = 0, count = args[0]->size() * 8; i < count; i++) {    \
-                    if ((lp[i >> 3] CN rp[i >> 3]) & (1 << (i & 7))) dp[i >> 3] |= (1 << (i & 7)); else dp[i >> 3] &= ~(1 << (i & 7)); \
-                }                                                                   \
-            } else {                                                                \
-                char imm = rp[0];                                                   \
-                for (size_t i = 0, count = args[0]->size() * 8; i < count; i++) {    \
-                    if (((lp[i >> 3] >> (i & 7)) CN imm) & 1) dp[i >> 3] |= (1 << (i & 7)); else dp[i >> 3] &= ~(1 << (i & 7)); \
-                }                                                                   \
-            }                                                                       \
-        } else if (args[1]->isVector()) {                                            \
-            res->setVector(args[1]->size());                                          \
-            char* dp = (char*)res->data();                                           \
-            char imm = *(char*)args[0]->data();                                      \
-            char* rp = (char*)args[1]->data();                                       \
-            for (size_t i = 0, count = args[1]->size() * 8; i < count; i++) {        \
-                if ((imm CN (rp[i >> 3] >> (i & 7))) & 1) dp[i >> 3] |= (1 << (i & 7)); else dp[i >> 3] &= ~(1 << (i & 7)); \
-            }                                                                       \
-         } else {                                                                   \
-            if (args[0]->isNull() || args[1]->isNull()) {                             \
-                res->setNull(); /* What missing reason to set here? */               \
-            } else {                                                                \
-                res->set##RM(args[0]->get##TM() CN args[1]->get##TM());                \
-            }                                                                       \
-        }                                                                           \
+#define BINARY_BBOP(LN, T, R, PN, CN, TM, RM)                                   \
+    void LN##_##T(const Value** args, Value* res, void*)                        \
+    {                                                                           \
+        if (args[0]->isNull() || args[1]->isNull()) {                           \
+            res->setNull(); /* What missing reason to set here? */              \
+        } else {                                                                \
+            res->set##RM(args[0]->get##TM() CN args[1]->get##TM());             \
+        }                                                                       \
     }
 
-#define LOGICAL_OP(LN, T, R, PN, CN, OP, TM, RM)                                    \
-    void LN##_##T(const Value** args, Value* res, void*)                           \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector(args[0]->size());                                          \
-            char* dp = (char*)res->data();                                           \
-            char* lp = (char*)args[0]->data();                                       \
-            char* rp = (char*)args[1]->data();                                       \
-            if (args[1]->isVector()) {                                               \
-                assert(args[0]->size() == args[1]->size());                           \
-                for (size_t i = 0, count = args[0]->size(); i < count; i++) {        \
-                     dp[i] = lp[i] OP rp[i];                                        \
-                }                                                                   \
-            } else {                                                                \
-                char imm = char(~(*(bool*)rp-1));                                   \
-                for (size_t i = 0, count = args[0]->size(); i < count; i++) {        \
-                     dp[i] = lp[i] OP imm;                                          \
-                }                                                                   \
-            }                                                                       \
-        } else if (args[1]->isVector()) {                                            \
-            res->setVector(args[1]->size());                                          \
-            char* dp = (char*)res->data();                                           \
-            char imm = char(~(*(bool*)args[0]->data()-1));                           \
-            char* rp = (char*)args[1]->data();                                       \
-            for (size_t i = 0, count = args[1]->size(); i < count; i++) {            \
-                dp[i] = imm OP rp[i];                                               \
-            }                                                                       \
-        } else {                                                                    \
-            if (args[0]->isNull() || args[1]->isNull()) {                             \
-                res->setNull(); /* What missing reason to set here? */               \
-            } else {                                                                \
-                res->set##RM(args[0]->get##TM() CN args[1]->get##TM());                \
-            }                                                                       \
-        }                                                                           \
+#define LOGICAL_OP(LN, T, R, PN, CN, OP, TM, RM)                                \
+    void LN##_##T(const Value** args, Value* res, void*)                        \
+    {                                                                           \
+        if (args[0]->isNull() || args[1]->isNull()) {                           \
+            res->setNull(); /* What missing reason to set here? */              \
+        } else {                                                                \
+            res->set##RM(args[0]->get##TM() CN args[1]->get##TM());             \
+        }                                                                       \
     }
 
-#define LOGICAL_OR(LN, T, R, PN)                                    \
-    void LN##_##T(const Value** args, Value* res, void*)                           \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector(args[0]->size());                                          \
-            char* dp = (char*)res->data();                                           \
-            char* lp = (char*)args[0]->data();                                       \
-            char* rp = (char*)args[1]->data();                                       \
-            if (args[1]->isVector()) {                                               \
-                assert(args[0]->size() == args[1]->size());                           \
-                for (size_t i = 0, count = args[0]->size(); i < count; i++) {        \
-                     dp[i] = lp[i] | rp[i];                                        \
-                }                                                                   \
-            } else {                                                                \
-                char imm = char(~(*(bool*)rp-1));                                   \
-                for (size_t i = 0, count = args[0]->size(); i < count; i++) {        \
-                     dp[i] = lp[i] | imm;                                          \
-                }                                                                   \
-            }                                                                       \
-        } else if (args[1]->isVector()) {                                            \
-            res->setVector(args[1]->size());                                          \
-            char* dp = (char*)res->data();                                           \
-            char imm = char(~(*(bool*)args[0]->data()-1));                           \
-            char* rp = (char*)args[1]->data();                                       \
-            for (size_t i = 0, count = args[1]->size(); i < count; i++) {            \
-                dp[i] = imm | rp[i];                                               \
-            }                                                                       \
-        } else {                                                                    \
-        if ((args[0]->isNull() && args[1]->isNull()) ||                               \
-            (args[0]->isNull() && !args[1]->getBool()) ||                         \
-            (!args[0]->getBool() && args[1]->isNull()) ) {                             \
-                res->setNull(); /* What missing reason to set here? */               \
-            } else {                                                                \
-                res->setBool(args[0]->getBool() || args[1]->getBool());                \
-            }                                                                       \
-        }                                                                           \
+#define LOGICAL_OR(LN, T, R, PN)                                                \
+    void LN##_##T(const Value** args, Value* res, void*)                        \
+    {                                                                           \
+        if ((args[0]->isNull() && args[1]->isNull()) ||                         \
+            (args[0]->isNull() && !args[1]->getBool()) ||                       \
+            (!args[0]->getBool() && args[1]->isNull()) ) {                      \
+                res->setNull(); /* What missing reason to set here? */          \
+        } else {                                                                \
+            res->setBool(args[0]->getBool() || args[1]->getBool());             \
+        }                                                                       \
     }
 
-#define LOGICAL_AND(LN, T, R, PN)                                    \
-    void LN##_##T(const Value** args, Value* res, void*)                           \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector(args[0]->size());                                          \
-            char* dp = (char*)res->data();                                           \
-            char* lp = (char*)args[0]->data();                                       \
-            char* rp = (char*)args[1]->data();                                       \
-            if (args[1]->isVector()) {                                               \
-                assert(args[0]->size() == args[1]->size());                           \
-                for (size_t i = 0, count = args[0]->size(); i < count; i++) {        \
-                     dp[i] = lp[i] & rp[i];                                        \
-                }                                                                   \
-            } else {                                                                \
-                char imm = char(~(*(bool*)rp-1));                                   \
-                for (size_t i = 0, count = args[0]->size(); i < count; i++) {        \
-                     dp[i] = lp[i] & imm;                                          \
-                }                                                                   \
-            }                                                                       \
-        } else if (args[1]->isVector()) {                                            \
-            res->setVector(args[1]->size());                                          \
-            char* dp = (char*)res->data();                                           \
-            char imm = char(~(*(bool*)args[0]->data()-1));                           \
-            char* rp = (char*)args[1]->data();                                       \
-            for (size_t i = 0, count = args[1]->size(); i < count; i++) {            \
-                dp[i] = imm & rp[i];                                               \
-            }                                                                       \
-        } else {                                                                    \
-        if ((args[0]->isNull() && args[1]->isNull()) ||                               \
-            (args[0]->isNull() && args[1]->getBool()) ||                         \
-            (args[0]->getBool() && args[1]->isNull()) ) {                             \
-                res->setNull(); /* What missing reason to set here? */               \
-            } else {                                                                \
-                res->setBool(args[0]->getBool() && args[1]->getBool());                \
-            }                                                                       \
-        }                                                                           \
+#define LOGICAL_AND(LN, T, R, PN)                                               \
+    void LN##_##T(const Value** args, Value* res, void*)                        \
+    {                                                                           \
+        if ((args[0]->isNull() && args[1]->isNull()) ||                         \
+            (args[0]->isNull() && args[1]->getBool()) ||                        \
+            (args[0]->getBool() && args[1]->isNull()) ) {                       \
+                res->setNull(); /* What missing reason to set here? */          \
+        } else {                                                                \
+            res->setBool(args[0]->getBool() && args[1]->getBool());             \
+        }                                                                       \
     }
 
-#define DIVISION_OP(LN, T, R, PN, CN, TM, RM)                                       \
-    void LN##_##T(const Value** args, Value* res, void*)                           \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector(args[0]->size()/sizeof(TM)*sizeof(RM));                    \
-            RM* dp = (RM*)res->data();                                               \
-            TM* lp = (TM*)args[0]->data();                                           \
-            TM* rp = (TM*)args[1]->data();                                           \
-            if (args[1]->isVector()) {                                               \
-                assert(args[0]->size() == args[1]->size());                           \
-                for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {  \
-                    if(rp[i] == 0)\
-                        throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_DIVISION_BY_ZERO);\
-                    dp[i] = lp[i] CN rp[i];                                         \
-                }                                                                   \
-            } else {                                                                \
-                if(rp[0] == 0)\
-                    throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_DIVISION_BY_ZERO);\
-                for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {  \
-                    dp[i] = lp[i] CN rp[0];                                         \
-                }                                                                   \
-            }                                                                       \
-        } else if (args[1]->isVector()) {                                            \
-            res->setVector(args[1]->size()/sizeof(TM)*sizeof(RM));                    \
-            RM* dp = (RM*)res->data();                                               \
-            TM* lp = (TM*)args[0]->data();                                           \
-            TM* rp = (TM*)args[1]->data();                                           \
-            for (size_t i = 0, count = args[1]->size() / sizeof(TM); i < count; i++) {  \
-                if(rp[i] == 0)\
-                    throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_DIVISION_BY_ZERO);\
-                dp[i] = lp[0] CN rp[i];                                             \
-            }                                                                       \
-        } else {                                                                    \
-            if (args[0]->isNull() || args[1]->isNull()) {                             \
-                res->setNull(); /* What missing reason to set here? */               \
-            }                                                                       \
-            else { \
-                if (args[1]->get##TM() == 0)\
-                    throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_DIVISION_BY_ZERO);\
-                res->set##RM(args[0]->get##TM() CN args[1]->get##TM());                \
-            }                                                                       \
-        }                                                                           \
+#define DIVISION_OP(LN, T, R, PN, CN, TM, RM)                                   \
+    void LN##_##T(const Value** args, Value* res, void*)                        \
+    {                                                                           \
+        if (args[0]->isNull() || args[1]->isNull()) {                           \
+            res->setNull(); /* What missing reason to set here? */              \
+        }                                                                       \
+        else { \
+        if (args[1]->get##TM() == 0)\
+            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_DIVISION_BY_ZERO);\
+        res->set##RM(args[0]->get##TM() CN args[1]->get##TM());                 \
+        }                                                                       \
     }
 
 /**
@@ -329,42 +144,24 @@ typedef bool Bool;
  *  TM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to get value
  *  RM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to set value
  */
-#define UNARY_OP(LN, T, R, PN, CN, TM, RM)                                                  \
-    void UNARY_##LN##_##T(const Value** args, Value* res, void*)                  \
-    {                                                                                       \
-        if (args[0]->isVector()) {                                                           \
-            res->setVector(args[0]->size()/sizeof(TM)*sizeof(RM));                            \
-            RM* dst = (RM*)res->data();                                                      \
-            TM* src = (TM*)args[0]->data();                                                  \
-            for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {       \
-                dst[i] = CN src[i];                                                         \
-            }                                                                               \
-        } else {                                                                            \
-            if (args[0]->isNull()) {                                                         \
-                res->setNull(args[0]->getMissingReason());                                    \
-            } else {                                                                        \
-                res->set##RM(CN args[0]->get##TM());                                          \
-            }                                                                               \
-        }                                                                                   \
+#define UNARY_OP(LN, T, R, PN, CN, TM, RM)                                      \
+    void UNARY_##LN##_##T(const Value** args, Value* res, void*)                \
+    {                                                                           \
+        if (args[0]->isNull()) {                                                \
+            res->setNull(args[0]->getMissingReason());                          \
+        } else {                                                                \
+            res->set##RM(CN args[0]->get##TM());                                \
+        }                                                                       \
     }
 
-#define UNARY_NOT(LN, T, R, PN, CN, TM, RM)                                                  \
-    void UNARY_##LN##_##T(const Value** args, Value* res, void*)                  \
-    {                                                                                       \
-        if (args[0]->isVector()) {                                                           \
-            res->setVector(args[0]->size());                                                  \
-            char* dst = (char*)res->data();                                                  \
-            char* src = (char*)args[0]->data();                                              \
-            for (size_t i = 0, count = args[0]->size(); i < count; i++) {                    \
-                dst[i] = ~src[i];                                                           \
-            }                                                                               \
-        } else {                                                                            \
-            if (args[0]->isNull()) {                                                         \
-                res->setNull(args[0]->getMissingReason());                                    \
-            } else {                                                                        \
-                res->set##RM(CN args[0]->get##TM());                                          \
-            }                                                                               \
-        }                                                                                   \
+#define UNARY_NOT(LN, T, R, PN, CN, TM, RM)                                     \
+    void UNARY_##LN##_##T(const Value** args, Value* res, void*)                \
+    {                                                                           \
+        if (args[0]->isNull()) {                                                \
+            res->setNull(args[0]->getMissingReason());                          \
+        } else {                                                                \
+            res->set##RM(CN args[0]->get##TM());                                \
+        }                                                                       \
     }
 
 /**
@@ -377,24 +174,15 @@ typedef bool Bool;
  *  TM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to get value
  *  RM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to set value
  */
-#define FUNCTION_A1(LN, T, R, PN, CN, TM, RM)                                               \
-    void LN##_##T(const Value** args, Value* res, void*)                                   \
-    {                                                                                       \
-        if (args[0]->isVector()) {                                                           \
-            res->setVector(args[0]->size()/sizeof(TM)*sizeof(RM));                            \
-            RM* dst = (RM*)res->data();                                                      \
-            TM* src = (TM*)args[0]->data();                                                  \
-            for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {       \
-                dst[i] = CN(src[i]);                                                        \
-            }                                                                               \
-        } else {                                                                            \
-            if (args[0]->isNull()) {                                                         \
-                res->setNull(args[0]->getMissingReason());                                    \
-            }                                                                               \
-            else {                                                                          \
-                res->set##RM(CN(args[0]->get##TM()));                                         \
-            }                                                                               \
-        }                                                                                   \
+#define FUNCTION_A1(LN, T, R, PN, CN, TM, RM)                                   \
+    void LN##_##T(const Value** args, Value* res, void*)                        \
+    {                                                                           \
+        if (args[0]->isNull()) {                                                \
+            res->setNull(args[0]->getMissingReason());                          \
+        }                                                                       \
+        else {                                                                  \
+            res->set##RM(CN(args[0]->get##TM()));                               \
+        }                                                                       \
     }
 
 /**
@@ -409,40 +197,15 @@ typedef bool Bool;
  *  T2M - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to get value of 2st arg
  *  RM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to set value
  */
-#define FUNCTION_A2(LN, T1, T2, R, PN, CN, T1M, T2M, RM)                                    \
-    void LN##_##T1##_##T2(const Value** args, Value* res, void*)                           \
-    {                                                                                       \
-        if (args[0]->isVector()) {                                                           \
-            res->setVector(args[0]->size()/sizeof(T1M)*sizeof(RM));                           \
-            RM* dst = (RM*)res->data();                                                      \
-            T1M* p1 = (T1M*)args[0]->data();                                                 \
-            T2M* p2 = (T2M*)args[1]->data();                                                 \
-            if (args[1]->isVector()) {                                                       \
-                assert(args[0]->size() / sizeof(T1M) == args[1]->size() / sizeof(T2M));       \
-                for (size_t i = 0, count = args[0]->size() / sizeof(T1M); i < count; i++) {  \
-                    dst[i] = CN(p1[i], p2[i]);                                              \
-                }                                                                           \
-            } else {                                                                        \
-                for (size_t i = 0, count = args[0]->size() / sizeof(T1M); i < count; i++) {  \
-                    dst[i] = CN(p1[i], p2[0]);                                              \
-                }                                                                           \
-            }                                                                               \
-        } else if (args[1]->isVector()) {                                                    \
-            res->setVector(args[1]->size()/sizeof(T2M)*sizeof(RM));                           \
-            RM* dst = (RM*)res->data();                                                      \
-            T1M* p1 = (T1M*)args[0]->data();                                                 \
-            T2M* p2 = (T2M*)args[1]->data();                                                 \
-            for (size_t i = 0, count = args[1]->size() / sizeof(T2M); i < count; i++) {      \
-                dst[i] = CN(p1[0], p2[i]);                                                  \
-            }                                                                               \
-        } else {                                                                            \
-            if (args[0]->isNull() || args[1]->isNull()) {                                     \
-                res->setNull(); /* What missing reason to set here? */                       \
-            }                                                                               \
-            else {                                                                          \
-                res->set##RM(CN(args[0]->get##T1M(), args[1]->get##T2M()));                    \
-            }                                                                               \
-        }                                                                                   \
+#define FUNCTION_A2(LN, T1, T2, R, PN, CN, T1M, T2M, RM)                        \
+    void LN##_##T1##_##T2(const Value** args, Value* res, void*)                \
+    {                                                                           \
+        if (args[0]->isNull() || args[1]->isNull()) {                           \
+            res->setNull(); /* What missing reason to set here? */              \
+        }                                                                       \
+        else {                                                                  \
+            res->set##RM(CN(args[0]->get##T1M(), args[1]->get##T2M()));         \
+        }                                                                       \
     }
 
 /**
@@ -453,73 +216,72 @@ typedef bool Bool;
  *  TM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to get value
  *  RM - Method name that was specified in BUILTIN_METHODS macros of TypeSystem.h to set value
  */
-#define CONVERTOR(T, R, TM, RM, COST)                                        \
-    void CONV##_##T##_##TO##_##R(const Value** args, Value* res, void*)   \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector(args[0]->size()/sizeof(TM)*sizeof(RM));                    \
-            RM* dst = (RM*)res->data();                                              \
-            TM* src = (TM*)args[0]->data();                                          \
-            for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {       \
-                dst[i] = RM(src[i]);                                                \
-            }                                                                       \
-        } else {                                                                    \
-            if (args[0]->isNull()) {                                                 \
-                res->setNull(args[0]->getMissingReason());                            \
-            }                                                                       \
-            else {                                                                  \
-                res->set##RM(args[0]->get##TM());                                     \
-            }                                                                       \
-        }                                                                           \
+#define CONVERTOR(T, R, TM, RM, COST)                                           \
+    void CONV##_##T##_##TO##_##R(const Value** args, Value* res, void*)         \
+    {                                                                           \
+        if (args[0]->isNull()) {                                                \
+            res->setNull(args[0]->getMissingReason());                          \
+        }                                                                       \
+        else {                                                                  \
+            res->set##RM(args[0]->get##TM());                                   \
+        }                                                                       \
     }
 
-#define CONVERTOR_BOOL(T, R, TM, RM, COST)                                        \
-    void CONV##_##T##_##TO##_##R(const Value** args, Value* res, void*)   \
-    {                                                                               \
-        if (args[0]->isVector()) {                                                   \
-            res->setVector((args[0]->size()/sizeof(TM) + 7) >> 3);                    \
-            char* dst = (char*)res->data();                                          \
-            TM* src = (TM*)args[0]->data();                                          \
-            for (size_t i = 0, count = args[0]->size() / sizeof(TM); i < count; i++) {       \
-                 if (src[i]) dst[i >> 3] |= (1 << (i & 7)); else dst[i >> 3] &= ~(1 << (i & 7)); \
-            }                                                                       \
-        } else {                                                                    \
-            if (args[0]->isNull()) {                                                 \
-                res->setNull(args[0]->getMissingReason());                            \
-            }                                                                       \
-            else {                                                                  \
-                res->set##RM(args[0]->get##TM());                                     \
-            }                                                                       \
-        }                                                                           \
+#define CONVERTOR_BOOL(T, R, TM, RM, COST)                                      \
+    void CONV##_##T##_##TO##_##R(const Value** args, Value* res, void*)         \
+    {                                                                           \
+        if (args[0]->isNull()) {                                                \
+            res->setNull(args[0]->getMissingReason());                          \
+        }                                                                       \
+        else {                                                                  \
+            res->set##RM(args[0]->get##TM());                                   \
+        }                                                                       \
     }
 
-
-#define CONVERTOR_TO_STR(T, TM)                                                     \
-    void CONV##_##T##_##TO_String(const Value** args, Value* res, void*)   \
-    {                                                                               \
-        if (args[0]->isNull()) {                                                     \
-            res->setNull(args[0]->getMissingReason());                                \
-        }  else {                                                                   \
-            std::stringstream ss;                                                   \
-            ss << args[0]->get##TM();                                                \
-            std::string const& str = ss.str();                                      \
-            res->setData(str.c_str(), str.length()+1);                               \
-        }                                                                           \
+#define CONVERTOR_TO_STR(T, TM)                                                 \
+    void CONV##_##T##_##TO_String(const Value** args, Value* res, void*)        \
+    {                                                                           \
+        if (args[0]->isNull()) {                                                \
+            res->setNull(args[0]->getMissingReason());                          \
+        }                                                                       \
+        else {                                                                  \
+            std::stringstream ss;                                               \
+            ss << args[0]->get##TM();                                           \
+            std::string const& str = ss.str();                                  \
+            res->setData(str.c_str(), str.length()+1);                          \
+        }                                                                       \
     }
 
-#define CONVERTOR_FROM_STR(T, TM)                                                   \
-    void CONV##_##T##_##FROM_String(const Value** args, Value* res, void*)   \
-    {                                                                               \
-        if (args[0]->isNull()) {                                                     \
-            res->setNull(args[0]->getMissingReason());                                \
-        } else {                                                                    \
-            std::stringstream ss(args[0]->getString());                              \
-            TM val;                                                                 \
-            ss >> val;                                                              \
-            if (ss.fail())                                                          \
-                throw USER_EXCEPTION(SCIDB_SE_TYPESYSTEM, SCIDB_LE_FAILED_PARSE_STRING); \
-            res->set##TM(val);                                                       \
-        }                                                                           \
+#define CONVERTOR_FROM_STR(T, TM)                                               \
+    void CONV##_##T##_##FROM_String(const Value** args, Value* res, void*)      \
+    {                                                                           \
+        const Value& v(*args[0]);                                               \
+        if (v.isNull()) {                                                       \
+            res->setNull(args[0]->getMissingReason());                          \
+        }                                                                       \
+        else {                                                                  \
+            std::string data(v.getData<char>(), v.size());                      \
+            std::stringstream ss(data);                                         \
+            TM val;                                                             \
+            ss >> val;                                                          \
+            if (ss.fail())                                                      \
+                throw USER_EXCEPTION(SCIDB_SE_TYPESYSTEM, SCIDB_LE_FAILED_PARSE_STRING) << data << #TM; \
+            res->set##TM(val);                                                  \
+        }                                                                       \
+    }
+
+// For char-like data types, operator>> doesn't work so well, so...
+#define CONVERTOR_STR_TO_OCTET(T, TM)                                   \
+    void CONV##_##T##_##FROM_String(const Value** args, Value* res, void*) \
+    {                                                                   \
+        const Value& v(*args[0]);                                       \
+        if (v.isNull()) {                                               \
+            res->setNull(args[0]->getMissingReason());                  \
+        }                                                               \
+        else {                                                          \
+            TM val = StringToInteger<TM>(v.getString(), T);             \
+            res->set##TM(val);                                          \
+        }                                                               \
     }
 
 #include "BuiltInFunctions.inc"
@@ -528,6 +290,7 @@ typedef bool Bool;
 #undef CONVERTOR_BOOL
 #undef CONVERTOR_TO_STR
 #undef CONVERTOR_FROM_STR
+#undef CONVERTOR_STR_TO_OCTET
 #undef FUNCTION_A1
 #undef FUNCTION_A2
 #undef UNARY_OP
@@ -568,7 +331,14 @@ void missingReason(const Value** args, Value* res, void*)
 
 void missing(const Value** args, Value* res, void*)
 {
-    res->setNull(args[0]->getInt32());
+    int32_t i = args[0]->getInt32();
+
+    if (i<0 || i>127)
+    {
+        throw USER_EXCEPTION(SCIDB_SE_EXECUTION,SCIDB_LE_BAD_MISSING_REASON) << i;
+    }
+
+    res->setNull(i);
 }
 
 void identicalConversion(const Value** args, Value* res, void*)
@@ -1072,7 +842,7 @@ void length(const Value** args, Value* res, void*)
             return;
         }
     }
-    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName;
+    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName << arrayName << dims;
 }
 
 void first_index(const Value** args, Value* res, void*)
@@ -1086,11 +856,11 @@ void first_index(const Value** args, Value* res, void*)
 
     for (size_t i = 0; i < nDims; i++) {
         if (dimName == dims[i].getBaseName()) {
-            res->setInt64(dims[i].getStart());
+            res->setInt64(dims[i].getStartMin());
             return;
         }
     }
-    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName;
+    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName << arrayName << dims;
 }
 
 void last_index(const Value** args, Value* res, void*)
@@ -1108,7 +878,7 @@ void last_index(const Value** args, Value* res, void*)
             return;
         }
     }
-    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName;
+    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName << arrayName << dims;
 }
 
 void low(const Value** args, Value* res, void*)
@@ -1127,7 +897,7 @@ void low(const Value** args, Value* res, void*)
             return;
         }
     }
-    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName;
+    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName << arrayName << dims;
 }
 
 void high(const Value** args, Value* res, void*)
@@ -1146,7 +916,7 @@ void high(const Value** args, Value* res, void*)
             return;
         }
     }
-    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName;
+    throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName << arrayName << dims;
 }
 
 void length1(const Value** args, Value* res, void*)
@@ -1168,7 +938,7 @@ void first_index1(const Value** args, Value* res, void*)
     const Dimensions& dims = arrayDesc.getDimensions();
     if (dims.size() != 1)
         throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_DIMENSION_EXPECTED);
-    res->setInt64(dims[0].getStart());
+    res->setInt64(dims[0].getStartMin());
 }
 
 void last_index1(const Value** args, Value* res, void*)

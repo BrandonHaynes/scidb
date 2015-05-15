@@ -1,7 +1,0 @@
---- a/boost/preprocessor/tuple/elem.hpp
-+++ b/boost/preprocessor/tuple/elem.hpp
-@@ -17,0 +18,4 @@
-+# if defined(__GCC__)
-+#  pragma GCC system_header // jab: see SciDB #3430
-+# endif
-+#

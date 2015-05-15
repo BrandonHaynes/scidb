@@ -115,7 +115,9 @@ typedef boost::shared_ptr<PhysicalQueryPlanNode> PhysNodePtr;
  *  Currently LogicalQueryPlanNode and PhysicalQueryPlanNode have similar structure.
  *  It may change in future as it needed
  */
-class PhysicalQueryPlanNode : boost::noncopyable
+class PhysicalQueryPlanNode
+    : boost::noncopyable,
+      public boost::enable_shared_from_this<PhysicalQueryPlanNode>
 {
   public:
     PhysicalQueryPlanNode()
@@ -128,11 +130,11 @@ class PhysicalQueryPlanNode : boost::noncopyable
                           std::vector<PhysNodePtr> const& childNodes,
                           bool agg, bool ddl, bool tile);
 
-    virtual ~PhysicalQueryPlanNode()
-    {}
+    virtual ~PhysicalQueryPlanNode() {}
 
     void addChild(const PhysNodePtr & child)
     {
+        child->_parent = shared_from_this();
         _childNodes.push_back(child);
     }
 
@@ -148,6 +150,10 @@ class PhysicalQueryPlanNode : boost::noncopyable
             if (_childNodes[i] != targetChild)
             {
                 newChildren.push_back(_childNodes[i]);
+            }
+            else
+            {
+                targetChild->_parent.reset();
             }
         }
         assert(_childNodes.size() > newChildren.size());
@@ -171,6 +177,7 @@ class PhysicalQueryPlanNode : boost::noncopyable
             }
             else
             {
+                newChild->_parent = shared_from_this();
                 newChildren.push_back(newChild);
                 removed = true;
             }
@@ -194,12 +201,7 @@ class PhysicalQueryPlanNode : boost::noncopyable
         return _parent.lock().get() != NULL;
     }
 
-    void setParent (const PhysNodePtr& parent)
-    {
-        _parent = parent;
-    }
-
-    void resetParent ()
+    void resetParent()
     {
         _parent.reset();
     }
@@ -251,6 +253,16 @@ class PhysicalQueryPlanNode : boost::noncopyable
             result.push_back(child->getPhysicalOperator()->getSchema());
         }
         return result;
+    }
+
+    /**
+     * Determine if this node is for the PhysicalRepart operator.
+     * @return true if physicalOperator is PhysicalRepart. False otherwise.
+     */
+    bool isRepartNode() const
+    {
+        return _physicalOperator.get() != NULL &&
+               _physicalOperator->getPhysicalName() == "physicalRepart";
     }
 
     /**
@@ -448,23 +460,6 @@ class PhysicalQueryPlanNode : boost::noncopyable
 
 private:
     PhysOpPtr _physicalOperator;
-
-    // <RANT>
-    // The boost::shared_ptr<PhysicalQueryPlanNode> should not be used internally in the implementation!!
-    // boost::shared_ptrs cannot be used in cyclical graphs, so we have to use weak_ptr to parent.
-    // Weak_ptr cannot be created without boost::shared_ptr so we end up having a moronic setParent method
-    // instead of doing everything in addChild.
-    //
-    // Or we have to use a regular * and then return that to the visitor which makes things inconsistent
-    // and not const-safe...
-    //
-    // What we should probably have is:
-    // a vector<PhysicalQueryPlanNode*> internally
-    // make the planNode immutable after creation
-    // return const-pointers for access, return copies for creation
-    // walkers create a new plan tree from subtrees.
-    // destructor takes care of eveything.
-    // </RANT> ap
 
     std::vector< PhysNodePtr > _childNodes;
     boost::weak_ptr <PhysicalQueryPlanNode> _parent;

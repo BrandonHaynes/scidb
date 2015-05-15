@@ -41,6 +41,16 @@ function ubuntu1204 ()
     fi
 }
 
+function ubuntu1404 ()
+{
+    apt-get update
+    if [ "1" == "${with_coordinator}" ]; then
+	apt-get install -y scidb-${release}-all-coord scidb-${release}-dev-tools
+    else
+	apt-get install -y scidb-${release}-all
+    fi
+}
+
 OS=`./os_detect.sh`
 release=${1}
 with_coordinator=${2}
@@ -55,4 +65,8 @@ fi
 
 if [ "${OS}" = "Ubuntu 12.04" ]; then
     ubuntu1204
+fi
+
+if [ "${OS}" = "Ubuntu 14.04" ]; then
+    ubuntu1404
 fi

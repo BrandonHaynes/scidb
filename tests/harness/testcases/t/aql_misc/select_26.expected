@@ -205,7 +205,7 @@ SCIDB QUERY : <select * from scan(A)>
 {3,1} 5,'23'
 {3,2} 5,'23'
 
-SCIDB QUERY : <select * into A2 from adddim(A,z)>
+SCIDB QUERY : <store( redimension( apply(A,z,0), <a:int32, b:string> [z=0:0,1,0,x=0:3,3,0,y=0:2,3,0]), A2)>
 {z,x,y} a,b
 {0,0,0} 2,'20'
 {0,0,1} 2,'20'
@@ -226,7 +226,7 @@ SCIDB QUERY : <select * from dimensions(A2)>
 {1} 'x',0,4,3,0,0,3,'int64'
 {2} 'y',0,3,3,0,0,2,'int64'
 
-SCIDB QUERY : <select * into A3 from deldim(A2)>
+SCIDB QUERY : <store( redimension( A2, <a:int32, b:string> [x=0:3,3,0,y=0:2,3,0]), A3)>
 {x,y} a,b
 {0,0} 2,'20'
 {0,1} 2,'20'

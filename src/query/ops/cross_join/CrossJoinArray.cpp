@@ -45,9 +45,9 @@ namespace scidb
     {
         return array.desc;
     }
-    
-    Array const& CrossJoinChunk::getArray() const 
-    { 
+
+    Array const& CrossJoinChunk::getArray() const
+    {
         return array;
     }
 
@@ -65,7 +65,7 @@ namespace scidb
     {
         return withOverlap ? firstPosWithOverlap : firstPos;
     }
-        
+
     Coordinates const& CrossJoinChunk::getLastPosition(bool withOverlap) const
     {
        return withOverlap ? lastPosWithOverlap : lastPos;
@@ -84,10 +84,10 @@ namespace scidb
 
     CrossJoinChunk::CrossJoinChunk(CrossJoinArray const& cross, AttributeID attrID, bool isLeftAttr)
     : array(cross), attr(attrID), isLeftAttribute(isLeftAttr)
-    {    
+    {
         isEmptyIndicatorAttribute = getAttributeDesc().isEmptyIndicator();
     }
-     
+
     void CrossJoinChunk::setInputChunk(ConstChunk const* left, ConstChunk const* right)
     {
         leftChunk  = left;
@@ -102,11 +102,6 @@ namespace scidb
     bool CrossJoinChunk::isMaterialized() const
     {
         return false;
-    }
-
-    bool CrossJoinChunk::isSparse() const
-    {
-        return leftChunk->isSparse() || rightChunk->isSparse();
     }
 
     //
@@ -174,7 +169,7 @@ namespace scidb
             hasCurrent = false;
         }
     }
-    
+
     Coordinates const& CrossJoinChunkIterator::getPosition()
     {
         if (!hasCurrent)
@@ -225,7 +220,7 @@ namespace scidb
                 return;
             }
 
-            ++(*leftIterator);            
+            ++(*leftIterator);
         }
     }
 
@@ -286,9 +281,9 @@ namespace scidb
     CrossJoinArrayIterator::CrossJoinArrayIterator(CrossJoinArray const& cross, AttributeID attrID,
                                                    shared_ptr<ConstArrayIterator> left,
                                                    shared_ptr<ConstArrayIterator> right,
-                                                   shared_ptr<ConstArrayIterator> input) 
-    : array(cross), 
-      attr(attrID), 
+                                                   shared_ptr<ConstArrayIterator> input)
+    : array(cross),
+      attr(attrID),
       leftIterator(left),
       rightIterator(right),
       inputIterator(input),
@@ -301,7 +296,7 @@ namespace scidb
     {
         if (!hasCurrent)
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_ELEMENT);
-        if (!chunkInitialized) { 
+        if (!chunkInitialized) {
             chunk.setInputChunk(&leftIterator->getChunk(), &rightIterator->getChunk());
             chunkInitialized = true;
         }
@@ -315,12 +310,12 @@ namespace scidb
 
     void CrossJoinArrayIterator::operator ++()
     {
-        if (hasCurrent) { 
+        if (hasCurrent) {
             chunkInitialized = false;
             ++(*rightIterator);
-            do { 
-                while (!rightIterator->end()) { 
-                    if (array.matchPosition(leftIterator->getPosition(), rightIterator->getPosition())) { 
+            do {
+                while (!rightIterator->end()) {
+                    if (array.matchPosition(leftIterator->getPosition(), rightIterator->getPosition())) {
                         return;
                     }
                     ++(*rightIterator);
@@ -328,7 +323,7 @@ namespace scidb
                 rightIterator->reset();
                 ++(*leftIterator);
             } while (!leftIterator->end());
-            
+
             hasCurrent = false;
         }
     }
@@ -342,7 +337,7 @@ namespace scidb
     bool CrossJoinArrayIterator::setPosition(Coordinates const& pos)
     {
         chunkInitialized = false;
-        return hasCurrent = leftIterator->setPosition(array.getLeftPosition(pos))            
+        return hasCurrent = leftIterator->setPosition(array.getLeftPosition(pos))
             && rightIterator->setPosition(array.getRightPosition(pos));
     }
 
@@ -351,23 +346,27 @@ namespace scidb
         chunkInitialized = false;
         hasCurrent = false;
         leftIterator->reset();
-        while (!leftIterator->end())  { 
+        while (!leftIterator->end())  {
             rightIterator->reset();
-            while (!rightIterator->end()) { 
-                if (array.matchPosition(leftIterator->getPosition(), rightIterator->getPosition())) { 
+            while (!rightIterator->end()) {
+                if (array.matchPosition(leftIterator->getPosition(), rightIterator->getPosition())) {
                     hasCurrent = true;
                     return;
                 }
                 ++(*rightIterator);
             }
-            ++(*leftIterator);            
+            ++(*leftIterator);
         }
     }
-    
+
     //
     // CrossJoin array methods
     //
-    CrossJoinArray::CrossJoinArray(ArrayDesc& d, shared_ptr<Array> leftArray, shared_ptr<Array> rightArray, vector<int> const& ljd, vector<int> const& rjd)
+    CrossJoinArray::CrossJoinArray(const ArrayDesc& d,
+                                   const shared_ptr<Array>& leftArray,
+                                   const shared_ptr<Array>& rightArray,
+                                   vector<int> const& ljd,
+                                   vector<int> const& rjd)
     : desc(d),
       leftDesc(leftArray->getArrayDesc()),
       rightDesc(rightArray->getArrayDesc()),
@@ -390,15 +389,15 @@ namespace scidb
         }
 
         leftEmptyTagPosition = leftDesc.getEmptyBitmapAttribute() != NULL ? leftDesc.getEmptyBitmapAttribute()->getId() : -1;
-        rightEmptyTagPosition = rightDesc.getEmptyBitmapAttribute() != NULL ? rightDesc.getEmptyBitmapAttribute()->getId() : -1;    
+        rightEmptyTagPosition = rightDesc.getEmptyBitmapAttribute() != NULL ? rightDesc.getEmptyBitmapAttribute()->getId() : -1;
     }
-    
+
     bool CrossJoinArray::matchPosition(Coordinates const& left, Coordinates const& right) const
     {
-        for (size_t r = 0; r < nRightDims; r++) { 
+        for (size_t r = 0; r < nRightDims; r++) {
             int l = rightJoinDims[r];
             if (l >= 0) {
-                if (left[l] != right[r]) { 
+                if (left[l] != right[r]) {
                     return false;
                 }
             }
@@ -478,9 +477,9 @@ namespace scidb
     Coordinates CrossJoinArray::getRightPosition(Coordinates const& pos) const
     {
         Coordinates rightPos(nRightDims);
-        for (size_t r = 0, i = nLeftDims; r < nRightDims; r++) { 
+        for (size_t r = 0, i = nLeftDims; r < nRightDims; r++) {
             int l = rightJoinDims[r];
-            rightPos[r] = (l >= 0) ? pos[l] : pos[i++]; 
+            rightPos[r] = (l >= 0) ? pos[l] : pos[i++];
         }
         return rightPos;
     }
@@ -489,20 +488,20 @@ namespace scidb
     Coordinates CrossJoinArray::getPosition(Coordinates const& left, Coordinates const& right) const
     {
         Coordinates pos(desc.getDimensions().size());
-        for (size_t l = 0; l < nLeftDims; l++) { 
+        for (size_t l = 0; l < nLeftDims; l++) {
             pos[l] = left[l];
         }
-         for (size_t r = 0, i = nLeftDims; r < nRightDims; r++) { 
+         for (size_t r = 0, i = nLeftDims; r < nRightDims; r++) {
             if (rightJoinDims[r] < 0) {
                 pos[i++] = right[r];
             }
         }
-        return pos;        
+        return pos;
     }
 
     const ArrayDesc& CrossJoinArray::getArrayDesc() const
-    { 
-        return desc; 
+    {
+        return desc;
     }
 
     shared_ptr<ConstArrayIterator> CrossJoinArray::getConstIterator(AttributeID attrID) const
@@ -511,49 +510,49 @@ namespace scidb
         shared_ptr<ConstArrayIterator> rightIterator;
         shared_ptr<ConstArrayIterator> inputIterator;
         AttributeID inputAttrID = attrID;
-        
+
         if (leftEmptyTagPosition >= 0) { // left array is emptyable
-            if ((int)inputAttrID >= leftEmptyTagPosition) { 
+            if ((int)inputAttrID >= leftEmptyTagPosition) {
                 inputAttrID += 1;
             }
             if (rightEmptyTagPosition >= 0) { // right array is also emptyable: ignore left empty-tag attribute
-                if (inputAttrID >= nLeftAttrs) { 
+                if (inputAttrID >= nLeftAttrs) {
                     leftIterator = left->getConstIterator(leftEmptyTagPosition);
                     inputIterator = rightIterator = right->getConstIterator(inputAttrID - nLeftAttrs);
-                } else { 
+                } else {
                     inputIterator = leftIterator = left->getConstIterator(inputAttrID);
                     rightIterator = right->getConstIterator(rightEmptyTagPosition);
                 }
             } else { // emptyable array only from left side
-                if (inputAttrID >= nLeftAttrs) { 
+                if (inputAttrID >= nLeftAttrs) {
                     leftIterator = left->getConstIterator(leftEmptyTagPosition);
                     inputIterator = rightIterator = right->getConstIterator(inputAttrID == nLeftAttrs + nRightAttrs ? 0 : inputAttrID - nLeftAttrs);
-                } else { 
+                } else {
                     inputIterator = leftIterator = left->getConstIterator(inputAttrID);
                     rightIterator = right->getConstIterator(0);
-                } 
+                }
             }
         } else if (rightEmptyTagPosition >= 0) { // only right array is emptyable
-            if (inputAttrID >= nLeftAttrs) { 
+            if (inputAttrID >= nLeftAttrs) {
                 leftIterator = left->getConstIterator(0);
                 inputIterator = rightIterator = right->getConstIterator(inputAttrID - nLeftAttrs);
-            } else { 
+            } else {
                 inputIterator = leftIterator = left->getConstIterator(inputAttrID);
                 rightIterator = right->getConstIterator(rightEmptyTagPosition);
-            }             
+            }
         } else { // both input arrays are non-emptyable
-            if (inputAttrID >= nLeftAttrs) { 
+            if (inputAttrID >= nLeftAttrs) {
                 leftIterator = left->getConstIterator(0);
-                if (inputAttrID == nLeftAttrs + nRightAttrs) { 
+                if (inputAttrID == nLeftAttrs + nRightAttrs) {
                     rightIterator = right->getConstIterator(0);
-                } else { 
+                } else {
                     inputIterator = rightIterator = right->getConstIterator(inputAttrID - nLeftAttrs);
                 }
-            } else { 
+            } else {
                 inputIterator = leftIterator = left->getConstIterator(inputAttrID);
                 rightIterator = right->getConstIterator(0);
             }
         }
         return shared_ptr<CrossJoinArrayIterator>(new CrossJoinArrayIterator(*this, attrID, leftIterator, rightIterator, inputIterator));
-    }   
+    }
 }

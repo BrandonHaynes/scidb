@@ -33,7 +33,7 @@ namespace scidb { namespace arena { namespace managed {
 /****************************************************************************/
 /**
  *  @brief      Specializes the standard container to allocate its memory from
- *              an Arena.
+ *              an %arena.
  *
  *  @details    This class specializes the standard library container class of
  *              the same name to take an arena::Allocator at construction, and
@@ -72,7 +72,7 @@ inline void swap(set<V,P>& a,set<V,P>& b) {a.swap(b);}
 
 /**
  *  @brief      Specializes the standard container to allocate its memory from
- *              an Arena.
+ *              an %arena.
  *
  *  @details    This class specializes the standard library container class of
  *              the same name to take an arena::Allocator at construction, and

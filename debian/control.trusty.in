@@ -1,0 +1,104 @@
+Source: scidb-VERSION_MAJOR.VERSION_MINOR
+Section: database
+Priority: extra
+Maintainer: SciDB support list <support@lists.scidb.org>
+Build-Depends: debhelper (>= 8.0.0), cmake, bison, flex, libcppunit-dev, libbz2-dev, libpqxx3-dev,
+               libprotobuf-dev, protobuf-compiler, zlib1g-dev, liblog4cxx10-dev, openssh-client,
+               libreadline6-dev, fop, xsltproc, doxygen, python, subversion, ant, ant-contrib,
+	       ant-optional, libprotobuf-java, protobuf-compiler, openjdk-6-jdk, junit, git, libpam-dev,
+               swig2.0, docbook-xsl, gfortran, libscalapack-mpi1, liblapack-dev,
+	       scidb-VERSION_MAJOR.VERSION_MINOR-libcsv,
+               scidb-VERSION_MAJOR.VERSION_MINOR-libmpich2-dev,
+               scidb-VERSION_MAJOR.VERSION_MINOR-mpich2,
+               scidb-VERSION_MAJOR.VERSION_MINOR-libboost1.54-all-dev,
+Standards-Version: 3.9.2
+Homepage: http://scidb.org
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python-paramiko, python-crypto
+Recommends: postgresql-client-9.3
+Suggests: postgresql-9.3, postgresql-contrib-9.3
+Description: SciDB - database for extra large data processing
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-dbg
+Architecture: any
+Depends: scidb-VERSION_MAJOR.VERSION_MINOR (= ${binary:Version}), gdb
+Description: SciDB - database for extra large data processing (debug symbols)
+
+Package: libscidbclient-VERSION_MAJOR.VERSION_MINOR
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: SciDB client library
+
+Package: libscidbclient-VERSION_MAJOR.VERSION_MINOR-dbg
+Architecture: any
+Depends: libscidbclient-VERSION_MAJOR.VERSION_MINOR (= ${binary:Version}), gdb
+Description: SciDB client library (debug symbols)
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-utils
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libscidbclient-VERSION_MAJOR.VERSION_MINOR (>= ${source:Upstream-Version}~), scidb-VERSION_MAJOR.VERSION_MINOR-libcsv
+Description: SciDB querying tool and other utilities
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-utils-dbg
+Architecture: any
+Depends: scidb-VERSION_MAJOR.VERSION_MINOR-utils (= ${binary:Version}), gdb
+Description: SciDB querying tool and other utilities (debug symbols)
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-dev-tools
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libscidbclient-VERSION_MAJOR.VERSION_MINOR (>= ${source:Upstream-Version}~), time, valgrind, lsof
+Description: SciDB developer and tester utilities
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-dev-tools-dbg
+Architecture: any
+Depends: scidb-VERSION_MAJOR.VERSION_MINOR-dev-tools (= ${binary:Version}), gdb
+Description: SciDB developer and tester utilities (debug symbols)
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-plugins
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libscidbclient-VERSION_MAJOR.VERSION_MINOR (= ${binary:Version}), libscalapack-mpi1 (>=1.8.0), libscalapack-mpi1 (<<1.8.1), scidb-VERSION_MAJOR.VERSION_MINOR-libmpich2-1.2, scidb-VERSION_MAJOR.VERSION_MINOR-mpich2, openssh-client
+Description: SciDB server and client plugins
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-plugins-dbg
+Architecture: any
+Depends: scidb-VERSION_MAJOR.VERSION_MINOR-plugins (= ${binary:Version}), gdb
+Description: SciDB server and client plugins (debug symbols)
+
+Package: libscidbclient-VERSION_MAJOR.VERSION_MINOR-python
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, libscidbclient-VERSION_MAJOR.VERSION_MINOR (>= ${source:Upstream-Version}~)
+Description: SciDB client library python connector
+
+Package: libscidbclient-VERSION_MAJOR.VERSION_MINOR-python-dbg
+Architecture: any
+Depends: libscidbclient-VERSION_MAJOR.VERSION_MINOR-python (= ${binary:Version}), gdb
+Description: SciDB client library python connector (debug symbols)
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-dev
+Architecture: all
+Depends: libscidbclient-VERSION_MAJOR.VERSION_MINOR (= ${binary:Version})
+Description: SciDB headers
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-doc
+Architecture: all
+Depends:
+Description: SciDB documentation
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-jdbc
+Architecture: all
+Depends: openjdk-6-jdk, libprotobuf-java, junit
+Description: SciDB Java connector
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-all
+Architecture: any
+Depends: scidb-VERSION_MAJOR.VERSION_MINOR (= ${binary:Version}), libscidbclient-VERSION_MAJOR.VERSION_MINOR (= ${binary:Version}), scidb-VERSION_MAJOR.VERSION_MINOR-utils (= ${binary:Version}), scidb-VERSION_MAJOR.VERSION_MINOR-plugins (= ${binary:Version}), libscidbclient-VERSION_MAJOR.VERSION_MINOR-python (= ${binary:Version}), scidb-VERSION_MAJOR.VERSION_MINOR-doc (= ${binary:Version})
+Description: Install entire SciDB
+
+Package: scidb-VERSION_MAJOR.VERSION_MINOR-all-coord
+Architecture: any
+Depends: scidb-VERSION_MAJOR.VERSION_MINOR (= ${binary:Version}), libscidbclient-VERSION_MAJOR.VERSION_MINOR (= ${binary:Version}), scidb-VERSION_MAJOR.VERSION_MINOR-utils (= ${binary:Version}), scidb-VERSION_MAJOR.VERSION_MINOR-plugins (= ${binary:Version}), libscidbclient-VERSION_MAJOR.VERSION_MINOR-python (= ${binary:Version}), scidb-VERSION_MAJOR.VERSION_MINOR-doc (= ${binary:Version}), postgresql-client-9.3, postgresql-9.3, postgresql-contrib-9.3, sudo
+Description: Install entire SciDB and PostgreSQL
+
+

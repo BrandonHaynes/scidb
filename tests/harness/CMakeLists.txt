@@ -74,7 +74,6 @@ else(${Boost_MAJOR_VERSION} LESS 2 AND ${Boost_MINOR_VERSION} LESS 46)
         set_target_properties(scidbtestharness PROPERTIES COMPILE_DEFINITIONS "BOOST_FS_VER=3")
 endif(${Boost_MAJOR_VERSION} LESS 2 AND ${Boost_MINOR_VERSION} LESS 46)
 
-configure_file(runN.py "${GENERAL_HARNESSTEST_DIRECTORY}/runN.py" COPYONLY)
 configure_file(scidbtestprep.py "${GENERAL_OUTPUT_DIRECTORY}/scidbtestprep.py" COPYONLY)
 configure_file(mu_admin.py "${GENERAL_OUTPUT_DIRECTORY}/mu_admin.py")
 configure_file(log4j.properties "${GENERAL_OUTPUT_DIRECTORY}/log4j.properties" COPYONLY)
@@ -141,6 +140,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "Valgrind")
 else(CMAKE_BUILD_TYPE STREQUAL "Valgrind")
  set(CONFIGURE_DISABLE_TESTS_VALGRIND "z_valgrind.z_valgrind")
 endif(CMAKE_BUILD_TYPE STREQUAL "Valgrind")
+
+# Disable tests/suites for single instance configuration
+if("$ENV{DISABLE_SINGLE_INSTANCE}" STREQUAL "1")
+ set(CONFIGURE_DISABLE_TESTS_SINGLE_INSTANCE "")
+else("$ENV{DISABLE_SINGLE_INSTANCE}" STREQUAL "1")
+ set(CONFIGURE_DISABLE_TESTS_SINGLE_INSTANCE "")
+endif("$ENV{DISABLE_SINGLE_INSTANCE}" STREQUAL "1")
 
 configure_file(${DISABLE_TESTS_IN} ${DISABLE_TESTS})
 configure_file(${DISABLE_TESTS_1I_IN} ${DISABLE_TESTS_1I})

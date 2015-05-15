@@ -1,0 +1,8 @@
+# Ticket #2410
+# Check that the following query does not throw an error
+
+--test
+
+--igdata --aql "SELECT *, int64(A.DT_Time) AS INT_Time FROM  ( SELECT double(random()%10000) / 100.0 AS Price, random()%5 AS Qty, datetime ( now() + ((random() % 1000) * 60 ) ) AS DT_Time FROM build ( < V : int64 > [ NUM=0:99,100,0 ], NUM ) ) AS A"
+
+

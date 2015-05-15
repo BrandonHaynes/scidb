@@ -469,7 +469,7 @@
 3,'2009-11-25 16:11:19 +07:04'
 4,'2009-11-25 16:11:19 +06:05'
 5,'2009-11-25 16:11:19 +05:06'
-6,'2009-11-25 16:11:19 +00:11'</programlisting> </para>
+6,'2009-11-25 16:11:19 +00:11'</programlisting></para>
       </step>
     </procedure>
   </section>
@@ -511,8 +511,7 @@
             <replaceable>n</replaceable> is an integer from 0 to 127. There
             are two SciDB functions that are associated with missing value
             codes: <literal>missing()</literal> and
-            <literal>missing_reason()</literal>. For more details, see <xref
-            linkend="missingValues"/>.</para>
+            <literal>missing_reason()</literal>.</para>
 
             <para>For clarity, throughout the document the term "null" is
             equivalent to "?0", that is, a missing value with missing reason
@@ -548,8 +547,7 @@
               </itemizedlist></para>
 
             <para>Note that the SciDB concept of emptiness is only for entire
-            cells, not for individual attributes. For more details, see <xref
-            linkend="emptyCells"/>.</para>
+            cells, not for individual attributes.</para>
           </listitem>
         </itemizedlist></para>
 

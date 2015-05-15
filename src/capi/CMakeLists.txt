@@ -47,6 +47,8 @@ set(scidbclient_src
     ../query/TileFunctions.cpp
     ../array/DeepChunkMerger.cpp
     ../array/Tile.cpp
+    ../array/Coordinate.cpp
+    ../util/CoordinatesMapper.cpp
 )
 
 file(GLOB scidbclient_include "include/*.h")
@@ -56,16 +58,7 @@ extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}" "libscidbclient${CMAKE_SHARED_LIB
 set_target_properties(scidbclient PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY})
 set_target_properties(scidbclient PROPERTIES COMPILE_FLAGS "-DSCIDB_CLIENT")
 
-if(NOT APPLE)
     set_target_properties(scidbclient PROPERTIES LINK_FLAGS "-Wl,--no-undefined")
-endif()
-
-if(APPLE)
-    set_target_properties(scidbclient PROPERTIES
-        BUILD_WITH_INSTALL_RPATH TRUE
-        INSTALL_NAME_DIR  @executable_path
-    )
-endif()
 target_link_libraries(scidbclient scidb_msg_lib json_lib compression_lib util_lib
     ${LIBRT_LIBRARIES} ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 

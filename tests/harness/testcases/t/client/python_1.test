@@ -1,7 +1,7 @@
 --setup
 --start-query-logging
 --test
-echo ('python basic.py')
---shell --store --command "cd ${TESTDIR}; PYTHONPATH=${PYTHONPATH}:${TEST_BIN_DIR} python basic.py ${IQUERY_HOST} ${IQUERY_PORT}"
+--echo python basic.py
+--shell --store --command "cd ${TESTDIR}; PYTHONPATH=${PYTHONPATH}:${SCIDB_INSTALL_PATH}/lib python basic.py ${IQUERY_HOST} ${IQUERY_PORT}"
 --cleanup
 --stop-query-logging

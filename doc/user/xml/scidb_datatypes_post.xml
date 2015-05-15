@@ -464,7 +464,7 @@
 3,'2009-11-25 16:11:19 +07:04'
 4,'2009-11-25 16:11:19 +06:05'
 5,'2009-11-25 16:11:19 +05:06'
-6,'2009-11-25 16:11:19 +00:11'</programlisting> </para>
+6,'2009-11-25 16:11:19 +00:11'</programlisting></para>
       </step>
     </procedure>
   </section>
@@ -506,7 +506,7 @@
             <replaceable>n</replaceable> is an integer from 0 to 127. There
             are two SciDB functions that are associated with missing value
             codes: <literal>missing()</literal> and
-            <literal>missing_reason()</literal>. For more details, see <xref linkend="missingValues"/>.</para>
+            <literal>missing_reason()</literal>.</para>
 
             <para>For clarity, throughout the document the term "null" is
             equivalent to "?0", that is, a missing value with missing reason
@@ -542,7 +542,7 @@
               </itemizedlist></para>
 
             <para>Note that the SciDB concept of emptiness is only for entire
-            cells, not for individual attributes. For more details, see <xref linkend="emptyCells"/>.</para>
+            cells, not for individual attributes.</para>
           </listitem>
         </itemizedlist></para>
 
@@ -781,9 +781,9 @@
     between the datetime data type and the datetime with timezone, datetimetz
     data type. The date time with time zone data type, datetimetz, uses a
     timezone offset relative to GMT. You can cast datetime to datetimetz by
-    appending an offset using the following example: <para><programlisting>AFL% create array T&lt;td: datetime&gt;[i=0:0,1,0];  </programlisting><programlisting>AFL% store(build(T, now()), T);  </programlisting><screen>[('2014-07-21 22:15:11')]
+    appending an offset using the following example: <para><programlisting>AFL% create array T&lt;td: datetime&gt;[i=0:0,1,0];  </programlisting><programlisting>AFL% store(build(T, now()), T);  </programlisting><screen>[('2014-11-19 17:27:35')]
 </screen><programlisting>AFL% apply(T, dst, append_offset(td, 3600));  </programlisting><screen>{i} td,dst
-{0} '2014-07-21 22:15:11','2014-07-21 22:15:11 +01:00'
+{0} '2014-11-19 17:27:35','2014-11-19 17:27:35 +01:00'
 </screen></para></para>
 
     <para>To append an offset and apply it to the time, use the
@@ -791,15 +791,15 @@
     datetime by subtracting the offset timezone value, and stores the result
     as datetimetz including the offset timezone value. The offset must be
     expressed in seconds. <para><programlisting>AFL% create array T1 &lt;t:datetimetz&gt;[i=0:0,1,0];  </programlisting><programlisting>AFL% store(project(apply(T,dst,apply_offset(td,3600)),dst),T1);  </programlisting><screen>{i} t
-{0} '2014-07-21 23:15:11 +01:00'
+{0} '2014-11-19 18:27:35 +01:00'
 </screen>
     To return the datetime portion of a datetimetz value, use the
     <code>strip_offset </code>function: <para><programlisting>AFL% apply(T1,dst,strip_offset(t));  </programlisting><screen>{i} t,dst
-{0} '2014-07-21 23:15:11 +01:00','2014-07-21 23:15:11'
+{0} '2014-11-19 18:27:35 +01:00','2014-11-19 18:27:35'
 </screen>
     To apply the offset to the datetime and return a GMT datetime, use the
     <code>togmt</code> function: <para><programlisting>AFL% apply(T1,dst,togmt(t))  </programlisting><screen>{i} t,dst
-{0} '2014-07-21 23:15:11 +01:00','2014-07-21 22:15:11'
+{0} '2014-11-19 18:27:35 +01:00','2014-11-19 17:27:35'
 </screen></para></para></para></para>
 
     <para>For more details on the SciDB temporal functions, see <xref linkend="temporalFunctions"/>.</para>

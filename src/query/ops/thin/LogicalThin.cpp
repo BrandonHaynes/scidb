@@ -27,8 +27,8 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "system/Exceptions.h"
+#include <query/Operator.h>
+#include <system/Exceptions.h>
 #include "ThinArray.h"
 
 namespace scidb {
@@ -44,7 +44,10 @@ inline ArrayDesc createThinDesc(ArrayDesc const& desc, Coordinates const& from, 
     Dimensions newDims(dims.size());
     for (size_t i = 0, n = dims.size(); i < n; i++) {
         DimensionDesc const& srcDim = dims[i];
-        Coordinate last = (srcDim.getCurrLength() - from[i] + srcDim.getStart() + step[i] - 1) / step[i] - 1;
+        Coordinate last = 
+            computeLastCoordinate(srcDim.getCurrLength(),
+                                  srcDim.getStartMin(),
+                                  from[i], step[i]);
         newDims[i] = DimensionDesc(srcDim.getBaseName(),
                                    srcDim.getNamesAndAliases(),
                                    0,
@@ -132,11 +135,11 @@ class LogicalThin: public  LogicalOperator
                 throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_THIN_ERROR1,
                                           _parameters[i*2+1]->getParsingContext());
 
-            if (from[i] < dims[i].getStart())
+            if (from[i] < dims[i].getStartMin())
                 throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_THIN_ERROR2,
                                           _parameters[i*2]->getParsingContext());
 
-            if (from[i] - dims[i].getStart() >= step[i])
+            if (from[i] - dims[i].getStartMin() >= step[i])
                 throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_THIN_ERROR3,
                                           _parameters[i*2]->getParsingContext());
 

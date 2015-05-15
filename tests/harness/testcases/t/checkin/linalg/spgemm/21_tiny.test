@@ -8,15 +8,25 @@ create array SAright <b:double>[x=0:8,3,0, y=0:1,1,0]
 --test
 store( filter(build(SAleft, x+y), true), SAleft )
 store( filter(build(SAright, x*1.0/(y+1)), true), SAright )
-spgemm(SAleft, SAright)
-spgemm(SAleft, SAright, 'min.+')
-spgemm(SAleft, SAright, 'max.+')
+spgemm(SAleft, SAright, 'rightReplicate=true')
+spgemm(SAleft, SAright, 'rightReplicate=false')
+
+spgemm(SAleft, SAright, 'min.+', 'rightReplicate=true')
+spgemm(SAleft, SAright, 'min.+', 'rightReplicate=false')
+
+spgemm(SAleft, SAright, 'max.+', 'rightReplicate=true')
+spgemm(SAleft, SAright, 'max.+', 'rightReplicate=false')
 
 store( filter(build(SAleft, x), x=y), SAleft )
 store( filter(build(SAright, 1), true), SAright )
-spgemm(SAleft, SAright)
-spgemm(SAleft, SAright, 'min.+')
-spgemm(SAleft, SAright, 'max.+')
+spgemm(SAleft, SAright, 'rightReplicate=true')
+spgemm(SAleft, SAright, 'rightReplicate=false')
+
+spgemm(SAleft, SAright, 'min.+', 'rightReplicate=true')
+spgemm(SAleft, SAright, 'min.+', 'rightReplicate=false')
+
+spgemm(SAleft, SAright, 'max.+', 'rightReplicate=true')
+spgemm(SAleft, SAright, 'max.+', 'rightReplicate=false')
 
 --cleanup
 remove(SAleft)

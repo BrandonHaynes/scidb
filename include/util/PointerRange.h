@@ -26,8 +26,7 @@
 /****************************************************************************/
 
 #include <boost/range/iterator_range.hpp>                // For iterator_range
-#include <assert.h>                                      // For assert()
-#include <vector>                                        // For std::vector
+#include <boost/operators.hpp>                           // For totally_ordered
 #include <string>                                        // For std::string
 #include <util/arena/Vector.h>                           // For mgd::vector
 
@@ -88,7 +87,8 @@ namespace scidb {
  *  @author     jbell@paradigm4.com
  */
 template<class value>
-class PointerRange : public boost::iterator_range<value*>
+class PointerRange : public boost::iterator_range<value*>,
+                            boost::totally_ordered<PointerRange<value> >
 {
  private:                  // Infer constness of value
     template<class v>
@@ -245,6 +245,34 @@ inline bool PointerRange<v>::consistent() const
     assert((this->begin()==0) == (this->end()==0));      // Null <=> empty()
 
     return true;                                         // Appears to be good
+}
+
+/**
+ *  Return true if the ranges 'a' and 'b' have the same elements.
+ *
+ *  Individual range elements are compared with the operator== appropriate for
+ *  the element types 'u' and 'v'.
+ *
+ *  @see http://www.cplusplus.com/reference/algorithm/equal.
+ */
+template<class u,class v>
+inline bool operator==(PointerRange<u> a,PointerRange<v> b)
+{
+    return a.size()==b.size() && std::equal(a.begin(),a.end(),b.begin());
+}
+
+/**
+ *  Return true if range 'a' compares lexicographically less than range 'b'.
+ *
+ *  Individual range elements are compared with the operator< appropriate for
+ *  the element types 'u' and 'v'.
+ *
+ *  @see http://www.cplusplus.com/reference/algorithm/lexicographical_compare
+ */
+template<class u,class v>
+inline bool operator<(PointerRange<u> a,PointerRange<v> b)
+{
+    return std::lexicographical_compare(a.begin(),a.end(),b.begin(),b.end());
 }
 
 /**

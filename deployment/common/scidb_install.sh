@@ -27,18 +27,19 @@ function centos6 ()
     yum install --enablerepo=scidb3rdparty -y $(ls *.rpm) || exit 1
 }
 
-function ubuntu1204 ()
+function ubuntu ()
 {
     function dependencies ()
     {
 	(for package in $(ls *.deb); do
 	    dpkg --info $package | grep Depends | sed -e "s/Depends://g" | sed -e "s/,/\n/g" | awk '{print $1}' | grep -v scidb;
+	    dpkg --info $package | grep Depends | sed -e "s/Depends://g" | sed -e "s/,/\n/g" | awk '{print $1}' | grep scidb | grep libcsv;
 	    dpkg --info $package | grep Depends | sed -e "s/Depends://g" | sed -e "s/,/\n/g" | awk '{print $1}' | grep scidb | grep mpich2;
 	    dpkg --info $package | grep Depends | sed -e "s/Depends://g" | sed -e "s/,/\n/g" | awk '{print $1}' | grep scidb | grep libboost;
 	done;) | sort -u
     }
     apt-get update
-    apt-get install -y $(dependencies) || exit 1
+    apt-get install --no-install-suggests --no-install-recommends -y $(dependencies) || exit 1
     dpkg -R -i . || exit 1
 
 # remark: possible to use a method more like that of the centos6() function above? i dislike the current approach because
@@ -57,5 +58,9 @@ if [ "${OS}" = "RedHat 6" ]; then
 fi
 
 if [ "${OS}" = "Ubuntu 12.04" ]; then
-    ubuntu1204
+    ubuntu
+fi
+
+if [ "${OS}" = "Ubuntu 14.04" ]; then
+    ubuntu
 fi

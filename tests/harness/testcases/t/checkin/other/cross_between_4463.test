@@ -1,0 +1,10 @@
+--setup
+create array arr4463 <a:int64> [x=-3:9,3,1,y=0:4,2,1]
+store(build(arr4463,x*10+y),arr4463)
+
+--test
+cross_between(arr4463,join(join(join(arr4463,arr4463),arr4463),arr4463))
+
+
+--cleanup
+remove(arr4463)

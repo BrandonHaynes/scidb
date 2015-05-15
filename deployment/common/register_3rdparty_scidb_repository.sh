@@ -45,6 +45,15 @@ mv scidb3rdparty.list ${REPO_FILE}
 apt-get update
 }
 
+function ubuntu1404()
+{
+wget -O- https://downloads.paradigm4.com/key | apt-key add -
+echo "deb https://downloads.paradigm4.com/ ubuntu14.04/3rdparty/" | tee scidb3rdparty.list
+REPO_FILE=/etc/apt/sources.list.d/scidb3rdparty.list
+mv scidb3rdparty.list ${REPO_FILE}
+apt-get update
+}
+
 OS=`./os_detect.sh`
 
 if [ "${OS}" = "CentOS 6" ]; then
@@ -57,4 +66,8 @@ fi
 
 if [ "${OS}" = "Ubuntu 12.04" ]; then
     ubuntu1204
+fi
+
+if [ "${OS}" = "Ubuntu 14.04" ]; then
+    ubuntu1404
 fi

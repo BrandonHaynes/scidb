@@ -41,6 +41,7 @@
 #include <util/FileIO.h>
 #include <util/Thread.h>
 #include <system/Config.h>
+#include <query/ops/list/ListArrayBuilder.h>
 
 namespace scidb
 {
@@ -315,24 +316,45 @@ DataStore::freeChunk(off_t off, size_t allocated)
 }
 
 
-/* Return the size of the data store
+/* Return size information about the data store
  */
 void
-DataStore::getSizes(off_t& size, blkcnt_t& blocks)
+DataStore::getSizes(off_t& filesize,
+                    blkcnt_t& fileblocks,
+                    off_t& reservedbytes,
+                    off_t& freebytes) const
 {
     ScopedMutexLock sm(_dslock);
 
     struct stat st;
 
+    /* Get the file size information
+     */
     int rc = _file->fstat(&st);
     if (rc != 0)
     {
         throw (SYSTEM_EXCEPTION(SCIDB_SE_STORAGE, SCIDB_LE_SYSCALL_ERROR)
-               << "fstat" << rc << errno << _file->getPath());
+               << "fstat" << rc << errno << ::strerror(errno) << _file->getPath());
     }
 
-    size = st.st_size;
-    blocks = st.st_blocks;
+    filesize = st.st_size;
+    fileblocks = st.st_blocks;
+    freebytes = 0;
+
+    /* Calc the number of free and reserved bytes
+     */
+    DataStoreFreelists::iterator dsit = _freelists.begin();
+    while (dsit != _freelists.end())
+    {
+        set<off_t>::iterator bucketit = dsit->second.begin();
+        while (bucketit != dsit->second.end())
+        {
+            freebytes += dsit->first;
+            ++bucketit;
+        }
+        ++dsit;
+    }
+    reservedbytes = _allocatedSize - freebytes;
 }
 
 /* Persist free lists to disk
@@ -404,7 +426,7 @@ DataStore::initializeFreelist()
     {
         throw SYSTEM_EXCEPTION(SCIDB_SE_STORAGE,
                                SCIDB_LE_SYSCALL_ERROR)
-            << "fstat" << -1 << errno << _file->getPath(); 
+            << "fstat" << -1 << errno << ::strerror(errno) << _file->getPath(); 
     }    
     roundUpSize = roundUpPowerOf2(st.st_size);
     if (roundUpSize > _allocatedSize)
@@ -559,6 +581,63 @@ DataStore::dumpFreelist()
     }
 }
 
+/* Check whether any parent blocks are on the freelist
+   pre: lock is held
+ */
+bool
+DataStore::isParentBlockFree(off_t off, size_t size)
+{
+    DataStoreFreelists::iterator fl_it = 
+        _freelists.upper_bound(size);
+
+    while (fl_it != _freelists.end())
+    {
+        const size_t bucketSize = fl_it->first;
+        const set<off_t>& bucket = fl_it->second;
+        const off_t parentOff = off - (off % bucketSize);
+        if (bucket.find(parentOff) != bucket.end())
+        {
+            return true;
+        }
+        ++fl_it;
+    }
+    return false;
+}
+
+/* Verify the integrity of the free list and throw exception
+ * if there is a problem
+ */
+void
+DataStore::verifyFreelist()
+{
+    ScopedMutexLock sm(_dslock);
+    verifyFreelistInternal();
+}
+
+/* Verify the integrity of the free list when lock is already held
+ */
+void
+DataStore::verifyFreelistInternal()
+{
+    DataStoreFreelists::iterator fl_it = _freelists.begin();
+
+    while (fl_it != _freelists.end())
+    {
+        set<off_t>::iterator bucket_it = fl_it->second.begin();
+        while (bucket_it != fl_it->second.end())
+        {
+            if (isParentBlockFree(*bucket_it, fl_it->first))
+            {
+                throw SYSTEM_EXCEPTION(SCIDB_SE_STORAGE, 
+                                       SCIDB_LE_DATASTORE_CORRUPT_FREELIST)
+                    << _file->getPath();
+            }
+            ++bucket_it;
+        }
+        ++fl_it;
+    }  
+}
+
 /* Remove the free-list file from disk
    @pre caller has locked the DataStore
  */
@@ -583,6 +662,7 @@ DataStore::DataStore(char const* filename, Guid guid, DataStores& parent) :
     _dsm(&parent),
     _dslock(),
     _guid(guid),
+    _frees(0),
     _largestFreeChunk(0),
     _dirty(false),
     _fldirty(false)
@@ -596,7 +676,7 @@ DataStore::DataStore(char const* filename, Guid guid, DataStores& parent) :
     {
         throw SYSTEM_EXCEPTION(SCIDB_SE_STORAGE,
                                SCIDB_LE_CANT_OPEN_FILE) 
-            << filenamestr << errno;
+            << filenamestr << ::strerror(errno) << errno;
     }
 
     LOG4CXX_TRACE(logger, "datastore: new ds opened file " << filenamestr);
@@ -684,6 +764,15 @@ DataStore::addToFreelist(size_t bucket, off_t off)
     SCIDB_ASSERT(roundUpPowerOf2(bucket) == bucket);
     SCIDB_ASSERT(off % bucket == 0);
 
+    /* First check if a parent block is already on the freelist
+       (possibly in crash recovery case).  If so, we don't
+       need to do anything.
+    */
+    if (isParentBlockFree(off, bucket))
+    {
+        return;
+    }
+
     /* Calc the buddy block
      */
     size_t parent = bucket * 2;
@@ -727,6 +816,17 @@ DataStore::addToFreelist(size_t bucket, off_t off)
        free list
      */
     _freelists[bucket].insert(off);
+
+    /* Occaisionally we should check the integrity of
+       the freelist (only in DEBUG)
+     */
+    if (isDebug())
+    {
+        if (++_frees % 1000 == 0)
+        {
+            verifyFreelistInternal();
+        }
+    }
 }
 
 /* Update the largest free chunk member
@@ -945,6 +1045,21 @@ DataStores::clearAllDataStores()
             std::string fullpath = _basePath + "/" + entry.d_name;
             File::remove(fullpath.c_str(), false);
         }
+    }
+}
+
+/* List information about all datastores using the builder
+ */
+void
+DataStores::listDataStores(ListDataStoresArrayBuilder& builder)
+{
+    ScopedMutexLock sm(_dataStoreLock);
+    DataStoreMap::iterator it = _theDataStores->begin();
+    
+    while (it != _theDataStores->end())
+    {
+        builder.listElement(*(it->second));
+        ++it;
     }
 }
 

@@ -28,12 +28,6 @@ SCIDB QUERY : <redimension( apply (build(<v:double>[i1=1:3,3,0,j1=1:3,3,0],5.5),
 SCIDB QUERY : <DROP ARRAY A>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <create array default_1 <v:int64>[i]>
-[Query was executed successfully, ignoring data output by this query.]
-
-SCIDB QUERY : <remove(default_1)>
-[Query was executed successfully, ignoring data output by this query.]
-
 SCIDB QUERY : <CREATE ARRAY products <name:string,price:float default float(100.0),sold:datetime> [i=0:*,10,0]>
 [Query was executed successfully, ignoring data output by this query.]
 
@@ -43,13 +37,13 @@ SCIDB QUERY : <CREATE ARRAY product_null <name:string NULL,price:float NULL,sold
 SCIDB QUERY : <CREATE ARRAY product_dflt <name:string, price:float default float(100.0), sold:datetime> [i=0:*,10,0]>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <create_array(m4x4_first,<val1:double>[x=0:3,4,0, y=0:3,4,0])>
+SCIDB QUERY : <create_array(m4x4_first,<val1:double>[x=0:3,4,0, y=0:3,4,0],false)>
 [Query was executed successfully, ignoring data output by this query.]
 
 SCIDB QUERY : <store(build(m4x4_first, '[[0,1,2,3],[4,5,6,7],[8,9,(),11],[12,13,14,15]]',true), m4x4_first)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <create_array(m4x4_second,<val2:int32>[x=0:3,4,0, y=0:3,4,0])>
+SCIDB QUERY : <create_array(m4x4_second,<val2:int32>[x=0:3,4,0, y=0:3,4,0],false)>
 [Query was executed successfully, ignoring data output by this query.]
 
 SCIDB QUERY : <store(build(m4x4_second,'[[100,99,98,97],[0,95,94,93],[92,91,(),89],[88,0,86,85]]',true),m4x4_second)>
@@ -84,20 +78,20 @@ SCIDB QUERY : <apply(A,MRcode, missing_reason(val))>
 {3} ?100,100
 {4} ?50,50
 
-SCIDB QUERY : <store(build(<val:int32 null default null> [i=0:5,6,0], '[-1,47,23,0,127,-1]',true), arrayB)>
+SCIDB QUERY : <store(build(<val:int32 null default null> [i=0:5,6,0], '[1,47,23,0,127,100]',true), arrayB)>
 [Query was executed successfully, ignoring data output by this query.]
 
 SCIDB QUERY : <scan(arrayB)>
-[(-1),(47),(23),(0),(127),(-1)]
+[(1),(47),(23),(0),(127),(100)]
 
 SCIDB QUERY : <apply(arrayB,MRcode, missing(val))>
 {i} val,MRcode
-{0} -1,<void>
+{0} 1,?1
 {1} 47,?47
 {2} 23,?23
 {3} 0,null
 {4} 127,?127
-{5} -1,<void>
+{5} 100,?100
 
 SCIDB QUERY : <CREATE ARRAY open <val:double>[I=0:9,10,0,J=0:*,10,0]>
 [Query was executed successfully, ignoring data output by this query.]

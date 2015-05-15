@@ -33,21 +33,21 @@
 #include <boost/assign.hpp>
 
 #include <util/Platform.h>
-#include "array/MemArray.h"
-#include "array/RLE.h"
-#include "array/AllocationBuffer.h"
-#include "system/Exceptions.h"
-#include "query/FunctionDescription.h"
-#include "query/TypeSystem.h"
-#include "query/Statistics.h"
+#include <array/MemArray.h>
+#include <array/RLE.h>
+#include <array/AllocationBuffer.h>
+#include <system/Exceptions.h>
+#include <query/FunctionDescription.h>
+#include <query/TypeSystem.h>
+#include <query/Statistics.h>
 #include <query/Query.h>
+
 #ifndef SCIDB_CLIENT
 #include "system/Config.h"
 #endif
-#include "system/SciDBConfigOptions.h"
 
+#include <system/SciDBConfigOptions.h>
 #include <log4cxx/logger.h>
-#include <query/ops/redimension/SyntheticDimHelper.h>
 #include <query/Operator.h>
 #include <array/DeepChunkMerger.h>
 
@@ -120,20 +120,15 @@ namespace scidb
 
     bool CompressedBuffer::pin() const
     {
-        ((CompressedBuffer*)this)->accessCount += 1;
-        currentStatistics->pinnedSize += compressedSize;
-        currentStatistics->pinnedChunks++;
-        return true;
+        ASSERT_EXCEPTION(false, "CompressedBuffer::pin: ");
+        return false;
     }
 
     void CompressedBuffer::unPin() const
     {
-        CompressedBuffer& self = *(CompressedBuffer*)this;
-        assert(self.accessCount > 0);
-        if (--self.accessCount == 0) {
-            self.free();
-        }
+        ASSERT_EXCEPTION(false, "CompressedBuffer::unpin: ");
     }
+
 
     int CompressedBuffer::getCompressionMethod() const
     {
@@ -161,7 +156,6 @@ namespace scidb
         this->compressionMethod = compressionMethod;
         this->compressedSize = compressedSize;
         this->decompressedSize = decompressedSize;
-        accessCount = 0;
     }
 
     CompressedBuffer::CompressedBuffer()
@@ -170,7 +164,6 @@ namespace scidb
         compressionMethod = 0;
         compressedSize = 0;
         decompressedSize = 0;
-        accessCount = 0;
     }
 
     CompressedBuffer::~CompressedBuffer()
@@ -220,46 +213,12 @@ namespace scidb
 
     size_t ConstChunk::getBitmapSize() const
     {
-        if (isRLE() && isMaterialized() && !getAttributeDesc().isEmptyIndicator()) {
+        if (isMaterialized() && !getAttributeDesc().isEmptyIndicator()) {
             PinBuffer scope(*this);
             ConstRLEPayload payload((char*)getData());
             return getSize() - payload.packedSize();
         }
         return 0;
-    }
-
-    Coordinates ConstChunk::getHighBoundary(bool withOverlap) const
-    {
-        boost::shared_ptr<ConstChunkIterator> i = getConstIterator(ConstChunkIterator::IGNORE_EMPTY_CELLS | (withOverlap ? 0 : ConstChunkIterator::IGNORE_OVERLAPS));
-        Coordinates high = getFirstPosition(withOverlap);
-        size_t nDims = high.size();
-        while (!i->end()) {
-            Coordinates const& pos = i->getPosition();
-            for (size_t j = 0; j < nDims; j++) {
-                if (pos[j] > high[j]) {
-                    high[j] = pos[j];
-                }
-            }
-            ++(*i);
-        }
-        return high;
-    }
-
-    Coordinates ConstChunk::getLowBoundary(bool withOverlap) const
-    {
-        boost::shared_ptr<ConstChunkIterator> i = getConstIterator(ConstChunkIterator::IGNORE_EMPTY_CELLS | (withOverlap ? 0 : ConstChunkIterator::IGNORE_OVERLAPS));
-        Coordinates low = getLastPosition(withOverlap);
-        size_t nDims = low.size();
-        while (!i->end()) {
-            Coordinates const& pos = i->getPosition();
-            for (size_t j = 0; j < nDims; j++) {
-                if (pos[j] < low[j]) {
-                    low[j] = pos[j];
-                }
-            }
-            ++(*i);
-        }
-        return low;
     }
 
     ConstChunk const* ConstChunk::getBitmapChunk() const
@@ -290,9 +249,6 @@ namespace scidb
             boost::shared_ptr<ChunkIterator> dst
                 = materializedChunk->getIterator(emptyQuery,
                                                  (src->getMode() & ChunkIterator::TILE_MODE)|ChunkIterator::ChunkIterator::NO_EMPTY_CHECK|ChunkIterator::SEQUENTIAL_WRITE);
-            bool vectorMode = src->supportsVectorMode() && dst->supportsVectorMode();
-            src->setVectorMode(vectorMode);
-            dst->setVectorMode(vectorMode);
             size_t count = 0;
             while (!src->end()) {
                 if (!dst->setPosition(src->getPosition())) {
@@ -304,7 +260,7 @@ namespace scidb
                 count += 1;
                 ++(*src);
             }
-            if (!vectorMode && !getArrayDesc().hasOverlap()) {
+            if (!getArrayDesc().hasOverlap()) {
                 materializedChunk->setCount(count);
             }
             dst->flush();
@@ -335,99 +291,37 @@ namespace scidb
     {
         assert(typeid(*this) != typeid(ConstChunk));
     }
+
     void Chunk::decompress(CompressedBuffer const& buf)
     {
         throw USER_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "Chunk::decompress";
     }
-    void Chunk::merge(ConstChunk const& with, boost::shared_ptr<Query>& query)
+
+    void Chunk::merge(ConstChunk const& with, boost::shared_ptr<Query> const& query)
     {
         Query::validateQueryPtr(query);
 
-        if (getPersistentChunk() != NULL) {
-            throw USER_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_CHUNK_ALREADY_EXISTS);
-        }
         setCount(0); // unknown
         char* dst = (char*)getDataForLoad();
 
-        // If it is in the middle of a redimension, and if there is a synthetic dimension, use the following algorithm:
-        // (a) Build an auxiliary structure describing #elements in each cell, not including the synthetic dim.
-        // (b) For each source element, adjust its coordinates by increasing the coordinate in the synthetic dim.
-        //
-        shared_ptr<RedimInfo> redimInfo;
-        boost::shared_ptr<SGContext> sgCtx = dynamic_pointer_cast<SGContext>(query->getOperatorContext());
-        if (sgCtx) {
-            redimInfo = sgCtx->_redimInfo;
-        }
-        if (redimInfo && redimInfo->_hasSynthetic) {
-            // During redim, there is always a empty tag, and the chunk can't be sparse.
-            assert(getArrayDesc().getEmptyBitmapAttribute());
-            assert(!isSparse());
-
-            // Build the auxiliary structure.
-            SyntheticDimHelper syntheticDimHelper(redimInfo->_dimSynthetic, redimInfo->_dim.getStart());
-            shared_ptr<MapCoordToCount> mapCoordToCount = make_shared<MapCoordToCount>();
-            syntheticDimHelper.updateMapCoordToCount(mapCoordToCount, this);
-
-            // Iterate through the src, update each coord, and write to dest.
-            // Note that default values can't be ignored. Otherwise the coordinate in the synthetic dimension would mess up.
-            shared_ptr<ConstChunkIterator> srcIterator = with.getConstIterator(ChunkIterator::IGNORE_EMPTY_CELLS);
-            shared_ptr<ChunkIterator> dstIterator = getIterator(query, ChunkIterator::APPEND_CHUNK|ChunkIterator::NO_EMPTY_CHECK);
-            while (!srcIterator->end()) {
-                Coordinates coord = srcIterator->getPosition();
-                syntheticDimHelper.calcNewCoord(coord, mapCoordToCount);
-                if (!dstIterator->setPosition(coord)) {
-                    throw USER_EXCEPTION(SCIDB_SE_OPERATOR, SCIDB_LE_OP_REDIMENSION_STORE_ERROR7);
-                }
-                Value const& value = srcIterator->getItem();
-                dstIterator->writeItem(value);
-                ++(*srcIterator);
-            }
-            dstIterator->flush();
-
-            return;
-        }
-
-        // If dst already has data, and
-        // Either
-        //   (a) there is a redimInfo (regardless to whether there is a synthetic dim);
-        // Or
-        //   (b) can't merge by bitwise-or.
-        // Then we have to iterate through the items.
-        //
-        // If there is a redimInfo (although no synthetic dim), we have to perform deep merge (i.e. we can't bitwise-or) for the following reason:
-        // A conflict (i.e. two items falling into the same cell) should be resolved by choosing one of them, not bitwise-or them.
-        if ( (dst != NULL) &&
-                (
-                        ! isPossibleToMergeByBitwiseOr()
-                        ||
-                        ! with.isPossibleToMergeByBitwiseOr()
-                        ||
-                        redimInfo
-                )
-        )
+        // If dst already has data, merge; otherwise, copy.
+        if ( dst != NULL )
         {
-            if (isMemChunk() && with.isMemChunk() && isRLE() && with.isRLE()) {
+            if (isMemChunk() && with.isMemChunk()) {
                 deepMerge(with, query);
             } else {
                 shallowMerge(with, query);
             }
         }
-
-        // Otherwise, we can merge faster.
         else {
             PinBuffer scope(with);
             char* src = (char*)with.getData();
-            if (dst == NULL) {
-                allocateAndCopy(src, with.getSize(), with.isSparse(), with.isRLE(), with.count(), query);
-            } else {
-                mergeByBitwiseOr(src, with.getSize(), query);
-            }
+            allocateAndCopy(src, with.getSize(), with.count(), query);
         }
     }
 
-    void Chunk::deepMerge(ConstChunk const& with, boost::shared_ptr<Query>& query)
+    void Chunk::deepMerge(ConstChunk const& with, boost::shared_ptr<Query> const& query)
     {
-        assert(isRLE() && with.isRLE());
         assert(isMemChunk() && with.isMemChunk());
 
         Query::validateQueryPtr(query);
@@ -436,12 +330,15 @@ namespace scidb
         deepChunkMerger.merge();
     }
 
-    void Chunk::shallowMerge(ConstChunk const& with, boost::shared_ptr<Query>& query)
+    void Chunk::shallowMerge(ConstChunk const& with, boost::shared_ptr<Query> const& query)
     {
         Query::validateQueryPtr(query);
 
-        int sparseMode = isSparse() ? ChunkIterator::SPARSE_CHUNK : 0;
-        boost::shared_ptr<ChunkIterator> dstIterator = getIterator(query, sparseMode|ChunkIterator::APPEND_CHUNK|ChunkIterator::NO_EMPTY_CHECK);
+        boost::shared_ptr<ChunkIterator> dstIterator =
+            getIterator(query,
+                        ChunkIterator::APPEND_CHUNK |
+                        ChunkIterator::APPEND_EMPTY_BITMAP |
+                        ChunkIterator::NO_EMPTY_CHECK);
         boost::shared_ptr<ConstChunkIterator> srcIterator = with.getConstIterator(ChunkIterator::IGNORE_EMPTY_CELLS|ChunkIterator::IGNORE_DEFAULT_VALUES);
         if (getArrayDesc().getEmptyBitmapAttribute() != NULL) {
             while (!srcIterator->end()) {
@@ -466,12 +363,11 @@ namespace scidb
         dstIterator->flush();
     }
 
-    void Chunk::aggregateMerge(ConstChunk const& with, AggregatePtr const& aggregate, boost::shared_ptr<Query>& query)
+    void Chunk::aggregateMerge(ConstChunk const& with,
+                               AggregatePtr const& aggregate,
+                               boost::shared_ptr<Query> const& query)
     {
         Query::validateQueryPtr(query);
-
-        if (getPersistentChunk() != NULL)
-            throw USER_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_CHUNK_ALREADY_EXISTS);
 
         if (isReadOnly())
             throw USER_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_CANT_UPDATE_READ_ONLY_CHUNK);
@@ -488,24 +384,23 @@ namespace scidb
         char* dst = (char*)getDataForLoad();
         if (dst != NULL)
         {
-            int sparseMode = isSparse() ? ChunkIterator::SPARSE_CHUNK : 0;
-            boost::shared_ptr<ChunkIterator>dstIterator = getIterator(query, sparseMode|ChunkIterator::APPEND_CHUNK|ChunkIterator::NO_EMPTY_CHECK);
+            boost::shared_ptr<ChunkIterator> dstIterator =
+                getIterator(query,
+                            ChunkIterator::APPEND_CHUNK |
+                            ChunkIterator::APPEND_EMPTY_BITMAP |
+                            ChunkIterator::NO_EMPTY_CHECK);
             boost::shared_ptr<ConstChunkIterator> srcIterator = with.getConstIterator(ChunkIterator::IGNORE_NULL_VALUES);
             while (!srcIterator->end())
             {
-                Value& val = srcIterator->getItem();
-                if (!val.isNull())
-                {
-                    if (!dstIterator->setPosition(srcIterator->getPosition()))
-                        throw SYSTEM_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_OPERATION_FAILED) << "setPosition";
-                    Value& val2 = dstIterator->getItem();
-                    if (!val2.isNull())
-                    {
-                        aggregate->merge(val, val2);
+                Value val = srcIterator->getItem();  // We need to make a copy here, because the mergeIfNeeded() call below may change it.
 
-                    }
-                    dstIterator->writeItem(val);
+                if (!dstIterator->setPosition(srcIterator->getPosition())) {
+                    throw SYSTEM_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_OPERATION_FAILED) << "setPosition";
                 }
+                Value& val2 = dstIterator->getItem();
+                aggregate->mergeIfNeeded(val, val2);
+                dstIterator->writeItem(val);
+
                 ++(*srcIterator);
             }
             dstIterator->flush();
@@ -513,18 +408,15 @@ namespace scidb
         else
         {
             PinBuffer scope(with);
-            allocateAndCopy((char*)with.getData(), with.getSize(), with.isSparse(), with.isRLE(), with.count(), query);
+            allocateAndCopy((char*)with.getData(), with.getSize(), with.count(), query);
         }
     }
 
-    void Chunk::nonEmptyableAggregateMerge(ConstChunk const& with, AggregatePtr const& aggregate, boost::shared_ptr<Query>& query)
+    void Chunk::nonEmptyableAggregateMerge(ConstChunk const& with,
+                                           AggregatePtr const& aggregate,
+                                           boost::shared_ptr<Query> const& query)
     {
         Query::validateQueryPtr(query);
-
-        if (getPersistentChunk() != NULL)
-        {
-            throw USER_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_CHUNK_ALREADY_EXISTS);
-        }
 
         if (isReadOnly())
         {
@@ -543,13 +435,14 @@ namespace scidb
             throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_AGGREGATE_STATE_MUST_BE_NULLABLE);//enforce equivalency w above merge()
         }
 
-        assert(isRLE() && with.isRLE());
-
         char* dst = static_cast<char*>(getDataForLoad());
         PinBuffer scope(with);
         if (dst != NULL)
         {
-            boost::shared_ptr<ChunkIterator>dstIterator = getIterator(query, ChunkIterator::APPEND_CHUNK|ChunkIterator::NO_EMPTY_CHECK);
+            boost::shared_ptr<ChunkIterator>dstIterator = getIterator(query,
+                                                                      ChunkIterator::APPEND_CHUNK |
+                                                                      ChunkIterator::APPEND_EMPTY_BITMAP |
+                                                                      ChunkIterator::NO_EMPTY_CHECK);
             CoordinatesMapper mapper(with);
             ConstRLEPayload inputPayload( static_cast<char*>(with.getData()));
             ConstRLEPayload::iterator inputIter(&inputPayload);
@@ -573,10 +466,7 @@ namespace scidb
                     if (!dstIterator->setPosition(cpos))
                         throw SYSTEM_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_OPERATION_FAILED) << "setPosition";
                     Value& val2 = dstIterator->getItem();
-                    if (val2.getMissingReason() != 0)
-                    {
-                        aggregate->merge(val, val2);
-                    }
+                    aggregate->mergeIfNeeded(val, val2);
                     dstIterator->writeItem(val);
                     ++inputIter;
                 }
@@ -584,16 +474,8 @@ namespace scidb
             dstIterator->flush();
         }
         else {
-            allocateAndCopy(static_cast<char*>(with.getData()), with.getSize(), with.isSparse(), with.isRLE(), with.count(), query);
+            allocateAndCopy(static_cast<char*>(with.getData()), with.getSize(), with.count(), query);
         }
-    }
-
-    void Chunk::setSparse(bool)
-    {
-    }
-
-    void Chunk::setRLE(bool)
-    {
     }
 
     void Chunk::setCount(size_t)
@@ -648,17 +530,6 @@ namespace scidb
 
     ConstIterator::~ConstIterator() {}
 
-    bool ConstChunkIterator::supportsVectorMode() const
-    {
-        return false;
-    }
-
-    void ConstChunkIterator::setVectorMode(bool enabled)
-    {
-        if (enabled)
-            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "setVectorMode";
-    }
-
     Coordinates const& ConstChunkIterator::getFirstPosition()
     {
         return getChunk().getFirstPosition((getMode() & IGNORE_OVERLAPS) == 0);
@@ -701,21 +572,6 @@ namespace scidb
         return true;
     }
 
-    bool ConstChunk::isPlain() const
-    {
-        Dimensions const& dims = getArrayDesc().getDimensions();
-        for (size_t i = 0, n = dims.size(); i < n; i++) {
-            if (dims[i].getChunkOverlap() != 0) {
-                return false;
-            }
-        }
-        return !isSparse()
-            && !isRLE()
-            && !getAttributeDesc().isNullable()
-            && !TypeLibrary::getType(getAttributeDesc().getType()).variableSize()
-            && (getAttributeDesc().isEmptyIndicator() || getArrayDesc().getEmptyBitmapAttribute() == NULL);
-    }
-
     bool ConstChunk::isSolid() const
     {
         Dimensions const& dims = getArrayDesc().getDimensions();
@@ -726,8 +582,7 @@ namespace scidb
                 return false;
             }
         }
-        return !isSparse()
-            && !getAttributeDesc().isNullable()
+        return !getAttributeDesc().isNullable()
             && !TypeLibrary::getType(getAttributeDesc().getType()).variableSize()
             && getArrayDesc().getEmptyBitmapAttribute() == NULL;
     }
@@ -742,29 +597,9 @@ namespace scidb
         return false;
     }
 
-    ConstChunk const* ConstChunk::getPersistentChunk() const
-    {
-        return NULL;
-    }
-
-    bool ConstChunk::isSparse() const
-    {
-        return false;
-    }
-
-
-    bool ConstChunk::isRLE() const
-    {
-#ifndef SCIDB_CLIENT
-        return true;
-#else
-        return false;
-#endif
-    }
-
     boost::shared_ptr<ConstRLEEmptyBitmap> ConstChunk::getEmptyBitmap() const
     {
-        if (isRLE() && getAttributeDesc().isEmptyIndicator()/* && isMaterialized()*/) {
+        if (getAttributeDesc().isEmptyIndicator()/* && isMaterialized()*/) {
             PinBuffer scope(*this);
             return boost::shared_ptr<ConstRLEEmptyBitmap>(scope.isPinned() ? new ConstRLEEmptyBitmap(*this) : new RLEEmptyBitmap(ConstRLEEmptyBitmap(*this)));
         }
@@ -803,7 +638,9 @@ namespace scidb
         return getArrayDesc().getId();
     }
 
-    void Array::append(boost::shared_ptr<Array>& input, bool const vertical, set<Coordinates, CoordinatesLess>* newChunkCoordinates)
+    void Array::append(boost::shared_ptr<Array>& input,
+                       bool const vertical,
+                       set<Coordinates, CoordinatesLess>* newChunkCoordinates)
     {
         if (vertical)
         {
@@ -819,7 +656,6 @@ namespace scidb
                         newChunkCoordinates->insert(src->getPosition());
                     }
                     dst->copyChunk(src->getChunk());
-                    ++(*dst);
                     ++(*src);
                 }
             }
@@ -845,7 +681,6 @@ namespace scidb
                     boost::shared_ptr<ArrayIterator> dst = dstIterators[i];
                     boost::shared_ptr<ConstArrayIterator> src = srcIterators[i];
                     dst->copyChunk(src->getChunk());
-                    ++(*dst);
                     ++(*src);
                 }
             }
@@ -900,6 +735,7 @@ namespace scidb
         return result;
     }
 
+
     static char* copyStride(char* dst, char* src, Coordinates const& first, Coordinates const& last, Dimensions const& dims, size_t step, size_t attrSize, size_t c)
     {
         size_t n = dims[c].getChunkInterval();
@@ -916,37 +752,37 @@ namespace scidb
         return src;
     }
 
-    size_t Array::extractData(AttributeID attrID, void* buf, Coordinates const& first, Coordinates const& last,
+    size_t Array::extractData(AttributeID attrID, void* buf,
+                              Coordinates const& first, Coordinates const& last,
                               Array::extractInit_t init,
                               extractNull_t null) const
     {
-        ArrayDesc const& arrDesc =  getArrayDesc();
+        ArrayDesc const& arrDesc = getArrayDesc();
         AttributeDesc const& attrDesc = arrDesc.getAttributes()[attrID];
-         Type attrType( TypeLibrary::getType(attrDesc.getType()));
+        Type attrType( TypeLibrary::getType(attrDesc.getType()));
         Dimensions const& dims = arrDesc.getDimensions();
         size_t nDims = dims.size();
-        bool isNullable = attrDesc.isNullable();
-        bool isEmptyable = arrDesc.getEmptyBitmapAttribute() != NULL;
-        bool hasOverlap = false;
-        bool aligned = true;
-        if (attrType.variableSize())
-            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_EXTRACT_EXPECTED_FIXED_SIZE_ATTRIBUTE);
+        if (attrType.variableSize()) {
+            throw USER_EXCEPTION(SCIDB_SE_EXECUTION,
+                                 SCIDB_LE_EXTRACT_EXPECTED_FIXED_SIZE_ATTRIBUTE);
+        }
 
-        if (attrType.bitSize() < 8)
-            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_EXTRACT_UNEXPECTED_BOOLEAN_ATTRIBUTE);
+        if (attrType.bitSize() < 8) {
+            throw USER_EXCEPTION(SCIDB_SE_EXECUTION,
+                                 SCIDB_LE_EXTRACT_UNEXPECTED_BOOLEAN_ATTRIBUTE);
+        }
 
-        if (first.size() != nDims || last.size() != nDims)
-            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_WRONG_NUMBER_OF_DIMENSIONS);
+        if (first.size() != nDims || last.size() != nDims) {
+            throw USER_EXCEPTION(SCIDB_SE_EXECUTION,
+                                 SCIDB_LE_WRONG_NUMBER_OF_DIMENSIONS);
+        }
 
         size_t bufSize = 1;
-        for (size_t j = 0; j < nDims; j++)
-        {
-            if (last[j] < first[j] || (first[j] - dims[j].getStart()) % dims[j].getChunkInterval() != 0) {
+        for (size_t j = 0; j < nDims; j++) {
+            if (last[j] < first[j] ||
+                (first[j] - dims[j].getStartMin()) % dims[j].getChunkInterval() != 0) {
                 throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_UNALIGNED_COORDINATES);
             }
-            aligned &= (last[j] - dims[j].getStart() + 1) % dims[j].getChunkInterval() == 0;
-
-            hasOverlap |= dims[j].getChunkOverlap() != 0;
             bufSize *= last[j] - first[j] + 1;
         }
 
@@ -976,7 +812,8 @@ namespace scidb
         }
 
         size_t nExtracted = 0;
-        for (boost::shared_ptr<ConstArrayIterator> i = getConstIterator(attrID); !i->end(); ++(*i)) {
+        for (boost::shared_ptr<ConstArrayIterator> i = getConstIterator(attrID);
+             !i->end(); ++(*i)) {
             size_t j, chunkOffs = 0;
             ConstChunk const& chunk = i->getChunk();
             Coordinates const& chunkPos = i->getPosition();
@@ -988,45 +825,43 @@ namespace scidb
                 chunkOffs += chunkPos[j] - first[j];
             }
             if (j == nDims) {
-                if (!aligned || hasOverlap || isEmptyable || isNullable || chunk.isRLE() || chunk.isSparse()) {
-                    for (boost::shared_ptr<ConstChunkIterator> ci = chunk.getConstIterator(ChunkIterator::IGNORE_OVERLAPS|ChunkIterator::IGNORE_EMPTY_CELLS|ChunkIterator::IGNORE_NULL_VALUES);
-                         !ci->end(); ++(*ci))
-                    {
-                        Value& v = ci->getItem();
-                        if (!v.isNull()) {
-                            Coordinates const& itemPos = ci->getPosition();
-                            size_t itemOffs = 0;
-                            for (j = 0; j < nDims; j++) {
-                                itemOffs *= last[j] - first[j] + 1;
-                                itemOffs += itemPos[j] - first[j];
-                            }
-                            memcpy((char*)buf + itemOffs*attrSize, ci->getItem().data(), attrSize);
-                        } else if (null==EXTRACT_NULL_AS_NAN) {
-                            Coordinates const& itemPos = ci->getPosition();
-                            size_t itemOffs = 0;
-                            for (j = 0; j < nDims; j++) {
-                                itemOffs *= last[j] - first[j] + 1;
-                                itemOffs += itemPos[j] - first[j];
-                            }
-                            TypeEnum typeEnum = typeId2TypeEnum(attrType.typeId());
-                            // historically, no alignment guarantee on buf
-                            char * itemAddr = (char*)buf + itemOffs*attrSize;
-                            if (typeEnum == TE_FLOAT) {
-                                float nan=NAN;
-                                std::copy((char*)&nan, (char*)&nan + sizeof(nan), itemAddr);
-                            } else if (typeEnum == TE_DOUBLE) {
-                                double nan=NAN;
-                                std::copy((char*)&nan, (char*)&nan + sizeof(nan), itemAddr);
-                            } else {
-                                SCIDB_UNREACHABLE(); // there is no such thing as NaN for other types.  The calling programmer made a serious error.
-                            }
-                        } else { // EXTRACT_NULL_AS_EXCEPTION
-                            throw USER_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "NULL to non-nullable operator";
+                for (boost::shared_ptr<ConstChunkIterator> ci =
+                         chunk.getConstIterator(ChunkIterator::IGNORE_OVERLAPS |
+                                                ChunkIterator::IGNORE_EMPTY_CELLS |
+                                                ChunkIterator::IGNORE_NULL_VALUES);
+                     !ci->end(); ++(*ci)) {
+                    Value& v = ci->getItem();
+                    if (!v.isNull()) {
+                        Coordinates const& itemPos = ci->getPosition();
+                        size_t itemOffs = 0;
+                        for (j = 0; j < nDims; j++) {
+                            itemOffs *= last[j] - first[j] + 1;
+                            itemOffs += itemPos[j] - first[j];
                         }
+                        memcpy((char*)buf + itemOffs*attrSize,
+                               ci->getItem().data(), attrSize);
+                    } else if (null==EXTRACT_NULL_AS_NAN) {
+                        Coordinates const& itemPos = ci->getPosition();
+                        size_t itemOffs = 0;
+                        for (j = 0; j < nDims; j++) {
+                            itemOffs *= last[j] - first[j] + 1;
+                            itemOffs += itemPos[j] - first[j];
+                        }
+                        TypeEnum typeEnum = typeId2TypeEnum(attrType.typeId());
+                        // historically, no alignment guarantee on buf
+                        char * itemAddr = (char*)buf + itemOffs*attrSize;
+                        if (typeEnum == TE_FLOAT) {
+                            float nan=NAN;
+                            std::copy((char*)&nan, (char*)&nan + sizeof(nan), itemAddr);
+                        } else if (typeEnum == TE_DOUBLE) {
+                            double nan=NAN;
+                            std::copy((char*)&nan, (char*)&nan + sizeof(nan), itemAddr);
+                        } else {
+                            SCIDB_UNREACHABLE(); // there is no such thing as NaN for other types.  The calling programmer made a serious error.
+                        }
+                    } else { // EXTRACT_NULL_AS_EXCEPTION
+                        throw USER_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "NULL to non-nullable operator";
                     }
-                } else {
-                    PinBuffer scope(chunk);
-                    copyStride((char*)buf + chunkOffs*attrSize, (char*)chunk.getData(), first, last, dims, bufSize, attrSize, 0);
                 }
                 nExtracted += 1;
             }
@@ -1044,6 +879,59 @@ namespace scidb
     {
         return boost::shared_ptr<ConstItemIterator>(new ConstItemIterator(*this, attrID, iterationMode));
     }
+
+    bool Array::isCountKnown() const
+    {
+        // if an array keeps track of the count in substantially less time than traversing
+        // all chunks of an attribute, then that array should override this method
+        // and return true, and override count() [below] with a faster method.
+        return false;
+    }
+
+    size_t Array::count() const
+    {
+        // if there is a way to get the count in O(1) time, or without traversing
+        // a set of chunks, then that should be done here, when that becomes possible
+
+        if (getSupportedAccess() == SINGLE_PASS)
+        {
+            throw SYSTEM_EXCEPTION(SCIDB_SE_OPERATOR, SCIDB_LE_UNSUPPORTED_INPUT_ARRAY) << "findChunkElements";
+        }
+
+        //Heuristic: make an effort to scan the empty tag. If there is no empty tag - scan the smallest fixed-sized attribute.
+        //If an attribute is small in size (bool or uint8), chances are it takes less disk scan time and/or less compute time to pass over it.
+        ArrayDesc const& schema = getArrayDesc();
+        AttributeDesc const* attributeToScan = schema.getEmptyBitmapAttribute();
+        if (attributeToScan == NULL)
+        {
+            //The array doesn't have an empty tag. Let's pick the smallest fixed-size attribute.
+            attributeToScan = &schema.getAttributes()[0];
+            size_t scannedAttributeSize = attributeToScan->getSize();
+            for(size_t i = 1, n = schema.getAttributes().size(); i < n; i++)
+            {
+                AttributeDesc const& candidate = schema.getAttributes()[i];
+                size_t candidateSize = candidate.getSize();
+                if ( candidateSize != 0 && (candidateSize < scannedAttributeSize || scannedAttributeSize == 0))
+                {
+                    attributeToScan = &candidate;
+                    scannedAttributeSize = candidateSize;
+                }
+            }
+        }
+        assert(attributeToScan != NULL);
+        AttributeID victimId = attributeToScan->getId();
+        size_t result = 0;
+        //Iterate over the target attribute, find nElements of each chunk, add such values to the result
+        boost::shared_ptr<ConstArrayIterator> iter = getConstIterator(victimId);
+        while( ! iter->end() )
+        {
+            ConstChunk const& curChunk = iter->getChunk();
+            result += curChunk.count();
+            ++(*iter);
+        }
+        return result;
+    }
+
 
     void Array::printArrayToLogger() const
     {
@@ -1109,16 +997,18 @@ namespace scidb
 
     bool ConstArrayIterator::setPosition(Coordinates const& pos)
     {
-        throw USER_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "ConstArrayIterator::setPosition";
+        ASSERT_EXCEPTION(false,"ConstArrayIterator::setPosition");
+        return false;
     }
 
     void ConstArrayIterator::reset()
     {
-        throw USER_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "ConstArrayIterator::reset";
+        ASSERT_EXCEPTION(false,"ConstArrayIterator::reset");
     }
 
     void ArrayIterator::deleteChunk(Chunk& chunk)
     {
+        assert(false);
     }
     Chunk& ArrayIterator::updateChunk()
     {
@@ -1126,7 +1016,7 @@ namespace scidb
         if (constChunk.isReadOnly()) {
             throw USER_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_CANT_UPDATE_READ_ONLY_CHUNK);
         }
-        Chunk& chunk = (Chunk&)dynamic_cast<const Chunk&>(constChunk);
+        Chunk& chunk = const_cast<Chunk&>(dynamic_cast<const Chunk&>(constChunk));
         chunk.pin();
         return chunk;
     }
@@ -1134,7 +1024,7 @@ namespace scidb
     Chunk& ArrayIterator::copyChunk(ConstChunk const& chunk, boost::shared_ptr<ConstRLEEmptyBitmap>& emptyBitmap)
     {
         const Coordinates& pos = chunk.getFirstPosition(false);
-        Chunk& outChunk = newChunk(pos, chunk.getCompressionMethod());
+        Chunk& outChunk = newChunk(pos);
 
         //verify that the declared chunk intervals match. Otherwise the copy - could still work - but would either be an implicit reshape or outright dangerous
         SCIDB_ASSERT(chunk.getArrayDesc().getDimensions().size() == outChunk.getArrayDesc().getDimensions().size());
@@ -1145,7 +1035,6 @@ namespace scidb
 
         try {
             boost::shared_ptr<Query> query(getQuery());
-            outChunk.setSparse(chunk.isSparse());
 
             // If copying from an emptyable array to an non-emptyable array, we need to fill in the default values.
             size_t nAttrsChunk = chunk.getArrayDesc().getAttributes().size();
@@ -1153,18 +1042,15 @@ namespace scidb
             assert(nAttrsChunk >= nAttrsOutChunk);
             assert(nAttrsOutChunk+1 >= nAttrsChunk);
             bool emptyableToNonEmptyable = (nAttrsOutChunk+1 == nAttrsChunk);
-
             if (chunk.isMaterialized()
                     && chunk.getArrayDesc().hasOverlap() == outChunk.getArrayDesc().hasOverlap()
                     && chunk.getAttributeDesc().isNullable() == outChunk.getAttributeDesc().isNullable()
-                    && (chunk.isRLE() == outChunk.isRLE() || chunk.isSolid())
                     // if emptyableToNonEmptyable, we cannot use memcpy because we need to insert defaultvalues
                     && !emptyableToNonEmptyable
                     && chunk.getNumberOfElements(true) == outChunk.getNumberOfElements(true)
                 )
             {
                 PinBuffer scope(chunk);
-                outChunk.setRLE(chunk.isRLE());
                 if (emptyBitmap && chunk.getBitmapSize() == 0) {
                     size_t size = chunk.getSize() + emptyBitmap->packedSize();
                     outChunk.allocate(size);
@@ -1184,11 +1070,9 @@ namespace scidb
                 } else {
                     boost::shared_ptr<ConstChunkIterator> src = chunk.getConstIterator(
                             ChunkIterator::IGNORE_EMPTY_CELLS|ChunkIterator::INTENDED_TILE_MODE|(outChunk.getArrayDesc().hasOverlap() ? 0 : ChunkIterator::IGNORE_OVERLAPS));
-                    boost::shared_ptr<ChunkIterator> dst = outChunk.getIterator(query,
-                            (src->getMode() & ChunkIterator::TILE_MODE)|ChunkIterator::NO_EMPTY_CHECK|(chunk.isSparse()?ChunkIterator::SPARSE_CHUNK:0)|ChunkIterator::SEQUENTIAL_WRITE);
-                    bool vectorMode = src->supportsVectorMode() && dst->supportsVectorMode();
-                    src->setVectorMode(vectorMode);
-                    dst->setVectorMode(vectorMode);
+                    boost::shared_ptr<ChunkIterator> dst =
+                        outChunk.getIterator(query,
+                                             (src->getMode() & ChunkIterator::TILE_MODE)|ChunkIterator::NO_EMPTY_CHECK|ChunkIterator::SEQUENTIAL_WRITE);
                     size_t count = 0;
                     while (!src->end()) {
                         if (!emptyableToNonEmptyable) {
@@ -1198,7 +1082,8 @@ namespace scidb
                         dst->writeItem(src->getItem());
                         ++(*src);
                     }
-                    if (!vectorMode && !(src->getMode() & ChunkIterator::TILE_MODE) && !chunk.getArrayDesc().hasOverlap()) {
+                    if (!(src->getMode() & ChunkIterator::TILE_MODE) &&
+                        !chunk.getArrayDesc().hasOverlap()) {
                         if (emptyableToNonEmptyable) {
                             count = outChunk.getNumberOfElements(false); // false = no overlap
                         }

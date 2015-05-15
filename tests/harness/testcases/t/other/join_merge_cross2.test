@@ -24,12 +24,12 @@ join(a2,a1)
 --aql select * into a6 from a1 where x<>2
 join(a6,a1)
 join(a1,a6)
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(a1,a3)"
+join(a1,a3)
 ##by using repart chunk is made compatible so now a1 is joined to a3
 join(a1,repart(a3,<p:int64>[x=0:7,4,0]))            
 join(a2,repart(a3,<p:int64>[x=0:7,4,0]))
 join(repart(a2,<q:int32>[x=0:7,2,0]),a3)
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(a3,a4)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "join(a3,a4)"
 --error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3 "join(a3,repart(a4,<r:string>[x=0:7,2,0]))" 
 ## As repart changes only chunk not cordinates but goal can be achieved using subarray.
 ## As subarray result always have 0 as start cordinate

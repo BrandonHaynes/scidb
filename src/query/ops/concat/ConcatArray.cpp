@@ -27,11 +27,10 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/Array.h"
-#include "query/ops/concat/ConcatArray.h"
-
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/Array.h>
+#include "ConcatArray.h"
 
 namespace scidb 
 {
@@ -54,17 +53,12 @@ namespace scidb
         return withOverlap ? lastPosWithOverlap : lastPos;
     }
 
-    bool ConcatChunk::isSparse() const
-    {
-        return sparse;
-    }          
-
     void ConcatChunk::setInputChunk(ConstChunk const& inputChunk)
     {
         DelegateChunk::setInputChunk(inputChunk);
         ConcatArrayIterator const& arrayIterator((ConcatArrayIterator const&)iterator);
         Coordinate shift = arrayIterator.shift;
-        isClone = (shift == 0 || !inputChunk.isSparse()) && inputChunk.getArrayDesc().getDimensions()[CONCAT_DIM].getChunkOverlap() == 0;
+        isClone = inputChunk.getArrayDesc().getDimensions()[CONCAT_DIM].getChunkOverlap() == 0;
         direct = true;
 
         firstPos = inputChunk.getFirstPosition(false);
@@ -288,7 +282,6 @@ namespace scidb
                 cc.shapeChunk.initialize(&array, &desc, addr, desc.getAttributes()[attr].getDefaultCompressionMethod());
                 cc.setProxy();
             }
-            cc.sparse = inputIterator->getChunk().isSparse();
             chunkInitialized = true;
         }
         return cc;
@@ -323,7 +316,7 @@ namespace scidb
         } else { 
             Dimensions const& dims = ((ConcatArray&)array).dims;
             for (size_t i = 0, nDims = dims.size(); i < nDims; i++) { 
-                outPos[i] = dims[i].getStart();
+                outPos[i] = dims[i].getStartMin();
             }
             nextVisible();
         }            
@@ -400,7 +393,7 @@ namespace scidb
                 if (i == 0) { 
                     return hasCurrent = false;
                 }
-                outPos[i] = dims[i].getStart();
+                outPos[i] = dims[i].getStartMin();
                 i -= 1;
                 outPos[i] += dims[i].getChunkInterval();
             }            
@@ -481,7 +474,7 @@ namespace scidb
         Dimensions const& leftDimensions = left->getArrayDesc().getDimensions();
         Dimensions const& rightDimensions = right->getArrayDesc().getDimensions();
         lastLeft = leftDimensions[CONCAT_DIM].getEndMax();
-        firstRight = rightDimensions[CONCAT_DIM].getStart();
+        firstRight = rightDimensions[CONCAT_DIM].getStartMin();
         concatChunkInterval = leftDimensions[CONCAT_DIM].getChunkInterval() + leftDimensions[CONCAT_DIM].getChunkOverlap();
         size_t nDims = leftDimensions.size();
         if (leftDimensions[CONCAT_DIM].getChunkOverlap() != 0 

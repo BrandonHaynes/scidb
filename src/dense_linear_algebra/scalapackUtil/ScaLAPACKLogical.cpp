@@ -98,7 +98,7 @@ void checkScaLAPACKInputs(std::vector<ArrayDesc> schemas, boost::shared_ptr<Quer
         // TEMPORARY until #2202 defines how to interpret arrays not starting at 0
         // "dimensions must start at 0"
         for(unsigned dim =ROW; dim <= COL; dim++) {
-            if(dims[dim].getStart() != 0) {
+            if(dims[dim].getStartMin() != 0) {
                 throw PLUGIN_USER_EXCEPTION(DLANameSpace, SCIDB_SE_INFER_SCHEMA, DLA_ERROR44);
             }
         }

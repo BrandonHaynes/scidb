@@ -25,50 +25,71 @@
 #include <system/Utils.h>
 #include <system/Exceptions.h>
 
-namespace scidb
+/****************************************************************************/
+namespace scidb {
+/****************************************************************************/
+
+void exit(int status)
 {
-    void exit(int status)
-    {
-#ifndef NDEBUG
-#ifdef CLEAN_EXIT
-        ::exit(status);
+#if !defined(NDEBUG) && defined(CLEAN_EXIT)
+    ::exit(status);
 #endif
-#endif
-        ::_exit(status);
-    }
+    ::_exit(status);
+}
 
 std::string getDir(const std::string& filePath)
 {
     size_t found = filePath.find_last_of("/");
-    if (found==std::string::npos) {
+
+    if (found == std::string::npos)
+    {
         return ".";
     }
-    if (found==0) {
+
+    if (found == 0)
+    {
         return "/";
     }
+
     return filePath.substr(0,found);
 }
 
 bool isFullyQualified(const std::string& filePath)
 {
-    return ((!filePath.empty()) && (filePath[0]=='/'));
+    return !filePath.empty() && filePath[0]=='/';
 }
 
-
-FILE* openMemoryStream(char const* ptr, size_t size)
+FILE* openMemoryStream(char const* ptr,size_t size)
 {
-    FILE* f;
-    f = tmpfile();
-    if (NULL == f) {
-        throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_OPERATION_FAILED) << "tmpfile";
+    FILE* f = tmpfile();
+
+    if (NULL == f)
+    {
+        throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION,SCIDB_LE_OPERATION_FAILED) << "tmpfile";
     }
-    size_t rc = fwrite(ptr, 1, size, f);
-    if (rc != size) { 
-        throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_OPERATION_FAILED) << "fwrite";
+
+    size_t rc = fwrite(ptr,1,size,f);
+
+    if (rc != size)
+    {
+        throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION,SCIDB_LE_OPERATION_FAILED) << "fwrite";
     }
-    fseek(f, 0, SEEK_SET);
+
+    fseek(f,0,SEEK_SET);
     return f;
 }
 
+void bad_dynamic_cast(const std::type_info& b,const std::type_info& d)
+{
+    std::stringstream s;                                // Formats the message
 
+    s << " safe_dynamic_cast: bad cast from "           // Insert message text
+      << b.name()   << " to "                           // ...and source type
+      << d.name();                                      // ...and target type
+
+    ASSERT_EXCEPTION(false,s.str());                    // And report failure
 }
+
+/****************************************************************************/
+}
+/****************************************************************************/

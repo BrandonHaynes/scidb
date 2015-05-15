@@ -61,7 +61,7 @@ doc/api/Doxyfile
 doc/user/pdf/
 doc/user/scidb-userguide*
 doc/user/xml/custom.xsl
-#revision
+revision
 src/clients/java/.idea/
 src/clients/java/build/
 src/clients/java/configure.properties

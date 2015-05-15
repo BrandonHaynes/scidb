@@ -346,30 +346,6 @@ SCIDB QUERY : <xgrid(A,2)>
 {17} 17
 {18} 17
 
-SCIDB QUERY : <adddim(A,z)>
-{z,x} a
-{0,-3} 7
-{0,-2} 8
-{0,-1} 9
-{0,0} 10
-{0,1} 11
-{0,3} null
-{0,4} 14
-{0,6} 16
-{0,7} 17
-
-SCIDB QUERY : <deldim(adddim(A,z))>
-{x} a
-{-3} 7
-{-2} 8
-{-1} 9
-{0} 10
-{1} 11
-{3} null
-{4} 14
-{6} 16
-{7} 17
-
 SCIDB QUERY : <cast(A,<z:int32 null> [y=-3:7,3,2])>
 {y} z
 {-3} 7

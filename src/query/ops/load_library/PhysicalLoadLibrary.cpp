@@ -61,7 +61,7 @@ public:
 
         const string libraryName = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[0])->getExpression()->evaluate().getString();
 
-        const bool isCoordinator = (query->getCoordinatorID() == COORDINATOR_INSTANCE);
+        const bool isCoordinator = query->isCoordinator();
 
         getInjectedErrorListener().check(); // testing only, noop in release build
 

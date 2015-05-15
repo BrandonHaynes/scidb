@@ -33,6 +33,7 @@
 #include <log4cxx/logger.h>
 #include <util/Platform.h>
 #include <util/FileIO.h>
+#include <util/Counter.h>
 #include <array/MemArray.h>
 #include <system/Exceptions.h>
 #include <system/Config.h>
@@ -131,7 +132,9 @@ namespace scidb
                 Address bitmapAddr(bitmapAttr->getId(), addr.coords);
                 bitmapChunk = &(*this)[bitmapAddr];
             }
-            chunk.initialize(this, &desc, addr, desc.getAttributes()[addr.attId].getDefaultCompressionMethod());
+            chunk.initialize(this, &desc,
+                             addr,
+                             desc.getAttributes()[addr.attId].getDefaultCompressionMethod());
             chunk.setBitmapChunk(bitmapChunk);
             if (bitmapChunk != NULL) {
                 bitmapChunk->unPin();
@@ -162,6 +165,7 @@ namespace scidb
         _usedMemThreshold(DEFAULT_MEM_THRESHOLD * MiB), /*<< must be rewritten after config load */
         _swapNum(0),
         _loadsNum(0),
+        _dropsNum(0),
         _genCount(0)
     {
     }
@@ -191,20 +195,20 @@ namespace scidb
         ScopedMutexLock cs(_mutex);
         if (chunk._accessCount++ == 0) {
             chunk._sizeAtLastUnPin = chunk.size;  //mostly redundant. just in case someone is doing something clever
-            if (chunk.getData() == NULL) {
+            if (chunk.getConstData() == NULL) {
                 if (_usedMemSize > _usedMemThreshold) {
                     swapOut();
                 }
                 if (chunk.size != 0) {
                     assert(chunk._dsOffset >= 0);
-                    chunk.data.reset(new char[chunk.size]);
-                    if (!chunk.getData())
-                        throw SYSTEM_EXCEPTION(SCIDB_SE_NO_MEMORY, SCIDB_LE_CANT_ALLOCATE_MEMORY);
+                    chunk.reallocate(chunk.size);
+                    assert(chunk.getConstData());
                     const MemArray* array = (const MemArray*)chunk.array;
                     assert(array->_datastore);
-                    array->_datastore->readData(chunk._dsOffset, chunk.getData(), chunk.size);
                     ++_loadsNum;
                     _usedMemSize += chunk.size;
+                    array->_datastore->readData(chunk._dsOffset, chunk.getData(), chunk.size);
+                    chunk.markClean();
                 }
             } else {
                 assert(!chunk.isEmpty());
@@ -222,7 +226,7 @@ namespace scidb
             //subtract OLD size and add NEW size to _usedMemSize to account for the delta
             assert(_usedMemSize >= chunk._sizeAtLastUnPin);
             _usedMemSize -= chunk._sizeAtLastUnPin;
-            if (chunk.getData() == NULL)
+            if (chunk.getConstData() == NULL)
             {
                 assert(chunk.size == 0);
                 chunk._sizeAtLastUnPin = 0;
@@ -250,26 +254,36 @@ namespace scidb
             SCIDB_ASSERT(popped);
             assert(victim!=NULL);
             assert(victim->_accessCount == 0);
-            assert(victim->getData() != NULL);
+            assert(victim->getConstData() != NULL);
             assert(!victim->isEmpty());
             victim->prune();
             _usedMemSize -= victim->size; //victim is not pinned, so the size is correct
-            MemArray* array = (MemArray*)victim->array;
-            if (!array->_datastore) {
-                array->_datastore = _datastores.getDataStore(_genCount++);
-            }
-            size_t overhead = array->_datastore->getOverhead();
-            if (victim->_dsOffset < 0 || (victim->_dsAlloc - overhead < victim->size)) {
-                if (victim->_dsOffset >= 0)
-                {
-                    LOG4CXX_TRACE(logger, "SharedMemCache::swapOut : freeing chunk at offset " << 
-                                  victim->_dsOffset);
-                    array->_datastore->freeChunk(victim->_dsOffset, victim->_dsAlloc);
+            if (victim->isDirty())
+            {
+                MemArray* array = (MemArray*)victim->array;
+                if (!array->_datastore) {
+                    array->_datastore = _datastores.getDataStore(_genCount++);
                 }
-                victim->_dsOffset = array->_datastore->allocateSpace(victim->size, victim->_dsAlloc);
+                size_t overhead = array->_datastore->getOverhead();
+                if (victim->_dsOffset < 0 || (victim->_dsAlloc - overhead < victim->size)) {
+                    if (victim->_dsOffset >= 0)
+                    {
+                        LOG4CXX_TRACE(logger, "SharedMemCache::swapOut : freeing chunk at offset " <<
+                                      victim->_dsOffset);
+                        array->_datastore->freeChunk(victim->_dsOffset, victim->_dsAlloc);
+                    }
+                    victim->_dsOffset = array->_datastore->allocateSpace(victim->size, victim->_dsAlloc);
+                }
+                array->_datastore->writeData(victim->_dsOffset,
+                                             victim->getData(),
+                                             victim->size,
+                                             victim->_dsAlloc);
+                ++_swapNum;
             }
-            array->_datastore->writeData(victim->_dsOffset, victim->getData(), victim->size, victim->_dsAlloc);
-            ++_swapNum;
+            else
+            {
+                ++_dropsNum;
+            }
             victim->free();
         }
         SCIDB_ASSERT(sizeCoherent());
@@ -285,10 +299,11 @@ namespace scidb
     void SharedMemCache::cleanupArray(MemArray &array)
     {
         ScopedMutexLock cs(_mutex);
-        for (map<Address, LruMemChunk>::iterator i = array._chunks.begin(); i != array._chunks.end(); i++)
+        for (map<Address, LruMemChunk>::iterator i = array._chunks.begin();
+             i != array._chunks.end(); i++)
         {
             LruMemChunk &chunk = i->second;
-            if (chunk.getData() != NULL) {
+            if (chunk.getConstData() != NULL) {
                 //chunk could be pinned or just on the LRU.
                 _usedMemSize -= chunk._sizeAtLastUnPin;
             }
@@ -329,8 +344,8 @@ namespace scidb
     {
         ScopedMutexLock cs(_mutex);
         size_t lruSize = computeSizeOfLRU();
-        LOG4CXX_TRACE(logger, "SharedMemCache::sizeCoherent computed "<<lruSize<<" used "<<_usedMemSize);
-        //computedSize does not include chunks that are pinned and not on the LRU. So we can't always check for strict equality.
+        LOG4CXX_TRACE(logger, "SharedMemCache::sizeCoherent available bytes "<<lruSize<<" total bytes "<<_usedMemSize);
+        //lruSize does not include chunks that are pinned and not on the LRU. So we can't always check for strict equality.
         return lruSize <= _usedMemSize;
     }
 
@@ -359,8 +374,9 @@ namespace scidb
     ConstChunk const& MemArrayIterator::getChunk()
     {
         position();
-        if (!currChunk)
+        if (!currChunk) {
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_CHUNK);
+        }
         return *currChunk;
     }
 
@@ -380,8 +396,9 @@ namespace scidb
     Coordinates const& MemArrayIterator::getPosition()
     {
         position();
-        if (!currChunk)
+        if (!currChunk) {
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_CHUNK);
+        }
         return currChunk->getFirstPosition(false);
     }
 
@@ -409,6 +426,7 @@ namespace scidb
     void MemArrayIterator::reset()
     {
         positioned = true;
+        ScopedMutexLock cs(_array._mutex);
         curr = _array._chunks.begin();
         while (curr != last && curr->second.addr.attId != addr.attId) {
             ++curr;
@@ -420,24 +438,33 @@ namespace scidb
     {
         LruMemChunk& chunk = (LruMemChunk&)aChunk;
         chunk._accessCount = 0;
+        ScopedMutexLock cs(_array._mutex);
         SharedMemCache::getInstance().deleteChunk(chunk);
         _array._chunks.erase(chunk.addr);
     }
 
     Chunk& MemArrayIterator::newChunk(Coordinates const& pos)
     {
-        if (!_array.desc.contains(pos))
+        if (!_array.desc.contains(pos)) {
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_CHUNK_OUT_OF_BOUNDARIES);
+        }
         addr.coords = pos;
         _array.desc.getChunkPositionFor(addr.coords);
-        return _array[addr];
+
+        ScopedMutexLock cs(_array._mutex);
+        map<Address, LruMemChunk>::const_iterator chIter = _array._chunks.find(addr);
+        if (chIter!=_array._chunks.end() &&
+            // yet another hack to work around the fact that an emptytag chunk
+            // is automatically created by MemArray
+            addr.attId != _array.desc.getAttributes().size()-1) {
+            throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_CHUNK_ALREADY_EXISTS)
+            << CoordsToStr(addr.coords);
+        }
+        return _array[addr]; //pinned
     }
 
     Chunk& MemArrayIterator::newChunk(Coordinates const& pos, int compressionMethod)
     {
-        if (!_array.desc.contains(pos)) {
-            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_CHUNK_OUT_OF_BOUNDARIES);
-        }
         Chunk& chunk = newChunk(pos);
         ((MemChunk&)chunk).compressionMethod = compressionMethod;
         return chunk;

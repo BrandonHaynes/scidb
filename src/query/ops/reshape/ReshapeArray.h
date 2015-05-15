@@ -78,12 +78,10 @@ class ReshapeChunk : public DelegateChunk
 
     ReshapeArray const& array;
     MemChunk chunk;
-    bool sparse;
 
   public:
-    virtual bool isSparse() const;
     virtual boost::shared_ptr<ConstChunkIterator> getConstIterator(int iterationMode) const;
-    void initialize(Coordinates const& pos, bool sparse);
+    void initialize(Coordinates const& pos);
 
     ReshapeChunk(ReshapeArray const& array, DelegateArrayIterator const& iterator, AttributeID attrID);
 };
@@ -94,7 +92,6 @@ class ReshapeArrayIterator : public DelegateArrayIterator
     Coordinates inPos;
     Coordinates outPos;
     bool hasCurrent;
-    bool isSparseArray;
 
   public:
     virtual ConstChunk const& getChunk();

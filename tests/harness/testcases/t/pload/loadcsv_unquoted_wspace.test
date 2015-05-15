@@ -1,0 +1,24 @@
+# Ticket 4353.  When loading unquoted string attributes from CSV
+# files, make sure leading and trailing whitespace is preserved.
+
+--test
+
+--echo Leading and trailing spaces...
+--shell --command "echo 'one, two , three' | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -x -a tkt4353 -s '<one:string,two:string,three:string>[i=0:*,10,0]'"
+scan(tkt4353)
+
+# Note we must specify "-D," here since all the tabs cause
+# splitcsv to incorrectly choose tab as the delimiter.
+--echo Leading and trailing tabs...
+--shell --command "echo 'doh,	ray	  ,	me	' | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -D, -x -a tkt4353 -s '<one:string,two:string,three:string>[i=0:*,10,0]'"
+scan(tkt4353)
+
+# Ticket 4338: Make sure datetime attributes load.  Here, leading or trailing whitespace is an error.
+--echo DateTime attributes...
+--shell --command "echo '1989-11-09 12:34:56,1999-12-31 23:59:59,2525-01-01 00:00:01' | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -D, -x -a dtimes1 -s '<t0:datetime,t1:datetime,t2:datetime>[i=0:*,10,0]'"
+scan(dtimes1)
+
+--cleanup
+
+remove(tkt4353)
+remove(dtimes1)

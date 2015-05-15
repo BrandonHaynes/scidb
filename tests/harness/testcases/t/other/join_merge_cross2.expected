@@ -137,7 +137,15 @@ SCIDB QUERY : <join(a1,a6)>
 {7} null,null
 
 SCIDB QUERY : <join(a1,a3)>
-[An error expected at this place for the query "join(a1,a3)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2.]
+{x} p,r
+{0} 1,0
+{1} 4,0.75
+{2} 7,4
+{3} 10,13.5
+{4} 13,48
+{5} 16,inf
+{6} null,-108
+{7} null,-73.5
 
 SCIDB QUERY : <join(a1,repart(a3,<p:int64>[x=0:7,4,0]))>
 {x} p,r
@@ -173,7 +181,7 @@ SCIDB QUERY : <join(repart(a2,<q:int32>[x=0:7,2,0]),a3)>
 {7} 9,-73.5
 
 SCIDB QUERY : <join(a3,a4)>
-[An error expected at this place for the query "join(a3,a4)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2.]
+[An error expected at this place for the query "join(a3,a4)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH.]
 
 SCIDB QUERY : <join(a3,repart(a4,<r:string>[x=0:7,2,0]))>
 [An error expected at this place for the query "join(a3,repart(a4,<r:string>[x=0:7,2,0]))". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3.]

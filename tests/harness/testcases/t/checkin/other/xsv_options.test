@@ -1,0 +1,35 @@
+# TSV and CSV loading allow a few per-format options to tailor the
+# load; test the most important ones.
+
+--setup
+
+CREATE ARRAY gradebook <LName:string,FName:string,Dept:string null,Course:int32,GPA:double null,Remarks:string null>[i=0:*,8,0]
+CREATE ARRAY oddchars <id:int64, s1:string, s2:string, code:int64, s3:string, s4:string>[i=0:*,8,0]
+
+--shell --command "sed 1d ${TEST_DATA_DIR}/grades.tsv > /tmp/xsvopts.tsv"
+--shell --command "sed -e 1d -e 's/\t/|/g' ${TEST_DATA_DIR}/grades.tsv > /tmp/xsvopts.psv"
+--shell --command "sed -e 1d ${TEST_DATA_DIR}/oddchars.csv > /tmp/xsvopts.csv"
+
+--test
+--start-query-logging
+
+# Load a TSV file using 'csv:t'.
+--echo Empty strings become nulls (like csv2scidb used to do) (Farnsworth, Kroker)
+load(gradebook, '/tmp/xsvopts.tsv', -2, 'csv:t')
+
+# Load a pipe-separated file using 'tsv:p'.
+--echo Kif's empty grade becomes a zero in TSV-speak...
+load(gradebook, '/tmp/xsvopts.psv', -2, 'tsv:p')
+
+# Load a pipe-separated file using 'csv:p'.
+--echo ...but it's turned to a null in CSV-speak.
+load(gradebook, '/tmp/xsvopts.psv', -2, 'csv:p')
+
+# Load a CSV file using 'tsv:c', which is pretty sick and wrong and if it ever breaks who cares.
+--echo In-field comma causes "Too many fields" warning.
+load(oddchars, '/tmp/xsvopts.csv', -2, 'tsv:c')
+
+--cleanup
+remove(gradebook)
+remove(oddchars)
+--shell --command "rm /tmp/xsvopts.*"

@@ -183,6 +183,27 @@ Query was executed successfully
 {8} 9,1
 {9} nan,nan
 
+{i} x,m,n,k,thepmf
+{0} 3,4,4,4,0.228571
+
+{i} x,m,n,k,thepmf
+{0} 2,12,18,17,0.0004497
+
+{i} x,m,n,k,thequant
+{0} 0.45,4,4,4,1
+
+{i} x,m,n,k,thequant
+{0} 0.45,12,18,17,6
+
+{i} x,m,n,k,thequant
+{0} 0.45,4,4,4,2
+
+{i} x,m,n,k,thequant
+{0} 0.45,12,18,17,7
+
+{i} q,m,n,k,quantile
+{0} 0.11703,10,7,8,3
+
 Query was executed successfully
 
 Query was executed successfully

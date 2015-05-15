@@ -43,7 +43,7 @@ void TheMonitor::update(const Arena& arena,name_t label)
 /****************************************************************************/
 
 /**
- *  Save a snapshot of the  current allocation statistics for the given Arena,
+ *  Save a snapshot of the current allocation statistics for the given %arena,
  *  and associate this snapshot with the given label,  which can be any string
  *  you like.
  */
@@ -51,7 +51,7 @@ void Monitor::update(const Arena& arena,name_t label)
 {}
 
 /**
- *  Return a reference to the one and only Arena monitor.
+ *  Return a reference to the one and only %arena monitor.
  */
 Monitor& Monitor::getInstance()
 {

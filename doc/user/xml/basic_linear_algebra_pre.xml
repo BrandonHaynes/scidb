@@ -194,35 +194,28 @@
         <primary>linear algebra</primary>
 
         <secondary>transpose</secondary>
-      </indexterm>For a singular matrix <emphasis>M</emphasis>, that is, a
-    matrix not invertible either because it is rectangular or because it has a
-    determinant of 0, singular-value decomposition returns the matrix
-    factorization:<informalequation>
-        <alt>M = U\Sigma V^*</alt>
-
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="../equations/svd.png" scale="60"/>
-          </imageobject>
-        </mediaobject>
-      </informalequation>For <emphasis>m</emphasis><symbol
-    role="symbolfont">×</symbol><emphasis>n</emphasis> matrix
-    <emphasis>M</emphasis>, the left matrix <emphasis>U</emphasis> is
+      </indexterm>Let <emphasis>M</emphasis> be an
     <emphasis>m</emphasis><symbol
-    role="symbolfont">×</symbol><emphasis>m</emphasis> and the right matrix
-    <emphasis>V*</emphasis> is <emphasis>n</emphasis><symbol
-    role="symbolfont">×</symbol><emphasis>n</emphasis>. <emphasis>U</emphasis>
-    is orthogonal in the row space (<emphasis>U</emphasis><superscript>
-    <emphasis>T</emphasis>
-    </superscript><emphasis>U</emphasis> = <emphasis>I</emphasis>(<emphasis>m</emphasis><symbol
-    role="symbolfont">×</symbol><emphasis>m</emphasis>)) and
-    <emphasis>V*</emphasis> is orthogonal in the column space
-    (<emphasis>V*</emphasis><superscript> <emphasis>T</emphasis>
-    </superscript><emphasis>V</emphasis> = <emphasis>I</emphasis>(<emphasis>n</emphasis><symbol
-    role="symbolfont">×</symbol><emphasis>n</emphasis>)).</para>
+    role="symbolfont">×</symbol><emphasis>n</emphasis> real-valued matrix.
+    Then </para>
 
-    <para>The matrix <symbol role="symbolfont">∑</symbol> is a diagonal matrix
-    containing the singular values of <emphasis>M</emphasis>.</para>
+    <informalequation>
+      <alt>M = U\Sigma V^*</alt>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="../equations/svd.png" scale="60"/>
+        </imageobject>
+      </mediaobject>
+    </informalequation>
+
+    <para>is a singular value decomposition of <emphasis>M</emphasis>, where
+    <emphasis>U</emphasis> is an <emphasis>m</emphasis><symbol
+    role="symbolfont">×</symbol><emphasis>n</emphasis> matrix with orthonormal
+    columns, <emphasis>V</emphasis>is an <emphasis>n</emphasis><symbol
+    role="symbolfont">×</symbol><emphasis>n</emphasis>orthonormal matrix, and
+    <emphasis>S</emphasis> is a diagonal matrix of singular values of
+    <emphasis>M</emphasis> in non-increasing order. </para>
 
     <para>For example, consider the 3<symbol role="symbolfont">×</symbol>2
     matrix <code>m3x2</code>:<programlisting language="test">--afl store(repart(m3x2,&lt;val:double&gt; [row=0:2,32,0, col=0:3,32,0]),new_m3x2); --show-query=no --show-output=no

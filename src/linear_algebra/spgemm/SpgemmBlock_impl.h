@@ -37,8 +37,10 @@
 #include <system/Exceptions.h>
 #include <util/Utility.h>
 
-// local
+// scidb/p4
 #include "../LAErrors.h"
+
+// local
 #include "CSRBlock.h"
 #include "CSRBlockVector.h"
 #include "SpAccumulator.h"
@@ -125,7 +127,6 @@ void spGemm(ssize_t leftRowNum, const CSRBlock<typename SemiringTraits_tt::Value
     std::stringstream ss;
     ss << " invalid cast from " << typeid(rightBlock).name() << " to " << typeid(rightCSRBlock).name();
     ASSERT_EXCEPTION(false, ss.str());
-    // NOCHECKIN throw SYSTEM_EXCEPTION(scidb::SCIDB_SE_INTERNAL, scidb::SCIDB_LE_UNREACHABLE_CODE) << ss.str();
 }
 
 

@@ -28,15 +28,15 @@
  * @author Konstantin Knizhnik <knizhnik@garret.ru>
  */
 
+#include <system/Exceptions.h>
+#include <query/Operator.h>
 #include "ReshapeArray.h"
-#include "system/Exceptions.h"
-#include "query/Operator.h"
 
-namespace scidb {
+using namespace boost;
+using namespace std;
 
-    using namespace boost;
-    using namespace std;
-
+namespace scidb
+{
     //
     // Reshape chunk iterator methods
     //
@@ -71,7 +71,6 @@ namespace scidb {
                 inputIterator.reset();
                 if (arrayIterator->setPosition(inPos)) { 
                     ConstChunk const& inputChunk = arrayIterator->getChunk();
-                    chunk.sparse |= inputChunk.isSparse();
                     inputIterator = inputChunk.getConstIterator(mode);
                     if (inputIterator->setPosition(inPos)) { 
                         hasCurrent = true;
@@ -92,7 +91,6 @@ namespace scidb {
         inputIterator.reset();
         if (arrayIterator->setPosition(inPos)) { 
             ConstChunk const& inputChunk = arrayIterator->getChunk();
-            chunk.sparse |= inputChunk.isSparse();
             inputIterator = inputChunk.getConstIterator(mode);
             if (inputIterator->setPosition(inPos)) { 
                 return hasCurrent = true;
@@ -148,29 +146,22 @@ namespace scidb {
     //
     // Reshape chunk methods
     //
-    bool ReshapeChunk::isSparse() const
-    {
-        return sparse;
-    }
-
     boost::shared_ptr<ConstChunkIterator> ReshapeChunk::getConstIterator(int iterationMode) const
     {
         return boost::shared_ptr<ConstChunkIterator>(new ReshapeChunkIterator(array, *(ReshapeChunk*)this, iterationMode));
     }
 
-    void ReshapeChunk::initialize(Coordinates const& pos, bool isSparse)
+    void ReshapeChunk::initialize(Coordinates const& pos)
     {
         ArrayDesc const& desc = array.getArrayDesc();
         Address addr(attrID, pos);
         chunk.initialize(&array, &desc, addr, desc.getAttributes()[attrID].getDefaultCompressionMethod());
-        sparse = isSparse;
         setInputChunk(chunk);
     }
 
     ReshapeChunk::ReshapeChunk(ReshapeArray const& arr, DelegateArrayIterator const& iterator, AttributeID attrID)
     : DelegateChunk(arr, iterator, attrID, false),
-      array(arr),
-      sparse(false)
+      array(arr)
     {
     }
       
@@ -182,7 +173,7 @@ namespace scidb {
         if (!hasCurrent)
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_CHUNK);
         if (!chunkInitialized) {
-            ((ReshapeChunk&)*chunk).initialize(outPos, isSparseArray);
+            ((ReshapeChunk&)*chunk).initialize(outPos);
             chunkInitialized = true;
         }
         return *chunk;
@@ -205,14 +196,13 @@ namespace scidb {
                     hasCurrent = false;
                     return;
                 }
-                outPos[i] = dims[i].getStart();
+                outPos[i] = dims[i].getStartMin();
                 i -= 1;
             }
             array.out2in(outPos, inPos);
             inputIterator->setPosition(inPos);
             chunkInitialized = false;
             if (!getChunk().getConstIterator(ChunkIterator::IGNORE_EMPTY_CELLS)->end()) { 
-                isSparseArray |= chunk->isSparse();
                 return;
             }
         }
@@ -223,10 +213,9 @@ namespace scidb {
         Dimensions const& dims = array.getArrayDesc().getDimensions(); 
         size_t nDims = dims.size();
         for (size_t i = 0; i < nDims; i++) { 
-            outPos[i] = dims[i].getStart();
+            outPos[i] = dims[i].getStartMin();
         }
         outPos[nDims-1] -= dims[nDims-1].getChunkInterval();
-        isSparseArray = false;
         hasCurrent = true;
         chunkInitialized = false;
         ++(*this);
@@ -244,7 +233,7 @@ namespace scidb {
     {
         Dimensions const& dims = array.getArrayDesc().getDimensions(); 
         for (size_t i = 0, nDims = dims.size(); i < nDims; i++) { 
-            if (newPos[i] < dims[i].getStart() || newPos[i] > dims[i].getEndMax()) { 
+            if (newPos[i] < dims[i].getStartMin() || newPos[i] > dims[i].getEndMax()) {
                 return hasCurrent = false;
             }
         }

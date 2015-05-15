@@ -19,10 +19,6 @@ Query was executed successfully
 SCIDB QUERY : <store(redimension( Raw_Dorf, Dorfishness ), Dorfishness )>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <echo ('iquery -o lcsv+ -aq \'scan ( Dorfishness )\'')>
-{i} text
-{0} 'iquery -o lcsv+ -aq \'scan ( Dorfishness )\''
-
 SCIDB QUERY : < iquery -o lcsv+ -aq 'scan ( Dorfishness )' >
 name,chin,top,head,face,dorfishness
 'Bashful','Long beard','Brown top','green hat','long eyelashes',1
@@ -34,10 +30,6 @@ name,chin,top,head,face,dorfishness
 'Sneezy','Short beard','brown jacket','orange headpiece','red nose',1
 'Snow White','No Beard','blue jacket','diadem','perky',0
 'Witch','No Beard','black blouse','no hat','warty',0
-
-SCIDB QUERY : <echo ('iquery -o lsparse -aq \'scan ( Dorfishness )\'')>
-{i} text
-{0} 'iquery -o lsparse -aq \'scan ( Dorfishness )\''
 
 SCIDB QUERY : < iquery  -o lsparse -aq 'scan ( Dorfishness )' >
 [[[[[{'Bashful','Long beard','Brown top','green hat','long eyelashes'}(1),{'Doc','Short beard','Red tunic','brown hat','glasses'}(1),{'Dopey','Beardless','Green tunic','purple hat','big ears'}(1),{'Grumpy','Long beard','Red tunic','brown hat','scowl'}(1),{'Happy','Short beard','Brown top','orange headpiece','smile'}(1),{'Sleepy','Long beard','Green top','blue hat','heavy eyelids'}(1),{'Sneezy','Short beard','brown jacket','orange headpiece','red nose'}(1),{'Snow White','No Beard','blue jacket','diadem','perky'}(0),{'Witch','No Beard','black blouse','no hat','warty'}(0)]]]]]

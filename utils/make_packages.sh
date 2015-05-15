@@ -24,9 +24,10 @@ set -e
 
 function usage()
 {
-    echo <<EOF "Usage: 
+cat <<EOF
+Usage: 
     $0 <rpm|deb> insource <result dir> [chroot distro]
-    $0 <rpm|deb> <local|chroot> <Debug|RelWithDebInfo> <result dir> [chroot distro]"
+    $0 <rpm|deb> <local|chroot> <Debug|RelWithDebInfo> <result dir> [chroot distro]
 EOF
     exit 1
 }
@@ -61,7 +62,7 @@ jobs=$[`getconf _NPROCESSORS_ONLN`+1]
 
 
 if [ "$target" == "chroot" ]; then
-    [ "$#" -lt 4 ] && echo Looks like you forgot chroot distro! Try: centos-6-x86_64 or ubuntu-precise-amd64 && usage
+    [ "$#" -lt 4 ] && echo Looks like you forgot chroot distro! Try: centos-6-x86_64 or ubuntu-precise-amd64 or ubuntu-trusty-amd64 && usage
 fi
 
 scidb_src_dir=$(readlink -f $(dirname $0)/..)
@@ -143,13 +144,18 @@ if [ $target != "insource" ]; then
         popd
     elif [ -d .svn ]; then
         echo Extracting sources from svn
-        svn export --force . "${build_src_dir}" || die svn export
+        svn export --quiet --force . "${build_src_dir}" || die svn export
+	if [ -f revision ]; then
+	    cp revision "${build_src_dir}"
+	fi
+    elif [ -f revision ]; then
+	mkdir -p ${build_src_dir} || die mkdir ${build_src_dir}
+	cp -a . ${build_src_dir}  || die copy
     else
-        die Can not extract revision. This is nor svn nor git working copy!
+	die "Can not extract source control revision."
     fi
     popd
 
-    echo -n $REVISION > "${build_src_dir}"/revision
 fi
 
 if [ "$type" == "deb" ]; then
@@ -162,11 +168,13 @@ if [ "$type" == "deb" ]; then
         dirSrc="${1}"
         dirTgt="${2}"
         echo Preparing sources from ${dirSrc} to ${dirTgt}
-	    for filename in changelog control rules; do
-            $M4 ${dirSrc}/${filename}.in > ${dirTgt}/${filename} || die $M4 failed
-	    done
-            $M4 ${dirSrc}/postinst_in > ${dirTgt}/scidb-${VERSION_MAJOR}.${VERSION_MINOR}-plugins.postinst || die $M4 failed
-            $M4 ${dirSrc}/postrm_in > ${dirTgt}/scidb-${VERSION_MAJOR}.${VERSION_MINOR}-plugins.postrm || die $M4 failed
+	codename=`echo ${distro}|awk -F- '{print $2}'`
+	$M4 ${dirSrc}/"control.${codename}.in" > ${dirTgt}/control || die $M4 failed
+	for filename in changelog rules; do
+	    $M4 ${dirSrc}/${filename}.in > ${dirTgt}/${filename} || die $M4 failed
+	done
+        $M4 ${dirSrc}/postinst_in > ${dirTgt}/scidb-${VERSION_MAJOR}.${VERSION_MINOR}-plugins.postinst || die $M4 failed
+        $M4 ${dirSrc}/postrm_in > ${dirTgt}/scidb-${VERSION_MAJOR}.${VERSION_MINOR}-plugins.postrm || die $M4 failed
     }
     DSC_FILE_NAME="scidb-${VERSION_MAJOR}.${VERSION_MINOR}_${VERSION_PATCH}-$REVISION.dsc"
 

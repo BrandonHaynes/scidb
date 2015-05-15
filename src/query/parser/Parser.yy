@@ -148,6 +148,7 @@
 %token<keyword>     UNBOUND
 %token<keyword>     UNLOAD
 %token<keyword>     UPDATE
+%token<keyword>     USING
 %token<keyword>     VARIABLE
 %token<keyword>     WHERE
 %token<keyword>     WINDOW
@@ -159,12 +160,13 @@
 %type<node>         afl_expression
 %type<node>         afl_module
 %type<node>         attribute
-%type<node>         dimension dimension_hi
+%type<node>         dimension dexp cells
 %type<node>         nullable
 %type<node>         default
 %type<node>         default_value
 %type<node>         compression
 %type<node>         reserve
+%type<node>         temp
 %type<node>         schema
 %type<node>         asterisk
 %type<node>         order
@@ -468,6 +470,7 @@ identifier:
     | IS                                                 {$$ = _fac.newString(@$,$1);}
     | RESERVE                                            {$$ = _fac.newString(@$,$1);}
     | TEMP                                               {$$ = _fac.newString(@$,$1);}
+    | USING                                              {$$ = _fac.newString(@$,$1);}
 /* Context sensitive keywords specific to AQL: */
     | ALL                                                {$$ = _fac.newString(@$,$1);}
     | BY                                                 {$$ = _fac.newString(@$,$1);}
@@ -495,8 +498,8 @@ identifier:
 /****************************************************************************/
 
 create_array_statement:
-      CREATE      ARRAY reference schema                 {$$ = _fac.newApp(@$,"Create_Array",$3,$4);}
-    | CREATE TEMP ARRAY reference schema                 {$$ = _fac.newApp(@$,"Create_Array",$4,$5,_fac.newString(@3,"temp"));}
+      CREATE temp ARRAY reference schema                       {$$ = _fac.newApp(@$,"Create_Array",$4,$5,$2);}
+    | CREATE temp ARRAY reference schema cells USING reference {$$ = _fac.newApp(@$,"Create_Array",$4,$5,$2,$8,$6);}
     ;
 
 schema:
@@ -508,13 +511,14 @@ attribute:
     ;
 
 dimension:
-      identifier                                         {$$ = _fac.newNode(dimension,@$,$1,0,0,0,0);}
-    | identifier '=' exp ':' dimension_hi ',' exp ',' exp{$$ = _fac.newNode(dimension,@$,$1,$3,$5,$7,$9);}
+      identifier '=' dexp ':' dexp     ',' dexp ',' dexp {$$ = _fac.newNode(dimension,@$,$1,$3,$5,$7,$9);}
+    | identifier '=' dexp ':' asterisk ',' dexp ',' dexp {$$ = _fac.newNode(dimension,@$,$1,$3,$5,$7,$9);}
+    | identifier                                         {$$ = _fac.newNode(dimension,@$,$1,0,0,0,0);}
     ;
 
-dimension_hi:
+dexp:
       exp                                                {$$ = $1;}
-    | asterisk                                           {$$ = 0;}
+    | '?'                                                {$$ = 0;}
     ;
 
 default_value:
@@ -547,6 +551,16 @@ reserve:
       RESERVE constant_integer                           {$$ = $2;}
     | blank                                              {$$ = 0;}
 
+temp:
+      TEMP                                               {$$ = _fac.newBoolean(@$,true);}
+    | blank                                              {$$ = _fac.newBoolean(@$,false);}
+    ;
+    
+cells:
+      '[' exp ']'                                        {$$ = $2;}
+    | blank                                              {$$ = _fac.newInteger(@$,1000000);}
+    ;
+    
 /****************************************************************************/
 
 load_array_statement:

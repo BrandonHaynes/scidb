@@ -78,10 +78,8 @@ class XgridChunk : public DelegateChunk
 
     XgridArray const& array;
     MemChunk chunk;
-    bool sparse;
 
   public:
-    virtual bool isSparse() const;
     virtual boost::shared_ptr<ConstChunkIterator> getConstIterator(int iterationMode) const;
     
     void initialize(Coordinates const& pos);

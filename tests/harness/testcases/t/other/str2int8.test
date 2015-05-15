@@ -1,0 +1,88 @@
+# Ticket 4323.  We had problems converting from string to int8/uint8
+# because "operator>>(const string&, int8_t)" was just peeling off the
+# first character of the string, not converting the string to a small
+# integer.
+
+--setup
+--shell --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "create array s2i <val:string>[i=0:0,1,0]""
+
+--test
+store(build(s2i, '42'), s2i)
+apply(s2i, ival2, int8(val))
+apply(s2i, uval2, uint8(val))
+
+# Leading zeroes do -not- denote octal.
+store(build(s2i, '0042'), s2i)
+apply(s2i, ival2, int8(val))
+apply(s2i, uval2, uint8(val))
+
+store(build(s2i, '-58'), s2i)
+apply(s2i, ival2, int8(val))
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+store(build(s2i, '127'), s2i)
+apply(s2i, ival2, int8(val))
+apply(s2i, uval2, uint8(val))
+
+store(build(s2i, '128'), s2i)
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, ival2, int8(val))"
+apply(s2i, uval2, uint8(val))
+
+store(build(s2i, '129'), s2i)
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, ival2, int8(val))"
+apply(s2i, uval2, uint8(val))
+
+store(build(s2i, '-126'), s2i)
+apply(s2i, ival2, int8(val))
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+# Leading whitespace OK (sscanf permitted it so so do we).
+store(build(s2i, ' 	-127'), s2i)
+apply(s2i, ival2, int8(val))
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+# Trailing whitespace is now permitted [csv2scidb compat].
+store(build(s2i, '-127	 '), s2i)
+apply(s2i, ival2, int8(val))
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+# Trailing whitespace OK for postive numbers too [csv2scidb compat].
+store(build(s2i, '125	 '), s2i)
+apply(s2i, ival2, int8(val))
+apply(s2i, uval2, uint8(val))
+
+# Trailing anything else is bad.
+store(build(s2i, '125x'), s2i)
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, ival2, int8(val))"
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+store(build(s2i, '-128'), s2i)
+apply(s2i, ival2, int8(val))
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+store(build(s2i, '-129'), s2i)
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, ival2, int8(val))"
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+store(build(s2i, '260'), s2i)
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, ival2, int8(val))"
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+store(build(s2i, '255'), s2i)
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, ival2, int8(val))"
+apply(s2i, uval2, uint8(val))
+
+store(build(s2i, '256'), s2i)
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, ival2, int8(val))"
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+store(build(s2i, '0xFF'), s2i)
+apply(s2i, ival2, int8(val))
+apply(s2i, uval2, uint8(val))
+
+store(build(s2i, '0x1FF'), s2i)
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, ival2, int8(val))"
+--error --code scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING "apply(s2i, uval2, uint8(val))"
+
+--cleanup
+remove(s2i)

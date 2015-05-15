@@ -127,3 +127,6 @@ Query was executed successfully
 SCIDB QUERY : <remove(INHXXX_2)>
 Query was executed successfully
 
+SCIDB QUERY : <remove(NODE_ID)>
+Query was executed successfully
+

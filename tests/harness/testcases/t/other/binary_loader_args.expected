@@ -69,9 +69,9 @@ SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(A2a, '${TEST_DAT
 
 SCIDB QUERY : <scan(A2a_err)>
 {i} a,b,c,d,e,f,g,row_offset
-{888} null,null,null,null,null,null,'Failed to parse string \'3.4445\' as int64',119
-{998} null,null,null,null,null,null,'Failed to parse string \'556.777\' as int64',240
-{1000} null,null,null,null,null,null,'Failed to parse string \'4.556\' as int64',279
+{888} null,null,null,null,null,null,'Failed to parse string \'3.4445\' as int64 (non-digits)',119
+{998} null,null,null,null,null,null,'Failed to parse string \'556.777\' as int64 (non-digits)',240
+{1000} null,null,null,null,null,null,'Failed to parse string \'4.556\' as int64 (non-digits)',279
 
 SCIDB QUERY : <aggregate(A2a_err,count(*))>
 {i} count

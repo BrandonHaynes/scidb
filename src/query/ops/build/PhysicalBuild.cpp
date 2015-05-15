@@ -71,11 +71,15 @@ public:
         if (_asArrayLiteral)
         {
             //We will produce this array only on coordinator
-            if (query->getCoordinatorID() == COORDINATOR_INSTANCE)
+            if (query->isCoordinator())
             {
                 //InputArray is very access-restrictive, but we're building it from a string - so it's small!
                 //So why don't we just materialize the whole literal array:
-                shared_ptr<Array> input(new InputArray(_schema, expr->evaluate().getString(), "", query, AS_STRING));
+                static const bool dontEnforceDataIntegrity = false;
+                static const bool notInEmptyMode = false;
+                InputArray* ary = new InputArray(_schema, "", query, notInEmptyMode, dontEnforceDataIntegrity);
+                shared_ptr<Array> input(ary);
+                ary->openString(expr->evaluate().getString());
                 shared_ptr<Array> materializedInput(new MemArray(input,query,false));
                 return materializedInput;
             }
@@ -93,7 +97,7 @@ public:
 private:
     bool _asArrayLiteral;
 };
-    
+
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalBuild, "build", "physicalBuild")
 
 }  // namespace scidb

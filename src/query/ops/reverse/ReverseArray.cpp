@@ -28,12 +28,13 @@
  * @author Konstantin Knizhnik <knizhnik@garret.ru>
  */
 
+#include <system/Exceptions.h>
 #include "ReverseArray.h"
-#include "system/Exceptions.h"
+
+using namespace boost;
 
 namespace scidb
 {
-    using namespace boost;
     
     //
     // Reverse chunk methods
@@ -69,8 +70,8 @@ namespace scidb
         Dimensions const& dims = array.dims;
         for (size_t i = 0, nDims = dims.size(); i < nDims; i++) { 
             firstPosWithOverlap[i] = firstPos[i] - dims[i].getChunkOverlap();
-            if (firstPosWithOverlap[i] < dims[i].getStart()) {
-                firstPosWithOverlap[i] = dims[i].getStart();
+            if (firstPosWithOverlap[i] < dims[i].getStartMin()) {
+                firstPosWithOverlap[i] = dims[i].getStartMin();
             }
             lastPos[i] = firstPos[i] + dims[i].getChunkInterval() - 1;
             if (lastPos[i] > dims[i].getEndMax()) { 
@@ -239,7 +240,7 @@ namespace scidb
         while (true) { 
             size_t i = outPos.size()-1;
             while ((outPos[i] += dims[i].getChunkInterval()) > dims[i].getEndMax()) { 
-                outPos[i] = dims[i].getStart();
+                outPos[i] = dims[i].getStartMin();
                 if (i-- == 0) { 
                     return false;
                 }
@@ -272,7 +273,7 @@ namespace scidb
 	void ReverseArrayIterator::reset()
 	{
 		for (size_t i = 0, n = outPos.size(); i < n; i++) {
-            outPos[i] = array.dims[i].getStart();
+            outPos[i] = array.dims[i].getStartMin();
         }
         outPos[outPos.size()-1] -= array.dims[outPos.size()-1].getChunkInterval();
         hasCurrent = nextAvailable();
@@ -314,7 +315,7 @@ namespace scidb
     void ReverseArray::revert(Coordinates const& src, Coordinates& dst) const
     {
         for (size_t i = 0, n = src.size(); i < n; i++) { 
-            dst[i] = dims[i].getEndMax() - src[i] + dims[i].getStart();
+            dst[i] = dims[i].getEndMax() - src[i] + dims[i].getStartMin();
         }
     }
 }

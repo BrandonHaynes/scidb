@@ -92,7 +92,7 @@ void MPIPhysical::postSingleExecute(shared_ptr<Query> query)
     // to determine when the launch is complete without a sync point.
     // postSingleExecute() is run after all instances report success of their execute() phase,
     // that is effectively a sync point.
-    assert(query->getCoordinatorID() == COORDINATOR_INSTANCE);
+    assert(query->isCoordinator());
     assert(_mustLaunch);
     assert(_ctx);
     const uint64_t lastIdInUse = _ctx->getLastLaunchIdInUse();
@@ -139,7 +139,7 @@ bool MPIPhysical::launchMPISlaves(shared_ptr<Query>& query, const size_t maxSlav
         _ctx->setSlave(slave);
     }
 
-    _mustLaunch = (query->getCoordinatorID() == COORDINATOR_INSTANCE);
+    _mustLaunch = query->isCoordinator();
     if (_mustLaunch) {
 
         boost::shared_ptr<MpiLauncher> oldLauncher = _ctx->getLauncher(lastIdInUse);
@@ -212,7 +212,7 @@ std::vector<MPIPhysical::SMIptr_t> MPIPhysical::allocateMPISharedMemory(size_t n
     }
 
     std::vector<SMIptr_t> shmIpc(numBufs);
-    bool preallocate = Config::getInstance()->getOption<bool>(CONFIG_PREALLOCATE_SHM);
+    bool preallocate = Config::getInstance()->getOption<bool>(CONFIG_PREALLOCATE_SHARED_MEM);
     for(size_t ii=0; ii<numBufs; ii++) {
         std::stringstream suffix;
         suffix << "." << ii ;
@@ -220,8 +220,14 @@ std::vector<MPIPhysical::SMIptr_t> MPIPhysical::allocateMPISharedMemory(size_t n
         LOG4CXX_TRACE(logger, "IPC name = " << ipcNameFull);
         shmIpc[ii] = SMIptr_t(mpi::newSharedMemoryIpc(ipcNameFull, preallocate)); // can I get 'em off ctx instead?
         _ctx->addSharedMemoryIpc(_launchId, shmIpc[ii]);
-
-        char* ptr = MpiLauncher::initIpcForWrite(shmIpc[ii].get(), (elemSizes[ii] * numElems[ii]));
+        // to include a 1000 * (2^31/1000+1) test case
+        ssize_t elemBytes = elemSizes[ii] * numElems[ii];
+        LOG4CXX_DEBUG(logger, "MPIPhysical::allocateMPISharedMemory():"
+                               << " elemSizes["<<ii<<"]= " << elemSizes[ii]
+                               << ", numElems["<<ii<<"]= " << numElems[ii]
+                               << ", elemBytes= " << elemBytes );
+        ASSERT_EXCEPTION(elemBytes >= 0, "bad elemBytes");
+        char* ptr = MpiLauncher::initIpcForWrite(shmIpc[ii].get(), elemBytes);
         assert(ptr); ptr=ptr;
     }
     return shmIpc;

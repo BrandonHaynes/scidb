@@ -98,7 +98,7 @@ public:
         std::vector<FunctionPointer> convs;
         FunctionDescription func;
         CPPUNIT_ASSERT(FunctionLibrary::getInstance()->findFunction("is_null", boost::assign::list_of(TID_INT32), func, convs, true));
-        Value inTile(TypeLibrary::getType(TID_INT32), true);
+        Value inTile(TypeLibrary::getType(TID_INT32), Value::asTile);
         RLEPayload::Segment inSeg;
         inSeg._pPosition = 0;
         inSeg._same = true;
@@ -112,7 +112,7 @@ public:
         inTile.getTile()->flush(64);
         int32_t* p = (int32_t*)inTile.getTile()->getRawValue(0);
         *p = 10;
-        Value resTile(TypeLibrary::getType(TID_BOOL), true);
+        Value resTile(TypeLibrary::getType(TID_BOOL), Value::asTile);
         const Value* v = &inTile;
         func.getFuncPtr()(&v, &resTile, NULL);
         // Checking
@@ -165,7 +165,7 @@ public:
         std::vector<FunctionPointer> convs;
         FunctionDescription func;
         FunctionLibrary::getInstance()->findFunction("-", boost::assign::list_of(TID_INT32), func, convs, true);
-        Value inTile(TypeLibrary::getType(TID_INT32), true);
+        Value inTile(TypeLibrary::getType(TID_INT32), Value::asTile);
         RLEPayload::Segment inSeg;
         inSeg._pPosition = 0;
         inSeg._same = false;
@@ -176,7 +176,7 @@ public:
         int32_t* p = (int32_t*)inTile.getTile()->getRawValue(0);
         for (int i = 0; i < 32; i++)
             *p++ = i;
-        Value resTile(TypeLibrary::getType(TID_INT32), true);
+        Value resTile(TypeLibrary::getType(TID_INT32), Value::asTile);
         const Value* v = &inTile;
         func.getFuncPtr()(&v, &resTile, NULL);
         // Checking
@@ -192,7 +192,7 @@ public:
         std::vector<FunctionPointer> convs;
         FunctionDescription func;
         FunctionLibrary::getInstance()->findFunction("-", boost::assign::list_of(TID_INT32), func, convs, true);
-        Value inTile(TypeLibrary::getType(TID_INT32), true);
+        Value inTile(TypeLibrary::getType(TID_INT32), Value::asTile);
         RLEPayload::Segment inSeg;
         inSeg._pPosition = 0;
         inSeg._same = true;
@@ -202,7 +202,7 @@ public:
         inTile.getTile()->flush(32);
         int32_t* p = (int32_t*)inTile.getTile()->getRawValue(0);
         *p = 10;
-        Value resTile(TypeLibrary::getType(TID_INT32), true);
+        Value resTile(TypeLibrary::getType(TID_INT32), Value::asTile);
         const Value* v = &inTile;
         func.getFuncPtr()(&v, &resTile, NULL);
         // Checking
@@ -216,7 +216,7 @@ public:
         std::vector<FunctionPointer> convs;
         FunctionDescription func;
         FunctionLibrary::getInstance()->findFunction("+", boost::assign::list_of(TID_INT32)(TID_INT32), func, convs, true);
-        Value inTile[2] = {Value(TypeLibrary::getType(TID_INT32), true), Value(TypeLibrary::getType(TID_INT32), true)};
+        Value inTile[2] = {Value(TypeLibrary::getType(TID_INT32), Value::asTile), Value(TypeLibrary::getType(TID_INT32), Value::asTile)};
         RLEPayload::Segment inSeg;
         inSeg._pPosition = 0;
         inSeg._same = false;
@@ -237,7 +237,7 @@ public:
             *p1++ = -i;
         }
 
-        Value resTile(TypeLibrary::getType(TID_INT32), true);
+        Value resTile(TypeLibrary::getType(TID_INT32), Value::asTile);
         const Value* v[2] = {&inTile[0], &inTile[1]};
         func.getFuncPtr()(v, &resTile, NULL);
 
@@ -255,7 +255,7 @@ public:
         FunctionDescription func;
         FunctionLibrary::getInstance()->findFunction("and", boost::assign::list_of(TID_BOOL)(TID_BOOL), func, convs, true);
         CPPUNIT_ASSERT(func.getFuncPtr());
-        Value inTile[2] = {Value(TypeLibrary::getType(TID_BOOL), true), Value(TypeLibrary::getType(TID_BOOL), true)};
+        Value inTile[2] = {Value(TypeLibrary::getType(TID_BOOL), Value::asTile), Value(TypeLibrary::getType(TID_BOOL), Value::asTile)};
         RLEPayload::Segment inSeg;
         inSeg._pPosition = 0;
         inSeg._same = false;
@@ -274,7 +274,7 @@ public:
         *p0 = 0xF0F0F0F0;
         *p1 = 0x0F0F0F0F;
 
-        Value resTile(TypeLibrary::getType(TID_BOOL), true);
+        Value resTile(TypeLibrary::getType(TID_BOOL), Value::asTile);
         const Value* v[2] = {&inTile[0], &inTile[1]};
         func.getFuncPtr()(v, &resTile, NULL);
 
@@ -289,7 +289,7 @@ public:
         std::vector<FunctionPointer> convs;
         FunctionDescription func;
         FunctionLibrary::getInstance()->findFunction("+", boost::assign::list_of(TID_INT32)(TID_INT32), func, convs, true);
-        Value inTile[2] = {Value(TypeLibrary::getType(TID_INT32), true), Value(TypeLibrary::getType(TID_INT32), true)};
+        Value inTile[2] = {Value(TypeLibrary::getType(TID_INT32), Value::asTile), Value(TypeLibrary::getType(TID_INT32), Value::asTile)};
         RLEPayload::Segment inSeg;
         inSeg._pPosition = 0;
         inSeg._same = true;
@@ -308,7 +308,7 @@ public:
         *p0 = 10;
         *p1 = -10;
 
-        Value resTile(TypeLibrary::getType(TID_INT32), true);
+        Value resTile(TypeLibrary::getType(TID_INT32), Value::asTile);
         const Value* v[2] = {&inTile[0], &inTile[1]};
         func.getFuncPtr()(v, &resTile, NULL);
 
@@ -328,7 +328,7 @@ public:
         std::vector<FunctionPointer> convs;
         FunctionDescription func;
         FunctionLibrary::getInstance()->findFunction("+", boost::assign::list_of(TID_INT32)(TID_INT32), func, convs, true);
-        Value inTile[2] = {Value(TypeLibrary::getType(TID_INT32), true), Value(TypeLibrary::getType(TID_INT32), true)};
+        Value inTile[2] = {Value(TypeLibrary::getType(TID_INT32), Value::asTile), Value(TypeLibrary::getType(TID_INT32), Value::asTile)};
         RLEPayload::Segment inSeg;
 
         // Adding 10 same values into tile 0
@@ -373,7 +373,7 @@ public:
 
         inTile[1].getTile()->flush(40);
 
-        Value resTile(TypeLibrary::getType(TID_INT32), true);
+        Value resTile(TypeLibrary::getType(TID_INT32), Value::asTile);
         const Value* v[2] = {&inTile[0], &inTile[1]};
         func.getFuncPtr()(v, &resTile, NULL);
 

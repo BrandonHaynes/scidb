@@ -21,9 +21,9 @@
 */
 #include "FITSInputArray.h"
 
-#include "log4cxx/logger.h"
-#include "log4cxx/basicconfigurator.h"
-#include "log4cxx/helpers/exception.h"
+#include <log4cxx/logger.h>
+#include <log4cxx/basicconfigurator.h>
+#include <log4cxx/helpers/exception.h>
 
 /*
  * @author miguel@spacebase.org
@@ -201,7 +201,7 @@ void FITSInputArray::initChunkPos()
     chunkIndex = 1;
 
     for (size_t i = 0; i < nDims; i++) {
-        chunkPos[i] = dims[i].getStart();
+        chunkPos[i] = dims[i].getStartMin();
     }
 }
 
@@ -219,7 +219,7 @@ bool FITSInputArray::advanceChunkPos()
         if (chunkPos[i] <= dims[i].getEndMax()) {
             return true;
         } else {
-            chunkPos[i] = dims[i].getStart();
+            chunkPos[i] = dims[i].getStartMin();
             if (i == 0) {
                 return false;
             }
@@ -258,7 +258,7 @@ void FITSInputArray::readChunk()
         int cell = 0;
         int k = 1;
         for (int j = nDims - 1; j >= 0; j--) {
-            cell += k * (pos[j] + chunkPos[j] - dims[j].getStart());
+            cell += k * (pos[j] + chunkPos[j] - dims[j].getStartMin());
             k *= dims[j].getLength();
         }
         parser.moveToCell(cell);
@@ -309,8 +309,12 @@ void FITSInputArray::initMemChunks(boost::shared_ptr<Query>& query)
         Address addr(i, chunkPos);
 
         MemChunk& chunk = chunks[i].chunks[chunkIndex % kWindowSize];
-        chunk.initialize(this, &desc, addr, desc.getAttributes()[i].getDefaultCompressionMethod());
-        chunkIterators[i] = chunk.getIterator(query, ChunkIterator::NO_EMPTY_CHECK | ChunkIterator::IGNORE_OVERLAPS);
+        chunk.initialize(this, &desc,
+                         addr, desc.getAttributes()[i].getDefaultCompressionMethod());
+        chunkIterators[i] =
+            chunk.getIterator(query,
+                              ChunkIterator::NO_EMPTY_CHECK |
+                              ChunkIterator::IGNORE_OVERLAPS);
     }
 }
 

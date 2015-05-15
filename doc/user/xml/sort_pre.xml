@@ -100,8 +100,8 @@
 
 --afl create array event_index&lt;event:string&gt;[event_id=0:*,5,0]; --show-query=no --show-output=no
 --afl store(uniq(sort(project(winnersFlat,event)),'chunk_size=5'),event_index); --show-query=no --show-output=no
---afl create_array(champions,&lt;person:string,country:string,time:double&gt; 
-   [year=1996:2008,13,0,event_id=0:3,3,0]); --show-query=no --show-output=no
+--afl create_array(champions,&lt;person:string,country:string,time:double&gt;
+   [year=1996:2008,13,0,event_id=0:3,3,0],false); --show-query=no --show-output=no
 --afl store(redimension
        (project(index_lookup(winnersFlat,event_index, winnersFlat.event, event_id),person,year,country,time,event_id)
        ,champions),champions); --show-query=no --show-output=no</programlisting><programlisting

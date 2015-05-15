@@ -78,6 +78,7 @@ NetworkManager::NetworkManager():
         _repMessageCount(0),
         _maxRepSendQSize(Config::getInstance()->getOption<int>(CONFIG_REPLICATION_SEND_QUEUE_SIZE)),
         _maxRepReceiveQSize(Config::getInstance()->getOption<int>(CONFIG_REPLICATION_RECEIVE_QUEUE_SIZE)),
+        _memUsage(0),
         _msgHandlerFactory(new DefaultNetworkMessageFactory)
 {
     // Note: that _acceptor is 'fully opened', i.e. bind()'d, listen()'d and polled as needed
@@ -111,16 +112,16 @@ void NetworkManager::run(shared_ptr<JobQueue> jobQueue)
         LOG4CXX_WARN(logger, "NetworkManager::run(): Starting to listen on an arbitrary port! (--port=0)");
     }
     boost::asio::ip::tcp::endpoint endPoint = _acceptor.local_endpoint();
-    const string address = cfg->getOption<string>(CONFIG_ADDRESS);
+    const string address = cfg->getOption<string>(CONFIG_INTERFACE);
     const unsigned short port = endPoint.port();
 
     const bool registerInstance = cfg->getOption<bool>(CONFIG_REGISTER);
 
     SystemCatalog* catalog = SystemCatalog::getInstance();
-    const string& storageConfigPath = cfg->getOption<string>(CONFIG_STORAGE_URL);
+    const string& storageConfigPath = cfg->getOption<string>(CONFIG_STORAGE);
 
     StorageManager::getInstance().open(storageConfigPath,
-                                       cfg->getOption<int>(CONFIG_CACHE_SIZE)*MiB);
+                                       cfg->getOption<int>(CONFIG_SMGR_CACHE_SIZE)*MiB);
     _selfInstanceID = StorageManager::getInstance().getInstanceId();
 
     if (registerInstance) {
@@ -147,8 +148,8 @@ void NetworkManager::run(shared_ptr<JobQueue> jobQueue)
     _jobQueue = jobQueue;
 
     // make sure we have at least one thread in the client request queue
-    const uint32_t nJobs = std::max(cfg->getOption<int>(CONFIG_MAX_JOBS),2);
-    const uint32_t nRequests = std::max(cfg->getOption<int>(CONFIG_MAX_REQUESTS),1);
+    const uint32_t nJobs = std::max(cfg->getOption<int>(CONFIG_EXECUTION_THREADS),2);
+    const uint32_t nRequests = std::max(cfg->getOption<int>(CONFIG_REQUESTS),1);
 
     _requestQueue = make_shared<WorkQueue>(jobQueue, nJobs-1, nRequests);
     _workQueue = make_shared<WorkQueue>(jobQueue, nJobs-1);
@@ -320,7 +321,7 @@ void NetworkManager::handleMessage(shared_ptr< Connection > connection, const sh
           && instanceId < _instances->size())
        {
           shared_ptr<MessageDesc> errorMessage = makeErrorMessageFromException(e, queryId);
-          _sendMessage(instanceId, errorMessage);
+          _sendPhysical(instanceId, errorMessage);
           LOG4CXX_DEBUG(logger, "Error returned to sender")
        }
    }
@@ -440,12 +441,18 @@ uint64_t NetworkManager::_getAvailable(MessageQueueType mqt)
 void NetworkManager::registerMessage(const shared_ptr<MessageDesc>& messageDesc,
                                      MessageQueueType mqt)
 {
+    ScopedMutexLock mutexLock(_mutex);
+
+    _memUsage += messageDesc->getMessageSize();
+
+    LOG4CXX_TRACE(logger, "NetworkManager::registerMessage _memUsage=" << _memUsage);
+
     // mqtRplication is the only supported type for now
     if (mqt != mqtReplication) {
         assert(mqt == mqtNone);
         return;
     }
-    ScopedMutexLock mutexLock(_mutex);
+
     ++_repMessageCount;
 
     LOG4CXX_TRACE(logger, "Registered message " << _repMessageCount << " for queue "<<mqt);
@@ -456,12 +463,20 @@ void NetworkManager::registerMessage(const shared_ptr<MessageDesc>& messageDesc,
 void NetworkManager::unregisterMessage(const shared_ptr<MessageDesc>& messageDesc,
                                        MessageQueueType mqt)
 {
+    ScopedMutexLock mutexLock(_mutex);
+
+    assert(_memUsage>= messageDesc->getMessageSize());
+
+    _memUsage -= messageDesc->getMessageSize();
+
+    LOG4CXX_TRACE(logger, "NetworkManager::unregisterMessage _memUsage=" << _memUsage);
+
     // mqtRplication is the only supported type for now
     if (mqt != mqtReplication) {
         assert(mqt == mqtNone);
         return;
     }
-    ScopedMutexLock mutexLock(_mutex);
+
     --_repMessageCount;
     LOG4CXX_TRACE(logger, "Unregistered message " << _repMessageCount+1 << " for queue "<<mqt);
 
@@ -521,7 +536,7 @@ void NetworkManager::dispatchMessageToListener(const shared_ptr<Connection>& con
 }
 
 void
-NetworkManager::_sendMessage(InstanceID targetInstanceID,
+NetworkManager::_sendPhysical(InstanceID targetInstanceID,
                              shared_ptr<MessageDesc>& messageDesc,
                              MessageQueueType mqt)
 {
@@ -551,39 +566,39 @@ NetworkManager::_sendMessage(InstanceID targetInstanceID,
 }
 
 void
-NetworkManager::sendMessage(InstanceID targetInstanceID,
+NetworkManager::sendPhysical(InstanceID targetInstanceID,
                             shared_ptr<MessageDesc>& messageDesc,
                             MessageQueueType mqt)
 {
     getInstances(false);
-    _sendMessage(targetInstanceID, messageDesc, mqt);
+    _sendPhysical(targetInstanceID, messageDesc, mqt);
 }
 
-void NetworkManager::broadcast(shared_ptr<MessageDesc>& messageDesc)
+void NetworkManager::broadcastPhysical(shared_ptr<MessageDesc>& messageDesc)
 {
    ScopedMutexLock mutexLock(_mutex);
    getInstances(false);
-   _broadcast(messageDesc);
+   _broadcastPhysical(messageDesc);
 }
 
-void NetworkManager::_broadcast(shared_ptr<MessageDesc>& messageDesc)
+void NetworkManager::_broadcastPhysical(shared_ptr<MessageDesc>& messageDesc)
 {
    for (Instances::const_iterator i = _instances->begin();
         i != _instances->end(); ++i) {
       InstanceID targetInstanceID = i->getInstanceId();
       if (targetInstanceID != _selfInstanceID) {
-        _sendMessage(targetInstanceID, messageDesc);
+        _sendPhysical(targetInstanceID, messageDesc);
       }
    }
 }
 
-void NetworkManager::sendOutMessage(shared_ptr<MessageDesc>& messageDesc)
+void NetworkManager::broadcastLogical(shared_ptr<MessageDesc>& messageDesc)
 {
     if (!messageDesc->getQueryID()) {
         throw USER_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_MESSAGE_MISSED_QUERY_ID);
     }
    shared_ptr<Query> query = Query::getQueryByID(messageDesc->getQueryID());
-   size_t instancesCount = query->getInstancesCount();
+   const size_t instancesCount = query->getInstancesCount();
    InstanceID myInstanceID   = query->getInstanceID();
    assert(instancesCount>0);
    {
@@ -624,6 +639,24 @@ size_t NetworkManager::getPhysicalInstances(std::vector<InstanceID>& instances)
 }
 
 void
+NetworkManager::sendLocal(const shared_ptr<Query>& query,
+                          shared_ptr<MessageDesc>& messageDesc)
+{
+    const InstanceID physicalId = query->mapLogicalToPhysical(query->getInstanceID());
+    messageDesc->setSourceInstanceID(physicalId);
+    shared_ptr<MessageHandleJob> job = boost::make_shared<ServerMessageHandleJob>(messageDesc);
+    shared_ptr<WorkQueue> rq = getRequestQueue();
+    shared_ptr<WorkQueue> wq = getWorkQueue();
+    try {
+        job->dispatch(rq, wq);
+    } catch (const WorkQueue::OverflowException& e) {
+        LOG4CXX_ERROR(logger, "Overflow exception from the work queue: "<<e.what());
+        assert(false);
+        throw NetworkManager::OverflowException(NetworkManager::mqtNone, REL_FILE, __FUNCTION__, __LINE__);
+    }
+}
+
+void
 NetworkManager::send(InstanceID targetInstanceID,
                      shared_ptr<MessageDesc>& msg)
 {
@@ -633,18 +666,18 @@ NetworkManager::send(InstanceID targetInstanceID,
    }
    shared_ptr<Query> query = Query::getQueryByID(msg->getQueryID());
    InstanceID target = query->mapLogicalToPhysical(targetInstanceID);
-   sendMessage(target, msg);
+   sendPhysical(target, msg);
 }
 
-void NetworkManager::send(InstanceID targetInstanceID, shared_ptr<SharedBuffer> data, shared_ptr< Query> query)
+void NetworkManager::send(InstanceID targetInstanceID, shared_ptr<SharedBuffer> const& data, shared_ptr< Query> & query)
 {
     shared_ptr<MessageDesc> msg = make_shared<MessageDesc>(mtBufferSend, data);
     msg->setQueryID(query->getQueryID());
     InstanceID target = query->mapLogicalToPhysical(targetInstanceID);
-    sendMessage(target, msg);
+    sendPhysical(target, msg);
 }
 
-shared_ptr<SharedBuffer> NetworkManager::receive(InstanceID sourceInstanceID, shared_ptr< Query> query)
+shared_ptr<SharedBuffer> NetworkManager::receive(InstanceID sourceInstanceID, shared_ptr< Query> & query)
 {
     Semaphore::ErrorChecker ec = bind(&Query::validate, query);
     query->_receiveSemaphores[sourceInstanceID].enter(ec);
@@ -774,7 +807,7 @@ void NetworkManager::_handleAlive(const boost::system::error_code& error)
        return;
     }
 
-    _broadcast(messageDesc);
+    _broadcastPhysical(messageDesc);
 
     _aliveTimer.expires_from_now(posix_time::seconds(_aliveTimeout));
     _aliveTimer.async_wait(NetworkManager::handleAlive);
@@ -853,27 +886,34 @@ void NetworkManager::handleConnectionError(const QueryID& queryID)
    query->handleError(SYSTEM_EXCEPTION_SPTR(SCIDB_SE_NETWORK, SCIDB_LE_CONNECTION_ERROR2));
 }
 
-void Send(void* ctx, int instance, void const* data, size_t size)
+void Send(void* ctx, InstanceID instance, void const* data, size_t size)
 {
-    NetworkManager::getInstance()->send(instance, shared_ptr< SharedBuffer>(new MemoryBuffer(data, size)), *(shared_ptr< Query>*)ctx);
+    NetworkManager::getInstance()->send(instance, shared_ptr< SharedBuffer>(new MemoryBuffer(data, size)), *(shared_ptr<Query>*)ctx);
 }
 
 
-void Receive(void* ctx, int instance, void* data, size_t size)
+void Receive(void* ctx, InstanceID instance, void* data, size_t size)
 {
-    shared_ptr< SharedBuffer> buf =  NetworkManager::getInstance()->receive(instance, *(shared_ptr< Query>*)ctx);
+    shared_ptr< SharedBuffer> buf =  NetworkManager::getInstance()->receive(instance, *(shared_ptr<Query>*)ctx);
     assert(buf->getSize() == size);
     memcpy(data, buf->getData(), buf->getSize());
 }
 
-void BufSend(InstanceID target, shared_ptr<SharedBuffer> data, shared_ptr< Query> query)
+void BufSend(InstanceID target, shared_ptr<SharedBuffer> const& data, shared_ptr<Query>& query)
 {
-    NetworkManager::getInstance()->send(target,data,query);
+    NetworkManager::getInstance()->send(target, data, query);
 }
 
-shared_ptr<SharedBuffer> BufReceive(InstanceID source, shared_ptr< Query> query)
+shared_ptr<SharedBuffer> BufReceive(InstanceID source, shared_ptr<Query>& query)
 {
     return NetworkManager::getInstance()->receive(source,query);
+}
+
+void BufBroadcast(shared_ptr<SharedBuffer> const& data, shared_ptr<Query>& query)
+{
+    shared_ptr<MessageDesc> msg = make_shared<MessageDesc>(mtBufferSend, data);
+    msg->setQueryID(query->getQueryID());
+    NetworkManager::getInstance()->broadcastLogical(msg);
 }
 
 bool
@@ -975,20 +1015,20 @@ shared_ptr<MessageDesc> prepareMessage(MessageID msgID,
 /**
  * @see Network.h
  */
-void sendAsync(InstanceID targetInstanceID,
+void sendAsyncPhysical(InstanceID targetInstanceID,
                MessageID msgID,
                MessagePtr record,
                boost::asio::const_buffer& binary)
 {
    shared_ptr<MessageDesc> msgDesc = prepareMessage(msgID,record,binary);
    assert(msgDesc);
-   NetworkManager::getInstance()->sendMessage(targetInstanceID, msgDesc);
+   NetworkManager::getInstance()->sendPhysical(targetInstanceID, msgDesc);
 }
 
 /**
  * @see Network.h
  */
-void sendAsync(ClientContext::Ptr& clientCtx,
+void sendAsyncClient(ClientContext::Ptr& clientCtx,
                MessageID msgID,
                MessagePtr record,
                boost::asio::const_buffer& binary)

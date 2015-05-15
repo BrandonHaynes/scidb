@@ -7,7 +7,7 @@ create array mutable <a:int64>[x=0:29,5,0]
 
 --test
 
-store (subarray(unbounded,null,null), mutable)
+store (subarray(scan(unbounded,true),null,null), mutable)
 
 scan(unbounded)  
 scan(mutable)

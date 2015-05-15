@@ -1,0 +1,26 @@
+# Test automatic repartitioning of join() inputs.
+
+# Differing chunk sizes.
+
+--setup
+
+create array aa <v1:int64> [x=0:5,10,0,y=0:5,20,0]
+create array bb <v2:int64> [x=0:5,100,0,y=0:5,10,0]
+
+--start-igdata
+store(build(aa, x+y), aa)
+store(build(bb, x-y), bb)
+store(between(bb, 3, 3, 5, 5), bb)
+--stop-igdata
+
+--test
+
+--start-query-logging
+join(aa, bb)
+join(bb, aa)
+--stop-query-logging
+
+--cleanup
+
+remove(aa)
+remove(bb)

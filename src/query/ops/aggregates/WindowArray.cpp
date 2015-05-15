@@ -152,11 +152,7 @@ namespace scidb
                 }
             }
 
-            if(state.getMissingReason()==0)
-            {
-                _aggregate->initializeState(state);
-            }
-            _aggregate->accumulate(state, windowIteratorCurr->second);
+            _aggregate->accumulateIfNeeded(state, windowIteratorCurr->second);
             windowIteratorCurr++;
 
             nextIter:;
@@ -293,12 +289,7 @@ namespace scidb
         int iterMode = IGNORE_EMPTY_CELLS;
         if (_aggregate->ignoreNulls())
         {
-            _noNullsCheck = true;
             iterMode |= IGNORE_NULL_VALUES;
-        }
-        else
-        {
-            _noNullsCheck = false;
         }
 
         if ( _aggregate->ignoreZeroes() && attributeDefaultIsSameAsTypeDefault() )
@@ -326,8 +317,11 @@ namespace scidb
     /**
      *   Private function used to determine whether the input attribute's default is the type's default
      */
-    bool WindowChunkIterator::attributeDefaultIsSameAsTypeDefault() const {
-        return _array._inputArray->getArrayDesc().getAttributes()[_array._inputAttrIDs[_attrID]].getDefaultValue().isDefault(_array._inputArray->getArrayDesc().getAttributes()[_array._inputAttrIDs[_attrID]].getType());
+    bool WindowChunkIterator::attributeDefaultIsSameAsTypeDefault() const
+    {
+        const AttributeDesc& a = _array._inputArray->getArrayDesc().getAttributes()[_array._inputAttrIDs[_attrID]];
+
+        return isDefaultFor(a.getDefaultValue(),a.getType());
     }
 
     /**
@@ -374,24 +368,7 @@ namespace scidb
             if (_inputIterator->setPosition(currGridPos))
             {
                 Value& v = _inputIterator->getItem();
-
-                if (_noNullsCheck)
-                {
-                    if (v.isNull())
-                    {
-                        continue;
-                    }
-#if 0 // K&K: IGNORE_NULL_VALUE is not supported any more
-                    SYSTEM_CHECK(SCIDB_E_INTERNAL_ERROR,
-                                  v.isNull() == false,
-                                  "Aggregate has requested no nulls, but iterator emits nulls anyway. Please fix the operator that is input to the aggregate!");
-#endif
-                }
-                if (state.getMissingReason()==0)
-                {
-                    _aggregate->initializeState(state);
-                }
-                _aggregate->accumulate(state, v);
+                _aggregate->accumulateIfNeeded(state, v);
             }
         }
     }
@@ -609,15 +586,6 @@ namespace scidb
     }
 
     /**
-     * @see ConstChunk::isSparse()
-     */
-    bool WindowChunk::isSparse() const
-    {
-        SCIDB_ASSERT((NULL != _arrayIterator));
-        return _arrayIterator->iterator->getChunk().isSparse();
-    }
-
-    /**
      * @see ConstChunk::getCompressionMethod()
      */
     int WindowChunk::getCompressionMethod() const
@@ -651,7 +619,7 @@ namespace scidb
     inline bool WindowChunk::valueIsNeededForAggregate ( const Value & val, const ConstChunk & inputChunk ) const
     {
         return (!((val.isNull() && _aggregate->ignoreNulls()) ||
-                  (val.isDefault(inputChunk.getAttributeDesc().getType()) && _aggregate->ignoreZeroes())));
+                  (isDefaultFor(val,inputChunk.getAttributeDesc().getType()) && _aggregate->ignoreZeroes())));
     }
 
     /**
@@ -841,13 +809,13 @@ namespace scidb
                 if ( materializedChunkSize <= maxMaterializedChunkSize )
                 {
                     materialize();
-                } else { 
+                } else {
 
 				    LOG4CXX_TRACE ( windowLogger,
-                                    "WindowChunk::setPosition(..) - NOT MATERIALIZING \n" 
+                                    "WindowChunk::setPosition(..) - NOT MATERIALIZING \n"
                                     << "\t materializedChunkSize = " << materializedChunkSize
-                                    << " as inputChunk.count() = " << inputChunk.count() << " and varSize = " << varSize 
-                                    << " and maxMaterializedChunkSize = " << maxMaterializedChunkSize 
+                                    << " as inputChunk.count() = " << inputChunk.count() << " and varSize = " << varSize
+                                    << " and maxMaterializedChunkSize = " << maxMaterializedChunkSize
 				                  );
 				    LOG4CXX_TRACE ( windowLogger, "\t NOT MATERIALIZING ");
                 }
@@ -910,8 +878,7 @@ namespace scidb
         {
             return hasCurrent = false;
         }
-
-        currPos = pos;
+        currPos = iterator->getPosition();
         return hasCurrent = true;
     }
 
@@ -936,6 +903,7 @@ namespace scidb
     {
         if (!chunkInitialized)
         {
+            assert(iterator->getPosition() == currPos);
             chunk.setPosition(this, currPos);
             chunkInitialized = true;
         }

@@ -32,13 +32,15 @@
 #ifndef ARRAY_H_
 #define ARRAY_H_
 
+#include <set>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/noncopyable.hpp>
+#include <util/CoordinatesMapper.h>
 #include <array/Metadata.h>
+#include <array/TileInterface.h>
 #include <query/TypeSystem.h>
 #include <query/Statistics.h>
-#include <array/TileInterface.h>
 
 namespace scidb
 {
@@ -48,7 +50,8 @@ class Query;
 class Chunk;
 class ConstArrayIterator;
 class ConstRLEEmptyBitmap;
-class CoordinatesMapper;
+
+typedef std::set<Coordinates, CoordinatesLess> CoordinateSet;
 
 /** \brief SharedBuffer is an abstract class for binary data holding
  *
@@ -58,12 +61,18 @@ class CoordinatesMapper;
 class SharedBuffer
 {
 public:
-   virtual ~SharedBuffer() { }
+    virtual ~SharedBuffer() { }
     /**
-     * @return constant pointer to binary buffer. You can only read this data.
+     * @return pointer to binary buffer.
      * Note, data is available only during object is live.
      */
-   virtual void* getData() const = 0;
+    virtual void* getData() const = 0;
+
+    /**
+     * @retrun a const pointer to binary buffer.  you may only read this data
+     * Note, data is available only during object is live.
+     */
+    virtual void const* getConstData() const { return getData(); }
 
     /**
      * @return size of buffer in bytes
@@ -170,7 +179,6 @@ class CompressedBuffer : public SharedBuffer
     size_t decompressedSize;
     void*  data;
     int    compressionMethod;
-    int    accessCount;
   public:
     virtual void* getData() const;
     virtual size_t getSize() const;
@@ -271,9 +279,9 @@ class ConstChunkIterator : public ConstIterator
          */
         NO_EMPTY_CHECK = 8,
         /**
-         * Flag used write iterator to initialize sparse chunk
+         * When writing append empty bitmap to payload
          */
-        SPARSE_CHUNK = 16,
+        APPEND_EMPTY_BITMAP = 16,
         /**
          * Append to the existed chunk
          */
@@ -283,9 +291,9 @@ class ConstChunkIterator : public ConstIterator
          */
         IGNORE_DEFAULT_VALUES = 64,
         /**
-         * Vector mode
+         * Unused mode
          */
-        VECTOR_MODE = 128,
+        UNUSED_VECTOR_MODE = 128,
         /**
          * Tile mode
          */
@@ -304,17 +312,6 @@ class ConstChunkIterator : public ConstIterator
      * Get current iteration mode
      */
     virtual int getMode() = 0;
-
-    /**
-     * Checks if iterator supports vector iteration mode
-     */
-    virtual bool supportsVectorMode() const;
-
-    /**
-     * Enable vector mode
-     * @param enabled true to enable vector mode, false - for scalar mode
-     */
-    virtual void setVectorMode(bool enabled);
 
     /**
      * Get current element value
@@ -497,28 +494,7 @@ class ConstChunkIterator : public ConstIterator
  */
 class ChunkIterator : public ConstChunkIterator
 {
-protected:
-    /**
-     * Exception-safety control flag. This is checked by the
-     * RLEChunkIterator, MemChunkIterator and SparseChunkIterator during destruction.
-     * It is used to make sure unPin() is called upon destruction, unless flush() already executed.
-     *
-     * It would be ideal to place the whole machinery into the superclass. However it's not
-     * possible because it's unsafe call subclass methods from the superclass destructor
-     *
-     * Ergo, if you override the flush method, you need to pay careful attention to this flag.
-     *
-     * However the situation will improve because soon we WILL get rid of MemChunkIterator and
-     * SparseChunkIterator. Then, RLEChunkIterator will be the only class that needs an auto-flush
-     * mechanism and all will be contained in that class.
-     * --AP 9.4.2012
-     */
-    bool _needsFlush;
-
 public:
-    ChunkIterator(): _needsFlush(true)
-    {}
-
     /**
      * Update the current element value
      */
@@ -549,36 +525,12 @@ class ConstChunk : public SharedBuffer
 {
   public:
     /**
-     * Check if this chunk may participate in a merge simply by bitwise or.
-     * Possible if: not sparse, not RLE, attr not nullable, type not variable size,
-     * and default value is not null (equal to default value for this type).
-     */
-    virtual bool isPossibleToMergeByBitwiseOr() const {
-        if (isSparse() || isRLE()) {
-            return false;
-        }
-
-        AttributeDesc const& attr = getAttributeDesc();
-        if (attr.isNullable() || TypeLibrary::getType(attr.getType()).variableSize()) {
-            return false;
-        }
-
-        //check if attr.getDefaultValue() != null
-        return attr.getDefaultValue().isDefault(attr.getType());
-    }
-
-    /**
      * Check if this is MemChunk.
      */
     virtual bool isMemChunk() const
     {
         return false;
     }
-
-    /**
-     * Check if chunk contains plain data: non nullable, non-emptyable, non-sparse
-     */
-   virtual bool isPlain() const;
 
    virtual bool isReadOnly() const;
 
@@ -587,23 +539,7 @@ class ConstChunk : public SharedBuffer
     */
    virtual bool isMaterialized() const;
 
-   /**
-    * Get disk chunk containing data of this chunk
-    * @return a chunk if data of this chunk is stored on the disk, NULL otherwise
-    */
-   virtual ConstChunk const* getPersistentChunk() const;
-
    size_t getBitmapSize() const;
-
-   /**
-    * Check if chunk contains sparse data
-    */
-   virtual bool isSparse() const;
-
-   /**
-    * Check if chunk is in RLE encoding
-    */
-   virtual bool isRLE() const;
 
    /**
     * Get array descriptor
@@ -642,9 +578,6 @@ class ConstChunk : public SharedBuffer
 
    virtual Coordinates const& getFirstPosition(bool withOverlap) const = 0;
    virtual Coordinates const& getLastPosition(bool withOverlap) const = 0;
-
-   virtual Coordinates getHighBoundary(bool withOverlap) const;
-   virtual Coordinates getLowBoundary(bool withOverlap) const;
 
    bool contains(Coordinates const& pos, bool withOverlap) const;
 
@@ -731,33 +664,14 @@ public:
    /**
     * Allocate and memcpy from a raw byte array.
     */
-   virtual void allocateAndCopy(char const* input, size_t byteSize, bool isSparse, bool isRle, size_t count, boost::shared_ptr<Query>& query) {
+   virtual void allocateAndCopy(char const* input, size_t byteSize, size_t count,
+                                const boost::shared_ptr<Query>& query) {
        assert(getData()==NULL);
        assert(input!=NULL);
 
        allocate(byteSize);
-       setSparse(isSparse);
-       setRLE(isRle);
        setCount(count);
        memcpy(getDataForLoad(), input, byteSize);
-
-       write(query);
-   }
-
-   /**
-    * Merge by bitwise-or with a byte array.
-    */
-   virtual void mergeByBitwiseOr(char const* input, size_t byteSize, boost::shared_ptr<Query>& query) {
-       assert(isPossibleToMergeByBitwiseOr());
-
-       if (byteSize != getSize()) {
-           throw USER_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_CANT_MERGE_CHUNKS_WITH_VARYING_SIZE);
-       }
-       char* dst = static_cast<char*>(getDataForLoad());
-       assert(dst!=NULL);
-       assert(input!=NULL);
-
-       bitwiseOpAndAssign<WrapperForOr<uint64_t>, WrapperForOr<char> >(dst, input, byteSize);
 
        write(query);
    }
@@ -781,13 +695,6 @@ public:
    }
 
    /**
-    * Trigger sparse data indicator
-    */
-   virtual void setSparse(bool sparse);
-
-   virtual void setRLE(bool rle);
-
-   /**
     * Decompress chunk from the specified buffer.
     * @param buf buffer containing compressed data.
     */
@@ -796,7 +703,7 @@ public:
    virtual boost::shared_ptr<ChunkIterator> getIterator(boost::shared_ptr<Query> const& query,
                                                         int iterationMode = ChunkIterator::NO_EMPTY_CHECK) = 0;
 
-   virtual void merge(ConstChunk const& with, boost::shared_ptr<Query>& query);
+   virtual void merge(ConstChunk const& with, boost::shared_ptr<Query> const& query);
 
    /**
     * This function merges at the cell level. SLOW!
@@ -805,7 +712,7 @@ public:
     *
     * @note The caller should call merge(), instead of directly calling this.
     */
-   virtual void shallowMerge(ConstChunk const& with, boost::shared_ptr<Query>& query);
+   virtual void shallowMerge(ConstChunk const& with, boost::shared_ptr<Query> const& query);
 
    /**
     * This function tries to merge at the segment level. FAST!
@@ -819,7 +726,7 @@ public:
     * @pre The chunks must be MemChunks.
     * @pre The chunks must be in RLE format.
     */
-   virtual void deepMerge(ConstChunk const& with, boost::shared_ptr<Query>& query);
+   virtual void deepMerge(ConstChunk const& with, boost::shared_ptr<Query> const& query);
 
    /**
     * Perform a generic aggregate-merge of this with another chunk.
@@ -830,7 +737,7 @@ public:
     */
    virtual void aggregateMerge(ConstChunk const& with,
                                boost::shared_ptr<Aggregate> const& aggregate,
-                               boost::shared_ptr<Query>& query);
+                               boost::shared_ptr<Query> const& query);
 
    /**
     * Perform an aggregate-merge of this with another chunk.
@@ -843,9 +750,9 @@ public:
     */
    virtual void nonEmptyableAggregateMerge(ConstChunk const& with,
                                            boost::shared_ptr<Aggregate> const& aggregate,
-                                           boost::shared_ptr<Query>& query);
+                                           boost::shared_ptr<Query> const& query);
 
-   virtual void write(boost::shared_ptr<Query>& query) = 0;
+   virtual void write(const boost::shared_ptr<Query>& query) = 0;
    virtual void truncate(Coordinate lastCoord);
    virtual void setCount(size_t count);
 
@@ -955,7 +862,7 @@ class ConstItemIterator : public ConstChunkIterator
  * To access the data in the array, a constant (read-only) iterator can be requested, or a
  * volatile iterator can be used.
  */
-class Array:
+class Array :
 // TODO JHM ; temporary bridge to support concurrent development, to be removed by the end of RQ
 #ifndef NO_SUPPPORT_FOR_SWIG_TARGETS_THAT_CANT_HANDLE_PROTECTED_BASE_CLASSES
     public SelfStatistics
@@ -974,7 +881,9 @@ public:
          * Most restrictive access policy wherein the array can only be iterated over one time.
          * If you need to read multiple attributes, you need to read all of the attributes horizontally, at the same time.
          * Imagine that reading the array is like scanning from a pipe - after a single scan, the data is no longer available.
-         * This is the only supported access mode for InputArray and MergeSortArray
+         * This is the only supported access mode for InputArray and MergeSortArray.
+         * Any SINGLE_PASS array must inherit from scidb::SinglePassArray if that array is ever returned from PhysicalOperator::execute().
+         * The reason is that the sg() operator can handle only the SINGLE_PASS arrays conforming to the SinglePassArray interface.
          */
         SINGLE_PASS = 0,
 
@@ -1004,11 +913,6 @@ public:
      * Get array identifier
      */
     virtual ArrayID getHandle() const;
-
-    virtual bool isRLE() const
-    {
-        return false;
-    }
 
     /**
      * Determine if this array has an easily accessible list of chunk positions. In fact, a set of chunk positions can
@@ -1133,6 +1037,28 @@ public:
     void printArrayToLogger() const;
 
     void setQuery(boost::shared_ptr<Query> const& query) {_query = query;}
+
+
+    /**
+     * If count() can return its result in O(1) [or O(nExistingChunks) time if from a
+     * fast in-memory index such as a chunkMap], then
+     * this method should return true to indicate it is "reasonably" fast
+     * Otherwse, this should return false, for example, when chunks themselves would return false
+     * from their isCountKnown() method.  If there are gray areas in between these cases
+     * O(1) or O(nExistingChunks) vs O(nNonNullCells), then the API of isCountKnown()
+     * will either need definition refinement and/or API revision
+     * @return true if count() is sufficiently fast by the above criteria
+     */
+    virtual bool isCountKnown() const;
+
+    /**
+     * While we would like all arrays to do this in O(1) time or O(nChunks) time,
+     * some cases still require traversal of all the chunks of one attribute of the array.
+     * If that expense is too much, then isCountKnown() should return false, and you
+     * should avoid calling count().
+     * @return the count of all non-empty cells in the array
+     */
+    virtual size_t count() const; // logically const, even if an result is cached.
 
  protected:
     /// The query context for this array

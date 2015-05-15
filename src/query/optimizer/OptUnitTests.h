@@ -34,21 +34,20 @@
 #include <algorithm>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-
 #include <boost/make_shared.hpp>
 #include <boost/filesystem.hpp>
-
 #include <boost/shared_ptr.hpp>
-#include "query/Operator.h"
-#include "query/QueryPlan.h"
-#include "query/QueryProcessor.h"
-#include "system/SystemCatalog.h"
-#include "array/Metadata.h"
-#include "query/TypeSystem.h"
-#include "smgr/compression/BuiltinCompressors.h"
-#include "system/Config.h"
-#include "system/Cluster.h"
 
+#include <query/Operator.h>
+#include <query/QueryPlan.h>
+#include <query/QueryProcessor.h>
+#include <system/SystemCatalog.h>
+#include <array/Metadata.h>
+#include <query/TypeSystem.h>
+#include <system/Config.h>
+#include <system/Cluster.h>
+
+#include "smgr/compression/BuiltinCompressors.h"
 #include "query/optimizer/HabilisOptimizer.h"
 
 namespace scidb
@@ -320,7 +319,7 @@ public:
               lhs.getCurrStart() != rhs.getCurrStart() ||
               lhs.getEndMax() != rhs.getEndMax() ||
               lhs.getLength() != rhs.getLength() ||
-              lhs.getStart() != rhs.getStart() ||
+              lhs.getStartMin() != rhs.getStartMin() ||
               lhs.getStartMin() != rhs.getStartMin())
         {
             return false;

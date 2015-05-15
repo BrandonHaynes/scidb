@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+# This will add patches to a debian.tar.gz file and adjust checksums in the .dsc file
+#
+# 1. download the debian.tar.gz file
+# 2. unroll it
+# 3. add the patches that are in the patch directory to debian/patches
+# 4. add an entry to changelog with the patches
+# 4. re-roll the debian.tar.gz file
+# 5. download the .dsc file
+# 6. adjust the checksums
+#
+baseurl="https://downloads.paradigm4.com/ubuntu12.04/3rdparty_sources"
+dsc_file="boost1.54_1.54.0-2.1.dsc"
+debian_tar_gz_file="boost1.54_1.54.0-2.1.debian.tar.gz"
+Source="boost1.54"
+
+for filename in $dsc_file $debian_tar_gz_file; do
+    rm -f ${filename}
+    wget "${baseurl}/${filename}"
+done
+
+orig_checksum_sha1=`sha1sum $debian_tar_gz_file|awk '{print $1}'`
+orig_checksum_sha256=`sha256sum $debian_tar_gz_file|awk '{print $1}'`
+orig_checksum_md5=`md5sum $debian_tar_gz_file|awk '{print $1}'`
+orig_file_size=`ls -l $debian_tar_gz_file | awk '{print $5}'`
+
+rm -rf debian
+tar -xf $debian_tar_gz_file
+
+cp patches/* debian/patches
+
+pushd debian > /dev/null
+    # Create a new entry for changelog
+    #
+    # For example parse "boost1.54 (1.54.0-2.1) unstable; urgency=low" into
+    # entry="boost1.54 (1.54.0-2.1) unstable; urgency=low"
+    # version="2.1"
+    entry=`awk -v S="$Source" '$1 == S {print}' changelog | head -1`
+    version=`echo ${entry} | awk -F- '{print $2}' | awk -F\) '{print $1}'`
+    # Is version an integer or a decimal
+    if [ "$version" != "${version%.*}" ]; then
+	version_major="${version%.*}"
+	version_minor="${version#*.}"
+	let $((version_minor++))
+	# increment package version number
+	echo ${entry} | sed "s/-[^)]*)/-${version_major}.${version_minor})/" > changelog.new
+    else
+	version_major="${version%.*}"
+	version_minor="1"
+	# create a package minor version number
+	echo ${entry} | sed "s/-[^)]*)/-${version_major}.${version_minor})/" > changelog.new
+    fi
+    echo "" >> changelog.new
+    # Get list of new patches
+    pushd ../patches > /dev/null
+        PATCH_LIST=`ls *.patch`
+    popd > /dev/null
+    # Add patch list to changelog
+    for f in $PATCH_LIST
+    do
+	echo "  * patches/$f: Patch." >> changelog.new
+    done
+    echo "" >> changelog.new
+    echo " -- Martin L Resnick <mresnick@paradigm4.com>  Sat, 22 Nov 2014 19:52:17 -0500" >> changelog.new
+    echo "" >> changelog.new
+    cat changelog >> changelog.new
+    rm changelog
+    mv changelog.new changelog
+    # add patches to quilt's series file
+    for f in $PATCH_LIST
+    do
+	echo "$f" >> patches/series
+    done
+popd > /dev/null
+
+rm -f $debian_tar_gz_file
+tar --gzip -cf $debian_tar_gz_file debian
+
+checksum_sha1=`sha1sum $debian_tar_gz_file|awk '{print $1}'`
+checksum_sha256=`sha256sum $debian_tar_gz_file|awk '{print $1}'`
+checksum_md5=`md5sum $debian_tar_gz_file|awk '{print $1}'`
+file_size=`ls -l $debian_tar_gz_file | awk '{print $5}'`
+
+sed -i "s/$orig_checksum_sha1/$checksum_sha1/g" $dsc_file
+sed -i "s/$orig_checksum_sha256/$checksum_sha256/g" $dsc_file
+sed -i "s/$orig_checksum_md5/$checksum_md5/g" $dsc_file
+sed -i "s/$orig_file_size/$file_size/g" $dsc_file

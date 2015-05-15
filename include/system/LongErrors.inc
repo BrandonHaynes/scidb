@@ -11,6 +11,7 @@
  *  1. Remember, there is no space in "cannot".
  *  2. Code numbers are ignored and will go away soon, but for now you
  *      must still put something there.
+ *  3. Prefer strerror(errno) over raw errno values in error output.
  *
  *  See http://www.drdobbs.com/the-new-c-x-macros/184401387 .
  */
@@ -45,7 +46,6 @@ X(SCIDB_LE_AGGREGATE_DOESNT_SUPPORT_TYPE,     6,      "Aggregate '%1%' does not 
 X(SCIDB_LE_UNHANDLED_VAR_PARAMETER,           7,      "Operator '%1%' cannot handle variable number of parameters")
 X(SCIDB_LE_NO_MEMORY_FOR_VALUE,               8,      "Not enough memory for new value")
 X(SCIDB_LE_THREAD_EVENT_ERROR,                9,      "Error state '%1%' detected in event wait")
-X(SCIDB_LE_THREAD_SEMAPHORE_ERROR,            10,     "Error state '%1%' detected in semaphore enter")
 X(SCIDB_LE_CANT_LOAD_MODULE,                  11,     "Cannot load module '%1%', dlopen returned '%2%'")
 X(SCIDB_LE_WRONG_MODULE_VERSION,              12,     "Plugin version does not match the version of SciDB."
                                                       " The plugin %1% has version %2%.%3%.%4%.%5% but SciDB"
@@ -55,19 +55,21 @@ X(SCIDB_LE_INPUTS_MUST_BE_BEFORE_PARAMS,      14,     "Error in operator '%1%'. 
                                                       " other parameters")
 X(SCIDB_LE_VAR_MUST_BE_AFTER_PARAMS,          15,     "Error in operator '%1%'. Optional parameters must appear last")
 X(SCIDB_LE_UNEXPECTED_GETREPARTSCHEMA,        16,     "Unexpected getRepartSchema that is not overwritten")
-X(SCIDB_LE_PWRITE_ERROR,                      17,     "pwrite failed to write %1% byte(s) to the position %2%"
-                                                      " with error %3%")
-X(SCIDB_LE_PREAD_ERROR,                       18,     "pread failed to read %1% byte(s) from position %2% with"
-                                                      " error %3%")
+X(SCIDB_LE_PWRITE_ERROR,                      17,     "pwrite failed to write %1% byte(s) to position"
+                                                      " %2% in file %3% with error '%4%' (%5%)")
+X(SCIDB_LE_PREAD_ERROR,                       18,     "pread failed to read %1% byte(s) from position"
+                                                      " %2% in file %3% with rc %4% and error '%5%'"
+                                                      " (%6%)")
 X(SCIDB_LE_OPERATOR_NOT_FOUND,                19,     "Operator '%1%' not found")
 X(SCIDB_LE_ARRAY_DOESNT_EXIST,                20,     "Array '%1%' does not exist")
 X(SCIDB_LE_ARRAYID_DOESNT_EXIST,              21,     "Array with id '%1%' does not exist")
-X(SCIDB_LE_CANT_OPEN_FILE,                    22,     "Cannot open file '%1%' errno %2%")
+X(SCIDB_LE_CANT_OPEN_FILE,                    22,     "Cannot open file '%1%': %2% (%3%)")
 X(SCIDB_LE_INSTANCE_DOESNT_EXIST,             23,     "Instance with id %1% does not exist")
 X(SCIDB_LE_ATTRIBUTE_DOESNT_EXIST,            24,     "Attribute with id %1% does not exist in array '%2%'")
 X(SCIDB_LE_DUPLICATE_ATTRIBUTE_NAME,          25,     "Cannot create attribute '%1%'; name collides with"
                                                       " existing object")
 X(SCIDB_LE_ILLEGAL_OPERATION,                 26,     "Illegal operation: %1%")
+X(SCIDB_LE_SEMAPHORE_ERROR,                   27,     "Semaphore %1% operation failed: %2% (%3%)")
 X(SCIDB_LE_NOT_IMPLEMENTED,                   31,     "Feature '%1%' not yet implemented")
 X(SCIDB_LE_NO_CURRENT_ELEMENT,                32,     "No current element")
 X(SCIDB_LE_OPERATION_FAILED,                  33,     "Operation '%1%' failed")
@@ -86,7 +88,7 @@ X(SCIDB_LE_ERROR_IN_UDF,                      46,     "Error '%1%' in UDF '%2%'"
 X(SCIDB_LE_UNKNOWN_ERROR_IN_UDF,              47,     "Unknown error in UDF '%1%'")
 X(SCIDB_LE_TYPE_NOT_REGISTERED,               48,     "Type '%1%' is not registered")
 X(SCIDB_LE_TYPE_ALREADY_REGISTERED,           49,     "Type '%1%' is already registered")
-X(SCIDB_LE_DIMENSION_NOT_EXIST,               50,     "Dimension '%1%' does not exist")
+X(SCIDB_LE_DIMENSION_NOT_EXIST,               50,     "Dimension '%1%' not found among %2% array dimensions [%3%]")
 X(SCIDB_LE_ATTRIBUTE_NOT_EXIST,               51,     "Attribute '%1%' does not exist")
 X(SCIDB_LE_CANT_FIND_CONVERTER,               52,     "Cannot find converter from type '%1%' to '%2%'")
 X(SCIDB_LE_CANT_FIND_IMPLICIT_CONVERTER,      53,     "Cannot find implicit converter from type '%1%' to '%2%'")
@@ -122,7 +124,7 @@ X(SCIDB_LE_COMPRESSOR_DOESNT_EXIST,           77,     "Compressor with name '%1%
 X(SCIDB_LE_UNEXPECTED_OPERATOR_ARGUMENT,      78,     "Operator '%1%' does not take an argument but was passed '%2%'")
 X(SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT,    79,     "Operator '%1%' expected %2% argument(s) but was passed %3%")
 X(SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT2,   80,     "Operator '%1%' expected more arguments")
-X(SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT3,   81,     "Operator '%1%' expected only %2% argument(s)")
+X(SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT3,   81,     "Operator '%1%' expected %2% argument(s)")
 X(SCIDB_LE_WRONG_OPERATOR_ARGUMENT,           82,     "Expected '%1%' in position %2% of operator '%3%' but"
                                                       " found '%4%'")
 X(SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED,       83,     "Nested arrays not supported")
@@ -142,7 +144,7 @@ X(SCIDB_LE_AGGREGATE_EXPECTED,                97,     "SELECT list items must co
 X(SCIDB_LE_WRONG_AGGREGATE_ARGUMENT2,         98,     "An aggregate call must contain a single attribute"
                                                       " reference or SELECT statement")
 X(SCIDB_LE_SINGLE_ATTRIBUTE_IN_INPUT_EXPECTED, 99,    "Input must have one attribute for aggregating in this form")
-X(SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION,    100,    "Attribute or dimension reference '%1%' does not exists")
+X(SCIDB_LE_UNKNOWN_ATTRIBUTE_OR_DIMENSION,    100,    "Attribute or dimension reference '%1%' does not exist")
 X(SCIDB_LE_AMBIGUOUS_ATTRIBUTE_OR_DIMENSION,  101,    "Attribute or dimension reference '%1%' is ambiguous")
 X(SCIDB_LE_INPUT_EXPECTED,                    102,    "Array name, array operator or SELECT statement expected")
 X(SCIDB_LE_CAN_NOT_STORE,                     103,    "Cannot STORE or REDIMENSION_STORE output array into '%1%'."
@@ -168,7 +170,7 @@ X(SCIDB_LE_CANT_OPEN_PATH,                    121,    "Cannot open path '%1%'")
 X(SCIDB_LE_WRONG_ATTRIBUTE_TYPE,              124,    "Attribute '%1%' has incorrect datatype (source: %2%,"
                                                       " destination: %3%)")
 X(SCIDB_LE_WRONG_ATTRIBUTE_FLAGS,             125,    "Attribute '%1%' has incorrect properties")
-X(SCIDB_LE_WRONG_SOURCE_ATTRIBUTE_TYPE,       126,    "Source attribute '%1%' must be of type '%2%'")
+X(SCIDB_LE_WRONG_SOURCE_ATTRIBUTE_TYPE,       126,    "Source attribute '%1%' must be of integral type (but not UINT64)")
 X(SCIDB_LE_WRONG_DESTINATION_ATTRIBUTE_TYPE,  128,    "Destination attribute '%1%' must be of type '%2%'")
 X(SCIDB_LE_WRONG_DESTINATION_ATTRIBUTE_FLAGS, 129,    "Destination attribute '%1%' must not have special properties")
 X(SCIDB_LE_DIMENSIONS_DONT_MATCH,             132,    "Dimensions '%1%' and '%2%' do not match")
@@ -181,8 +183,9 @@ X(SCIDB_LE_SUBSTITUTE_ERROR1,                 138,    "The substitute array '%1%
 X(SCIDB_LE_SUBSTITUTE_ERROR2,                 139,    "The substitute array '%1%' must have only one attribute")
 X(SCIDB_LE_SUBSTITUTE_ERROR4,                 141,    "The dimension must start at 0")
 X(SCIDB_LE_SUBSTITUTE_ERROR5,                 142,    "Input attribute '%1%' does not match the datatype of '%2%'")
-X(SCIDB_LE_LOGICAL_JOIN_ERROR1,               143,    "Join must be applied to arrays of same dimensionality")
-X(SCIDB_LE_LOGICAL_JOIN_ERROR2,               144,    "Joined arrays have different schemas")
+X(SCIDB_LE_DIMENSION_COUNT_MISMATCH,          143,    "Dimension counts for operator '%1%' do not match:"
+                                                      "  [%2%] != [%3%]")
+X(SCIDB_LE_START_INDEX_MISMATCH,              144,    "Array dimensions have different start indeces: %1%")
 X(SCIDB_LE_LIST_ERROR1,                       146,    "Parameter of 'list' operator can be 'aggregates',"
                                                       " 'arrays', 'operators', 'types', 'functions', 'queries',"
                                                       " 'libraries', 'instances'")
@@ -205,8 +208,9 @@ X(SCIDB_LE_CANT_ADD_NULL_FACTORY,             161,    "Cannot add NULL factory t
 X(SCIDB_LE_DUPLICATE_AGGREGATE_FACTORY,       162,    "Cannot add duplicate factory to Aggregate Library")
 X(SCIDB_LE_CANT_INCREMENT_LOCK,               163,    "Cannot increment lock counter for '%1%' because query"
                                                       " was cancelled")
+/* Prefer ...DIMENSION_COUNT_MISMATCH to ...DIMENSIONS_MISMATCH if possible. */
 X(SCIDB_LE_DIMENSIONS_MISMATCH,               164,    "Dimension mismatch")
-X(SCIDB_LE_CHUNK_ALREADY_EXISTS,              165,    "An existing chunk cannot be updated")
+X(SCIDB_LE_CHUNK_ALREADY_EXISTS,              165,    "An existing chunk at position '%1%' cannot be updated")
 X(SCIDB_LE_CANT_MERGE_CHUNKS_WITH_VARYING_SIZE, 166,  "Merge of chunks with varying size attribute type is"
                                                       " not supported")
 X(SCIDB_LE_CANT_UPDATE_READ_ONLY_CHUNK,       167,    "Chunk is read-only and cannot be updated")
@@ -214,6 +218,7 @@ X(SCIDB_LE_TYPE_MISMATCH_BETWEEN_AGGREGATE_AND_CHUNK, 168, "Type mismatch betwee
 X(SCIDB_LE_AGGREGATE_STATE_MUST_BE_NULLABLE,  169,    "Aggregate NULL flag must be TRUE")
 X(SCIDB_LE_EXTRACT_EXPECTED_FIXED_SIZE_ATTRIBUTE,170, "Extract attribute should be fixed size")
 X(SCIDB_LE_EXTRACT_UNEXPECTED_BOOLEAN_ATTRIBUTE, 171, "Extract attribute cannot have boolean type")
+/* Prefer ...DIMENSION_COUNT_MISMATCH to ...WRONG_NUMBER_OF_DIMENSIONS if possible. */
 X(SCIDB_LE_WRONG_NUMBER_OF_DIMENSIONS,        172,    "Wrong number of dimensions")
 X(SCIDB_LE_UNALIGNED_COORDINATES,             173,    "Coordinates should be aligned on chunk boundary")
 X(SCIDB_LE_CANT_ALLOCATE_MEMORY,              174,    "Failed to allocate memory")
@@ -232,7 +237,7 @@ X(SCIDB_LE_MULTIDIMENSIONAL_ARRAY_NOT_ALLOWED, 188,   "Multidimensional array is
 X(SCIDB_LE_OP_SAMPLE_ERROR1,                  191,    "Seed should be a positive integer")
 X(SCIDB_LE_OP_SAMPLE_ERROR2,                  192,    "Probability should be in interval (0..1]")
 X(SCIDB_LE_INVALID_INSTANCE_ID,               193,    "Invalid instance ID: '%1%'")
-X(SCIDB_LE_ARRAYS_NOT_CONFORMANT,             194,    "Arrays are not conformant")
+X(SCIDB_LE_ARRAYS_NOT_CONFORMANT,             194,    "Arrays are not conformant") /* What a cop out! */
 X(SCIDB_LE_OP_REDIMENSION_ERROR1,             199,    "Destination array for REDIMENSION must have EMPTY flag TRUE")
 X(SCIDB_LE_NO_MEMORY_TO_ALLOCATE_MATRIX,      200,    "Not enough memory to allocate matrix")
 X(SCIDB_LE_NO_MEMORY_TO_ALLOCATE_VECTOR,      201,    "Not enough memory to allocate vector")
@@ -257,9 +262,9 @@ X(SCIDB_LE_OP_BUILD_SPARSE_ERROR1,            223,    "Build_sparse expression s
 X(SCIDB_LE_OP_BUILD_SPARSE_ERROR2,            224,    "Build_sparse predicate should not access attributes")
 X(SCIDB_LE_OP_BUILD_SPARSE_ERROR3,            225,    "Constructed array should have one attribute")
 X(SCIDB_LE_OP_BUILD_SPARSE_ERROR4,            226,    "Cannot BUILD array with open boundary")
-X(SCIDB_LE_OP_CAST_ERROR1,                    227,    "Mismatched number of attributes")
+X(SCIDB_LE_ATTR_COUNT_MISMATCH,               227,    "Mismatched number of attributes: %1% != %2%")
+X(SCIDB_LE_ATTR_TYPE_MISMATCH,                228,    "Attribute type mismatch for %1% and %2% in schemas %3%, %4%")
 X(SCIDB_LE_OP_CAST_ERROR3,                    229,    "Attribute '%1%' flags doesn't match")
-X(SCIDB_LE_OP_CAST_ERROR4,                    230,    "Mismatched number of dimensions")
 X(SCIDB_LE_OP_CAST_ERROR5,                    231,    "Dimension '%1%' length doesn't match")
 X(SCIDB_LE_OP_CONCAT_ERROR1,                  235,    "Arrays with open boundary cannot be concatenated")
 X(SCIDB_LE_OP_CROSSJOIN_ERROR1,               236,    "Dimension should be specified only once in JOIN ON list")
@@ -274,16 +279,24 @@ X(SCIDB_LE_OP_INPUT_ERROR1,                   245,    "Out-of-sequence chunk in 
 X(SCIDB_LE_OP_INPUT_ERROR2,                   246,    "Input parser expected '%1%'")
 X(SCIDB_LE_OP_INPUT_ERROR3,                   247,    "Input parser expected coordinate")
 X(SCIDB_LE_OP_INPUT_ERROR4,                   248,    "Invalid chunk position")
-X(SCIDB_LE_OP_INPUT_ERROR5,                   249,    "Duplicate chunk address")
+X(SCIDB_LE_DUPLICATE_CHUNK_ADDR,              249,    "Duplicate or out-of-order chunk address '%1%'")
 X(SCIDB_LE_OP_INPUT_ERROR6,                   250,    "Too much nesting")
-X(SCIDB_LE_OP_INPUT_ERROR7,                   251,    "Out of bounds")
+X(SCIDB_LE_OP_INPUT_OOB,                      251,    "Load from %1% file '%2%' at coord %3% is"
+                                                      " out of chunk bounds: %4%")
 X(SCIDB_LE_OP_INPUT_ERROR8,                   252,    "Input parser expected literal")
 X(SCIDB_LE_OP_INPUT_ERROR9,                   253,    "No values for empty cells should be defined: only ()"
                                                       " is accepted")
 X(SCIDB_LE_OP_INPUT_ERROR10,                  254,    "This version of scidb does not support this input file")
 X(SCIDB_LE_OP_INPUT_ERROR11,                  255,    "Chunk is out of window boundary")
+X(SCIDB_LE_OP_INPUT_NEXT_CHUNK_OOB,           256,    "Stepped out of bounds computing next chunk location")
 X(SCIDB_LE_OP_INPUT_ERROR13,                  257,    "Unterminated string literal")
 X(SCIDB_LE_OP_INPUT_ERROR14,                  258,    "Bad literal")
+X(SCIDB_LE_OP_INPUT_TOO_MANY_FIELDS,          259,    "Too many fields in input at position %1%, line %2%, column %3%"
+                                                      " (truncating input records to fit)")
+X(SCIDB_LE_OP_INPUT_TOO_FEW_FIELDS,           260,    "Too few input record fields at position %1%, line %2%,"
+                                                      " column %3%")
+X(SCIDB_LE_CSV_PARSE_ERROR,                   264,    "CSV parsing error at position %1%, record %2%, column %3%: %4%")
+X(SCIDB_LE_TSV_PARSE_ERROR,                   265,    "TSV parsing error, raw delimiter must not be escaped")
 X(SCIDB_LE_NO_CURRENT_POSITION,               266,    "No current position")
 X(SCIDB_LE_OP_MULTIPLY_ERROR2,                267,    "Matrix must have 1 attribute")
 X(SCIDB_LE_OP_MULTIPLY_ERROR3,                268,    "Both input arrays to multiply must be 2-dimensional")
@@ -294,7 +307,6 @@ X(SCIDB_LE_OP_MULTIPLY_ERROR7,                272,    "Matrices to be multiplied
 X(SCIDB_LE_OP_MULTIPLY_ERROR8,                273,    "Matrices with nullable attributes cannot be multiplied")
 X(SCIDB_LE_OP_NORMALIZE_ERROR1,               275,    "Vector must contain 1 attribute")
 X(SCIDB_LE_OP_NORMALIZE_ERROR2,               276,    "Array must be 1-D vector")
-X(SCIDB_LE_OP_REPART_ERROR1,                  277,    "Mismatched number of dimensions")
 X(SCIDB_LE_OP_REPART_ERROR3,                  279,    "Mismatched array base")
 X(SCIDB_LE_OP_REPART_ERROR4,                  280,    "Mismatched array length")
 X(SCIDB_LE_OP_REPART_ERROR5,                  281,    "Array should have fixed lower boundary")
@@ -313,8 +325,7 @@ X(SCIDB_LE_OP_THIN_ERROR4,                    295,    "Step must be smaller than
 X(SCIDB_LE_OP_XGRID_ERROR1,                   298,    "Cannot use xgrid on an unbounded array")
 X(SCIDB_LE_OP_XGRID_ERROR2,                   299,    "Xgrid arguments must be positive")
 X(SCIDB_LE_DIMENSION_START_CANT_BE_UNBOUNDED, 300,    "Dimension start cannot be unbounded")
-X(SCIDB_LE_HIGH_SHOULDNT_BE_LESS_LOW,         301,    "Upper boundary of dimension must be greater than"
-                                                      " lower boundary")
+X(SCIDB_LE_HIGH_SHOULDNT_BE_LESS_LOW,         301,    "The upper boundary of a dimension must be greater than or equal to the lower boundary")
 X(SCIDB_LE_OVERLAP_CANT_BE_LARGER_CHUNK,      302,    "Chunk overlap cannot be larger than chunk size")
 X(SCIDB_LE_PIN_UNPIN_DISBALANCE,              304,    "pin/unpin unbalanced, or race condition during close")
 X(SCIDB_LE_COMPRESS_METHOD_NOT_DEFINED,       305,    "Compression method is not defined for the chunk")
@@ -347,7 +358,7 @@ X(SCIDB_LE_INVALID_USER_ERROR_CODE,           333,    "Cannot register error nam
 X(SCIDB_LE_ATTRIBUTES_MISMATCH,               334,    "Attributes mismatch")
 X(SCIDB_LE_INVALID_FUNCTION_ARGUMENT,         335,    "Invalid function argument: %1%")
 X(SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE,      336,    "Chunk size should not exceed 2^63")
-X(SCIDB_LE_FILE_NOT_FOUND_ON_INSTANCES,        337,    "File '%1%' not found on instance(s) %2%")
+X(SCIDB_LE_FILE_NOT_FOUND_ON_INSTANCES,       337,    "File '%1%' not found on instance(s) %2%")
 X(SCIDB_LE_FILE_IMPORT_FAILED,                338,    "Import from file '%1%' (instance %2%) to array '%3%' failed"
                                                       " at line %4%, column %5%, offset %6%, value='%7%': %8%")
 X(SCIDB_LE_ACCESS_TO_RAW_CHUNK,               339,    "Access to raw chunk of array '%3%'")
@@ -382,15 +393,15 @@ X(SCIDB_LE_INVALID_MESSAGE_FORMAT,            365,    "Invalid message format fo
 X(SCIDB_LE_INVALID_ARRAY_LITERAL,             366,    "Build required constant string when array literal flag is true")
 X(SCIDB_LE_INVALID_REDIMENSION_POSITION,      367,    "Cannot redimension coordinates %1%; the position is not"
                                                       " valid in the destination array")
-X(SCIDB_LE_SYSCALL_ERROR,                     368,    "Invocation of %1% failed with return code=%2%, error=%3%,"
-                                                      " arg(s)=%4%")
+X(SCIDB_LE_SYSCALL_ERROR,                     368,    "Invocation of %1% failed with return code=%2%, errno=%3% (%4%),"
+                                                      " arg(s)=%5%")
 X(SCIDB_LE_NON_FQ_PATH_ERROR,                 369,    "Path %1% is not fully qualified")
 X(SCIDB_LE_UNKNOWN_CTX,                       370,    "Unknown/unexpected context type '%1%'")
-X(SCIDB_LE_CANT_LOCK_FILE,                    371,    "Failed to get exclusive access to the file %1%, error = %2%")
+X(SCIDB_LE_CANT_LOCK_FILE,                    371,    "Failed to get exclusive access to the file %1%: %2% (%3%)")
 X(SCIDB_LE_TEMPLATE_PARSE_ERROR,              372,    "Failed to parse template at position %1%")
 X(SCIDB_LE_TEMPLATE_FIXED_SIZE_TYPE,          373,    "Length should not be explicitly specified for fixed size"
                                                       " type %1%")
-X(SCIDB_LE_FILE_WRITE_ERROR,                  374,    "Failed to write file: %1%")
+X(SCIDB_LE_FILE_WRITE_ERROR,                  374,    "Failed to write file: %1% (%2%)")
 X(SCIDB_LE_FILE_READ_ERROR,                   375,    "Failed to read file: %1%")
 X(SCIDB_LE_UNSUPPORTED_FORMAT,                376,    "Unsupported format: %1%")
 X(SCIDB_LE_MULTIPLE_DIMENSION_SPECIFICATION,  377,    "Same dimension specified multiple times")
@@ -413,7 +424,7 @@ X(SCIDB_LE_OP_WINDOW_ERROR4,                  391,    "Window size should be gre
 X(SCIDB_LE_OP_INPUT_ERROR15,                  392,    "Expected boolean constant for empty indicator")
 X(SCIDB_LE_OP_INPUT_ERROR16,                  393,    "Number of errors exceeds threshold")
 X(SCIDB_LE_CHUNK_SIZE_MUST_BE_POSITIVE,       394,    "Chunk size must be positive")
-X(SCIDB_LE_OPERATION_FAILED_WITH_ERRNO,       395,    "Operation %1% failed with errno %2%")
+X(SCIDB_LE_OPERATION_FAILED_WITH_ERRNO,       395,    "Operation %1% failed: %2% (%3%)")
 X(SCIDB_LE_RESOURCE_BUSY,                     398,    "Not enough resources: %1%")
 X(SCIDB_LE_NESTING_PROHIBITED,                399,    "Operator %1% can not be nested")
 X(SCIDB_LE_OP_WINDOW_ERROR5,                  400,    "Algorithm must be one of %1%")
@@ -486,12 +497,22 @@ X(SCIDB_LE_DATASTORE_CORRUPT_FREELIST,        449,    "Stored freelist for data 
 X(SCIDB_LE_AGGREGATION_ORDER_MISMATCH,        450,    "The aggregate '%1%' is order sensitive but the calling"
                                                       " operator does not do aggregation in order")
 X(SCIDB_LE_DATASTORE_CHUNK_NOTFREE,           451,    "Attempt to realloc a chunk that was not free."
-                                                      " guid '%1' offset '%2'")
-X(SCIDB_LE_DATASTORE_NOT_EMPTY,               452,    "Attempt to remove non-empty datastore with guid '%1'")
+                                                      " guid '%1%' offset '%2%'")
+X(SCIDB_LE_DATASTORE_NOT_EMPTY,               452,    "Attempt to remove non-empty datastore with guid '%1%'")
 X(SCIDB_LE_BAD_TEMP_ARRAY,                    453,    "The temporary array '%1%' is no longer available")
 
-X(SCIDB_LE_CROSSBETWEEN_RANGES_ARRAY_ATTRIBUTE_NOT_INT64, 454, "Each attribute in rangesArray must have int64 data type")
-X(SCIDB_LE_CROSSBETWEEN_NUM_ATTRIBUTES_MISMATCH, 455, "The rangesArray must contain twice as many attributes as the srcArray has dimensions")
+X(SCIDB_LE_CROSSBETWEEN_RANGES_ARRAY_ATTRIBUTE_NOT_INT64, 454,
+                                                      "Each attribute in rangesArray must have int64 data type")
+X(SCIDB_LE_CROSSBETWEEN_NUM_ATTRIBUTES_MISMATCH, 455, "The rangesArray must contain twice as many attributes as"
+                                                      " the srcArray has dimensions")
+X(SCIDB_LE_CHUNK_POSITION_OUT_OF_ORDER,       456,    "Input chunk position '%1%' violates row-major order")
+X(SCIDB_LE_BAD_MISSING_REASON,                457,    "The integer '%1%' is not a valid missing reason code")
+X(SCIDB_LE_DATA_COLLISION,                    458,    "Duplicate values at '%1%'")
+X(SCIDB_LE_TOO_MANY_CHUNKS_IN_REDIMENSION,    459,    "%1% chunks with overhead of %2% bytes per chunk exceeds"
+                                                      " redimension chunk overhead limit (%3% MiB)")
+X(SCIDB_LE_CHUNK_TOO_LARGE,                   460,    "Attempt to create chunk of size %1% which exceeds"
+                                                      " configured limit (%2% MiB)")
+X(SCIDB_LE_NUM_CHUNKSIZES_NOT_MATCH_NUM_DIMS, 470,    "In %1%, the number of specified chunk sizes (if any) must match the number of dimensions") 
 
 /*
  * Next long error code goes here!
@@ -512,8 +533,9 @@ X(SCIDB_LE_NEED_UPGRADE_CONFIRMATION,         1006,   "In order to proceed, the 
 /*
  * Error codes copied from P4.
  */
-X(SCIDB_LE_DLA_ERROR13,               2001,   "Request for unknown attribute")
-X(SCIDB_LE_DLA_ERROR14,               2002,   "Specified attribute not found in array")
-X(SCIDB_LE_DLA_ERROR15,               2003,   "Ranked attribute cannot be an empty indicator")
-X(SCIDB_LE_DLA_ERROR16,               2004,   "Specified dimension not found in array")
-X(SCIDB_LE_DLA_ERROR17,               2005,   "The number of samples passed to quantile must be at least 1")
+X(SCIDB_LE_DLA_ERROR13,                       2001,   "Request for unknown attribute")
+X(SCIDB_LE_DLA_ERROR14,                       2002,   "Specified attribute not found in array")
+X(SCIDB_LE_DLA_ERROR15,                       2003,   "Ranked attribute cannot be an empty indicator")
+X(SCIDB_LE_DLA_ERROR16,                       2004,   "Specified dimension not found in array")
+X(SCIDB_LE_DLA_ERROR17,                       2005,   "The number of samples passed to quantile must be at least 1")
+X(SCIDB_LE_QUANTILE_REQUIRES_BOUNDED_ARRAY,   2006,   "The quantile operator requires groupby dimensions to be bounded (for now)")

@@ -260,7 +260,7 @@ namespace scidb
                 throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_ELEMENT);
             Coordinates const& currPos = iterators[currIterator]->getPosition();
             ConstChunk const& currChunk = iterators[currIterator]->getChunk();
-            if (!isEmptyable && !currChunk.isSparse()) { 
+            if (!isEmptyable) { 
                 currentChunk = &currChunk;
                 return currChunk;
             }

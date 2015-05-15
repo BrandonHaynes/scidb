@@ -189,7 +189,7 @@ SCIDB QUERY : <spgemm(SAuint32, SAuint32)>
 SCIDB QUERY : <spgemm(SAuint64, SAuint64)>
 [An error expected at this place for the query "spgemm(SAuint64, SAuint64)". And it failed.]
 
-SCIDB QUERY : <spgemm(SAfloat, SAfloat)>
+SCIDB QUERY : <spgemm(SAfloat, SAfloat, 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 5
 {0,1} 8
@@ -201,7 +201,31 @@ SCIDB QUERY : <spgemm(SAfloat, SAfloat)>
 {2,1} 20
 {2,2} 29
 
-SCIDB QUERY : <spgemm(SAdouble, SAdouble)>
+SCIDB QUERY : <spgemm(SAfloat, SAfloat, 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 5
+{0,1} 8
+{0,2} 11
+{1,0} 8
+{1,1} 14
+{1,2} 20
+{2,0} 11
+{2,1} 20
+{2,2} 29
+
+SCIDB QUERY : <spgemm(SAdouble, SAdouble, 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 5
+{0,1} 8
+{0,2} 11
+{1,0} 8
+{1,1} 14
+{1,2} 20
+{2,0} 11
+{2,1} 20
+{2,2} 29
+
+SCIDB QUERY : <spgemm(SAdouble, SAdouble, 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 5
 {0,1} 8

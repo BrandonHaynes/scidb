@@ -43,7 +43,7 @@ using namespace boost;
  * @brief The operator: aggregate().
  *
  * @par Synopsis:
- *   aggregate( srcArray {, AGGREGATE_CALL}+ {, groupbyDim}* )
+ *   aggregate( srcArray {, AGGREGATE_CALL}+ {, groupbyDim}* {, chunkSize}* )
  *   <br> AGGREGATE_CALL := AGGREGATE_FUNC(inputAttr) [as resultName]
  *   <br> AGGREGATE_FUNC := approxdc | avg | count | max | min | sum | stdev | var | some_use_defined_aggregate_function
  *
@@ -59,14 +59,19 @@ using namespace boost;
  *     The count aggregate may take * as the input attribute, meaning to count all the items in the group including null items.
  *     The default resultName for count(*) is 'count'.
  *   - 0 or more dimensions that together determines the grouping criteria.
+ *   - 0 or numGroupbyDims chunk sizes.
+ *     If no chunk size is given, the groupby dims will inherit chunk sizes from the input array.
+ *     If at least one chunk size is given, the number of chunk sizes must be equal to the number of groupby dimensions,
+ *     and the groupby dimensions will use the specified chunk sizes.
  *
  * @par Output array:
  *        <
  *   <br>   The aggregate calls' resultNames.
  *   <br> >
  *   <br> [
- *   <br>   The list of groupbyDims, if exists; or
- *   <br>   i, if no groupbyDim is provided.
+ *   <br>   The list of groupbyDims if provided (with the specified chunk sizes if provided),
+ *   <br>   or
+ *   <br>   'i' if no groupbyDim is provided.
  *   <br> ]
  *
  * @par Examples:
@@ -104,9 +109,13 @@ public:
     nextVaryParamPlaceholder(const std::vector< ArrayDesc> &schemas)
     {
         std::vector<boost::shared_ptr<OperatorParamPlaceholder> > res;
+
+        // All parameters are optional.
         res.push_back(END_OF_VARIES_PARAMS());
+
         if (_parameters.size() == 0)
         {
+            // The first parameter must be an aggregate call.
             res.push_back(PARAM_AGGREGATE_CALL());
         }
         else
@@ -114,21 +123,40 @@ public:
             boost::shared_ptr<OperatorParam> lastParam = _parameters[_parameters.size() - 1];
             if (lastParam->getParamType() == PARAM_AGGREGATE_CALL)
             {
+                // If the previous parameter was an aggregate call, this one can be another aggregate call or a dim name.
+                // Note that this one cannot be a chunk size, because that would mean providing a chunk size without any dim name.
                 res.push_back(PARAM_AGGREGATE_CALL());
                 res.push_back(PARAM_IN_DIMENSION_NAME());
             }
             else if (lastParam->getParamType() == PARAM_DIMENSION_REF)
             {
+                // If the previous parameter was a dim name, this one can be either another dim name or a chunk size.
+                // A note on the type of chunk size: even though a chunk size should have TID_UINT64, we use TID_INT64 here.
+                // The purpose is that, if the user provides a negative number, we catch it and error out;
+                // while a TID_UINT64 will silently accept a negative number and populates the chunk size field with it.
                 res.push_back(PARAM_IN_DIMENSION_NAME());
+                res.push_back(PARAM_CONSTANT(TID_INT64));
+            }
+            else // chunk size
+            {
+                // Once we reach the section of chunk sizes, we can only provide more chunk sizes.
+                res.push_back(PARAM_CONSTANT(TID_INT64));
             }
         }
 
         return res;
     }
 
+    /**
+     * @param inputDims  the input dimensions.
+     * @param outDims    the output dimensions.
+     * @param param      the OperatorParam object.
+     * @param chunkSize  the chunkSize for the dimension; -1 means to use the input dimension size.
+     */
     void addDimension(Dimensions const& inputDims,
                       Dimensions& outDims,
-                      shared_ptr<OperatorParam> const& param)
+                      shared_ptr<OperatorParam> const& param,
+                      size_t chunkSize)
     {
         boost::shared_ptr<OperatorParamReference> const& reference =
             (boost::shared_ptr<OperatorParamReference> const&) param;
@@ -147,12 +175,13 @@ public:
                                                  inputDims[j].getCurrStart(),
                                                  inputDims[j].getCurrEnd(),
                                                  inputDims[j].getEndMax(),
-                                                 inputDims[j].getChunkInterval(),
+                                                 chunkSize==static_cast<size_t>(-1) ? inputDims[j].getChunkInterval() : chunkSize,
                                                  0));
                 return;
             }
         }
-        throw SYSTEM_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName;
+        throw SYSTEM_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_DIMENSION_NOT_EXIST)
+            << dimName << "aggregate input" << inputDims;
     }
 
     ArrayDesc inferSchema(vector< ArrayDesc> schemas, boost::shared_ptr< Query> query)
@@ -172,11 +201,49 @@ public:
 
         removeDuplicateDimensions();
 
+        // How many parameters are of each type.
+        size_t numAggregateCalls = 0;
+        size_t numGroupbyDims = 0;
+        size_t numChunkSizes = 0;
+        for (size_t i = 0, n = _parameters.size(); i < n; ++i)
+        {
+            if (_parameters[i]->getParamType() == PARAM_AGGREGATE_CALL)
+            {
+                ++numAggregateCalls;
+            }
+            else if (_parameters[i]->getParamType() == PARAM_DIMENSION_REF)
+            {
+                ++numGroupbyDims;
+            }
+            else // chunk size
+            {
+                ++numChunkSizes;
+            }
+        }
+        if (numChunkSizes && numChunkSizes != numGroupbyDims) {
+            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_NUM_CHUNKSIZES_NOT_MATCH_NUM_DIMS) << "aggregate()";
+        }
+
         for (size_t i = 0, n = _parameters.size(); i < n; ++i)
         {
             if (_parameters[i]->getParamType() == PARAM_DIMENSION_REF)
             {
-                    addDimension(inputDims, outDims, _parameters[i]);
+                int64_t chunkSize = -1;
+                if (numChunkSizes) {
+                    // E.g. here are the parameters:
+                    //       0           1      2        3            4
+                    // AGGREGATE_CALL,  dim1,  dim2,  chunkSize1,  chunkSize2
+                    // i=1 ==> index = 3
+                    // i=2 ==> index = 4
+                    size_t index = i + numGroupbyDims;
+                    assert(index < _parameters.size());
+                    chunkSize = evaluate(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[index])->getExpression(),
+                            query, TID_INT64).getInt64();
+                    if (chunkSize<=0) {
+                        throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_CHUNK_SIZE_MUST_BE_POSITIVE);
+                    }
+                }
+                addDimension(inputDims, outDims, _parameters[i], static_cast<size_t>(chunkSize));
             }
         }
 

@@ -1,0 +1,22 @@
+field1	field2	field3	field4-substitute-%-for-tab-to-see-them-better
+		a3	a4
+		b3	b4\
+c1\	c2	c3	c4
+d1		d3\rd3a\nd3b\\d3c		d5
+e1		e3\re3a\ne3b\\e3c		
+\f1		f3	\x\y\zf4
+g1	g2\	g3	g4
+h1	h2	h3	all-good-here-h4
+			
+j1-all-empty-above	j2	j3	j4-one-tab-too-many-below
+				
+m1-skipped-l	m2	m3	m4-one-tab-too-few-below
+		
+o1	o2	o3-line-ends-w-crlf	o4
+p1-short-line-ends-w-crlf	p2	p3
+q1-now-test-some-nulls	?0	?128	?127
+\N	\N	r3-sql-style-nulls	\N
+s1-more-nulls-crlf	?0	null	\N
+t1-non-nulls	??0	?	NULL
+u1-more-non-nulls	?-42	Null	NA
+v1-eof-in-mid-line	q2

@@ -31,7 +31,7 @@
 #include <boost/scope_exit.hpp>
 
 #include <query/Operator.h>
-#include <query/Network.h>
+#include <util/Network.h>
 #include <array/Metadata.h>
 
 using namespace std;
@@ -427,8 +427,8 @@ public:
      */
     void exchangeChunkInfo(UnpackArrayInfo& info, shared_ptr<Query>& query)
     {
-        size_t nInstances = query->getInstancesCount();
-        if (query->getCoordinatorID() != INVALID_INSTANCE) //I am NOT the Coordinator
+        const size_t nInstances = query->getInstancesCount();
+        if (! query->isCoordinator())
         {
             shared_ptr<SharedBuffer> buf(new MemoryBuffer(NULL, info.getBinarySize()));
             info.marshall(buf->getData());

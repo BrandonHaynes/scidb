@@ -30,7 +30,6 @@
 #include <array/Metadata.h>
 #include <boost/foreach.hpp>
 #include <array/DelegateArray.h>
-#include <array/FileArray.h>
 #include "RankCommon.h"
 #include <sys/time.h>
 #include <array/RowCollection.h>
@@ -170,8 +169,8 @@ public:
         LOG4CXX_DEBUG(logger, "[Rank] Begin redistribution (first phase of group-by rank).");
 
         // For every dimension, determine whether it is a groupby dimension
-        PartitioningSchemaDataGroupby psdGroupby;
-        psdGroupby._arrIsGroupbyDim.reserve(dims.size());
+        shared_ptr<PartitioningSchemaDataGroupby> psdGroupby = make_shared<PartitioningSchemaDataGroupby>();
+        psdGroupby->_arrIsGroupbyDim.reserve(dims.size());
         for (size_t i=0; i<dims.size(); ++i)
         {
             bool isGroupbyDim = false;
@@ -182,7 +181,7 @@ public:
                 }
             }
 
-            psdGroupby._arrIsGroupbyDim.push_back(isGroupbyDim);
+            psdGroupby->_arrIsGroupbyDim.push_back(isGroupbyDim);
         }
 
         // Extract just the ranking attribute
@@ -226,9 +225,11 @@ public:
         shared_ptr<Array> projected = make_shared<SimpleProjectArray>(projectSchema, inputArray, projection);
 
         // Redistribute, s.t. all records in the same group go to the same instance.
-        boost::shared_ptr<Array> redistributed = redistribute(
-                projected, query, psGroupby, "", -1, boost::shared_ptr<DistributionMapper>(), 0, &psdGroupby);
-
+        shared_ptr<Array> redistributed = redistributeToRandomAccess(projected, query, psGroupby,
+                                                                     ALL_INSTANCE_MASK,
+                                                                     shared_ptr<DistributionMapper>(),
+                                                                     0,
+                                                                     psdGroupby);
         // timing
         timing.logTiming(logger, "[Rank] redistribute()");
         LOG4CXX_DEBUG(logger, "[Rank] Begin reading input array and appending to rcGroup, reporting a timing every 10 chunks.");
@@ -266,7 +267,7 @@ public:
                 size_t g = 0;   // g is the number of group-by dimensions whose coordinates have been copied out to 'group'.
                 const Coordinates& full = srcChunkIter->getPosition();
                 for (size_t i=0; i<dims.size(); ++i) {
-                    if (psdGroupby._arrIsGroupbyDim[i]) {
+                    if (psdGroupby->_arrIsGroupbyDim[i]) {
                         group[g++] = full[i];
                         if (g==groupBy.size()) {
                             break;

@@ -27,9 +27,9 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "system/SystemCatalog.h"
-#include "system/Exceptions.h"
+#include <query/Operator.h>
+#include <system/SystemCatalog.h>
+#include <system/Exceptions.h>
 
 using namespace std;
 
@@ -165,12 +165,15 @@ public:
                 != rightDimensions[0].getChunkInterval()
                 || leftDimensions[0].getChunkOverlap()
                         != rightDimensions[0].getChunkOverlap())
+        {
+            // XXX To do: implement requiresRepart() method, remove interval/overlap checks.
             throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT);
+        }
 
         for (i = 1; i < nDims; i++) {
             if (leftDimensions[i].getLength() != rightDimensions[i].getLength()
-                    || leftDimensions[i].getStart()
-                            != rightDimensions[i].getStart()
+                    || leftDimensions[i].getStartMin()
+                            != rightDimensions[i].getStartMin()
                     || leftDimensions[i].getChunkInterval()
                             != rightDimensions[i].getChunkInterval()
                     || leftDimensions[i].getChunkOverlap()

@@ -24,6 +24,8 @@ set(SAMPLE_CONFIG "${GENERAL_OUTPUT_DIRECTORY}/packaging_only/scidb-sample.conf"
 message(STATUS "Configuring ${SAMPLE_CONFIG_IN} as ${SAMPLE_CONFIG}")
 configure_file(${SAMPLE_CONFIG_IN} ${SAMPLE_CONFIG} @ONLY)
 
+add_subdirectory("dmalloc")
+
 set (util_src
     arena/Arena.cpp
     arena/ArenaCheckpoint.cpp
@@ -31,12 +33,15 @@ set (util_src
     arena/ArenaHeader.cpp
     arena/ArenaMonitor.cpp
     arena/ArenaOptions.cpp
-    arena/DebugArena.cpp
-    arena/LimitedArena.cpp
     arena/RootArena.cpp
+    arena/LimitedArena.cpp
     arena/ScopedArena.cpp
+    arena/LeaArena.cpp
+    arena/DebugArena.cpp
+    arena/ThreadedArena.cpp
     isnumber.cpp
-    tsvparse.cpp
+    CsvParser.cpp
+    TsvParser.cpp
     Job.cpp
     JobQueue.cpp
     Semaphore.cpp
@@ -53,11 +58,16 @@ set (util_src
     WorkQueue.cpp
     DataStore.cpp
     SpatialType.cpp
+    CoordinatesMapper.cpp
+    Counter.cpp
 )
 
 file(GLOB util_include "*.h")
 
 configure_file(log4cxx.properties "${GENERAL_OUTPUT_DIRECTORY}/log4cxx.properties" COPYONLY)
 
+find_package(Libcsv REQUIRED)
+include_directories(${libcsv_INCLUDE_DIR})
+
 add_library(util_lib STATIC ${util_src} ${util_include})
-target_link_libraries(util_lib json_lib ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${LIBRT_LIBRARIES})
+target_link_libraries(util_lib json_lib ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${LIBRT_LIBRARIES} ${libcsv_LIBRARY})

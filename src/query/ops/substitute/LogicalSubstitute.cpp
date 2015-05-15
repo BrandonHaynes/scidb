@@ -27,10 +27,10 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "system/SystemCatalog.h"
-#include "system/Exceptions.h"
-#include "array/Metadata.h"
+#include <query/Operator.h>
+#include <system/SystemCatalog.h>
+#include <system/Exceptions.h>
+#include <array/Metadata.h>
 
 using namespace std;
 
@@ -107,7 +107,7 @@ class LogicalSubstitute: public LogicalOperator
         {
             throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_SUBSTITUTE_ERROR2) << substDesc.getName();
         }
-        if (substDims[0].getStart() != 0)
+        if (substDims[0].getStartMin() != 0)
         {
             throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_SUBSTITUTE_ERROR4) <<
                 (substDesc.getName() + "." + substDims[0].getBaseName());

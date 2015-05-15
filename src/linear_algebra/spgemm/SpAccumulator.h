@@ -197,6 +197,11 @@ SpAccumulator<Val_tt, OpAdd_tt>::SpAccumulator(ssize_t indexBegin, size_t indexS
     _minExternalIndex(indexBegin)
 {
     assert(indexSize >= 1);
+
+    if(0) {
+        // TODO: need manual validation that the size allocated is the minimum possible for the situation
+        std::cerr << "SpAccumulator size is " << indexSize << std::endl;
+    }
 }
 
 
@@ -225,7 +230,7 @@ void SpAccumulator<Val_tt, OpAdd_tt>::addScatter(Val_tt value, ssize_t index)
         _indicesUsed.push_back(indexZeroBased); // track indices that got used, for output and reset()
         _values[indexZeroBased] = value;       // first time -- set it
     } else {
-        _values[indexZeroBased] = OpAdd_tt::operate(_values[indexZeroBased], value); // nth time -- accumulate it with the semiring's addtion operator.
+        _values[indexZeroBased] = OpAdd_tt::operate(_values[indexZeroBased], value); // nth time -- accumulate it with the semiring's addition operator.
     }
 }
 

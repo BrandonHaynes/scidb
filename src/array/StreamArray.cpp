@@ -87,70 +87,86 @@ namespace scidb
         return _iterators[attId];
     }
 
+
     //
     // Stream array iterator
     //
     StreamArrayIterator::StreamArrayIterator(StreamArray& arr, AttributeID attr)
-    : array(arr), attId(attr), currentChunk(NULL)
+    : _array(arr), _attId(attr), _currentChunk(NULL)
     {
         moveNext();
     }
 
     void StreamArrayIterator::moveNext()
     {
-        if (array.currentBitmapChunk == NULL || attId == 0 || array.currentBitmapChunk->getAttributeDesc().getId() != attId) {
-            currentChunk = array.nextChunk(attId, dataChunk);
-            if (currentChunk != NULL && array.emptyCheck) {
-                AttributeDesc const* bitmapAttr = array.desc.getEmptyBitmapAttribute();
-                if (bitmapAttr != NULL && bitmapAttr->getId() != attId) {
-                    if (array.currentBitmapChunk == NULL ||
-                        array.currentBitmapChunk->getFirstPosition(false) != currentChunk->getFirstPosition(false)) {
-#ifndef SCIDB_CLIENT
-                        assert(!dynamic_cast<scidb::RemoteMergedArray*>(&array));
-                        assert(!dynamic_cast<scidb::PullSGArray*>(&array));
-#endif
-                        LOG4CXX_TRACE(logger, "StreamArrayIterator::moveNext: getting bitmap chunk"
-                                      << " attId= " << attId
-                                      <<", currChunkPos=" << currentChunk->getFirstPosition(false));
+        if (_array.currentBitmapChunk == NULL ||
+            _attId == 0 ||
+            _array.currentBitmapChunk->getAttributeDesc().getId() != _attId) {
 
-                        array.currentBitmapChunk = array.nextChunk(bitmapAttr->getId(), bitmapChunk);
-                        if (!array.currentBitmapChunk)
-                            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_BITMAP_CHUNK);
+            _currentChunk = _array.nextChunk(_attId, _dataChunk);
+            if (_currentChunk != NULL && _array.emptyCheck) {
+                AttributeDesc const* bitmapAttr = _array.desc.getEmptyBitmapAttribute();
+                if (bitmapAttr != NULL && bitmapAttr->getId() != _attId) {
+                    if (_array.currentBitmapChunk == NULL ||
+                        (_array.currentBitmapChunk->getFirstPosition(false) !=
+                         _currentChunk->getFirstPosition(false))) {
+#ifndef SCIDB_CLIENT
+                        assert(!dynamic_cast<scidb::RemoteMergedArray*>(&_array));
+                        assert(!dynamic_cast<scidb::PullSGArray*>(&_array));
+                        assert(!dynamic_cast<scidb::SinglePassArray*>(&_array));
+#endif
+                        LOG4CXX_TRACE(logger,
+                                      "StreamArrayIterator::moveNext: getting bitmap chunk"
+                                      << " attId= " << _attId
+                                      << ", currChunkPos="
+                                      << _currentChunk->getFirstPosition(false));
+
+                        _array.currentBitmapChunk =
+                            _array.nextChunk(bitmapAttr->getId(), _bitmapChunk);
+                        if (!_array.currentBitmapChunk)
+                            throw USER_EXCEPTION(SCIDB_SE_EXECUTION,
+                                                 SCIDB_LE_NO_CURRENT_BITMAP_CHUNK);
                     }
-                    dataChunk.setBitmapChunk((Chunk*)array.currentBitmapChunk);
+                    assert(_currentChunk == &_dataChunk);
+                    if (_array.currentBitmapChunk->getFirstPosition(false) !=
+                        _currentChunk->getFirstPosition(false)) {
+                        throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION,
+                                               SCIDB_LE_NO_ASSOCIATED_BITMAP_CHUNK);
+                    }
+                    _dataChunk.setBitmapChunk((Chunk*)_array.currentBitmapChunk);
                 }
             }
         } else {
-            currentChunk = array.currentBitmapChunk;
+            _currentChunk = _array.currentBitmapChunk;
         }
     }
 
     ConstChunk const& StreamArrayIterator::getChunk()
     {
-        if (!currentChunk) {
+        if (!_currentChunk) {
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_CHUNK);
         }
-        return *currentChunk;
+        return *_currentChunk;
     }
 
     bool StreamArrayIterator::end()
     {
-        return currentChunk == NULL;
+        return _currentChunk == NULL;
     }
 
     void StreamArrayIterator::operator ++()
     {
-        if (currentChunk != NULL) {
+        if (_currentChunk != NULL) {
             moveNext();
         }
     }
 
     Coordinates const& StreamArrayIterator::getPosition()
     {
-        if (!currentChunk) {
+        if (!_currentChunk) {
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_CHUNK);
         }
-        return currentChunk->getFirstPosition(false);
+        return _currentChunk->getFirstPosition(false);
     }
 
 
@@ -188,14 +204,11 @@ namespace scidb
         boost::shared_ptr<ConstChunkIterator> src = inputChunk.getConstIterator(ChunkIterator::INTENDED_TILE_MODE|
                                                                                 ChunkIterator::IGNORE_EMPTY_CELLS);
         boost::shared_ptr<Query> query(Query::getValidQueryPtr(_query));
-        boost::shared_ptr<ChunkIterator> dst = chunk.getIterator(query,
-                                                                 (src->getMode() & ChunkIterator::TILE_MODE)|
-                                                                 ChunkIterator::NO_EMPTY_CHECK|
-                                                                 (inputChunk.isSparse()?ChunkIterator::SPARSE_CHUNK:0)|
-                                                                 ChunkIterator::SEQUENTIAL_WRITE);
-        bool vectorMode = src->supportsVectorMode() && dst->supportsVectorMode();
-        src->setVectorMode(vectorMode);
-        dst->setVectorMode(vectorMode);
+        boost::shared_ptr<ChunkIterator> dst =
+            chunk.getIterator(query,
+                              (src->getMode() & ChunkIterator::TILE_MODE)|
+                              ChunkIterator::NO_EMPTY_CHECK|
+                              ChunkIterator::SEQUENTIAL_WRITE);
         size_t count = 0;
         while (!src->end()) {
             if (dst->setPosition(src->getPosition())) {
@@ -204,12 +217,124 @@ namespace scidb
             }
             ++(*src);
         }
-        if (!vectorMode && !desc.hasOverlap()) {
+        if (!desc.hasOverlap()) {
             chunk.setCount(count);
         }
         dst->flush();
         return &chunk;
     }
+
+MultiStreamArray::DefaultChunkMerger::DefaultChunkMerger (bool isEnforceDataIntegrity)
+: _isEnforceDataIntegrity(isEnforceDataIntegrity),
+  _hasDataIntegrityIssue(false),
+  _numElems(0),
+  _chunkSizeLimit(0)
+{
+    const size_t sizeLimit = Config::getInstance()->getOption<size_t>(CONFIG_CHUNK_SIZE_LIMIT);
+    _chunkSizeLimit = sizeLimit * MiB;
+}
+
+bool
+MultiStreamArray::DefaultChunkMerger::mergePartialChunk(size_t stream,
+                                                        AttributeID attId,
+                                                        shared_ptr<MemChunk>& partialChunk,
+                                                        const shared_ptr<Query>& query)
+{
+    assert(partialChunk);
+
+    AttributeDesc const& attr = partialChunk->getAttributeDesc();
+    SCIDB_ASSERT((attId == attr.getId()));
+
+    const bool isEbm = isEmptyBitMap(partialChunk);
+
+    if (!isEbm) {
+        const ConstRLEPayload partialPayload(reinterpret_cast<char*>(partialChunk->getData()));
+        _numElems += partialPayload.count();
+    }
+
+    if (!_mergedChunk)  {
+        _mergedChunk.swap(partialChunk);
+        assert(!partialChunk);
+        return false;
+    }
+    _mergedChunk->setCount(0); // unknown
+    MemChunk* mergedChunk = _mergedChunk.get();
+    assert(mergedChunk);
+    assert(mergedChunk->getAttributeDesc().getId() == attId);
+    assert(mergedChunk->getAttributeDesc().getDefaultValue() == attr.getDefaultValue());
+    assert(mergedChunk->getFirstPosition(false) == partialChunk->getFirstPosition(false));
+
+    mergedChunk->merge(*partialChunk, query);
+
+    return true;
+}
+
+bool MultiStreamArray::DefaultChunkMerger::isEmptyBitMap(const shared_ptr<MemChunk>& chunk)
+{
+    AttributeDesc const* ebmAttr = chunk->getArrayDesc().getEmptyBitmapAttribute();
+    return (ebmAttr != NULL && chunk->getAttributeDesc().getId() == ebmAttr->getId());
+}
+
+shared_ptr<MemChunk>
+MultiStreamArray::DefaultChunkMerger::getMergedChunk(AttributeID attId,
+                                                     const shared_ptr<Query>& query)
+{
+    static const char* funcName = "DefaultChunkMerger::getMergedChunk: ";
+    assert(_mergedChunk);
+    checkChunkMagic(*_mergedChunk);
+
+    const bool isEbm = isEmptyBitMap(_mergedChunk);
+    size_t mergedFootprint = 0;
+    size_t mergedNumElems = 0;
+
+    if (isEbm) {
+        assert(_mergedChunk->getAttributeDesc().getId() ==
+               (_mergedChunk->getArrayDesc().getAttributes().size()-1));
+        const ConstRLEEmptyBitmap mergedEbm(reinterpret_cast<char*>(_mergedChunk->getData()));
+        mergedFootprint = mergedEbm.packedSize();
+    } else {
+        const ConstRLEPayload mergedPayload(reinterpret_cast<char*>(_mergedChunk->getData()));
+        mergedFootprint = mergedPayload.packedSize();
+        mergedNumElems  = mergedPayload.count();
+    }
+    assert(mergedFootprint>0);
+
+    if (_numElems != mergedNumElems && !isEbm) {
+        assert(_numElems > mergedNumElems);
+        assert(!isEbm);
+        if (_isEnforceDataIntegrity) {
+            stringstream ss;
+            ss << "chunk " << CoordsToStr(_mergedChunk->getFirstPosition(false));
+            throw USER_EXCEPTION(SCIDB_SE_REDISTRIBUTE, SCIDB_LE_DATA_COLLISION)
+            << ss.str();
+        }
+        if (!_hasDataIntegrityIssue) {
+            LOG4CXX_WARN(logger, funcName
+                         << "Data collision is detected in chunk at "
+                         << CoordsToStr(_mergedChunk->getFirstPosition(false))
+                         << " for attribute ID = " << _mergedChunk->getAttributeDesc().getId()
+                         << ". Add log4j.logger.scidb.qproc.streamarray=TRACE to the log4cxx config file for more");
+            _hasDataIntegrityIssue = true;
+        } else {
+            LOG4CXX_TRACE(logger, funcName
+                          << "Data collision is detected in chunk at "
+                          << CoordsToStr(_mergedChunk->getFirstPosition(false))
+                          << " for attribute ID = " << _mergedChunk->getAttributeDesc().getId());
+        }
+    }
+
+    if (_chunkSizeLimit && mergedFootprint > _chunkSizeLimit) {
+        throw USER_EXCEPTION(SCIDB_SE_OPERATOR, SCIDB_LE_CHUNK_TOO_LARGE)
+        << mergedFootprint << _chunkSizeLimit;
+    }
+
+    shared_ptr<MemChunk> result;
+    _mergedChunk.swap(result);
+    _numElems = 0;
+    assert(result);
+    assert(!_mergedChunk);
+    return result;
+}
 
 /**
  * Multistream array constructor
@@ -221,15 +346,18 @@ namespace scidb
 MultiStreamArray::MultiStreamArray(size_t n,
                                    size_t localStream,
                                    ArrayDesc const& arr,
+                                   bool enforceDataIntegrity,
                                    boost::shared_ptr<Query>const& query)
 : StreamArray(arr, false),
   _nStreams(n),
   _localStream(localStream),
+  _enforceDataIntegrity(enforceDataIntegrity),
   _resultChunks(arr.getAttributes().size()),
-  _resultChunkIterators(arr.getAttributes().size()),
+  _chunkMergers(arr.getAttributes().size()),
   _readyPositions(arr.getAttributes().size()),
   _notReadyPositions(arr.getAttributes().size()),
   _currPartialStreams(arr.getAttributes().size()),
+  _hasDataIntegrityIssue(false),
   _currMinPos(arr.getAttributes().size())
 {
     assert(query);
@@ -241,6 +369,7 @@ MultiStreamArray::MultiStreamArray(size_t n,
     for (AttributeID attId=0; attId < _notReadyPositions.size(); ++attId) {
         list<size_t>& current = _notReadyPositions[attId];
         current.insert(current.end(), notReadyPos.begin(), notReadyPos.end());
+        _chunkMergers[attId] = boost::make_shared<DefaultChunkMerger>(_enforceDataIntegrity);
     }
 }
 
@@ -251,7 +380,7 @@ MultiStreamArray::nextChunk(AttributeID attId, MemChunk& chunk)
 
     ASSERT_EXCEPTION( (attId < getArrayDesc().getAttributes().size()) , funcName);
     assert(attId < _resultChunks.size());
-    assert(attId < _resultChunkIterators.size());
+    assert(attId < _chunkMergers.size());
     assert(attId < _currMinPos.size());
     assert(attId < _notReadyPositions.size());
     assert(attId < _readyPositions.size());
@@ -279,32 +408,45 @@ MultiStreamArray::nextChunk(AttributeID attId, MemChunk& chunk)
             return NULL;
         }
 
-        if (logger->isTraceEnabled()) {
-            for (PositionMap::iterator it=readyPos.begin(); it!=readyPos.begin(); ++it) {
-                LOG4CXX_TRACE(logger, funcName << "ready streams attId= " << attId
-                              <<", src stream="<< (*it).second.getSrc()
-                              <<", dst stream="<< (*it).second.getDest()
-                              <<", pos="<< (*it).first);
-            }
-        }
+        logReadyPositions(readyPos, attId);
 
         bool notMyStream = false;
         if (currPartialStreams.empty()) {
-            // starting a new chunk, find all partiall chunk streams
-            _resultChunks[attId].reset();
-            _resultChunkIterators[attId].reset();
+            // starting a new chunk, find all partial chunk streams
+
             assert(_currMinPos[attId].empty());
-            PositionMap::value_type& minElem = (*readyPos.begin());
-            _currMinPos[attId] = minElem.first;
-            PositionMap::const_iterator endIter = readyPos.upper_bound(minElem.first);
 
-            notMyStream = (minElem.second.getDest() != _localStream);
+            PositionMap::value_type const& minElem = readyPos.top();
+            _currMinPos[attId] = minElem.getCoords();
+            notMyStream = (minElem.getDest() != _localStream);
 
-            for (PositionMap::iterator it=readyPos.begin(); it!=endIter; ) {
-                assert((*it).first == _currMinPos[attId]);
-                currPartialStreams.push_back((*it).second.getSrc());
-                readyPos.erase(it++);
+            if (_resultChunks[attId] && !notMyStream) {
+                scidb::CoordinatesLess comp;
+                if (!comp(_resultChunks[attId]->getFirstPosition(false), _currMinPos[attId])) {
+                    if (isEnforceDataIntegrity()) {
+                        throw USER_EXCEPTION(SCIDB_SE_REDISTRIBUTE, SCIDB_LE_CHUNK_POSITION_OUT_OF_ORDER)
+                        << CoordsToStr(_currMinPos[attId]);
+                    }
+                    if (!_hasDataIntegrityIssue) {
+                        LOG4CXX_WARN(logger, funcName << "Data chunk at position " << CoordsToStr(_currMinPos[attId])
+                                     << " for attribute ID = " << attId << " is received out of (row-major) order"
+                                     << ". Add log4j.logger.scidb.qproc.streamarray=TRACE to the log4cxx config file for more");
+                        _hasDataIntegrityIssue = true;
+                    } else {
+                        LOG4CXX_TRACE(logger, funcName << "Data chunk at position " << CoordsToStr(_currMinPos[attId])
+                                      << " for attribute ID = " << attId << " is received out of (row-major) order");
+                    }
+                }
+                LOG4CXX_TRACE(logger, funcName << "clearing old chunk attId= " << attId);
+                _resultChunks[attId].reset();
             }
+            while (!readyPos.empty()) {
+                if (readyPos.top().getCoords() != _currMinPos[attId]) { break; }
+                assert(notMyStream == (readyPos.top().getDest() != _localStream));
+                currPartialStreams.push_back(readyPos.top().getSrc());
+                readyPos.pop();
+            }
+
         }
 
         if (logger->isTraceEnabled()) {
@@ -317,7 +459,7 @@ MultiStreamArray::nextChunk(AttributeID attId, MemChunk& chunk)
         }
 
         if (notMyStream) {
-            // some stream positions are for chunks that are not destined for us (this instance)
+            // some stream positions are for chunks that are not destined for this instance
             _currMinPos[attId].clear();
             // let's check if we have more messages in the stream
             getNextStreamPositions(readyPos, notReadyPos, currPartialStreams, attId);
@@ -342,13 +484,9 @@ MultiStreamArray::nextChunk(AttributeID attId, MemChunk& chunk)
     LOG4CXX_TRACE(logger, funcName <<"done with chunk attId=" <<attId
                   << ", minPos="<< _currMinPos[attId]);
 
-    if (_resultChunkIterators[attId]) {
-        _resultChunkIterators[attId]->flush();
-        _resultChunkIterators[attId].reset();
-    }
     _currMinPos[attId].clear();
-
-    return _resultChunks[attId].get();
+    const MemChunk* result = _resultChunks[attId].get();
+    return result;
 }
 
 void
@@ -369,7 +507,7 @@ MultiStreamArray::getAllStreamPositions(PositionMap& readyPos,
             size_t destStream(_localStream);
             if (nextChunkPos(stream, attId, pos, destStream)) {
                 assert(!pos.empty());
-                readyPos.insert(make_pair(pos,SourceAndDest(stream, destStream)));
+                readyPos.push(SourceAndDest(pos, stream, destStream));
                 LOG4CXX_TRACE(logger, funcName << "ready stream found attId= " << attId
                               <<", src stream="<< stream
                               <<", dest stream="<< destStream
@@ -401,6 +539,8 @@ MultiStreamArray::mergePartialStreams(PositionMap& readyPos,
     Coordinates pos;
     shared_ptr<RetryException> err;
     shared_ptr<MemChunk> mergeChunk = boost::make_shared<MemChunk>();
+    boost::shared_ptr<Query> query(Query::getValidQueryPtr(_query));
+    assert(_chunkMergers[attId]);
 
     // get all partial chunks
     for (list<size_t>::iterator it=currPartialStreams.begin();
@@ -424,7 +564,7 @@ MultiStreamArray::mergePartialStreams(PositionMap& readyPos,
                 size_t destStream(_localStream);
                 if (nextChunkPos(stream, attId, pos, destStream)) {
                     assert(!pos.empty());
-                    readyPos.insert(make_pair(pos,SourceAndDest(stream,destStream)));
+                    readyPos.push(SourceAndDest(pos, stream, destStream));
                     LOG4CXX_TRACE(logger, funcName << "next position is ready attId= " << attId
                                   <<", src stream="<< stream
                                   <<", dst stream="<< destStream);
@@ -458,19 +598,16 @@ MultiStreamArray::mergePartialStreams(PositionMap& readyPos,
                      <<", next=" << next
                      <<", size=" << next->getSize());
 
-        if (!_resultChunks[attId])  {
-            _resultChunks[attId] = mergeChunk;
-            _resultChunks[attId]->setCount(0); // unknown
-            mergeChunk = boost::make_shared<MemChunk>();
-            continue;
-        }
-        ConstChunk const* result = _resultChunks[attId].get();
         assert(_currMinPos[attId] == next->getFirstPosition(false));
-        assert(_currMinPos[attId] == result->getFirstPosition(false));
-
-        mergeChunks(result, next, _resultChunkIterators[attId]);
+        if (!_chunkMergers[attId]->mergePartialChunk(stream, attId,mergeChunk,query)) {
+            assert(!mergeChunk);
+            mergeChunk = boost::make_shared<MemChunk>();
+        }
+        assert(mergeChunk);
     }
     if (err) { throw *err; }
+
+    _resultChunks[attId] = _chunkMergers[attId]->getMergedChunk(attId, query);
 }
 
 void
@@ -495,7 +632,7 @@ MultiStreamArray::getNextStreamPositions(PositionMap& readyPos,
             size_t destStream(_localStream);
             if (nextChunkPos(stream, attId, pos, destStream)) {
                 assert(!pos.empty());
-                readyPos.insert(make_pair(pos,SourceAndDest(stream,destStream)));
+                readyPos.push(SourceAndDest(pos, stream, destStream));
                 LOG4CXX_TRACE(logger, funcName << "next position is ready attId= " << attId
                               <<", src stream="<< stream
                               <<", dst stream="<< destStream);
@@ -517,57 +654,137 @@ MultiStreamArray::getNextStreamPositions(PositionMap& readyPos,
     if (err) { throw *err; }
 }
 
-void MultiStreamArray::mergeChunks( ConstChunk const* next,
-                                    ConstChunk const* merge,
-                                    shared_ptr<ChunkIterator>& dstIterator)
+
+void
+MultiStreamArray::logReadyPositions(PositionMap& readyPos,
+                                    const AttributeID attId)
 {
-    assert(next);
-    assert(merge);
-
-    AttributeDesc const& attr = merge->getAttributeDesc();
-    Value const& defaultValue = attr.getDefaultValue();
-
-    if (next->isRLE() || merge->isRLE() ||
-        next->isSparse() || merge->isSparse() ||
-        attr.isNullable() ||
-        !defaultValue.isDefault(attr.getType()) ||
-        TypeLibrary::getType(attr.getType()).variableSize()) {
-
-        int sparseMode = next->isSparse() ? ChunkIterator::SPARSE_CHUNK : 0;
-        boost::shared_ptr<Query> query(Query::getValidQueryPtr(_query));
-        if(!dstIterator) {
-            dstIterator = ((Chunk*)next)->getIterator(query, sparseMode|
-                                                      ChunkIterator::APPEND_CHUNK|
-                                                      ChunkIterator::NO_EMPTY_CHECK);
-        }
-        assert(dstIterator);
-        boost::shared_ptr<ConstChunkIterator> srcIterator = merge->getConstIterator(ChunkIterator::IGNORE_DEFAULT_VALUES|
-                                                                                    ChunkIterator::IGNORE_NULL_VALUES|
-                                                                                    ChunkIterator::IGNORE_EMPTY_CELLS);
-
-        bool hasEmptyBitmap = (next->getArrayDesc().getEmptyBitmapAttribute() != NULL);
-
-        while (!srcIterator->end()) {
-                Value const& value = srcIterator->getItem();
-                if (hasEmptyBitmap || value != defaultValue) {
-                    if (!dstIterator->setPosition(srcIterator->getPosition())) {
-                        throw USER_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_OPERATION_FAILED) << "setPosition";
-                    }
-                    dstIterator->writeItem(value);
-                }
-                ++(*srcIterator);
-            }
-    } else { //XXX TODO: is this dead code ??? it may only be used for the 'dense' chunk format, which should be removed
-        if (next->getSize() != merge->getSize()) {
-            throw USER_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_CANT_MERGE_CHUNKS_WITH_VARYING_SIZE);
-        }
-        PinBuffer scope(*merge);
-        char* dst = (char*)next->getData();
-        char* src = (char*)merge->getData();
-        for (size_t j = 0, n = next->getSize(); j < n; j++) {
-            dst[j] |= src[j];
-        }
+    static const char *funcName = "MultiStreamArray::logReadyPositions: ";
+    if (!logger->isTraceEnabled()) {
+        return;
+    }
+    // a bit ugly but only when tracing
+    PositionMap tmp;
+    while (!readyPos.empty()) {
+        PositionMap::value_type const& top = readyPos.top();
+        tmp.push(top);
+        LOG4CXX_TRACE(logger, funcName << "ready streams attId= " << attId
+                      <<", src stream="<< top.getSrc()
+                      <<", dst stream="<< top.getDest()
+                      <<", pos="<< top.getCoords());
+        readyPos.pop();
+    }
+    while (!tmp.empty()) {
+        PositionMap::value_type const& top = tmp.top();
+        readyPos.push(top);
+        tmp.pop();
     }
 }
+
+SinglePassArray::SinglePassArray(ArrayDesc const& arr)
+: StreamArray(arr, false),
+  _enforceHorizontalIteration(false),
+  _consumed(arr.getAttributes().size()),
+  _rowIndexPerAttribute(arr.getAttributes().size(), 0)
+{}
+
+shared_ptr<ConstArrayIterator>
+SinglePassArray::getConstIterator(AttributeID attId) const
+{
+    if (_iterators[attId]) { return _iterators[attId]; }
+
+    // Initialize all attribute iterators at once
+    // to avoid unnecessary exceptions
+    // (in case when getConstIterator(aid) are not called for all attributes before iteration)
+    Exception::Pointer err;
+    for (AttributeID a=0, n=_iterators.size(); a<n; ++a) {
+        try {
+            if (!_iterators[a]) {
+                StreamArray* self = const_cast<StreamArray*>(static_cast<const StreamArray*>(this));
+                boost::shared_ptr<ConstArrayIterator> cai(new StreamArrayIterator(*self, a));
+                const_cast< boost::shared_ptr<ConstArrayIterator>& >(_iterators[a]) = cai;
+            }
+        } catch (const StreamArray::RetryException& e) {
+            if (a == attId) {
+                err = e.copy();
+            }
+        }
+    }
+    if (err) { err->raise(); }
+    assert(_iterators[attId]);
+    return _iterators[attId];
+}
+
+ConstChunk const*
+SinglePassArray::nextChunk(AttributeID attId, MemChunk& chunk)
+{
+    static const char* funcName="SinglePassArray:nextChunk: ";
+    // Ensure that attributes are consumed horizontally
+    while(true) {
+
+        ConstChunk const* result(NULL);
+        assert(attId < _rowIndexPerAttribute.size());
+
+        const size_t nAttrs = _rowIndexPerAttribute.size();
+        const size_t currRowIndex = getCurrentRowIndex();
+
+        size_t& chunkIndex = _rowIndexPerAttribute[attId];
+
+        if (chunkIndex != currRowIndex) {
+            // the requested chunk must be in the current row
+            ASSERT_EXCEPTION((currRowIndex > chunkIndex), funcName);
+            ASSERT_EXCEPTION((chunkIndex == (currRowIndex-1)
+                              || !_enforceHorizontalIteration) , funcName);
+
+            result = &getChunk(attId, chunkIndex+1);
+            ++chunkIndex;
+            ++_consumed;
+            assert(_consumed<=nAttrs || !_enforceHorizontalIteration);
+            return result;
+        }
+
+        if (_enforceHorizontalIteration && _consumed < nAttrs) {
+            // the previous row has not been fully consumed
+            throw RetryException(REL_FILE, __FUNCTION__, __LINE__);
+        }
+
+        assert(_consumed==nAttrs || !_enforceHorizontalIteration);
+
+        if (!moveNext(chunkIndex+1)) {
+            // no more chunks
+            return result;
+        }
+
+        // advance to the next row and get the chunk
+        _consumed = 0;
+        result = &getChunk(attId, chunkIndex+1);
+        assert(result);
+        ++chunkIndex;
+        ++_consumed;
+
+        if (hasValues(result)) { return result; }
+
+        // run through the rest of the attributes discarding empty chunks
+        for (size_t a=0; a < nAttrs; ++a) {
+            if (a==attId) { continue; }
+            ConstChunk const* result = nextChunk(a, chunk);
+            ASSERT_EXCEPTION((!hasValues(result)), funcName);
+            assert(getCurrentRowIndex() == _rowIndexPerAttribute[a]);
+        }
+        assert(_consumed == nAttrs);
+        assert(getCurrentRowIndex() == _rowIndexPerAttribute[attId]);
+    }
+    ASSERT_EXCEPTION(false, funcName);
+    return NULL;
+}
+
+bool
+SinglePassArray::hasValues(const ConstChunk* chunk)
+{
+    bool isEmptyable = (getArrayDesc().getEmptyBitmapAttribute() != NULL);
+    bool chunkHasVals = (!isEmptyable) || (!chunk->isEmpty());
+    return (chunkHasVals && (chunk->getSize() > 0));
+}
+
 #endif //SCIDB_CLIENT
 }

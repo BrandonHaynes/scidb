@@ -16,29 +16,51 @@ Query was executed successfully
 SCIDB QUERY : <store(redimension(apply(pairs_scale10, v, 1.0), mat_scale10),mat_scale10)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <store(spgemm(mat_scale10, mat_scale10), product_scale10)>
+SCIDB QUERY : <store(spgemm(mat_scale10, mat_scale10, 'rightReplicate=true'), product_scale10true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(spgemm(mat_scale10, mat_scale10, 'rightReplicate=false'), product_scale10false)>
 [Query was executed successfully, ignoring data output by this query.]
 
 SCIDB QUERY : <store(gemm(mat_scale10, mat_scale10, build(mat_scale10,0)), check_scale10)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <store(join(product_scale10,check_scale10), joined_scale10)>
+SCIDB QUERY : <store(join(product_scale10true,check_scale10), joined_scale10true)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <store(project(apply(joined_scale10,diff,multiply-gemm),diff), diffs_scale10)>
+SCIDB QUERY : <store(join(product_scale10false,check_scale10), joined_scale10false)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <aggregate(filter(diffs_scale10,diff !=0),count(*))>
+SCIDB QUERY : <store(project(apply(joined_scale10true,diff,multiply-gemm),diff), diffs_scale10true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(project(apply(joined_scale10false,diff,multiply-gemm),diff), diffs_scale10false)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(filter(diffs_scale10true,diff !=0),count(*))>
 {i} count
 {0} 0
 
-SCIDB QUERY : <store(spgemm(mat_scale10, mat_scale10, 'count-mults'), num_mult_scale10)>
+SCIDB QUERY : <aggregate(filter(diffs_scale10false,diff !=0),count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <store(spgemm(mat_scale10, mat_scale10, 'count-mults', 'rightReplicate=true'), num_mult_scale10true)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <aggregate(num_mult_scale10,count(*))>
+SCIDB QUERY : <store(spgemm(mat_scale10, mat_scale10, 'count-mults', 'rightReplicate=true'), num_mult_scale10false)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <aggregate(num_mult_scale10,sum(multiply))>
+SCIDB QUERY : <aggregate(num_mult_scale10true,count(*))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(num_mult_scale10false,count(*))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(num_mult_scale10true,sum(multiply))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(num_mult_scale10false,sum(multiply))>
 [Query was executed successfully, ignoring data output by this query.]
 
 SCIDB QUERY : <remove(pairs_scale10)>
@@ -47,18 +69,30 @@ SCIDB QUERY : <remove(pairs_scale10)>
 SCIDB QUERY : <remove(mat_scale10)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <remove(product_scale10)>
+SCIDB QUERY : <remove(product_scale10true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(product_scale10false)>
 [Query was executed successfully, ignoring data output by this query.]
 
 SCIDB QUERY : <remove(check_scale10)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <remove(joined_scale10)>
+SCIDB QUERY : <remove(joined_scale10true)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <remove(diffs_scale10)>
+SCIDB QUERY : <remove(joined_scale10false)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <remove(num_mult_scale10)>
+SCIDB QUERY : <remove(diffs_scale10true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(diffs_scale10false)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(num_mult_scale10true)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(num_mult_scale10false)>
 [Query was executed successfully, ignoring data output by this query.]
 

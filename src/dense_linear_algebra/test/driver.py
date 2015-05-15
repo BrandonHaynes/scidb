@@ -569,6 +569,19 @@ def iterateOverTests(orderStr, errorLimit, testNames=allTests.keys(), matrixType
                 printDebugForce("TESTS END: %s, chunkSize %s, order %s" % (testName, chunkSize, order,))
 
 
+# convert adddim(array,dimension) to redimension(apply())
+def getAdddim(myArray, myDimension):
+
+   # get schema of array
+   (ret,mySchema) = aflResult("show(%s)" % myArray)
+   mySchema = mySchema[2:-2]
+   attrStart = mySchema.find("<")
+   dimStart = mySchema.find("[")
+   dimEnd = mySchema.find("]")
+   myResult = "redimension(apply(%s,%s,0),%s [%s=0:0,1,0,%s)" % (myArray, myDimension, mySchema[attrStart:dimStart], myDimension, mySchema[dimStart+1:])
+
+   return myResult
+
 # Generate a diagonal matrix from the vector vector and store in the array called result
 def generateDiagonal(vector, result, autoCleanup=True):
    printDebug("Generating diagonal matrix from %s and saving as %s" % (vector, result))
@@ -599,17 +612,19 @@ def generateDiagonal(vector, result, autoCleanup=True):
    createMatrix(VEC_1, 1, ncol, rowChunkSize=1, colChunkSize=chunkSize) # 
    populateMatrix(VEC_1, getMatrixExpressionAfl(1, ncol, rowChunkSize=1, colChunkSize=chunkSize, expr="1")) #matrix of ones
 
+   ADDDIM_Q=getAdddim(vector,'c')
+
    if False:
       printDebug("debug diag transpose(adddim(%s)) @@@@@@@@@@@@@@@@" % vector)
-      afl("transpose(adddim(%s,c))" % vector)
+      afl("transpose(%s)" % ADDDIM_Q)
       eliminate("DEBUG_1")
-      afl("store(transpose(adddim(%s,c)),DEBUG_1)" % vector)
+      afl("store(transpose(%s),DEBUG_1)" % ADDDIM_Q)
       afl("show(DEBUG_1)")
       printDebug("debug diag transpose %s @@@@@@@@@@@@@@@@" % vector)
       afl("show(%s)" % VEC_1)
 
    OUTER_PRODUCT="OUTER_PRODUCT"
-   outerProductAfl="aggregate(apply(cross_join(transpose(adddim(%s, c) as A),%s as B, A.c, B.r), prod, A.sigma * B.v), sum(prod) as multiply, A.i, B.c)" % (vector, VEC_1)
+   outerProductAfl="aggregate(apply(cross_join(transpose(%s as A),%s as B, A.c, B.r), prod, A.sigma * B.v), sum(prod) as multiply, A.i, B.c)" % (ADDDIM_Q, VEC_1)
    eliminateAndStore(outerProductAfl, OUTER_PRODUCT)
 
    # then we just use iif to set off-diagonal values to 0

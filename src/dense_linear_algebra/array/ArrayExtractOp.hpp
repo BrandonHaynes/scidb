@@ -111,7 +111,7 @@ void extractDataToOp(shared_ptr<scidb::Array> array, scidb::AttributeID attrID,
         assert(itChunk->getLogicalPosition()>=0);
 
         // use about 1/2 of L1, the other half is for the destination
-        const size_t MAX_VALUES_TO_GET = Sysinfo::INTEL_L1_DATA_CACHE_BYTES/2/sizeof(Value_t);
+        const size_t MAX_VALUES_TO_GET = Sysinfo::getCPUCacheSize(Sysinfo::CPU_CACHE_L1)/2/sizeof(Value_t);
 
         extractOp.blockBegin();
         // for all non-zeros in chunk (memory is already zeroed)

@@ -434,7 +434,8 @@ double getTimeInSecs()
     if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
         int err = errno;
         stringstream ss;
-        ss << "clock_gettime(CLOCK_REALTIME,...) failed, errno="<<err;
+        ss << "clock_gettime(CLOCK_REALTIME,...) failed: " << ::strerror(err)
+           << " (" << err << ")";
         assert(false);
         throw std::runtime_error(ss.str());
     }

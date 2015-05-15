@@ -42,13 +42,12 @@
 
 // enum
 // {
-//      CONFIG_CATALOG_CONNECTION_STRING,
+//      CONFIG_CATALOG,
 //      CONFIG_HELP,
 //      CONFIG_PORT,
 //      CONFIG_OPTIMIZER_TYPE,
-//      CONFIG_PLUGINS
-//      };
-
+//      CONFIG_PLUGINSDIR
+//  };
 
 // Included tests
 //#include "services/catalog/catalog_unit_tests.h"
@@ -69,25 +68,29 @@ using namespace std;
 
 void configHook(int32_t configOption)
 {
-        switch (configOption)
-        {
-                case CONFIG_HELP:
-                        cout << "Available options:" << endl
-                                << Config::getInstance()->getDescription() << endl;
-                        ::exit(0);
-                        break;
-        }
+    switch (configOption)
+    {
+        case CONFIG_HELP:
+            cout << "Available options:" << endl
+                 << Config::getInstance()->getDescription() << endl;
+            ::exit(0);
+            break;
+    }
 }
 
-int main(int argc, char **argv)
+int main(int argc,char* argv[])
 {
-    //some tests rely on the local path
-    char *myPath = strdup(argv[0]);
-    if (chdir (dirname(myPath)) != 0)
+ /* Some tests rely on the local path...*/
     {
-        printf("WARNING: could not chdir to %s\n", myPath);
-    }
+        char s[PATH_MAX];                                // Local copy of path
 
+        strcpy(s,argv[0]);                               // Dirname mutates s
+
+        if (chdir(dirname(s)) != 0)                      // Failed to change dir?
+        {
+            cout << "WARNING: could not chdir to " << s << endl;
+        }
+    }
     try
     {
         log4cxx::BasicConfigurator::configure();
@@ -96,16 +99,17 @@ int main(int argc, char **argv)
 
         Config *cfg = Config::getInstance();
 
-        cfg->addOption(scidb::CONFIG_PLUGINS, 'u', "plugins", "PLUGINS", "", scidb::Config::STRING, "Plugins folder.",
+        cfg->addOption(scidb::CONFIG_PLUGINSDIR, 'u', "pluginsdir", "PLUGINS", "", scidb::Config::STRING, "Plugins folder.",
                        string("/../../bin/plugins"), false);
 
-        TypeLibrary::registerBuiltInTypes();
-        FunctionLibrary::getInstance()->registerBuiltInFunctions();
         initConfig(argc, argv);
         cfg->setOption(CONFIG_PORT,0);
 
         SystemCatalog* catalog = SystemCatalog::getInstance();
-        catalog->connect(cfg->getOption<string>(CONFIG_CATALOG_CONNECTION_STRING), false);
+        catalog->connect(cfg->getOption<string>(CONFIG_CATALOG), false);
+
+        TypeLibrary::registerBuiltInTypes();
+        FunctionLibrary::getInstance()->registerBuiltInFunctions();
 
         CppUnit::TextUi::TestRunner runner;
         CppUnit::TestFactoryRegistry &registry = CppUnit::TestFactoryRegistry::getRegistry();

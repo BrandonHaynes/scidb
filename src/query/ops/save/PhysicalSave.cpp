@@ -85,7 +85,7 @@ public:
     virtual DistributionRequirement getDistributionRequirement (const std::vector< ArrayDesc> & inputSchemas) const
     {
         InstanceID sourceInstanceID = getSourceInstanceID();
-        if (sourceInstanceID == ALL_INSTANCES_MASK)
+        if (sourceInstanceID == ALL_INSTANCE_MASK)
         {
             return DistributionRequirement(DistributionRequirement::Any);
         }
@@ -115,12 +115,14 @@ public:
         }
         InstanceID sourceInstanceID = getSourceInstanceID();
         if (sourceInstanceID == COORDINATOR_INSTANCE_MASK) {
-            sourceInstanceID = query->getCoordinatorInstanceID();
+            sourceInstanceID = (query->isCoordinator() ? query->getInstanceID() : query->getCoordinatorID());
         }
         InstanceID myInstanceID = query->getInstanceID();
-        if (sourceInstanceID == ALL_INSTANCES_MASK || sourceInstanceID == myInstanceID) {
+        bool parallel = (sourceInstanceID == ALL_INSTANCE_MASK);
+        if (parallel || sourceInstanceID == myInstanceID) {
             ArrayWriter::setPrecision(Config::getInstance()->getOption<int>(CONFIG_PRECISION));
-            ArrayWriter::save(*inputArrays[0], fileName, query, format);
+            ArrayWriter::save(*inputArrays[0], fileName, query, format,
+                              (parallel ? ArrayWriter::F_PARALLEL : 0));
         }
 
         return inputArrays[0];

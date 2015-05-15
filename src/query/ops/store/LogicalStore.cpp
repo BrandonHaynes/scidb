@@ -190,7 +190,7 @@ public:
 
             //FIXME: Need more clear message and more granular condition
             if (srcDims.size() != dstDims.size())
-                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT);
+                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT) << "store";
             for (size_t i = 0, n = srcDims.size(); i < n; i++)
             {
                 if (!(srcDims[i].getStartMin() == dstDims[i].getStartMin()
@@ -201,6 +201,8 @@ public:
                            && srcDims[i].getChunkInterval() == dstDims[i].getChunkInterval()
                            && srcDims[i].getChunkOverlap() == dstDims[i].getChunkOverlap()))
                 {
+                    // XXX To do: implement requiresRepart() method, remove interval/overlap checks
+                    // above, use SCIDB_LE_START_INDEX_MISMATCH here.
                     throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT);
                 }
             }

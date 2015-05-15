@@ -32,44 +32,74 @@
 
 using namespace std;
 using namespace boost;
+
 namespace scidb
 {
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.util.BufferedFileInput"));
 
 /**
  * The ErrorChecker.
- * @param query       the query
- * @param pTerminated  whether BuffereFileInput has been terminated
- * @throws scidb::SystemExeption via validateQueryPtr if the query is not valid
- * @return true if query is valid and not terminated yet
+ * @param query       the query context.
+ * @param pState      a pointer to a BuffereFileInput::State object.
+ * @throws scidb::SystemExeption via validateQueryPtr if the query is not valid.
+ * @return true if query is valid AND if the state is not TERMINATED.
  */
-bool queryAndScannerValid(shared_ptr<Query>& query, bool* pTerminated)
+bool queryAndScannerValid(shared_ptr<Query>& query, BufferedFileInput::State* pState)
 {
     Query::validateQueryPtr(query);
-    return ! *pTerminated;
+    return *pState != BufferedFileInput::TERMINATED;
 }
 
-BufferedFileInput::BufferedFileInput(FILE* f, boost::shared_ptr<Query>& query): _f(f), _which(0), _query(query), _terminated(false)
+BufferedFileInput::Buffer::Buffer()
+: _loaded(false),
+  _buffer(new char[BufferedFileInput::bufferSize()]),
+  _fromUnget(0),
+  _sizeTotal(0),
+  _index(0),
+  _loaderIsWaiting(false),
+  _scannerIsWaiting(false),
+  _readFileError(0)
 {
-#ifndef NDEBUG
-    _NoMoreCalls = false;
-#endif
+}
+
+BufferedFileInput::FillBufferJob::FillBufferJob(
+        shared_ptr<Query> const& query,
+        Buffer* buffers,
+        FILE* f,
+        int64_t bufferSize,
+        BufferedFileInput::State* pState)
+: Job(query),
+  _buffers(buffers),
+  _f(f),
+  _bufferSize(bufferSize),
+  _pState(pState)
+{
+}
+
+BufferedFileInput::BufferedFileInput(FILE* f, boost::shared_ptr<Query>& query)
+: _state(UNINITIALIZED),
+  _f(f),
+  _which(0),
+  _bufferSize(bufferSize()),
+  _query(query)
+  #ifndef NDEBUG
+  ,_debugOnlyNoMoreCalls(false)
+  #endif
+{
+}
+
+bool BufferedFileInput::initialize()
+{
+    assert(_state == UNINITIALIZED);
+    _state = SERVING;
 
     // Disable fread file buffering.
     // We are doing manual buffering (for lookahead). So it does not make sense to have another layer of buffering.
     setbuf(_f, NULL);
 
-    _bufferSize = bufferSize();
-
-    // prepare ErrorChecker for Event.wait() in the while loop
-    if (!query) {
-        return;
-    }
-    _ec = bind(&queryAndScannerValid, query, &_terminated);
-
     // start the prefetching thread
     PhysicalOperator::getGlobalQueueForOperators()->pushJob( _fillBufferJob =
-            shared_ptr<FillBufferJob>(new FillBufferJob(query, _buffers, _f, _bufferSize, &_terminated)) );
+            shared_ptr<FillBufferJob>(new FillBufferJob(Query::getValidQueryPtr(_query), _buffers, _f, _bufferSize, &_state)) );
 
     // lock buffer[0]
     Buffer& theBuffer = _buffers[0];
@@ -79,24 +109,29 @@ BufferedFileInput::BufferedFileInput(FILE* f, boost::shared_ptr<Query>& query): 
     if (!theBuffer._loaded) {
         try {
             theBuffer._scannerIsWaiting = true;
-            bool signalled = theBuffer._eventBlockingScanner.wait(theBuffer._mutex, _ec);
+            Event::ErrorChecker ec = bind(&queryAndScannerValid, Query::getValidQueryPtr(_query), &_state);
+            bool signalled = theBuffer._eventBlockingScanner.wait(theBuffer._mutex, ec);
             theBuffer._scannerIsWaiting = false;
 
             if (!signalled) {
                 LOG4CXX_DEBUG(logger, "BufferedFileInput::BufferedFileInput eventBlockingScanner.wait() returned false!");
-                return;
+                return false;
             }
         }
         catch (Exception& e) {
             LOG4CXX_DEBUG(logger, "BufferedFileInput::BufferedFileInput exception in eventBlockingScanner.wait().");
-            return;
+            return false;
         }
     }
 
     // whether error has occurred in the loader
     if (theBuffer._readFileError) {
-        throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PREAD_ERROR) << _bufferSize << 1234567 << 1234567;
+        throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PREAD_ERROR)
+            << _bufferSize << "(offset)" << "(rc)"
+            << ::strerror(theBuffer._readFileError) << theBuffer._readFileError;
     }
+
+    return true;
 }
 
 /*
@@ -108,7 +143,7 @@ void BufferedFileInput::FillBufferJob::run()
     short i = 0;
 
     // prepare ErrorChecker for Event.wait() in the while loop
-    Event::ErrorChecker ec = bind(&queryAndScannerValid, _query, _pTerminated);
+    Event::ErrorChecker ec = bind(&queryAndScannerValid, _query, _pState);
 
     // keep loading the next buffer, till the end of file is reached
     while (true) {
@@ -136,15 +171,14 @@ void BufferedFileInput::FillBufferJob::run()
 
         // fill the buffer
         theBuffer._loaded = true;
-        theBuffer._sizeTotal = fread(theBuffer._buffer.get(), 1, _bufferSize, _f);
+        theBuffer._sizeTotal = ::fread(theBuffer._buffer.get(), 1, _bufferSize, _f);
         theBuffer._index = 0;
-        bool eofOrError = (theBuffer._sizeTotal < _bufferSize);
-
-        // If eof or error, return.
-        // In addition, if error occured, set theBuffer's readFileError to be true. The 'scanner' will pick this up later.
-        if (eofOrError) {
+        if (theBuffer._sizeTotal < _bufferSize) {
+            // EOF or error.
+            int err = errno;    // paranoid
             if (!feof(_f)) {
-                theBuffer._readFileError = true;
+                assert(err);
+                theBuffer._readFileError = err;
             }
 
             if (theBuffer._scannerIsWaiting) {
@@ -183,7 +217,7 @@ char BufferedFileInput::myGetcNonInlinedPart() {
     // if eofReached, return;
     if ( index < _bufferSize) {
 #ifndef NDEBUG
-        _NoMoreCalls = true;
+        _debugOnlyNoMoreCalls = true;
 #endif
         return EOF;
     }
@@ -212,7 +246,8 @@ char BufferedFileInput::myGetcNonInlinedPart() {
     if (!nextBuffer._loaded) {
         try {
             nextBuffer._scannerIsWaiting = true;
-            bool signalled = nextBuffer._eventBlockingScanner.wait(nextBuffer._mutex, _ec);
+            Event::ErrorChecker ec = bind(&queryAndScannerValid, Query::getValidQueryPtr(_query), &_state);
+            bool signalled = nextBuffer._eventBlockingScanner.wait(nextBuffer._mutex, ec);
             nextBuffer._scannerIsWaiting = false;
 
             if (!signalled) {
@@ -228,7 +263,9 @@ char BufferedFileInput::myGetcNonInlinedPart() {
 
     // whether error has occurred in the loader
     if (theBuffer._readFileError) {
-        throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PREAD_ERROR) << _bufferSize << 1234567 << 1234567;
+        throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PREAD_ERROR)
+            << _bufferSize << "(offset)" << "(rc)"
+            << ::strerror(theBuffer._readFileError) << theBuffer._readFileError;
     }
 
     // call myGetc() on the new buffer
@@ -242,7 +279,10 @@ char BufferedFileInput::myGetcNonInlinedPart() {
  */
 BufferedFileInput::~BufferedFileInput()
 {
-    _terminated = true;
+    if (_state != SERVING) {
+        return;
+    }
+    _state = TERMINATED;
 
     if (_fillBufferJob) {
         // mark the first buffer

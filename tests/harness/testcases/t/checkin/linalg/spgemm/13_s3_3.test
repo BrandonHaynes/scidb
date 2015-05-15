@@ -32,110 +32,245 @@ store( filter(build(spI_c2_2,   1), x=y),  spI_c2_2 )
 store( filter(build(spI_c1_1,   1), x=y),  spI_c1_1 )
 
 # csize 3x3
-spgemm(sp0_c3_3, sp0_c3_3)
-spgemm(sp0_c3_3, sp1_c3_3)
-spgemm(sp1_c3_3, sp0_c3_3)
-spgemm(sp1_c3_3, sp1_c3_3)
+spgemm(sp0_c3_3, sp0_c3_3, 'rightReplicate=true')
+spgemm(sp0_c3_3, sp0_c3_3, 'rightReplicate=false')
 
-spgemm(sp0_c3_3, spI_c3_3)
-spgemm(sp1_c3_3, spI_c3_3)
-spgemm(spI_c3_3, sp0_c3_3)
-spgemm(spI_c3_3, sp1_c3_3)
+spgemm(sp0_c3_3, sp1_c3_3, 'rightReplicate=true')
+spgemm(sp0_c3_3, sp1_c3_3, 'rightReplicate=false')
+
+spgemm(sp1_c3_3, sp0_c3_3, 'rightReplicate=true')
+spgemm(sp1_c3_3, sp0_c3_3, 'rightReplicate=false')
+
+spgemm(sp1_c3_3, sp1_c3_3, 'rightReplicate=true')
+spgemm(sp1_c3_3, sp1_c3_3, 'rightReplicate=false')
+
+
+spgemm(sp0_c3_3, spI_c3_3, 'rightReplicate=true')
+spgemm(sp0_c3_3, spI_c3_3, 'rightReplicate=false')
+
+spgemm(sp1_c3_3, spI_c3_3, 'rightReplicate=true')
+spgemm(sp1_c3_3, spI_c3_3, 'rightReplicate=false')
+
+spgemm(spI_c3_3, sp0_c3_3, 'rightReplicate=true')
+spgemm(spI_c3_3, sp0_c3_3, 'rightReplicate=false')
+
+spgemm(spI_c3_3, sp1_c3_3, 'rightReplicate=true')
+spgemm(spI_c3_3, sp1_c3_3, 'rightReplicate=false')
+
 
 # csize 2x2
-spgemm(sp0_c2_2, sp0_c2_2)
-spgemm(sp0_c2_2, sp1_c2_2)
-spgemm(sp1_c2_2, sp0_c2_2)
-spgemm(sp1_c2_2, sp1_c2_2)
+spgemm(sp0_c2_2, sp0_c2_2, 'rightReplicate=true')
+spgemm(sp0_c2_2, sp0_c2_2, 'rightReplicate=false')
 
-spgemm(sp0_c2_2, spI_c2_2)
-spgemm(sp1_c2_2, spI_c2_2)
-spgemm(spI_c2_2, sp0_c2_2)
-spgemm(spI_c2_2, sp1_c2_2)
+spgemm(sp0_c2_2, sp1_c2_2, 'rightReplicate=true')
+spgemm(sp0_c2_2, sp1_c2_2, 'rightReplicate=false')
+
+spgemm(sp1_c2_2, sp0_c2_2, 'rightReplicate=true')
+spgemm(sp1_c2_2, sp1_c2_2, 'rightReplicate=false')
+
+spgemm(sp0_c2_2, spI_c2_2, 'rightReplicate=true')
+spgemm(sp0_c2_2, spI_c2_2, 'rightReplicate=false')
+
+spgemm(sp1_c2_2, spI_c2_2, 'rightReplicate=true')
+spgemm(sp1_c2_2, spI_c2_2, 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp0_c2_2, 'rightReplicate=true')
+spgemm(spI_c2_2, sp0_c2_2, 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp1_c2_2, 'rightReplicate=true')
+spgemm(spI_c2_2, sp1_c2_2, 'rightReplicate=false')
 
 # csize 1x1
-spgemm(sp0_c1_1, sp0_c1_1)
-spgemm(sp0_c1_1, sp1_c1_1)
-spgemm(sp1_c1_1, sp0_c1_1)
-spgemm(sp1_c1_1, sp1_c1_1)
+spgemm(sp0_c1_1, sp0_c1_1, 'rightReplicate=true')
+spgemm(sp0_c1_1, sp0_c1_1, 'rightReplicate=false')
 
-spgemm(sp0_c1_1, spI_c1_1)
-spgemm(sp1_c1_1, spI_c1_1)
-spgemm(spI_c1_1, sp0_c1_1)
-spgemm(spI_c1_1, sp1_c1_1)
+spgemm(sp0_c1_1, sp1_c1_1, 'rightReplicate=true')
+spgemm(sp0_c1_1, sp1_c1_1, 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp0_c1_1, 'rightReplicate=true')
+spgemm(sp1_c1_1, sp0_c1_1, 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp1_c1_1, 'rightReplicate=true')
+spgemm(sp1_c1_1, sp1_c1_1, 'rightReplicate=false')
+
+spgemm(sp0_c1_1, spI_c1_1, 'rightReplicate=true')
+spgemm(sp0_c1_1, spI_c1_1, 'rightReplicate=false')
+
+spgemm(sp1_c1_1, spI_c1_1, 'rightReplicate=true')
+spgemm(sp1_c1_1, spI_c1_1, 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp0_c1_1, 'rightReplicate=true')
+spgemm(spI_c1_1, sp0_c1_1, 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp1_c1_1, 'rightReplicate=true')
+spgemm(spI_c1_1, sp1_c1_1, 'rightReplicate=false')
 
 #
 # now repeat 3 csizes for 'min.+'
 #
 
 # csize 3x3
-spgemm(sp0_c3_3, sp0_c3_3, 'min.+')
-spgemm(sp0_c3_3, sp1_c3_3, 'min.+')
-spgemm(sp1_c3_3, sp0_c3_3, 'min.+')
-spgemm(sp1_c3_3, sp1_c3_3, 'min.+')
+spgemm(sp0_c3_3, sp0_c3_3, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c3_3, sp0_c3_3, 'min.+', 'rightReplicate=false')
 
-spgemm(sp0_c3_3, spI_c3_3, 'min.+')
-spgemm(sp1_c3_3, spI_c3_3, 'min.+')
-spgemm(spI_c3_3, sp0_c3_3, 'min.+')
-spgemm(spI_c3_3, sp1_c3_3, 'min.+')
+spgemm(sp0_c3_3, sp1_c3_3, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c3_3, sp1_c3_3, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c3_3, sp0_c3_3, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c3_3, sp0_c3_3, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c3_3, sp1_c3_3, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c3_3, sp1_c3_3, 'min.+', 'rightReplicate=false')
+
+
+spgemm(sp0_c3_3, spI_c3_3, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c3_3, spI_c3_3, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c3_3, spI_c3_3, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c3_3, spI_c3_3, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c3_3, sp0_c3_3, 'min.+', 'rightReplicate=true')
+spgemm(spI_c3_3, sp0_c3_3, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c3_3, sp1_c3_3, 'min.+', 'rightReplicate=true')
+spgemm(spI_c3_3, sp1_c3_3, 'min.+', 'rightReplicate=false')
+
 
 # csize 2x2
-spgemm(sp0_c2_2, sp0_c2_2, 'min.+')
-spgemm(sp0_c2_2, sp1_c2_2, 'min.+')
-spgemm(sp1_c2_2, sp0_c2_2, 'min.+')
-spgemm(sp1_c2_2, sp1_c2_2, 'min.+')
+spgemm(sp0_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=false')
 
-spgemm(sp0_c2_2, spI_c2_2, 'min.+')
-spgemm(sp1_c2_2, spI_c2_2, 'min.+')
-spgemm(spI_c2_2, sp0_c2_2, 'min.+')
-spgemm(spI_c2_2, sp1_c2_2, 'min.+')
+spgemm(sp0_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=false')
+
+
+spgemm(sp0_c2_2, spI_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, spI_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, spI_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, spI_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(spI_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(spI_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=false')
+
 
 # csize 1x1
-spgemm(sp0_c1_1, sp0_c1_1, 'min.+')
-spgemm(sp0_c1_1, sp1_c1_1, 'min.+')
-spgemm(sp1_c1_1, sp0_c1_1, 'min.+')
-spgemm(sp1_c1_1, sp1_c1_1, 'min.+')
+spgemm(sp0_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=false')
 
-spgemm(sp0_c1_1, spI_c1_1, 'min.+')
-spgemm(sp1_c1_1, spI_c1_1, 'min.+')
-spgemm(spI_c1_1, sp0_c1_1, 'min.+')
-spgemm(spI_c1_1, sp1_c1_1, 'min.+')
+spgemm(sp0_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=false')
+
+
+spgemm(sp0_c1_1, spI_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, spI_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, spI_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, spI_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(spI_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(spI_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=false')
+
 
 #
 # now repeat 3 csizes for 'max.+'
 #
 # csize 3x3
-spgemm(sp0_c3_3, sp0_c3_3, 'max.+')
-spgemm(sp0_c3_3, sp1_c3_3, 'max.+')
-spgemm(sp1_c3_3, sp0_c3_3, 'max.+')
-spgemm(sp1_c3_3, sp1_c3_3, 'max.+')
+spgemm(sp0_c3_3, sp0_c3_3, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c3_3, sp0_c3_3, 'max.+', 'rightReplicate=false')
 
-spgemm(sp0_c3_3, spI_c3_3, 'max.+')
-spgemm(sp1_c3_3, spI_c3_3, 'max.+')
-spgemm(spI_c3_3, sp0_c3_3, 'max.+')
-spgemm(spI_c3_3, sp1_c3_3, 'max.+')
+spgemm(sp0_c3_3, sp1_c3_3, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c3_3, sp1_c3_3, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c3_3, sp0_c3_3, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c3_3, sp1_c3_3, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c3_3, sp1_c3_3, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c3_3, sp1_c3_3, 'max.+', 'rightReplicate=false')
+
+spgemm(sp0_c3_3, spI_c3_3, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c3_3, spI_c3_3, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c3_3, spI_c3_3, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c3_3, spI_c3_3, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c3_3, sp0_c3_3, 'max.+', 'rightReplicate=true')
+spgemm(spI_c3_3, sp0_c3_3, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c3_3, sp1_c3_3, 'max.+', 'rightReplicate=true')
+spgemm(spI_c3_3, sp1_c3_3, 'max.+', 'rightReplicate=false')
+
 
 # csize 2x2
-spgemm(sp0_c2_2, sp0_c2_2, 'max.+')
-spgemm(sp0_c2_2, sp1_c2_2, 'max.+')
-spgemm(sp1_c2_2, sp0_c2_2, 'max.+')
-spgemm(sp1_c2_2, sp1_c2_2, 'max.+')
+spgemm(sp0_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=false')
 
-spgemm(sp0_c2_2, spI_c2_2, 'max.+')
-spgemm(sp1_c2_2, spI_c2_2, 'max.+')
-spgemm(spI_c2_2, sp0_c2_2, 'max.+')
-spgemm(spI_c2_2, sp1_c2_2, 'max.+')
+spgemm(sp0_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=false')
+
+
+spgemm(sp0_c2_2, spI_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, spI_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, spI_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, spI_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(spI_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(spI_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=false')
+
 
 # csize 1x1
-spgemm(sp0_c1_1, sp0_c1_1, 'max.+')
-spgemm(sp0_c1_1, sp1_c1_1, 'max.+')
-spgemm(sp1_c1_1, sp0_c1_1, 'max.+')
-spgemm(sp1_c1_1, sp1_c1_1, 'max.+')
+spgemm(sp0_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=false')
 
-spgemm(sp0_c1_1, spI_c1_1, 'max.+')
-spgemm(sp1_c1_1, spI_c1_1, 'max.+')
-spgemm(spI_c1_1, sp0_c1_1, 'max.+')
-spgemm(spI_c1_1, sp1_c1_1, 'max.+')
+spgemm(sp0_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=false')
+
+
+spgemm(sp0_c1_1, spI_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, spI_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, spI_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, spI_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(spI_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(spI_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=false')
 
 
 --cleanup

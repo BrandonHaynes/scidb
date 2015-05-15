@@ -28,7 +28,7 @@ BuildRequires: bison
 BuildRequires: swig2 = 2.0.8-1
 BuildRequires: %{scidb_boost}-devel = %{scidb_boost_version}
 BuildRequires: protobuf-devel = 2.4.1-2
-BuildRequires: log4cxx-devel
+BuildRequires: log4cxx-devel >= 0.10.0-1
 BuildRequires: libpqxx-devel = 3.1-1
 BuildRequires: bzip2-devel
 BuildRequires: zlib-devel
@@ -259,14 +259,14 @@ done
 
 %post -n %{scidb}-plugins
 %{_sbindir}/update-alternatives --install /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra.so \
-  dense_linear_algebra /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra-scidb.so 10
+  dense_linear_algebra.VERSION_MAJOR.VERSION_MINOR /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra-scidb.so 10
 %{_sbindir}/update-alternatives --install /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra.so \
-  linear_algebra /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra-scidb.so 10
+  linear_algebra.VERSION_MAJOR.VERSION_MINOR /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra-scidb.so 10
 
 %postun -n %{scidb}-plugins
 if [ $1 -eq 0 ] ; then
-  %{_sbindir}/update-alternatives --remove dense_linear_algebra /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra-scidb.so
-  %{_sbindir}/update-alternatives --remove linear_algebra /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra-scidb.so
+  %{_sbindir}/update-alternatives --remove dense_linear_algebra.VERSION_MAJOR.VERSION_MINOR /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra-scidb.so
+  %{_sbindir}/update-alternatives --remove linear_algebra.VERSION_MAJOR.VERSION_MINOR /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra-scidb.so
 fi
 
 %files -n %{scidb}-plugins-dbg -f /tmp/rpm-%{scidb}-plugins-dbg-files

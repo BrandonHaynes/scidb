@@ -30,7 +30,7 @@ namespace scidb { namespace arena {
 /****************************************************************************/
 
 /**
- *  Insert a formatted representation of  this Arena allocated object onto the
+ *  Insert a formatted representation of this %arena allocated object onto the
  *  given output stream.  Subclasses overide this virtual function to simplify
  *  debugging memory leaks; if the DebugArena detects a leak, it will walk its
  *  list of extant allocations and, for Allocated objects at least, write some
@@ -38,6 +38,47 @@ namespace scidb { namespace arena {
  */
 void Allocated::insert(std::ostream&) const
 {}
+
+/**
+ *  Insert a formatted representation of the %arena 'a' onto the ostream 'o'.
+ *
+ *  Notice that we handle the formatting of the feature flags here rather than
+ *  in the arena itself; our use of the decorator pattern to implement some of
+ *  the features means that the arena being decorated does not actually 'know'
+ *  the full set of features it is supporting.
+ */
+std::ostream& operator<<(std::ostream& o,const Arena& a)
+{
+    o << '{';                                            // Add opening brace
+    a.insert(o);                                         // Add arena  itself
+    o << ",features=\"";                                 // Add a field label
+
+    if (a.supports(finalizing)) o << 'F';                // Add finalizer flag
+    if (a.supports(recycling))  o << 'C';                // Add recycling flag
+    if (a.supports(resetting))  o << 'S';                // Add resetting flag
+    if (a.supports(debugging))  o << 'D';                // Add debugging flag
+    if (a.supports(threading))  o << 'T';                // Add threading flag
+
+    return o << "\"}";                                   // Add trailing brace
+}
+
+/**
+ *  Insert a formatted representation of the %arena allocated object 'a' onto
+ *  the ostream 'o'.
+ */
+std::ostream& operator<<(std::ostream& o,const Allocated& a)
+{
+    return o << '{', a.insert(o), o << '}';              // Insert and return
+}
+
+/**
+ *  Insert a formatted representation of the Exhausted exception 'e' onto the
+ *  ostream 'o'.
+ */
+std::ostream& operator<<(std::ostream& o,const Exhausted& e)
+{
+    return o << e.what();                                // Insert and return
+}
 
 /**
  *  Format the integer 'bytes' as a number of bytes of raw memory and print it
@@ -68,15 +109,24 @@ std::ostream& operator<<(std::ostream& o,bytes_t bytes)
     }
     else                                                 // No special prefix
     {
-        return o << size_t(bytes)   << "B";              // ...as plain bytes
+        return o << size_t(bytes)    << "B";             // ...as plain bytes
     }
 }
 
 /**
- *  Return the current arena associated with the current thread of execution.
+ *  Format the integer 'words' as a number of bytes of raw memory and print it
+ *  to the output stream 'o'.
+ */
+std::ostream& operator<<(std::ostream& o,words_t words)
+{
+    return o << bytes_t(asBytes(words));                 // Convert to bytes_t
+}
+
+/**
+ *  Return the current %arena associated with the current thread of execution.
  *
  *  An Allocator, like the managed containers that use it,  can be constructed
- *  by explicitly supplying the arena from which it is to allocate from. There
+ *  by explicitly supplying the %arena from which it's to allocate from. There
  *  are a number of situations that arise, however, in which it is awkward, or
  *  even impossible, to do so. Consider, for example, an array of vectors:
  *
@@ -87,7 +137,7 @@ std::ostream& operator<<(std::ostream& o,bytes_t bytes)
  *
  *  For any type to serve as the element type of an array, it must be possible
  *  to construct its objects *without arguments*; the language simply does not
- *  provide the necessary syntax to indicate that the arena 'a' should be used
+ *  provide the necessary syntax to specify that the %arena 'a' should be used
  *  to construct each element of 'v'.  What we appear to be bumping up against
  *  is the fact that the standard library was designed with incomplete support
  *  for what are now known as 'stateful allocators'.
@@ -100,9 +150,9 @@ std::ostream& operator<<(std::ostream& o,bytes_t bytes)
  *  on down to their elements recursively.
  *
  *  In lieu of such complete language support, however, the current version of
- *  the arena library adopts a somewhat simpler approach to the problem:  each
- *  thread maintains a stack of arena pointers, and the default constructor of
- *  class Allocator is implemented to grab the top arena from this stack via a
+ *  the %arena library adopts a somewhat simpler approach to the problem: each
+ *  thread maintains a stack of %arena pointers and the default constructor of
+ *  class Allocator is implemented to grab the top %arena from the stack via a
  *  call to getArena().  The stack itself is manipulated by instances of class
  *  Scope, which push and pop the current thread's stack as they come into and
  *  go out of existence and thus synchronize the thread local arena stack with
@@ -111,7 +161,7 @@ std::ostream& operator<<(std::ostream& o,bytes_t bytes)
  *  Interestingly,  the Boost library appears to have an implementation of the
  *  standard container classes - the Boost Container library - that works with
  *  both stateful and scoped allocators: one that even compiles under C++98. A
- *  future version of the arena library  may wish to adopt this implementation
+ *  future version of the %arena library may wish to adopt this implementation
  *  instead as a step towards supporting compilation under C++11.
  *
  *  @see    http://www.stroustrup.com/C++11FAQ.html for a good introduction to
@@ -124,7 +174,7 @@ std::ostream& operator<<(std::ostream& o,bytes_t bytes)
  *  reimplemented the managed  containers to use the  Boost Container library.
  *  In order to facilitate conversion of exisiting code to use the new managed
  *  containers, however, there's still a need to support the idea of a default
- *  or 'current' arena, though it is not yet clear whether the model of a per-
+ *  or 'current' %arena, though it's not yet clear whether the model of a per-
  *  thread arena stack is the right one to adopt - it may well be more trouble
  *  than it is worth; in the mean time, and until we gain more experience with
  *  using the library, we prefer to simply return the root arena instead.

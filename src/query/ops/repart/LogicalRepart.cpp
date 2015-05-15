@@ -27,9 +27,9 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "system/SystemCatalog.h"
-#include "system/Exceptions.h"
+#include <query/Operator.h>
+#include <system/SystemCatalog.h>
+#include <system/Exceptions.h>
 
 using namespace std;
 
@@ -95,17 +95,24 @@ public:
         }
 
         if (srcDimensions.size() != dstDimensions.size())
-            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_REPART_ERROR1);
+        {
+            ostringstream left, right;
+            printDimNames(left, srcDimensions);
+            printDimNames(right, dstDimensions);
+            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_DIMENSION_COUNT_MISMATCH)
+                << "repart" << left.str() << right.str();
+        }
+
         for (size_t i = 0, n = srcDimensions.size(); i < n; i++)
         {
-            if (srcDimensions[i].getStart() != dstDimensions[i].getStart())
+            if (srcDimensions[i].getStartMin() != dstDimensions[i].getStartMin())
                 throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_REPART_ERROR3);
             if (!(srcDimensions[i].getEndMax() == dstDimensions[i].getEndMax() 
                                || (srcDimensions[i].getEndMax() < dstDimensions[i].getEndMax() 
                                    && ((srcDimensions[i].getLength() % srcDimensions[i].getChunkInterval()) == 0
                                        || srcArrayDesc.getEmptyBitmapAttribute() != NULL))))
                 throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_REPART_ERROR4);
-            if (srcDimensions[i].getStart() == MIN_COORDINATE)
+            if (srcDimensions[i].getStartMin() == MIN_COORDINATE)
                 throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_REPART_ERROR5);
         }
         return ArrayDesc(schemaParam.getName(), srcAttributes, dstDimensions, schemaParam.getFlags());

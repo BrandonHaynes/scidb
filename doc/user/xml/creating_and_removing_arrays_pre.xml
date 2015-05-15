@@ -77,9 +77,9 @@
     deleted. However, temporary arrays are not generally written to disk. This
     means that temporary arrays become corrupted if a SciDB instance fails. In
     fact, whenever the SciDB cluster is restarted, all temporary arrays are
-    marked as unavailable. In addition, temporary arrays do not have versions.
-    That is, any update to a temporary array will overwrite existing attribute
-    values.</para>
+    marked as unavailable (but not deleted; you must delete them explicitly).
+    In addition, temporary arrays do not have versions. That is, any update to
+    a temporary array will overwrite existing attribute values.</para>
 
     <para>The array attributes describe the types of data contained in each
     cell of the array. Each attribute is defined as follows:<programlisting><emphasis>attribute</emphasis> ::= <emphasis>attribute_name</emphasis> <emphasis
@@ -87,7 +87,7 @@
 <emphasis>nullable</emphasis>  ::=
                 <emphasis role="bold">NULL</emphasis>
               | <emphasis role="bold">NOT NULL</emphasis>
-              | 
+              |
 <emphasis>default</emphasis>   ::=
       <emphasis role="bold">          DEFAULT</emphasis> <emphasis>default_value</emphasis>
               |</programlisting><indexterm>
@@ -380,7 +380,7 @@
 
 The following arrays are about to be removed:
 ['TEST_01', 'TESTBACKUP', 'TEST20071117']
-Are you sure you want to remove? [n]|y: 
+Are you sure you want to remove? [n]|y:
 </programlisting></para>
 
     <para>To remove all temporary arrays, use the
@@ -390,11 +390,11 @@ Are you sure you want to remove? [n]|y:
 
 The following arrays are about to be removed:
 ['TEST_01', 'myTemporaryArray', 'iterationArray']
-Are you sure you want to remove? [n]|y: 
+Are you sure you want to remove? [n]|y:
 </programlisting></para>
 
     <para>For complete documentation of the syntax of the program, use the
-    --help switch: <programlisting>remove_arrays.py --help 
+    --help switch: <programlisting>remove_arrays.py --help
 </programlisting></para>
 
     <para>To use the <command>remove_arrays.py</command> program, iquery must
@@ -471,11 +471,11 @@ Are you sure you want to remove? [n]|y:
       <para>By default, SciDB will leave empty cells unchanged and replace
       NULL attributes with 0:<programlisting>AFL% CREATE ARRAY m4x4_missing &lt;val1:double,val2:int32&gt;[x=0:3,4,0,y=0:3,4,0];
 AFL% load(m4x4_missing, '/tmp/m4x4_missing.scidb');</programlisting><programlisting
-      language="test">--afl create_array(m4x4_first,&lt;val1:double&gt;[x=0:3,4,0, y=0:3,4,0]); --show-query=no --show-output=no
+      language="test">--afl create_array(m4x4_first,&lt;val1:double&gt;[x=0:3,4,0, y=0:3,4,0],false); --show-query=no --show-output=no
 --afl store(build(m4x4_first, '[[0,1,2,3],[4,5,6,7],[8,9,(),11],[12,13,14,15]]',true),
       m4x4_first); --show-query=no --show-output=no
 
---afl create_array(m4x4_second,&lt;val2:int32&gt;[x=0:3,4,0, y=0:3,4,0]); --show-query=no --show-output=no
+--afl create_array(m4x4_second,&lt;val2:int32&gt;[x=0:3,4,0, y=0:3,4,0],false); --show-query=no --show-output=no
 --afl store(build(m4x4_second,'[[100,99,98,97],[0,95,94,93],[92,91,(),89],[88,0,86,85]]',true),m4x4_second);
     --show-query=no --show-output=no
 
@@ -537,12 +537,12 @@ AFL% load(m4x4_missing, '/tmp/m4x4_missing.scidb');</programlisting><programlist
           <see>nulls</see>
         </indexterm>The examples below show how to represent missing data in
       the load file. A question mark (?) or null represent null values, and ?2
-      represents null value with a reason code of 2.<programlisting>[[ ( 10, 4.5, "My String", 'C'), (10, 5.1, ?1, 'D'), 
+      represents null value with a reason code of 2.<programlisting>[[ ( 10, 4.5, "My String", 'C'), (10, 5.1, ?1, 'D'),
 (?2, 5.1, "Another String", ?) ...
 
 or
 
-[[ ( 10, 4.5, "My String", 'C'), (10, 5.1, ?1, 'D'), 
+[[ ( 10, 4.5, "My String", 'C'), (10, 5.1, ?1, 'D'),
 (?2, 5.1, "Another String", null) ...
 </programlisting></para>
 
@@ -556,7 +556,7 @@ or
         </indexterm>Additionally, you can specify a missing reason code for
       the default value of an attribute. For example, the following statement
       specifies a missing reason code of 30 as the default value for
-      the<literal> val3</literal> attribute.<programlisting language="test">--afl create array D&lt;val1:char default 'a', val2:int32 default 1, 
+      the<literal> val3</literal> attribute.<programlisting language="test">--afl create array D&lt;val1:char default 'a', val2:int32 default 1,
      val3:int64 null default missing(30)&gt; [i=0:9,10,0]; --show-output=no
 --afl show(D) --show-query=no --output-format=dense
 </programlisting></para>
@@ -606,7 +606,7 @@ or
         </indexterm>There is another function, <literal>missing</literal>,
       that returns the missing reason code from an integer array. Suppose, for
       example, that you have an array that contains integers where the values
-      represent missing reason codes:<programlisting language="test">--afl store(build(&lt;val:int32 null default null&gt; [i=0:5,6,0], '[-1,47,23,0,127,-1]',true), arrayB); --show-query=no --show-output=no
+      represent missing reason codes:<programlisting language="test">--afl store(build(&lt;val:int32 null default null&gt; [i=0:5,6,0], '[1,47,23,0,127,100]',true), arrayB); --show-query=no --show-output=no
 --afl scan(arrayB) --show-query=no --output-format=dense</programlisting>Now
       run <literal>missing</literal> against the values in the
       array:<programlisting language="test">--afl apply(arrayB,MRcode, missing(val)); --output-format=dcsv

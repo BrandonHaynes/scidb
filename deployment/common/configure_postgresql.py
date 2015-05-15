@@ -33,58 +33,47 @@
 
 import sys
 import os
+import re
 
 OS=sys.argv[1]
 username=sys.argv[2]
 password=sys.argv[3]
 network=sys.argv[4]
 
+default=[
+'host\s+all\s+all\s+127\.0\.0\.1/32\s+ident',
+'host\s+all\s+all\s+\:\:1/128\s+ident'
+]
 if OS == "CentOS 6" or OS == "RedHat 6":
     pg_hba_conf="/var/lib/pgsql/data/pg_hba.conf"
     postgresql_conf="/var/lib/pgsql/data/postgresql.conf"
-    default=[
-'# "local" is for Unix domain socket connections only',
-'local   all         all                               ident',
-'# IPv4 local connections:',
-'host    all         all         127.0.0.1/32          ident',
-'# IPv6 local connections:',
-'host    all         all         ::1/128               ident'
-]
 elif OS == "Ubuntu 12.04":
     pg_hba_conf="/etc/postgresql/8.4/main/pg_hba.conf"
     postgresql_conf="/etc/postgresql/8.4/main/postgresql.conf"
-    default=[
-'# "local" is for Unix domain socket connections only',
-'local   all         all                               ident',
-'# IPv4 local connections:',
-'host    all         all         127.0.0.1/32          md5',
-'# IPv6 local connections:',
-'host    all         all         ::1/128               md5',
-]    
+elif OS == "Ubuntu 14.04":
+    pg_hba_conf="/etc/postgresql/9.3/main/pg_hba.conf"
+    postgresql_conf="/etc/postgresql/9.3/main/postgresql.conf"
 else:
     sys.stderr.write("Does not support %s\n" % OS)
     sys.exit(1)
 
-actual=open(pg_hba_conf, 'r').readlines()
-found=-1
-if len(actual) < len(default):
+fd=open(pg_hba_conf, 'r')
+actual=fd.read()
+fd.close()
+
+if len(actual) <= 0:
     sys.stderr.write("%s: empty\n" % pg_hba_conf)
     sys.exit(1)
 else:
-    for line in reversed(default):
-        if line == actual[found][:-1]:
-            if actual[found].startswith('host'):
-                actual[found] = "%s" % actual[found].replace('ident', 'md5')
-                actual[found] = "%s" % actual[found].replace('trust', 'md5')
-            found -= 1
-        else:
-            break
+    for pattern in default:
+        m=re.compile(pattern).search(actual)
+        if (m is not None):
+            newline=m.group().replace('ident', 'md5')
+            newline=newline.replace('peer', 'md5')
+            actual=actual.replace(m.group(),newline)
 
-if found > -6:
-    sys.stderr.write("Can't update %s\n" % pg_hba_conf)
-    sys.exit(1)
-actual.append('host    all    all    %s    md5' % network)
-open(pg_hba_conf, 'w').write(''.join(actual))
+actual=actual + ('\nhost    all    all    %s    md5\n' % network)
+open(pg_hba_conf, 'w').write(actual)
 
 actual=open(postgresql_conf, 'r').readlines()
 extra="listen_addresses='*'\n"

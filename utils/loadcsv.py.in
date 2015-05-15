@@ -58,6 +58,18 @@ devNull = None
 loadAttrs = []
 loadDims = []
 
+def getenvWithDefault(varName, defaultVal):
+    result = os.getenv(varName)
+    if result is None:
+        return defaultVal
+    try:
+        result = type(defaultVal)(result)
+    except ValueError as e:
+        print "Warning: %s=%s - %s" % (varName, str(result), e)
+        return defaultVal
+    else:
+        return result
+
 def setupModuleVariables():
 
     global inputFile, childProcesses, instances, outputBase, dlfFragmentName, \
@@ -195,28 +207,29 @@ def setChunkSize():
 ##################
 def setTypePattern():
     """Compute a 'type pattern' based on the load schema."""
-    # The only real use of the type pattern is to dictate quoting
-    # behavior.  This behavior should be driven by the load schema,
-    # not by command line arguments---so we override those.
+    # The type pattern just dictates quoting behavior.  This behavior
+    # should be driven by the load schema, command line arguments
+    # should not be needed.
     logNormal("Computing type-pattern from load schema.")
     assert loadAttrs and loadDims
     assert len(loadDims) == 1
-    old_pattern = opts.type_pattern
     pattern = ''
     for attr in loadAttrs:
-        if 'string' in attr.type:
+        if 'string' in attr.type or 'date' in attr.type:
             # Unclear if "nullable vs. not" matters, but don't lose the info.
             pattern += 's' if attr.nullable else 'S'
         elif 'char' in attr.type:
             pattern += 'c' if attr.nullable else 'C'
         else:
             pattern += 'N'
-    if old_pattern and pattern != old_pattern:
-        # The only reason for leaving -t (opts.type_pattern) around is
-        # so customer scripts don't have to change.  Ignore it but warn.
-        print "Warning: type pattern %s conflicts with load schema, using %s instead" % (
-            old_pattern, pattern)
-    opts.type_pattern = pattern
+    # The only reason for leaving -t (opts.type_pattern) around is
+    # so customer scripts don't have to change.  Warn about
+    # mismatches but allow a supplied -t pattern to override.
+    if not opts.type_pattern:
+        opts.type_pattern = pattern
+    elif pattern != opts.type_pattern:
+        print "Warning: Type pattern %s conflicts with schema-derived %s" % (
+            opts.type_pattern, pattern)
 
 #################
 # getSshCommand #
@@ -666,8 +679,10 @@ def main(argv=None):
     # Note that changes here may need to be reflected in
     # loadpipe.py's DISALLOWED_LOADCSV_OPTIONS list.
     parser = optparse.OptionParser(description="SciDB Parallel CSV Loader")
-    parser.add_option("-d", help="SciDB Coordinator Hostname or IP Address (Default = \"localhost\")", action="store", dest="db_address", default="localhost")
-    parser.add_option("-p", help="SciDB Coordinator Port (Default = 1239)", action="store", dest="db_port", type=int, default=1239)
+    parser.add_option("-d", help="SciDB Coordinator Hostname or IP Address (Default = \"localhost\")",
+                      action="store", dest="db_address", default=getenvWithDefault("IQUERY_HOST", "localhost"))
+    parser.add_option("-p", help="SciDB Coordinator Port (Default = 1239)", action="store", dest="db_port",
+                      type=int, default=getenvWithDefault("IQUERY_PORT", 1239))
     parser.add_option("-r", help="SciDB Installation Root Folder (Default = \"@CMAKE_INSTALL_PREFIX@\")", action="store", dest="db_root", default="@CMAKE_INSTALL_PREFIX@")
     parser.add_option("-i", help="CSV Input File (Default = stdin)", action="store", dest="input_file")
     parser.add_option("-n", help="# Lines to Skip (Default = 0)", action="store", dest="skip", type=int, default=0)

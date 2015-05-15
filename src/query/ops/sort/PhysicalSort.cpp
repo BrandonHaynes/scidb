@@ -3,7 +3,7 @@
 * BEGIN_COPYRIGHT
 *
 * This file is part of SciDB.
-* Copyright (C) 2008-2014 SciDB, Inc.
+* Copyright (C) 2014 SciDB, Inc.
 *
 * SciDB is free software: you can redistribute it and/or modify
 * it under the terms of the AFFERO GNU General Public License as published by
@@ -23,22 +23,26 @@
 /*
  * PhysicalSort.cpp
  *
- *  Created on: May 6, 2010
- *      Author: Knizhnik
- *      Author: poliocough@gmail.com
+ *  Created on: Oct 23, 2014
+ *      Author: Donghui Zhang
  */
 
 #include <vector>
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/TupleArray.h"
-#include "array/FileArray.h"
-#include "network/NetworkManager.h"
-#include "system/Config.h"
-#include "array/MergeSortArray.h"
-#include "array/SortArray.h"
-#include "array/ParallelAccumulatorArray.h"
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/TupleArray.h>
+#include <network/NetworkManager.h>
+#include <system/Config.h>
+#include <array/MergeSortArray.h>
+#include <array/SortArray.h>
+#include <util/arena/Map.h>
+#include <util/Arena.h>
+#include <array/ProjectArray.h>
+#include <array/ParallelAccumulatorArray.h>
+#include <util/Timing.h>
+
+#include "DistributedSort.h"
 
 using namespace std;
 using namespace boost;
@@ -71,14 +75,14 @@ public:
         return PhysicalBoundaries(start,end);
     }
 
-    /***
-     * Sort operates by using the generic array sort utility provided by SortArray 
+    /**
+     * From the user-provided parameters to the sort() operator, generate SortingAttributeInfos.
+     * @param[out] an initially empty vector to receive the SortingAttributeInfos.
      */
-    boost::shared_ptr< Array> execute(vector< boost::shared_ptr< Array> >& inputArrays,
-                                      boost::shared_ptr<Query> query)
+    void generateSortingAttributeInfos(SortingAttributeInfos& sortingAttributeInfos)
     {
-        assert(inputArrays.size() == 1); 
-        vector<Key> keys;
+        assert(sortingAttributeInfos.empty());
+
         Attributes const& attrs = _schema.getAttributes();
         for (size_t i = 0, n=_parameters.size(); i < n; i++)
         {
@@ -86,37 +90,98 @@ public:
             {
                 continue;
             }
-            shared_ptr<OperatorParamAttributeReference> sortColumn = ((boost::shared_ptr<OperatorParamAttributeReference>&)_parameters[i]);
-            Key k;
+            shared_ptr<OperatorParamAttributeReference> sortColumn = ((shared_ptr<OperatorParamAttributeReference>&)_parameters[i]);
+            SortingAttributeInfo k;
             k.columnNo = sortColumn->getObjectNo();
             k.ascent = sortColumn->getSortAscent();
             if ((size_t)k.columnNo >= attrs.size())
                 throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_OP_SORT_ERROR2);
-            keys.push_back(k);
+            sortingAttributeInfos.push_back(k);
         }
 
-        if(keys.size()==0)
+        // If the users did not provide any sorting attribute, use the first attribute.
+        if (sortingAttributeInfos.empty())
         {
             //No attribute is specified... so let's sort by first attribute ascending
-            Key k;
+            SortingAttributeInfo k;
             k.columnNo =0;
             k.ascent=true;
-            keys.push_back(k);
+            sortingAttributeInfos.push_back(k);
         }
 
-        if ( query->getInstancesCount() > 1) { 
-            // Prepare context for second phase
-            SortContext* ctx = new SortContext();
-            ctx->keys = keys;
-            query->userDefinedContext = ctx;
+        // Add the chunk & cell positions.
+        SortingAttributeInfo k;
+        const bool excludingEmptyBitmap = true;
+        k.columnNo = _schema.getAttributes(excludingEmptyBitmap).size();  // The attribute at nAttr is chunk_pos.
+        k.ascent = true;
+        sortingAttributeInfos.push_back(k);
+
+        k.columnNo ++; // the next one is cell_pos.
+        sortingAttributeInfos.push_back(k);
+    }
+
+    /**
+     * @see PhysicalOperator::changesDistribution
+     */
+    virtual bool changesDistribution(std::vector<ArrayDesc> const& inputSchemas) const
+    {
+        return true;
+    }
+
+    /**
+     * @see PhysicalOperator::getOutputDistribution
+     */
+    virtual ArrayDistribution getOutputDistribution(std::vector<ArrayDistribution> const&, std::vector<ArrayDesc> const&) const
+    {
+        return ArrayDistribution(psUndefined);
+    }
+
+    /***
+     * Sort operates by using the generic array sort utility provided by SortArray
+     */
+    shared_ptr< Array> execute(vector< shared_ptr< Array> >& inputArrays,
+                                      shared_ptr<Query> query)
+    {
+        assert(inputArrays.size() == 1);
+        ElapsedMilliSeconds timing;
+
+        //
+        // Generate the SortingAttributeInfos.
+        //
+        SortingAttributeInfos sortingAttributeInfos;
+        generateSortingAttributeInfos(sortingAttributeInfos);
+
+        //
+        // LocalSorting.
+        //
+        const bool preservePositions = true;
+        SortArray sorter(inputArrays[0]->getArrayDesc(), _arena, preservePositions, _schema.getDimensions()[0].getChunkInterval());
+        ArrayDesc const& expandedSchema = sorter.getOutputArrayDesc();
+        shared_ptr<TupleComparator> tcomp(make_shared<TupleComparator>(sortingAttributeInfos, expandedSchema));
+        shared_ptr<MemArray> sortedLocalData = sorter.getSortedArray(inputArrays[0], query, tcomp);
+
+        timing.logTiming(logger, "[sort] Sorting local data");
+
+        // Unless there is a single instance, do a distributed sort.
+        // Note that sortedLocalData and expandedSchema have additional fields for the chunk/cell positions.
+        // Also note that sortedLocalData->getArrayDesc() differs from expandedSchema, in that:
+        //   - expandedSchema._dimensions[0]._endMax = INT_MAX, but
+        //   - the schema in sortedLocalData has _endMax which may be the actual number of local records minus 1.
+        shared_ptr<MemArray> distributedSortResult = sortedLocalData;
+        if (query->getInstancesCount() > 1) {
+            DistributedSort ds(query, sortedLocalData, expandedSchema, _arena, sortingAttributeInfos, timing);
+            distributedSortResult = ds.sort();
         }
 
-        SortArray sorter(_schema);
-        shared_ptr<TupleComparator> tcomp(new TupleComparator(keys, _schema));
-
-        shared_ptr<Array> ret = sorter.getSortedArray(inputArrays[0], query, tcomp);
-
-        return ret;
+        // Project off the chunk_pos and cell_pos attributes.
+        const bool excludeEmptyBitmap = true;
+        size_t nAttrs = _schema.getAttributes(excludeEmptyBitmap).size();
+        vector<AttributeID> projection(nAttrs+1);
+        for (AttributeID i=0; i<nAttrs; ++i) {
+            projection[i] = i;
+        }
+        projection[nAttrs] = nAttrs+2; // this is the empty bitmap attribute.
+        return make_shared<ProjectArray>(_schema, distributedSortResult, projection);
     }
 };
 

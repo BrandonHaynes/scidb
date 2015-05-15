@@ -43,7 +43,6 @@
 #include "system/SystemCatalog.h"
 #include "network/NetworkManager.h"
 #include "smgr/io/Storage.h"
-#include "query/DimensionIndex.h"
 #include "util/iqsort.h"
 #include <log4cxx/logger.h>
 #include <system/Utils.h>
@@ -52,6 +51,7 @@
 #include <util/OverlappingChunksIterator.h>
 #include <util/Timing.h>
 #include <array/DelegateArray.h>
+#include <util/ArrayCoordinatesMapper.h>
 
 namespace scidb {
 
@@ -72,6 +72,13 @@ inline bool isFlipped(size_t j) {
     return isAllOn(j, FLIP);
 }
 
+
+/**
+ * Superclass for operators PhysicalRedimension and PhysicalRedimensionStore.
+ */
+class RedimensionCommon : public PhysicalOperator
+{
+private:
 /**
  * A state vector that may contain both scalar values and aggregate values.
  * It provides init() and accumulate() calls.
@@ -129,7 +136,7 @@ public:
         assert(_destItem.size() + _numItemsToIgnoreAtTheEnd == item.size());
         for (size_t i=0; i<_destItem.size(); ++i) {
             if (_aggregates[i]) {
-                _aggregates[i]->tryAccumulate(_destItem[i], item[i]);
+                _aggregates[i]->accumulateIfNeeded(_destItem[i], item[i]);
             }
             else if (!_valid || !keepFirstScalar) {
                 _destItem[i] = item[i];
@@ -156,11 +163,6 @@ public:
     }
 };
 
-/**
- * Superclass for operators PhysicalRedimension and PhysicalRedimensionStore.
- */
-class RedimensionCommon : public PhysicalOperator
-{
 public:
 
     static log4cxx::LoggerPtr logger;
@@ -172,9 +174,19 @@ public:
      * @param parameters the operator parameters - the output schema and optional aggregates
      * @param schema the result of Logical inferSchema
      */
-    RedimensionCommon(const string& logicalName, const string& physicalName, const Parameters& parameters, const ArrayDesc& schema):
-        PhysicalOperator(logicalName, physicalName, parameters, schema)
-    {}
+    RedimensionCommon(const string& logicalName,
+                      const string& physicalName,
+                      const Parameters& parameters,
+                      const ArrayDesc& schema):
+    PhysicalOperator(logicalName, physicalName, parameters, schema),
+    _hasDataIntegrityIssue(false)
+    {
+        _chunkOverhead = LruMemChunk::getFootprint(schema.getDimensions().size())
+            + sizeof(Address);
+        _chunkOverheadLimit =
+            Config::getInstance()->getOption<size_t>(CONFIG_REDIM_CHUNK_OVERHEAD_LIMIT);
+        assert(!_chunkOverheadLimit || (_chunkOverhead < _chunkOverheadLimit * MiB));
+    }
 
     /**
      * @see PhysicalOperator::changesDistribution
@@ -224,10 +236,15 @@ public:
                        vector<size_t>& dimMapping,
                        Attributes const& destAttrs,
                        Dimensions const& destDims);
+    typedef enum {
+    AUTO=0,     // delegate SG to optimizer
+    AGGREGATED, // SG with aggregation/synthetic dimension
+    VALIDATED  // SG with data validation (enforce order & no data collisions)
+    } RedistributeMode;
 
     /**
      * A common routine that redimensions an input array into a materialized output array and returns it.
-     * @param srcArray      the input array
+     * @param srcArray      [in/out] the input array, reset upon return
      * @param attrMapping   A vector with size = #dest attributes (not including empty tag). The i'th element is
      *                      (a) src attribute number that maps to this dest attribute, or
      *                      (b) src attribute number that generates this dest aggregate attribute, or
@@ -244,21 +261,24 @@ public:
      * @param coordinateIndices a vector with size = #dest dimensions. The pointers are set for those dimensions that require them.
      *                          to be used in the redimension_store case only.
      * @param timing        For logging purposes.
-     * @param redistributionRequired true if the result should be redistributed round-robin. False otherwise.
+     * @param redistributeMode mode of the output redistribution
      * @return the redimensioned array
      */
-    shared_ptr<Array> redimensionArray(shared_ptr<Array> const& srcArray,
+    shared_ptr<Array> redimensionArray(shared_ptr<Array>& srcArray,
                                        vector<size_t> const& attrMapping,
                                        vector<size_t> const& dimMapping,
                                        vector<AggregatePtr> const& aggregates,
                                        shared_ptr<Query> const& query,
                                        ElapsedMilliSeconds& timing,
-                                       bool redistributionRequired = true);
+                                       RedistributeMode redistributeMode);
 
 private:
     /* Private interface to map between chunk positions and chunk ids (and back)
+       ChunkToIdMap maps chunk pos to a pair containing id of chunk, and number
+       of cells seen for chunk.
      */
-    typedef map<Coordinates, size_t> ChunkToIdMap;
+    typedef pair<size_t, size_t> ChunkIdNumPair;
+    typedef map<Coordinates, ChunkIdNumPair> ChunkToIdMap;
     typedef map<size_t, Coordinates> IdToChunkMap;
     typedef struct
     {
@@ -286,6 +306,7 @@ private:
                                 vector< shared_ptr<ChunkIterator> >& redimChunkIters,
                                 size_t& redimCount,
                                 size_t const& redimChunkSize);
+
     bool updateSyntheticDimForRedimArray(shared_ptr<Query> const& query,
                                          ArrayCoordinatesMapper const& coordMapper,
                                          ChunkIdMaps& chunkIdMaps,
@@ -293,13 +314,37 @@ private:
                                          shared_ptr<MemArray>& redimensioned);
 
     /* Helper function to append data to 'beforeRedistribution' array
+     * Note that 'tmp' is provided so it will not be repeatedly created
+     * within (at the cost of a malloc), whereas the caller can provide
+     * the same Coordinate to use, repeatedly at lower cost
      */
     void appendItemToBeforeRedistribution(ArrayCoordinatesMapper const& coordMapper,
                                           Coordinates const& lows,
                                           Coordinates const& intervals,
+                                          Coordinates & tmp,
                                           position_t prevPosition,
                                           vector< shared_ptr<ChunkIterator> >& chunkItersBeforeRedist,
                                           StateVector& stateVector);
+
+    /// Helper to redistribute the input array into an array with a synthetic dimension
+    boost::shared_ptr<Array> redistributeWithSynthetic(boost::shared_ptr<Array>& inputArray,
+                                                       const boost::shared_ptr<Query>& query,
+                                                       const RedimInfo* redimInfo);
+
+    boost::shared_ptr<Array> redistributeWithAggregates(boost::shared_ptr<Array>& inputArray,
+                                                        ArrayDesc const& outSchema,
+                                                        const boost::shared_ptr<Query>& query,
+                                                        bool enforceDataIntegrity,
+                                                        bool hasOverlap,
+                                                        const std::vector<AggregatePtr>& aggregates);
+
+    /* Values used in memory usage calculation...
+     */
+    size_t _chunkOverhead;
+    size_t _chunkOverheadLimit;
+
+    /// true if a data integrity issue has been found
+    bool _hasDataIntegrityIssue;
 };
 
 } //namespace scidb

@@ -35,9 +35,6 @@
 #include <vector>
 #include "array/MemArray.h"
 
-using namespace std;
-using namespace boost;
-
 namespace scidb
 {
     /**
@@ -69,13 +66,6 @@ namespace scidb
          * @return the new sorted set of coordinates, containing the first coordinate of every chunk present in the array
          */
         virtual boost::shared_ptr<CoordinateSet> getChunkPositions() const;
-
-        /**
-         * Populate this version of the array using only the chunks specified in input. All other chunks in the previous
-         * versions of the array will not be visible in this version.
-         * @param input the source array to take data from
-         */
-        virtual void populateFrom(boost::shared_ptr<Array>& input);
 
         /**
          * @see Array::isMaterialized()

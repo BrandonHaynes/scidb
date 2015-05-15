@@ -26,40 +26,40 @@
 /****************************************************************************/
 
 #include <util/arena/LimitedArena.h>                     // For LimitedArena
-#include <list>                                          // For list
+#include <deque>                                         // For deque
 
 /****************************************************************************/
 namespace scidb { namespace arena {
 /****************************************************************************/
 /**
- *  @brief      A resetting Arena that defers all recycling of memory until it
- *              is either reset or destroyed.
+ *  @brief      A resetting %arena that defers recycling of memory until it is
+ *              either reset or destroyed.
  *
- *  @details    Class ScopedArena implements an efficient resetting Arena that
+ *  @details    Class ScopedArena implements an efficient resetting arena that
  *              allocates memory from within fixed size pages that are held on
- *              a list; when the Arena is reset, the pages are discarded. This
+ *              a list; when the %arena is reset, the pages are recycled. This
  *              can result in very fast allocations - a ScopedArena frequently
  *              outperforms the default allocator - at the expense of possibly
  *              holding memory alive for longer than is strictly necessary.
  *
  *              The page size is specified at construction with the 'pagesize'
- *              field of the options structure, whilst the parent Arena - from
+ *              field of the options structure, while the parent %arena - from
  *              which the actual pages of storage are allocated - is specified
  *              with the 'parent' field of the structure. For example:
  *  @code
  *                  b = newArena(Options("B").pagesize(1024).parent(a));
  *  @endcode
- *              creates a new Arena 'b' that allocates memory 1024 bytes at a
- *              time from the Arena 'a', then sub-allocates from within these
+ *              creates a new arena 'b' that allocates memory 1024 bytes at a
+ *              time from the arena 'a', then sub-allocates from within these
  *              fixed size pages.
  *
- *              While it is perfectly fine to return an allocation to an Arena
+ *              While it is perfectly fine to return an allocation to an arena
  *              by calling recycle(), you should be aware that the ScopedArena
  *              will silently ignore this request. Similarly, although you may
- *              return an object requiring finalization to an Arena by calling
+ *              return an object requiring finalization to an arena by calling
  *              destroy(), the ScopedArena will directly invoke the finalizer,
  *              but will continue to hold the underlying allocation live until
- *              either reset() is called or the Arena is destroyed.
+ *              either reset() is called or the %arena itself is destroyed.
  *
  *              The ScopedArena also supports the same monitoring and limiting
  *              capabilities as class LimitedArena, from which it inherits.
@@ -77,7 +77,7 @@ class ScopedArena : public LimitedArena
     virtual                  ~ScopedArena();
 
  public:                   // Attributes
-    virtual bool              supports(features_t) const;
+    virtual features_t        features()           const;
     virtual void              insert(std::ostream&)const;
 
  public:                   // Operations
@@ -87,15 +87,15 @@ class ScopedArena : public LimitedArena
     virtual void              recycle(void*);
     virtual void              reset();
 
- protected:                // Implementation
-            void*             doMalloc(size_t);
-            size_t            doFree  (void* ,size_t);
+ public:                   // Implementation
+    virtual void*             doMalloc(size_t);
+    virtual void              doFree  (void*,size_t);
 
  protected:                // Implementation
             bool              consistent()         const;
 
  protected:                // Representation
-       std::list<void*>       _list;                     // The list of blocks
+       std::deque<void*>       _list;                    // The list of blocks
             size_t      const _size;                     // The size of a page
             byte_t*           _next;                     // The next available
             byte_t*           _last;                     // The last in page

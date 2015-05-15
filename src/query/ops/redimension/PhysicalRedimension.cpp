@@ -52,7 +52,7 @@ public:
      * @param schema the result of LogicalRedimension::inferSchema
      */
     PhysicalRedimension(const string& logicalName, const string& physicalName, const Parameters& parameters, const ArrayDesc& schema):
-        RedimensionCommon(logicalName, physicalName, parameters, schema)
+    RedimensionCommon(logicalName, physicalName, parameters, schema)
     {}
 
     /**
@@ -61,10 +61,16 @@ public:
      */
     bool haveAggregatesOrSynthetic(ArrayDesc const& srcDesc) const
     {
-        if (_parameters.size() > 1)
+        if (_parameters.size() > 2)
         {
             return true; //aggregate
         }
+
+        if (_parameters.size() == 2 &&
+            _parameters[1]->getParamType() == PARAM_AGGREGATE_CALL) {
+            return true;
+        }
+
         ArrayDesc dstDesc = ((boost::shared_ptr<OperatorParamSchema>&)_parameters[0])->getSchema();
         BOOST_FOREACH(const DimensionDesc &dstDim, dstDesc.getDimensions())
         {
@@ -97,13 +103,30 @@ public:
     }
 
     /**
+     * @return true if the isStrict parameter is specified and is equal to true; false otherwise
+     */
+    bool isStrict() const
+    {
+        bool isStrict = false;
+        if (_parameters.size() == 2 &&
+            _parameters[1]->getParamType() == PARAM_PHYSICAL_EXPRESSION) {
+            OperatorParamPhysicalExpression* paramExpr = static_cast<OperatorParamPhysicalExpression*>(_parameters[1].get());
+            assert(paramExpr->isConstant());
+            isStrict = paramExpr->getExpression()->evaluate().getBool();
+        }
+        return isStrict;
+    }
+
+    /**
      * @see PhysicalOperator::getOutputDistribution
      */
     virtual ArrayDistribution getOutputDistribution(std::vector<ArrayDistribution> const& inputDistros,
                                                     std::vector< ArrayDesc> const& inputSchemas) const
     {
-        if(haveAggregatesOrSynthetic(inputSchemas[0]))
+        if (haveAggregatesOrSynthetic(inputSchemas[0]) ||
+            isStrict()) {
             return ArrayDistribution(psHashPartitioned);
+        }
         return ArrayDistribution(psUndefined);
     }
 
@@ -112,7 +135,7 @@ public:
      */
     virtual bool outputFullChunks(std::vector< ArrayDesc> const& inputSchemas) const
     {
-        return haveAggregatesOrSynthetic(inputSchemas[0]);
+        return (isStrict() || haveAggregatesOrSynthetic(inputSchemas[0]));
     }
 
     /**
@@ -121,7 +144,7 @@ public:
     shared_ptr<Array> execute(vector< shared_ptr<Array> >& inputArrays, shared_ptr<Query> query)
     {
         assert(inputArrays.size() == 1);
-        shared_ptr<Array> srcArray = inputArrays[0];
+        shared_ptr<Array>& srcArray = inputArrays[0];
         ArrayDesc const& srcArrayDesc = srcArray->getArrayDesc();
 
         Attributes const& destAttrs = _schema.getAttributes(true); // true = exclude empty tag.
@@ -134,13 +157,21 @@ public:
         setupMappings(srcArrayDesc, aggregates, attrMapping, dimMapping, destAttrs, destDims);
         ElapsedMilliSeconds timing;
 
+        RedistributeMode redistributeMode(AUTO);
+        if (haveAggregatesOrSynthetic(srcArrayDesc)) {
+            //XXX TODO: until redistributeAggregate() is cut over to pullRedistribute(),
+            // the aggreagted SG does not enforce data integrity
+            redistributeMode = AGGREGATED;
+        } else if ( isStrict()) {
+            redistributeMode = VALIDATED;
+        }
         return redimensionArray(srcArray,
                                 attrMapping,
                                 dimMapping,
                                 aggregates,
                                 query,
                                 timing,
-                                haveAggregatesOrSynthetic(srcArrayDesc));
+                                redistributeMode);
     }
 };
 

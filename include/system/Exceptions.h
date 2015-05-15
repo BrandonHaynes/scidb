@@ -117,6 +117,16 @@
          } \
      } while (0)
 
+/**
+ * The macro is equivalent to ASSERT_EXCEPTION( false, exceptionMsg );  But it is
+ * designed so that it will not generate compiler warning messages if it is the
+ * only action is a non-void function.
+ */
+
+#define ASSERT_EXCEPTION_FALSE(_msg_) \
+    assert(false); \
+    throw SYSTEM_EXCEPTION(scidb::SCIDB_SE_INTERNAL, scidb::SCIDB_LE_UNREACHABLE_CODE) << _msg_;
+
 namespace scidb
 {
 
@@ -177,6 +187,7 @@ public:
     void setQueryId(uint64_t queryId);
 protected:
     virtual void format() = 0;
+    boost::format& getMessageFormatter() const;
 
     std::string _file;
     std::string _function;
@@ -189,7 +200,7 @@ protected:
     uint64_t _query_id;
 
     std::string _what_str;
-    boost::format _formatter;
+    mutable boost::format _formatter;
 };
 
 /*
@@ -219,7 +230,7 @@ public:
     {
         try
         {
-            _formatter % param;
+            getMessageFormatter() % param;
         }
         catch (...)
         {
@@ -276,7 +287,7 @@ public:
     {
         try
         {
-            _formatter % param;
+            getMessageFormatter() % param;
         }
         catch (...)
         {
@@ -329,7 +340,7 @@ public:
     {
         try
         {
-            _formatter % param;
+            getMessageFormatter() % param;
         }
         catch (...)
         {

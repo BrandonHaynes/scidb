@@ -1,1 +1,0 @@
---shell --command "export IQUERY_HOST=localhost; export IQUERY_PORT=1239; export PYTHONPATH=${PYTHONPATH}:${TESTDIR}; ${TESTDIR}/basicTempParallelRestore.py"

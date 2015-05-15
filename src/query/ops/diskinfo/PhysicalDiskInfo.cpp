@@ -51,8 +51,8 @@ class PhysicalDiskInfo: public PhysicalOperator
 
     boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
-        vector< boost::shared_ptr<Tuple> > tuples(1);        
-        Tuple& tuple = *new Tuple(5);
+        boost::shared_ptr<TupleArray> tuples(boost::make_shared<TupleArray>(_schema, _arena));
+        Value tuple[5];
         Storage::DiskInfo info;
         StorageManager::getInstance().getDiskInfo(info);
         tuple[0].setUint64(info.used);
@@ -60,8 +60,8 @@ class PhysicalDiskInfo: public PhysicalOperator
         tuple[2].setUint64(info.clusterSize);
         tuple[3].setUint64(info.nFreeClusters);
         tuple[4].setUint64(info.nSegments);
-        tuples[0] = boost::shared_ptr<Tuple>(&tuple);
-        return boost::shared_ptr<Array>(new TupleArray(_schema, tuples, Coordinate(query->getInstanceID())));
+        tuples->appendTuple(tuple);
+        return tuples;
     }
 };
 

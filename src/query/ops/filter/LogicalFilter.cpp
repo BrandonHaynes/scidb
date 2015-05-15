@@ -40,7 +40,10 @@ using namespace std;
  *   filter( srcArray, expression )
  *
  * @par Summary:
- *   Produces a result array by filtering out (mark as empty) the cells in the source array for which the expression evaluates to False.
+ *   The filter operator returns an array the with the same schema as the input
+ *   array. The result is identical to the input except that those cells for
+ *   which the expression evaluates either false or null are marked as being
+ *   empty.
  *
  * @par Input:
  *   - srcArray: a source array with srcAttrs and srcDims.

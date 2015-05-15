@@ -28,8 +28,6 @@ set (array_src
     StreamArray.cpp
     DelegateArray.cpp
     TupleArray.cpp
-    ComplementArray.cpp
-    FileArray.cpp
     DBArray.cpp
     ParallelAccumulatorArray.cpp
     RLE.cpp
@@ -38,6 +36,7 @@ set (array_src
     SortArray.cpp
     TransientCache.cpp
     SpatialRangesChunkPosIterator.cpp
+    Coordinate.cpp
 )
 
 file(GLOB array_include "*.h")

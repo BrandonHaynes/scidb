@@ -1,0 +1,16 @@
+# Test the TSV parser...
+
+--setup
+--start-query-logging
+
+create array parse_woes<f1:string,f2:string null,f3:string null,f4:string null>[i=0:*,20,0]
+
+--test
+
+--shell --store-all --command "iquery -c ${IQUERY_HOST} -p ${IQUERY_PORT} -aq "load(parse_woes, '${TEST_DATA_DIR}/parse_errors.tsv', -2, 'tsv', 100, parse_shadow)" "
+
+scan(parse_shadow)
+
+--cleanup
+remove(parse_woes)
+remove(parse_shadow)

@@ -43,7 +43,7 @@ namespace scidb {
  * @brief The operator: redimension().
  *
  * @par Synopsis:
- *   redimension( srcArray, schemaArray | schema {, AGGREGATE_CALL}* )
+ *   redimension( srcArray, schemaArray | schema , isStrict=false | {, AGGREGATE_CALL}* )
  *   <br> AGGREGATE_CALL := AGGREGATE_FUNC(inputAttr) [as resultName]
  *   <br> AGGREGATE_FUNC := approxdc | avg | count | max | min | sum | stdev | var | some_use_defined_aggregate_function
  *
@@ -56,6 +56,9 @@ namespace scidb {
  *   - schemaArray | schema: an array or schema from which outputAttrs and outputDims can be acquired.
  *     All the dimensions in outputDims must exist either in srcAttrs or in srcDims, with one exception. One new dimension called the synthetic dimension
  *     is allowed. All the attributes in outputAttrs, which is not the result of an aggregate, must exist either in srcAttrs or in srcDims.
+ *   - isStrict if true, enables the data integrity checks such as for data collisions and out-of-order input chunks, defualt=false.
+ *     In case of aggregates, isStrict requires that the aggreates be specified for all source array attributes which are also attributes in the new array.
+ *     In case of synthetic dimension, isStrict has no effect.
  *   - 0 or more aggregate calls.
  *     Each aggregate call has an AGGREGATE_FUNC, an inputAttr and a resultName.
  *     The default resultName is inputAttr followed by '_' and then AGGREGATE_FUNC.
@@ -87,26 +90,29 @@ namespace scidb {
 class LogicalRedimension: public  LogicalOperator
 {
 public:
-	LogicalRedimension(const string& logicalName, const std::string& alias):
-	        LogicalOperator(logicalName, alias)
-	{
-		ADD_PARAM_INPUT()
-        ADD_PARAM_SCHEMA()
-        ADD_PARAM_VARIES()
-	}
+    LogicalRedimension(const string& logicalName, const std::string& alias)
+    : LogicalOperator(logicalName, alias)
+    {
+        ADD_PARAM_INPUT();
+        ADD_PARAM_SCHEMA();
+        ADD_PARAM_VARIES();
+    }
 
     std::vector<boost::shared_ptr<OperatorParamPlaceholder> > nextVaryParamPlaceholder(const std::vector<ArrayDesc> &schemas)
     {
         std::vector<boost::shared_ptr<OperatorParamPlaceholder> > res;
+        res.reserve(3);
         res.push_back(END_OF_VARIES_PARAMS());
         res.push_back(PARAM_AGGREGATE_CALL());
+        if (_parameters.size() == 1) {
+            res.push_back(PARAM_CONSTANT("bool"));
+        }
         return res;
     }
 
-
     ArrayDesc inferSchema(std::vector< ArrayDesc> schemas, boost::shared_ptr< Query> query)
-	{
-		assert(schemas.size() == 1);
+    {
+        assert(schemas.size() == 1);
 
         ArrayDesc const& srcDesc = schemas[0];
         ArrayDesc dstDesc = ((boost::shared_ptr<OperatorParamSchema>&)_parameters[0])->getSchema();
@@ -114,22 +120,35 @@ public:
         //Compile a desc of all possible attributes (aggregate calls first) and source dimensions
         ArrayDesc aggregationDesc (srcDesc.getName(), Attributes(), srcDesc.getDimensions());
         vector<string> aggregatedNames;
+        bool isStrictSet = false;
+        bool isStrict=false;
 
         //add aggregate calls first
-        for (size_t i = 1; i < _parameters.size(); i++)
+        for (size_t i = 1; i < _parameters.size(); ++i)
         {
+            if (_parameters[i]->getParamType() == PARAM_LOGICAL_EXPRESSION) {
+                assert(i==1);
+                SCIDB_ASSERT(!isStrictSet);
+                OperatorParamLogicalExpression* lExp = static_cast<OperatorParamLogicalExpression*>(_parameters[i].get());
+                assert(lExp->isConstant());
+                assert(lExp->getExpectedType()==TypeLibrary::getType(TID_BOOL));
+                isStrictSet = true;
+                isStrict = evaluate(lExp->getExpression(), query, TID_BOOL).get<bool>();
+                continue;
+            }
+
             bool isInOrderAggregation = false;
             addAggregatedAttribute( (shared_ptr <OperatorParamAggregateCall>&) _parameters[i], srcDesc, aggregationDesc,
-                    isInOrderAggregation);
+                                    isInOrderAggregation);
             string aggName =  aggregationDesc.getAttributes()[aggregationDesc.getAttributes().size()-1].getName();
             bool aggFound = false;
-            BOOST_FOREACH(const AttributeDesc &dstAttr, dstDesc.getAttributes()) { 
-                if (dstAttr.getName() == aggName) { 
+            BOOST_FOREACH(const AttributeDesc &dstAttr, dstDesc.getAttributes()) {
+                if (dstAttr.getName() == aggName) {
                     aggFound = true;
                     break;
                 }
             }
-            if (!aggFound) { 
+            if (!aggFound) {
                 throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ATTRIBUTE_DOESNT_EXIST) << aggName << dstDesc.getName();
             }
             aggregatedNames.push_back(aggName);
@@ -162,10 +181,12 @@ public:
             }
         }
 
-        //Ensure attributes names uniqueness.        
-        if (!dstDesc.getEmptyBitmapAttribute())
+        //Ensure attributes names uniqueness.
+        if (!dstDesc.getEmptyBitmapAttribute()) {
             throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_REDIMENSION_ERROR1);
- 
+        }
+
+        size_t numPreservedAttributes = 0;
         BOOST_FOREACH(const AttributeDesc &dstAttr, dstDesc.getAttributes())
         {
             BOOST_FOREACH(const AttributeDesc &srcAttr, aggregationDesc.getAttributes())
@@ -175,14 +196,14 @@ public:
                     if (srcAttr.getType() != dstAttr.getType())
                     {
                         throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_WRONG_ATTRIBUTE_TYPE)
-                            << srcAttr.getName() << srcAttr.getType() << dstAttr.getType();
+                        << srcAttr.getName() << srcAttr.getType() << dstAttr.getType();
                     }
                     if (!dstAttr.isNullable() && srcAttr.isNullable())
                     {
                         throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_WRONG_ATTRIBUTE_FLAGS)
-                            << srcAttr.getName();
+                        << srcAttr.getName();
                     }
-
+                    if (!srcAttr.isEmptyIndicator()) { ++numPreservedAttributes; }
                     goto NextAttr;
                 }
             }
@@ -193,12 +214,12 @@ public:
                     if (dstAttr.getType() != TID_INT64)
                     {
                         throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_WRONG_DESTINATION_ATTRIBUTE_TYPE)
-                            << dstAttr.getName() << TID_INT64;
+                        << dstAttr.getName() << TID_INT64;
                     }
                     if (dstAttr.getFlags() != 0)
                     {
                         throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_WRONG_DESTINATION_ATTRIBUTE_FLAGS)
-                            << dstAttr.getName();
+                        << dstAttr.getName();
                     }
 
                     goto NextAttr;
@@ -208,11 +229,11 @@ public:
             if (dstAttr.isEmptyIndicator() == false)
             {
                 throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_UNEXPECTED_DESTINATION_ATTRIBUTE)
-                    << dstAttr.getName();
+                << dstAttr.getName();
             }
-          NextAttr:;
+        NextAttr:;
         }
-        
+
         Dimensions outputDims;
         size_t nNewDims = 0;
         BOOST_FOREACH(const DimensionDesc &dstDim, dstDesc.getDimensions())
@@ -228,12 +249,12 @@ public:
                     for (size_t i = 0; i< aggregatedNames.size(); i++)
                     {
                         if (srcAttr.getName() == aggregatedNames[i])
-                            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_REDIMENSION_ERROR2);
+                        throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_REDIMENSION_ERROR2);
                     }
                     if ( !IS_INTEGRAL(srcAttr.getType())  || srcAttr.getType() == TID_UINT64 )
                     {
                         throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_WRONG_SOURCE_ATTRIBUTE_TYPE)
-                            << srcAttr.getName() << TID_INT64;
+                            << srcAttr.getName();
                     }
                     outputDims.push_back(dstDim);
                     goto NextDim;
@@ -254,11 +275,20 @@ public:
                 throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_UNEXPECTED_DESTINATION_DIMENSION) << dstDim.getBaseName();
             }
             outputDims.push_back(dstDim);
-            NextDim:;
+        NextDim:;
+        }
+
+        if (isStrict &&
+            !aggregatedNames.empty() &&
+            numPreservedAttributes != aggregatedNames.size()) {
+
+            stringstream ss; ss << "zero or exactly "<< numPreservedAttributes << " aggregate";
+            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT3)
+                  << "redimension" << ss.str();
         }
 
         return ArrayDesc(srcDesc.getName(), dstDesc.getAttributes(), outputDims, dstDesc.getFlags());
-	}
+    }
 };
 
 DECLARE_LOGICAL_OPERATOR_FACTORY(LogicalRedimension, "redimension")

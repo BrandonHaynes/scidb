@@ -39,10 +39,10 @@ namespace scidb {
 class PhysicalMerge: public PhysicalOperator
 {
 public:
-	PhysicalMerge(const string& logicalName, const string& physicalName, const Parameters& parameters, const ArrayDesc& schema):
-	    PhysicalOperator(logicalName, physicalName, parameters, schema)
-	{
-	}
+    PhysicalMerge(const string& logicalName, const string& physicalName,
+                  const Parameters& parameters, const ArrayDesc& schema)
+        : PhysicalOperator(logicalName, physicalName, parameters, schema)
+    { }
 
     virtual DistributionRequirement getDistributionRequirement (const std::vector< ArrayDesc> & inputSchemas) const
     {
@@ -55,15 +55,24 @@ public:
         return inputBoundaries[0].unionWith(inputBoundaries[1]);
     }
 
-	/***
-	 * Merge is a pipelined operator, hence it executes by returning an iterator-based array to the consumer
-	 * that overrides the chunkiterator method.
-	 */
-	boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
+    /**
+     * Ensure input array chunk sizes and overlaps match.
+     */
+    virtual void requiresRepart(vector<ArrayDesc> const& inputSchemas,
+                                vector<ArrayDesc const*>& repartSchemas) const
     {
-		assert(inputArrays.size() >= 2);
+        repartByLeftmost(inputSchemas, repartSchemas);
+    }
+
+    /***
+     * Merge is a pipelined operator, hence it executes by returning an iterator-based array to the consumer
+     * that overrides the chunkiterator method.
+     */
+    boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
+    {
+        assert(inputArrays.size() >= 2);
         return boost::shared_ptr<Array>(new MergeArray(_schema, inputArrays));
-	 }
+    }
 };
     
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalMerge, "merge", "physicalMerge")

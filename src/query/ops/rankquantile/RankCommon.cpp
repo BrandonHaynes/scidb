@@ -284,12 +284,16 @@ shared_ptr<Array> buildRankArray(shared_ptr<Array>& inputArray,
                                                 false,
                                                 rstats));
 
-    size_t nInstances = query->getInstancesCount();
+    const size_t nInstances = query->getInstancesCount();
     for (size_t i =1; i<nInstances; i++)
     {
         LOG4CXX_DEBUG(logger, "Performing rotation "<<i);
-        runningRank = redistribute(runningRank, query, psHashPartitioned, "",
-                                   -1, boost::shared_ptr<DistributionMapper>(), i);
+        runningRank = redistributeToRandomAccess(runningRank, query, psHashPartitioned,
+                                                 ALL_INSTANCE_MASK,
+                                                 boost::shared_ptr<DistributionMapper>(),
+                                                 i,
+                                                 boost::shared_ptr<PartitioningSchemaData>());
+
         runningRank = shared_ptr<Array>(new RankArray(outputSchema, runningRank,
                                                       preSortMap, 0, true, rstats));
     }
@@ -316,12 +320,15 @@ shared_ptr<Array> buildDualRankArray(shared_ptr<Array>& inputArray,
                                                     false,
                                                     rstats));
 
-    size_t nInstances = query->getInstancesCount();
+    const size_t nInstances = query->getInstancesCount();
     for (size_t i =1; i<nInstances; i++)
     {
         LOG4CXX_DEBUG(logger, "Performing rotation "<<i);
-        runningRank = redistribute(runningRank, query, psHashPartitioned, "",
-                                   -1, boost::shared_ptr<DistributionMapper>(), i);
+        runningRank = redistributeToRandomAccess(runningRank, query, psHashPartitioned,
+                                                 ALL_INSTANCE_MASK,
+                                                 boost::shared_ptr<DistributionMapper>(),
+                                                 i,
+                                                 boost::shared_ptr<PartitioningSchemaData>());
         runningRank = shared_ptr<Array>(new DualRankArray(dualRankSchema, runningRank,
                                                           preSortMap, 0, true, rstats));
     }

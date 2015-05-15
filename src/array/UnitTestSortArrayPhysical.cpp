@@ -210,11 +210,11 @@ public:
         ArrayDesc schema("dummy_array", addEmptyTagAttribute(attributes), dimensions);
 
         // Sort Keys
-        vector<Key> sortKeys;
-        Key k;
+        SortingAttributeInfos sortingAttributeInfos;
+        SortingAttributeInfo  k;
         k.columnNo = 0;
         k.ascent = ascent;
-        sortKeys.push_back(k);
+        sortingAttributeInfos.push_back(k);
 
         // Define the array to sort
         shared_ptr<MemArray> arrayInst(new MemArray(schema,query));
@@ -233,15 +233,17 @@ public:
         insertMapDataIntoArray(query, *arrayInst, mapInst);
 
         // Sort
-        SortArray sorter(schema);
-        shared_ptr<TupleComparator> tcomp(new TupleComparator(sortKeys, schema));
+        const bool preservePositions = false;
+        SortArray sorter(schema, _arena, preservePositions);
+        shared_ptr<TupleComparator> tcomp(new TupleComparator(sortingAttributeInfos, schema));
         shared_ptr<MemArray> sortedArray = sorter.getSortedArray(baseArrayInst, query, tcomp);
 
         // Check correctness.
         // - Retrieve all data from the array. Ensure results are sorted.
         for (size_t j = 0; j < nattrs; j++)
         {
-            Tuple t1(1), t2(1);
+            Value t1[1];
+            Value t2[1];
             size_t itemCount = 0;
             shared_ptr<ConstArrayIterator> constArrayIter = sortedArray->getConstIterator(j);
             constArrayIter->reset();

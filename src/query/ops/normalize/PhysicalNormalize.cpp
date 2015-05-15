@@ -26,8 +26,9 @@
  *      Author: hkimura
  */
 #include <math.h>
-#include "query/Operator.h"
-#include "network/NetworkManager.h"
+#include <array/StreamArray.h>
+#include <query/Operator.h>
+#include <network/NetworkManager.h>
 #include "NormalizeArray.h"
 
 namespace scidb
@@ -71,27 +72,29 @@ class PhysicalNormalize: public  PhysicalOperator
             std::vector< boost::shared_ptr<Array> >& inputArrays,
             boost::shared_ptr<Query> query)
 	{
+
         boost::shared_ptr<Array> inputArray = inputArrays[0];
-        if (query->getInstancesCount() > 1) { 
-            uint64_t coordinatorID = (int64_t)query->getCoordinatorID() == -1 ?  query->getInstanceID() : query->getCoordinatorID();
-            inputArray = redistribute(inputArray, query, psLocalInstance, "", coordinatorID);
-            if (query->getInstanceID() != coordinatorID) { 
-                return boost::shared_ptr<Array>(new MemArray(_schema,query));
-            }
+        inputArray = redistributeToRandomAccess(inputArray, query, psLocalInstance,
+                                                query->isCoordinator() ? query->getInstanceID() : query->getCoordinatorID(),
+                                                shared_ptr<DistributionMapper>(),
+                                                0,
+                                                shared_ptr<PartitioningSchemaData>());
+        if (!query->isCoordinator()) {
+            return boost::shared_ptr<Array>(new MemArray(_schema,query));
         }
-        inputArray = ensureRandomAccess(inputArray, query);
+
         double len = 0.0;
         for (boost::shared_ptr<ConstArrayIterator> arrayIterator = inputArray->getConstIterator(0);
              !arrayIterator->end();
-             ++(*arrayIterator)) 
-        { 
+             ++(*arrayIterator))
+        {
             for (boost::shared_ptr<ConstChunkIterator> chunkIterator = arrayIterator->getChunk().getConstIterator();
                  !chunkIterator->end();
                  ++(*chunkIterator))
-            { 
+            {
                 // TODO: insert converter here
                 Value const& v = chunkIterator->getItem();
-                if (!v.isNull()) { 
+                if (!v.isNull()) {
                     const double d = v.getDouble();
                     len += d*d;
                 }

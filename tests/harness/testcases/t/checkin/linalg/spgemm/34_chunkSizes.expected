@@ -285,70 +285,70 @@ SCIDB QUERY : <repart(store( filter(build(s5_c6, 1+10*i+2*j), true), s5_c6 ), FM
 {4,3} 47
 {4,4} 49
 
-SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3, 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 34
 {0,1} 42
 {0,2} 154
 {1,0} 202
 
-SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2, 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 34
 {0,1} 42
 {1,0} 154
 {1,1} 202
 
-SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1, 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 34
 {0,1} 42
 {1,0} 154
 {1,1} 202
 
-SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3, 'min.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3, 'min.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 2
 {0,1} 4
 {0,2} 12
 {1,0} 14
 
-SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2, 'min.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2, 'min.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 2
 {0,1} 4
 {1,0} 12
 {1,1} 14
 
-SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1, 'min.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1, 'min.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 2
 {0,1} 4
 {1,0} 12
 {1,1} 14
 
-SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3, 'max.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c3, s2_c3, 'max.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 14
 {0,1} 16
 {0,2} 24
 {1,0} 26
 
-SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2, 'max.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c2, s2_c2, 'max.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 14
 {0,1} 16
 {1,0} 24
 {1,1} 26
 
-SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1, 'max.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s2_c1, s2_c1, 'max.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 14
 {0,1} 16
 {1,0} 24
 {1,1} 26
 
-SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 139
 {0,1} 157
@@ -360,7 +360,7 @@ SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4),FMT3)>
 {2,1} 937
 {2,2} 1075
 
-SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 139
 {0,1} 157
@@ -372,7 +372,7 @@ SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3),FMT3)>
 {2,1} 937
 {2,2} 1075
 
-SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 139
 {0,1} 157
@@ -384,7 +384,7 @@ SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2),FMT3)>
 {2,1} 937
 {2,2} 1075
 
-SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 139
 {0,1} 157
@@ -396,7 +396,7 @@ SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1),FMT3)>
 {2,1} 937
 {2,2} 1075
 
-SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'min.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'min.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 2
 {0,1} 4
@@ -408,7 +408,7 @@ SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'min.+'),FMT3)>
 {2,1} 24
 {2,2} 26
 
-SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'min.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'min.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 2
 {0,1} 4
@@ -420,7 +420,7 @@ SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'min.+'),FMT3)>
 {2,1} 24
 {2,2} 26
 
-SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'min.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'min.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 2
 {0,1} 4
@@ -432,7 +432,7 @@ SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'min.+'),FMT3)>
 {2,1} 24
 {2,2} 26
 
-SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'min.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'min.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 2
 {0,1} 4
@@ -444,7 +444,7 @@ SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'min.+'),FMT3)>
 {2,1} 24
 {2,2} 26
 
-SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'max.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'max.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 26
 {0,1} 28
@@ -456,7 +456,7 @@ SCIDB QUERY : <repart(spgemm(s3_c4, s3_c4, 'max.+'),FMT3)>
 {2,1} 48
 {2,2} 50
 
-SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'max.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'max.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 26
 {0,1} 28
@@ -468,7 +468,7 @@ SCIDB QUERY : <repart(spgemm(s3_c3, s3_c3, 'max.+'),FMT3)>
 {2,1} 48
 {2,2} 50
 
-SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'max.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'max.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 26
 {0,1} 28
@@ -480,7 +480,7 @@ SCIDB QUERY : <repart(spgemm(s3_c2, s3_c2, 'max.+'),FMT3)>
 {2,1} 48
 {2,2} 50
 
-SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'max.+'),FMT3)>
+SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'max.+', 'rightReplicate=true'),FMT3)>
 {i,j} multiply
 {0,0} 26
 {0,1} 28
@@ -492,7 +492,7 @@ SCIDB QUERY : <repart(spgemm(s3_c1, s3_c1, 'max.+'),FMT3)>
 {2,1} 48
 {2,2} 50
 
-SCIDB QUERY : <repart(spgemm(s5_c6, s5_c6),FMT5)>
+SCIDB QUERY : <repart(spgemm(s5_c6, s5_c6, 'rightReplicate=true'),FMT5)>
 {i,j} multiply
 {0,0} 725
 {0,1} 775
@@ -520,7 +520,7 @@ SCIDB QUERY : <repart(spgemm(s5_c6, s5_c6),FMT5)>
 {4,3} 6275
 {4,4} 6725
 
-SCIDB QUERY : <repart(spgemm(s5_c5, s5_c5),FMT5)>
+SCIDB QUERY : <repart(spgemm(s5_c5, s5_c5, 'rightReplicate=true'),FMT5)>
 {i,j} multiply
 {0,0} 725
 {0,1} 775
@@ -548,7 +548,7 @@ SCIDB QUERY : <repart(spgemm(s5_c5, s5_c5),FMT5)>
 {4,3} 6275
 {4,4} 6725
 
-SCIDB QUERY : <repart(spgemm(s5_c4, s5_c4),FMT5)>
+SCIDB QUERY : <repart(spgemm(s5_c4, s5_c4, 'rightReplicate=true'),FMT5)>
 {i,j} multiply
 {0,0} 725
 {0,1} 775
@@ -576,7 +576,7 @@ SCIDB QUERY : <repart(spgemm(s5_c4, s5_c4),FMT5)>
 {4,3} 6275
 {4,4} 6725
 
-SCIDB QUERY : <repart(spgemm(s5_c3, s5_c3),FMT5)>
+SCIDB QUERY : <repart(spgemm(s5_c3, s5_c3, 'rightReplicate=true'),FMT5)>
 {i,j} multiply
 {0,0} 725
 {0,1} 775
@@ -604,7 +604,7 @@ SCIDB QUERY : <repart(spgemm(s5_c3, s5_c3),FMT5)>
 {4,3} 6275
 {4,4} 6725
 
-SCIDB QUERY : <repart(spgemm(s5_c2, s5_c2),FMT5)>
+SCIDB QUERY : <repart(spgemm(s5_c2, s5_c2, 'rightReplicate=true'),FMT5)>
 {i,j} multiply
 {0,0} 725
 {0,1} 775
@@ -632,7 +632,7 @@ SCIDB QUERY : <repart(spgemm(s5_c2, s5_c2),FMT5)>
 {4,3} 6275
 {4,4} 6725
 
-SCIDB QUERY : <repart(spgemm(s5_c1, s5_c1),FMT5)>
+SCIDB QUERY : <repart(spgemm(s5_c1, s5_c1, 'rightReplicate=true'),FMT5)>
 {i,j} multiply
 {0,0} 725
 {0,1} 775

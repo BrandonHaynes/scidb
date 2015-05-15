@@ -180,6 +180,10 @@ struct InfoForExecutor
 	int                test_sequence_number;
 	pthread_t          tid;
 	std::string        testID;
+
+	/* Test Section Time */
+	long int startTestSectionMillisec;
+	long int endTestSectionMillisec;
 };
 
 struct IndividualTestInfo

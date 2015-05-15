@@ -27,15 +27,14 @@
  */
 
 #include <map>
-#include "query/Aggregate.h"
-#include "query/Operator.h"
-#include "query/Network.h"
-#include "array/Metadata.h"
-#include "array/MemArray.h"
-#include "array/FileArray.h"
-#include "VariableWindow.h"
-
+#include <query/Aggregate.h>
+#include <query/Operator.h>
+#include <util/Network.h>
+#include <array/Metadata.h>
+#include <array/MemArray.h>
 #include <log4cxx/logger.h>
+
+#include "VariableWindow.h"
 
 // Logger for operator. static to prevent visibility of variable outside of file
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.query.ops.variable_window"));
@@ -306,7 +305,9 @@ private:
                     for(size_t i=0; i<_nAggs; i++)
                     {
                         _daiters[i]->setPosition(chunkPos);
-                        info.iters[i] = _daiters[i]->updateChunk().getIterator(_query, ConstChunkIterator::NO_EMPTY_CHECK | ConstChunkIterator::APPEND_CHUNK);
+                        info.iters[i] = _daiters[i]->updateChunk().getIterator(_query, ConstChunkIterator::NO_EMPTY_CHECK |
+                                                                               ConstChunkIterator::APPEND_EMPTY_BITMAP |
+                                                                               ConstChunkIterator::APPEND_CHUNK);
                     }
                 }
                 else
@@ -1067,6 +1068,7 @@ public:
                     }
                 }
                 nextAxis = agreeOnNextAxis(axesList, currentAxis);
+                getInjectedErrorListener().check();
             }
         }
         else
@@ -1076,6 +1078,7 @@ public:
                 ChunkLocation cl = axiter.getNextChunk();
                 processChunk <USE_SWAP> (cl, saiter, currentRightEdge, currentLeftEdge, leftEdges, output, outMessages,  mapping.getAggregates());
             }
+            getInjectedErrorListener().check();
             messageCycle <USE_SWAP> (outMessages, inMessages, leftEdges, output,  mapping.getAggregates());
             flushLeftEdges(leftEdges, output,  mapping.getAggregates());
         }
@@ -1181,146 +1184,3 @@ public:
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalVariableWindow, "variable_window", "PhysicalVariableWindow")
 
 }
-
-#if 0
-    void smoSingleInstanceVariableWindow(shared_ptr <Array> const& srcArray,
-                              shared_ptr <MemArray> const& dstArray,
-                              AttributeID inputAttId,
-                              AttributeID outAttId,
-                              AggregatePtr &agg)
-    {
-        shared_ptr<Query> query = Query::getValidQueryPtr(_query);
-        ArrayDesc const& srcDesc = srcArray->getArrayDesc();
-        shared_ptr<ConstArrayIterator> saiter = srcArray->getIterator(inputAttId);
-        shared_ptr<ArrayIterator>daiter = dstArray->getIterator(outAttId);
-
-        Value stub(agg->getResultType());
-        setDefaultValue(stub, agg->getResultType().typeId());
-
-        while (! saiter->end())
-        {
-            Coordinates const& chunkPos = saiter->getPosition();
-            LOG4CXX_DEBUG(logger, "Processing chunk at "<<CoordsToStr(chunkPos));
-            shared_ptr<ChunkEdge> currChunkEdge(new ChunkEdge());
-            _edgeMap[chunkPos] = currChunkEdge;
-            shared_ptr<ChunkEdge> prevChunkEdge;
-            ChunkLocation prevChunkLocation = _localChunkMap->getPrevChunkFor(chunkPos);
-            if(prevChunkLocation.get())
-            {
-                Coordinates prevChunkPos = prevChunkLocation->first;
-                prevChunkEdge = _edgeMap[prevChunkPos];
-                BOOST_FOREACH(ChunkEdge::value_type& v, (*prevChunkEdge))
-                {
-                    Coordinates const& edgePos = v.first;
-                    shared_ptr<WindowEdge> windowEdge = v.second;
-                    (*currChunkEdge)[edgePos] = windowEdge;
-                }
-            }
-
-            Coordinates nextChunkPos(0);
-            ChunkLocation nextLoc = _localChunkMap->getNextChunkFor(chunkPos);
-            if(nextLoc.get())
-            {
-                nextChunkPos=nextLoc->first;
-            }
-
-            shared_ptr<ConstChunkIterator> sciter = saiter->getChunk().getConstIterator();
-            assert(daiter->setPosition(chunkPos) == false);
-
-            shared_ptr<ChunkIterator> dciter = daiter->newChunk(chunkPos).getIterator(query, ConstChunkIterator::NO_EMPTY_CHECK);
-            _iterMap[chunkPos] = dciter;
-
-            while (!sciter->end())
-            {
-                Coordinates axisPos = sciter->getPosition();
-                dciter->setPosition(axisPos);
-                dciter->writeItem(stub);
-
-                Coordinate valueCoord = axisPos[_dimNum];
-                axisPos[_dimNum] = 0;
-                shared_ptr<WindowEdge> edge;
-                if(currChunkEdge->count(axisPos)==0)
-                {
-                    edge.reset(new WindowEdge());
-                    (*currChunkEdge)[axisPos]= edge;
-                }
-                else
-                {
-                    edge = (*currChunkEdge)[axisPos];
-                }
-
-                edge->addCentral(sciter->getItem(),valueCoord,0);
-
-                if (edge->getNumFollowing()>=_nFollowing)
-                {
-                    shared_ptr<AggregatedValue> result = edge->churn(_bitSize, _nPreceding, _nFollowing, agg);
-                    Coordinate prevAxisCoord = result->coord;
-                    Coordinates prevValuePos = axisPos;
-                    prevValuePos[_dimNum] = prevAxisCoord;
-                    Coordinates prevChunkPos = prevValuePos;
-                    srcDesc.getChunkPositionFor(prevChunkPos);
-
-                    if (prevChunkPos == chunkPos)
-                    {
-                        dciter->setPosition(prevValuePos);
-                        dciter->writeItem(result->val);
-                    }
-                    else
-                    {
-                        if(_iterMap[prevChunkPos].get()==0)
-                        {
-                            LOG4CXX_DEBUG(logger, "Reopening chunk at "<<CoordsToStr(prevChunkPos));
-                            daiter->setPosition(prevChunkPos);
-                            _iterMap[prevChunkPos] = daiter->updateChunk().getIterator(query, ConstChunkIterator::NO_EMPTY_CHECK | ConstChunkIterator::APPEND_CHUNK);
-                        }
-                        _iterMap[prevChunkPos]->setPosition(prevValuePos);
-                        _iterMap[prevChunkPos]->writeItem(result->val);
-                        if(edge->getNumCoords() && edge->getNextCoord() >= prevChunkPos[_dimNum] + srcDesc.getDimensions()[_dimNum].getChunkInterval())
-                        {
-                            _edgeMap[prevChunkPos]->erase(axisPos);
-                            if(_edgeMap[prevChunkPos]->size()==0)
-                            {
-                                _edgeMap.erase(prevChunkPos);
-                                _iterMap[prevChunkPos]->flush();
-                                _iterMap[prevChunkPos].reset();
-                                LOG4CXX_DEBUG(logger, "Unlinking and flushing chunk at "<<CoordsToStr(prevChunkPos));
-                            }
-                        }
-                    }
-                }
-                ++(*sciter);
-            }
-
-            ++(*saiter);
-
-            if(nextChunkPos.size()==0)
-            {
-                BOOST_FOREACH(ChunkEdge::value_type& v, (*currChunkEdge))
-                {
-                    Coordinates valueCoords = v.first;
-                    shared_ptr<WindowEdge> windowEdge = v.second;
-                    while(windowEdge->getNumCoords())
-                    {
-                        shared_ptr<AggregatedValue> result = windowEdge->churn(_bitSize, _nPreceding, _nFollowing, agg);
-                        valueCoords[_dimNum]=result->coord;
-                        Coordinates chunkCoords= valueCoords;
-                        srcDesc.getChunkPositionFor(chunkCoords);
-                        if(_iterMap[chunkCoords].get()==0)
-                        {
-                            daiter->setPosition(chunkCoords);
-                            LOG4CXX_DEBUG(logger, "End of axis: reopening chunk at "<<CoordsToStr(chunkCoords));
-                            _iterMap[chunkCoords] = daiter->updateChunk().getIterator(query, ConstChunkIterator::NO_EMPTY_CHECK | ConstChunkIterator::APPEND_CHUNK);
-                        }
-                        _iterMap[chunkCoords]->setPosition(valueCoords);
-                        _iterMap[chunkCoords]->writeItem(result->val);
-                    }
-                }
-                _iterMap.flushAll();
-            }
-            else if( nextChunkPos != saiter->getPosition())
-            {
-                _iterMap.flushAll();
-            }
-        }
-    }
-#endif

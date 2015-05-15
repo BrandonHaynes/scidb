@@ -21,4 +21,3 @@
 
 add_subdirectory("io")
 add_subdirectory("compression")
-add_subdirectory("delta")

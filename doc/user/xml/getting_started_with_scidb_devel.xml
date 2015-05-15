@@ -474,8 +474,8 @@ quit or exit   - End iquery session</programlisting></para>
     <para>Note the following:<itemizedlist>
         <listitem>
           <para>Your version of iquery must match the version of SciDB. For
-          example, if your SciDB installation is at version 14.7, you must
-          download and install iquery version 14.7.</para>
+          example, if your SciDB installation is at version 14.8, you must
+          download and install iquery version 14.8.</para>
         </listitem>
 
         <listitem>
@@ -496,11 +496,11 @@ quit or exit   - End iquery session</programlisting></para>
 
         <itemizedlist>
           <listitem>
-            <para>On Ubuntu:<programlisting>wget -O- https://downloads.paradigm4.com/key | sudo apt-key add -</programlisting></para>
+            <para>On Ubuntu:<programlisting>wget -O- http://downloads.paradigm4.com/key | sudo apt-key add -</programlisting></para>
           </listitem>
 
           <listitem>
-            <para>On CentOS or RHEL:<programlisting>wget https://downloads.paradigm4.com/key
+            <para>On CentOS or RHEL:<programlisting>wget http://downloads.paradigm4.com/key
 sudo rpm --import key
 rm -f key</programlisting></para>
           </listitem>
@@ -513,7 +513,7 @@ rm -f key</programlisting></para>
             <listitem>
               <para>On Ubuntu, create the file
               <code>/etc/apt/sources.list.d/scidb.list</code> and add the
-              following line:<programlisting>deb  https://downloads.paradigm4.com/  ubuntu12.04/&scidb_version;/</programlisting></para>
+              following line:<programlisting>deb  http://downloads.paradigm4.com/  ubuntu12.04/&scidb_version;/</programlisting></para>
             </listitem>
 
             <listitem>
@@ -521,7 +521,7 @@ rm -f key</programlisting></para>
               <code>/etc/yum.repos.d/scidb.repo</code> file and add the
               following lines:<programlisting>[scidb]
 name=SciDB
-baseurl=https://downloads.paradigm4.com/centos6.3/&scidb_version;/
+baseurl=http://downloads.paradigm4.com/centos6.3/&scidb_version;/
 gpgcheck=1</programlisting></para>
             </listitem>
           </itemizedlist></para>
@@ -545,8 +545,8 @@ sudo yum install scidb-&scidb_version;-utils</programlisting></para>
       <step>
         <para>Set the SciDB environment variables in the user
         environment.<programlisting>export SCIDB_VER=&scidb_version; 
-export PATH="$PATH:/opt/scidb/$SCIDB_VER/bin:/opt/scidb/$SCIDB_VER/share/scidb"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/scidb/$SCIDB_VER/lib"</programlisting></para>
+export PATH="$PATH:/opt/scidb/$SCIDB_VER/bin:/opt/scidb/$SCIDB_VER/share/scidb"</programlisting></para>
+
       </step>
 
       <step>

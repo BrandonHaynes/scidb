@@ -253,9 +253,9 @@ SCIDB QUERY : <show(intensityFlatShadow)>
 
 SCIDB QUERY : <SELECT * FROM intensityFlatShadow>
 {i} exposure,elapsedTime,measuredIntensity,row_offset
-{1} null,'Failed to parse string \'Jack\' as int64',null,35
-{4} null,'Failed to parse string \'Jess\' as int64','Failed to parse string \'Jill\' as int64',94
-{5} null,'Assigning NULL to non-nullable attribute','Failed to parse string \'Josh\' as int64',110
+{1} null,'Failed to parse string \'Jack\' as int64 (non-digits)',null,35
+{4} null,'Failed to parse string \'Jess\' as int64 (non-digits)','Failed to parse string \'Jill\' as int64 (non-digits)',94
+{5} null,'Assigning NULL to non-nullable attribute','Failed to parse string \'Josh\' as int64 (non-digits)',110
 
 SCIDB QUERY : <SELECT * FROM intensityFlat>
 {i} exposure,elapsedTime,measuredIntensity
@@ -272,9 +272,9 @@ SCIDB QUERY : <SELECT intensityFlat.exposure AS exp, intensityFlatShadow.exposur
 
 SCIDB QUERY : <SELECT * FROM intensityFlatBadCells>
 {i} exp,expMSG,elTime,elTimeMSG,Intensity,IntensityMSG,row_offset
-{1} 'High',null,0,'Failed to parse string \'Jack\' as int64',99,null,35
-{4} 'Medium',null,0,'Failed to parse string \'Jess\' as int64',null,'Failed to parse string \'Jill\' as int64',94
-{5} 'Low',null,0,'Assigning NULL to non-nullable attribute',null,'Failed to parse string \'Josh\' as int64',110
+{1} 'High',null,0,'Failed to parse string \'Jack\' as int64 (non-digits)',99,null,35
+{4} 'Medium',null,0,'Failed to parse string \'Jess\' as int64 (non-digits)',null,'Failed to parse string \'Jill\' as int64 (non-digits)',94
+{5} 'Low',null,0,'Assigning NULL to non-nullable attribute',null,'Failed to parse string \'Josh\' as int64 (non-digits)',110
 
 Query was executed successfully
 

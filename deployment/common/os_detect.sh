@@ -32,6 +32,10 @@ function detect ()
         OS="Ubuntu 12.04"
     fi
 
+    if [ `echo "${input}" | grep "Ubuntu" | grep "14.04" | wc -l` = "1" ]; then
+        OS="Ubuntu 14.04"
+    fi
+
     if [ `echo "${input}" | grep "Red Hat" | grep "6." | wc -l` = "1" ]; then
         OS="RedHat 6"
     fi

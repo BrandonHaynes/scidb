@@ -49,6 +49,22 @@ function centos6()
     status="service postgresql status"
 }
 
+function u1204()
+{
+    apt-get update
+    apt-get install -y python-paramiko python-crypto postgresql-8.4 postgresql-contrib-8.4 expect
+    restart="/etc/init.d/postgresql restart"
+    status="/etc/init.d/postgresql status"
+}
+
+function u1404()
+{
+    apt-get update
+    apt-get install -y python-paramiko python-crypto postgresql-9.3 postgresql-contrib-9.3 expect
+    restart="/etc/init.d/postgresql restart"
+    status="/etc/init.d/postgresql status"
+}
+
 OS=`./os_detect.sh`
 case ${OS} in
     "CentOS 6")
@@ -58,10 +74,10 @@ case ${OS} in
 	centos6
 	;;
     "Ubuntu 12.04")
-	apt-get update
-	apt-get install -y python-paramiko python-crypto postgresql-8.4 postgresql-contrib-8.4 expect
-	restart="/etc/init.d/postgresql restart"
-	status="/etc/init.d/postgresql status"
+	u1204
+	;;
+    "Ubuntu 14.04")
+	u1404
 	;;
     *)
 	echo "Not supported OS";

@@ -31,7 +31,3 @@ add_library(match SHARED ${match_src})
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libmatch${CMAKE_SHARED_LIBRARY_SUFFIX}" match)
 set_target_properties(match PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
 
-if (APPLE)
-  set_target_properties(match PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif (APPLE)
-

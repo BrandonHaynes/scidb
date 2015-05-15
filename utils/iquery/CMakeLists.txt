@@ -65,8 +65,6 @@ set_source_files_properties(iquery_parser.cpp keywords.cpp ${CMAKE_CURRENT_BINAR
 add_executable(iquery ${iquery_src} ${iquery_inc})
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}" "iquery" iquery)
 
-configure_file(iquery.sh "${GENERAL_OUTPUT_DIRECTORY}/iquery.sh" COPYONLY)
-
 set_target_properties(iquery PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY})
 target_link_libraries(iquery
 	scidbclient

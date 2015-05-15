@@ -35,9 +35,6 @@
 #include "../../scalapackUtil/scalapackFromCpp.hpp"
 #include "../../DLAErrors.h"
 
-
-using namespace scidb;
-
 namespace scidb
 {
 
@@ -91,14 +88,14 @@ ArrayDesc MPICopyLogical::inferSchema(std::vector<ArrayDesc> schemas, boost::sha
     atts[0] = AttributeDesc((AttributeID)0, "copy", TID_DOUBLE, 0, 0);
     Dimensions outDims(2);
     outDims[0] = DimensionDesc(d0.getBaseName() + "_1", 
-                            d0.getStart(), 
+                            d0.getStartMin(),
                             d0.getCurrStart(),
                             d0.getCurrEnd(),
                             d0.getEndMax(), 
                             d0.getChunkInterval(), 
                             0);
     outDims[1] = DimensionDesc(d0.getBaseName() + "_2", 
-                            d1.getStart(), 
+                            d1.getStartMin(),
                             d1.getCurrStart(),
                             d1.getCurrEnd(),
                             d1.getEndMax(), 

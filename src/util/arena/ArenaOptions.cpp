@@ -30,7 +30,7 @@ namespace scidb { namespace arena {
 /****************************************************************************/
 
 /**
- *  Construct a set of Arena options with sensible default values.
+ *  Construct a set of %arena options with sensible default values.
  */
     Options::Options(name_t name)
            : _name      (name),
@@ -41,13 +41,13 @@ namespace scidb { namespace arena {
              _recycling (false),
              _resetting (false),
              _debugging (false),
-             _locking   (false)
+             _threading (false)
 {
     assert(consistent());                                // Check consistency
 }
 
 /**
- *  Insert a formatted representation of the Arena options 'o' onto the output
+ *  Insert a formatted representation of the %arena options 'o' on the output
  *  stream 's'.
  */
 std::ostream& operator<<(std::ostream& s,const Options& o)
@@ -61,7 +61,7 @@ std::ostream& operator<<(std::ostream& s,const Options& o)
       << "recycling="  << o.recycling()         << ','   // Emit recycling
       << "resetting="  << o.resetting()         << ','   // Emit resetting
       << "debugging="  << o.debugging()         << ','   // Emit debugging
-      << "locking="    << o.locking()           << '}';  // Emit locking
+      << "threading="  << o.threading()         << '}';  // Emit threading
 
     return s;
 }
@@ -71,9 +71,6 @@ std::ostream& operator<<(std::ostream& s,const Options& o)
  *  of consistency checks that would otherwise clutter up the code, and, since
  *  only ever called from within assertions, can be eliminated entirely by the
  *  compiler from the release build.
- *
- *  Currently there isn't an Arena implementation that supports both resetting
- *  and recycling, although I hope to implement such an Arena in the future.
  */
 bool Options::consistent() const
 {
@@ -81,7 +78,6 @@ bool Options::consistent() const
     assert(_parent != 0);                                // Validate parent
     assert(_limit  <= unlimited);                        // Validate limit
     assert(_psize  <= unlimited);                        // Validate page size
-    assert(!_recycling || !_resetting);                  // Can't support both
 
     return true;                                         // Appears to be good
 }

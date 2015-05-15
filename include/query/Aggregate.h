@@ -20,7 +20,6 @@
 * END_COPYRIGHT
 */
 
-
 /*
  * @file Aggregate.h
  *
@@ -29,21 +28,21 @@
  * @brief Aggregate, Aggregate Factory and Aggregate Library headers
  */
 
-
-#ifndef __AGGREGATE_H__
-#define __AGGREGATE_H__
+#ifndef AGGREGATE_H_
+#define AGGREGATE_H_
 
 #include <map>
 
-#include "query/TypeSystem.h"
-#include "array/Metadata.h"
-#include "array/RLE.h"
+#include <query/TypeSystem.h>
+#include <array/Metadata.h>
+#include <array/RLE.h>
+#include <array/StreamArray.h>
 #include "query/TileFunctions.h"
-#include "util/arena/Vector.h"
+#include "util/Singleton.h"
 
 namespace scidb
 {
-
+class Query;
 typedef boost::shared_ptr<class Aggregate> AggregatePtr;
 
 /**
@@ -93,11 +92,64 @@ protected:
         _resultType(resultType)
     {}
 
+    /*
+     * Note from Donghui Zhang 10/8/2014:
+     * I re-engineered from the code that missingReason==0 was used to represent the case that a state has not been initialized.
+     * Without changing the behavior of the system, I replaced all evaluations  getMissingReason()==0 with this function.
+     * The goal is to keep in a single place such logic, should we decide to change the implementation of the condition.
+     * Also, such refactoring makes the code easier to understand, I believe.
+     *
+     * @param state  a state.
+     * @return whether the state has been initialized.
+     */
+    bool isStateInitialized(Value const& state) const
+    {
+        return state.getMissingReason() != 0;
+    }
+
+    /**
+     * Whether a state qualifies to be merged.
+     * @param srcState  a source state.
+     * @return whether the state qualifies to be merged from.
+     * @note: Normally, a state can be merged as long as it is initialized.
+     *        But derived classes may override this.
+     *        E.g. in BaseAggregateInitByFirst, if missingReason==1 means, even though the state is initialized, it is not ready to be merged.
+     */
+    virtual bool isMergeable(Value const& srcState) const
+    {
+        return isStateInitialized(srcState);
+    }
+
+    /**
+     * Whether a value qualifies to be accumulated.
+     * @param srcValue  a source value.
+     * @return whether the value qualifies to be accumulated.
+     */
+    virtual bool isAccumulatable(Value const& srcValue) const
+    {
+        return !(ignoreNulls() && srcValue.isNull());
+    }
+
+    /**
+     * Accumulate an input value to a state.
+     * @param dstState     a destination state, which MUST have be initialized.
+     * @param srcValue     a source value, which MUST have isAccumulatable()==true.
+     */
+    virtual void accumulate(Value& state, Value const& input) = 0;
+
+    /**
+     * Merge a state into another state.
+     * @param dstState  the destination state, which MUST have been initialized.
+     * @param srcState  the source state, which MUST have isMergeable()==true.
+     *
+     */
+    virtual void merge(Value& dstState, Value const& srcState)  = 0;
+
 public:
     virtual ~Aggregate() {}
 
-    virtual AggregatePtr clone() const        = 0;
-    virtual AggregatePtr clone(Type const& aggregateType) const        = 0;
+    virtual AggregatePtr clone()                          const = 0;
+    virtual AggregatePtr clone(Type const& aggregateType) const = 0;
 
     const std::string& getName() const
     {
@@ -116,7 +168,10 @@ public:
         return _resultType;
     }
 
-    virtual bool supportAsterisk() const { return false; }
+    virtual bool supportAsterisk() const
+    {
+        return false;
+    }
 
     /**
      * This is supposed to be removed.
@@ -139,51 +194,33 @@ public:
     virtual void initializeState(Value& state) = 0;
 
     /**
-     * Accumulate an input value to a state.
+     * Initialize the state if not already, then call accumulate on a single value, if is is ready to be accumulated from.
+     * @param dstState   destination state.
+     * @param srcValue   a source value.
      */
-    virtual void accumulate(Value& state, Value const& input) = 0;
+    virtual void accumulateIfNeeded(Value& dstState, Value const& srcValue) {
+        if (! isStateInitialized(dstState)) {
+            initializeState(dstState);
+            assert(isStateInitialized(dstState));
+        }
 
-    /**
-     * Accumulate all input values to a state.
-     */
-    virtual void accumulate(Value& state, std::vector<Value> const& input)
-    {
-        for (size_t i = 0; i< input.size(); i++)
-        {
-            accumulate(state, input[i]);
+        if (isAccumulatable(srcValue)) {
+            accumulate(dstState, srcValue);
         }
     }
 
     /**
-     * Whether a value qualifies to be accumulated.
-     * @note The method does NOT check ignoreZeroes(), because that is supposed to be dead code and should be removed.
+     * Initialize the state if not already, then accumulate a payload of values.
+     * @param dstState   a destination state.
+     * @param srcValues  a vector of source values.
      */
-    virtual bool qualifyAccumulate(Value const& input) {
-        return !(ignoreNulls() && input.isNull());
-    }
-
-    /**
-     * Call accumulate on a single value, if qualify.
-     */
-    virtual void tryAccumulate(Value& state, Value const& input) {
-        if (qualifyAccumulate(input)) {
-            accumulate(state, input);
-        }
-    }
-
-    /**
-     * Call accumulate on multiple values, if qualify.
-     */
-    virtual void tryAccumulate(Value& state, std::vector<Value> const& input)
+    virtual void accumulateIfNeeded(Value& dstState, ConstRLEPayload const* tile)
     {
-        for (size_t i = 0; i< input.size(); i++)
-        {
-            tryAccumulate(state, input[i]);
+        if (! isStateInitialized(dstState)) {
+            initializeState(dstState);
+            assert(isStateInitialized(dstState));
         }
-    }
 
-    virtual void accumulatePayload(Value& state, ConstRLEPayload const* tile)
-    {
         ConstRLEPayload::iterator iter = tile->getIterator();
         bool noNulls = ignoreNulls();
 
@@ -193,7 +230,7 @@ public:
             if (iter.isNull() == false || noNulls == false)
             {
                 iter.getItem(val);
-                accumulate(state, val);
+                accumulate(dstState, val);
                 ++iter;
             }
             else
@@ -203,25 +240,69 @@ public:
         }
     }
 
-    virtual void merge(Value& dstState, Value const& srcState)  = 0;
-    virtual void finalResult(Value& result, Value const& state) = 0;
+    /**
+     * Initialize the state if not already, then merge a source state into a destination state, if the source state is ready to merge from.
+     * @param dstState  the destination state, which MUST have been initialized.
+     * @param srcState  the source state.
+     *
+     */
+    virtual void mergeIfNeeded(Value& dstState, Value const& srcState)
+    {
+        if (! isStateInitialized(dstState)) {
+            initializeState(dstState);
+            assert(isStateInitialized(dstState));
+        }
+
+        if (isMergeable(srcState)) {
+            merge(dstState, srcState);
+        }
+    }
+
+    /**
+     * Turn the intermediate aggregation state into a value.
+     * @param dstValue  placeholder for the destination value.
+     * @param srcState  the aggregation state.
+     * @note srcState may or may not have been initialized.
+     */
+    virtual void finalResult(Value& dstValue, Value const& srcState) = 0;
 };
 
 template<template <typename TS, typename TSR> class A, typename T, typename TR, bool asterisk = false>
 class BaseAggregate: public Aggregate
 {
+protected:
+    typedef          A<T,TR>        Agg;
+    typedef typename A<T,TR>::State State;
+
+protected:
+    void accumulate(Value& dstState, Value const& srcValue)
+    {
+        assert(isStateInitialized(dstState));
+        assert(isAccumulatable(srcValue));
+
+        Agg::aggregate(dstState.get<State>(), srcValue.get<T>());
+    }
+
+    void merge(Value& dstState, Value const& srcState)
+    {
+        assert(isStateInitialized(dstState));
+        assert(isMergeable(srcState));
+
+        Agg::merge(dstState.get<State>(),srcState.get<State>());
+    }
+
 public:
     BaseAggregate(const std::string& name, Type const& aggregateType, Type const& resultType): Aggregate(name, aggregateType, resultType)
     {}
 
     AggregatePtr clone() const
     {
-        return AggregatePtr(new BaseAggregate(getName(), getAggregateType(), getResultType()));
+        return boost::make_shared<BaseAggregate>(getName(), getAggregateType(), getResultType());
     }
 
     AggregatePtr clone(Type const& aggregateType) const
     {
-        return AggregatePtr(new BaseAggregate(getName(), aggregateType, _resultType.typeId() == TID_VOID ? aggregateType : _resultType));
+        return boost::make_shared<BaseAggregate>(getName(), aggregateType, _resultType.typeId() == TID_VOID ? aggregateType : _resultType);
     }
 
     bool ignoreNulls() const
@@ -231,8 +312,7 @@ public:
 
     Type getStateType() const
     {
-        Type stateType(TID_BINARY, sizeof(typename A<T, TR>::State) << 3);
-        return stateType;
+        return Type(TID_BINARY, sizeof(State) * CHAR_BIT);
     }
 
     bool supportAsterisk() const
@@ -242,69 +322,117 @@ public:
 
     void initializeState(Value& state)
     {
-        state.setVector(sizeof(typename A<T, TR>::State));
-        A<T, TR>::init(*static_cast<typename A<T, TR>::State* >(state.data()));
-        state.setNull(-1);
+        state.setSize(sizeof(State));
+        Agg::init(state.get<State>());
     }
 
-    void accumulate(Value& state, Value const& input)
+    virtual void accumulateIfNeeded(Value& state, ConstRLEPayload const* tile)
     {
-        T value = *reinterpret_cast<T*>(input.data());
-        A<T, TR>::aggregate(*static_cast< typename A<T, TR>::State* >(state.data()), value);
-    }
+        if (! isStateInitialized(state)) {
+            initializeState(state);
+            assert(isStateInitialized(state));
+        }
 
-    virtual void accumulatePayload(Value& state, ConstRLEPayload const* tile)
-    {
-        typename A<T, TR>::State& s = *static_cast< typename A<T, TR>::State* >(state.data());
-        for (size_t i = 0; i < tile->nSegments(); i++)
+        State& s = state.get<State>();
+
+        for (size_t i=0,n=tile->nSegments(); i < n; i++)
         {
             const RLEPayload::Segment& v = tile->getSegment(i);
             if (v._null)
                 continue;
             if (v._same) {
-                T value = getPayloadValue<T>(tile, v._valueIndex);
-                A<T, TR>::multAggregate(s, value, v.length());
+                Agg::multAggregate(s, getPayloadValue<T>(tile, v._valueIndex), v.length());
             } else {
                 const size_t end = v._valueIndex + v.length();
                 for (size_t j = v._valueIndex; j < end; j++) {
-                    T value = getPayloadValue<T>(tile, j);
-                    A<T, TR>::aggregate(s, value);
+                    Agg::aggregate(s, getPayloadValue<T>(tile, j));
                 }
             }
         }
     }
 
-    void merge(Value& dstState, Value const& srcState)
+    void finalResult(Value& dstValue, Value const& srcState)
     {
-        A<T, TR>::merge(*static_cast< typename A<T, TR>::State* >(dstState.data()), *static_cast< typename A<T, TR>::State* >(srcState.data()));
-    }
+        dstValue.setSize(sizeof(TR));
+        bool valid;
 
-    void finalResult(Value& result, Value const& state)
-    {
-        result.setVector(sizeof(TR));
-        if (!A<T, TR>::final(*static_cast< typename A<T, TR>::State* >(state.data()), state.isNull(), *static_cast< TR* >(result.data()))) {
-            result.setNull();
-        } else {
-            result.setNull(-1);
+        if (srcState.isNull())
+        {
+            valid = Agg::final(srcState.getMissingReason(),dstValue.get<TR>());
+        }
+        else
+        {
+            valid = Agg::final(srcState.get<State>(),dstValue.get<TR>());
+        }
+
+        if (!valid)
+        {
+            dstValue.setNull();
         }
     }
 };
 
+/**
+ * In this class, missingReason==1 means state is initialized but not ready to merge from.
+ * Also, inherited from Aggregate: missingReason==0 means state is not initialized.
+ */
 template<template <typename TS, typename TSR> class A, typename T, typename TR, bool asterisk = false>
 class BaseAggregateInitByFirst: public Aggregate
 {
+protected:
+    typedef          A<T,TR>        Agg;
+    typedef typename A<T,TR>::State State;
+
+protected:
+    void accumulate(Value& dstState, Value const& srcValue)
+    {
+        assert(isStateInitialized(dstState) );
+        assert( isAccumulatable(srcValue) );
+
+        if ( !isMergeable(dstState) )
+        {
+            dstState.setSize(sizeof(State));
+            Agg::init(dstState.get<State>(), srcValue.get<T>());
+        }
+        Agg::aggregate(dstState.get<State>(),srcValue.get<T>());
+    }
+
+    void merge(Value& dstState, Value const& srcState)
+    {
+        assert(isStateInitialized(dstState));
+        assert(isMergeable(srcState));
+
+        if ( !isMergeable(dstState) ) {
+            dstState = srcState;
+            return;
+        }
+        Agg::merge(dstState.get<State>(), srcState.get<State>());
+    }
+
+    virtual bool isMergeable(Value const& srcState) const
+    {
+        if (! isStateInitialized(srcState)) {
+            return false;
+        }
+        if (srcState.getMissingReason()==1) {
+            return false;
+        }
+        assert(!srcState.isNull());
+        return true;
+    }
+
 public:
     BaseAggregateInitByFirst(const std::string& name, Type const& aggregateType, Type const& resultType): Aggregate(name, aggregateType, resultType)
     {}
 
     AggregatePtr clone() const
     {
-        return AggregatePtr(new BaseAggregateInitByFirst(getName(), getAggregateType(), getResultType()));
+        return boost::make_shared<BaseAggregateInitByFirst>(getName(), getAggregateType(), getResultType());
     }
 
     AggregatePtr clone(Type const& aggregateType) const
     {
-        return AggregatePtr(new BaseAggregateInitByFirst(getName(), aggregateType, _resultType.typeId() == TID_VOID ? aggregateType : _resultType));
+        return boost::make_shared<BaseAggregateInitByFirst>(getName(), aggregateType, _resultType.typeId() == TID_VOID ? aggregateType : _resultType);
     }
 
     bool ignoreNulls() const
@@ -314,8 +442,7 @@ public:
 
     Type getStateType() const
     {
-        Type stateType(TID_BINARY, sizeof(typename A<T, TR>::State));
-        return stateType;
+        return Type(TID_BINARY, sizeof(State) * CHAR_BIT);
     }
 
     bool supportAsterisk() const
@@ -332,77 +459,65 @@ public:
         state.setNull(1);
     }
 
-    void accumulate(Value& state, Value const& input)
+    virtual void accumulateIfNeeded(Value& state, ConstRLEPayload const* tile)
     {
-        //ignoreNulls is true so null input is not allowed
-        if (state.isNull())
-        {
-            T value = *reinterpret_cast<T*>(input.data());
-            state.setVector(sizeof(typename A<T, TR>::State));
-            A<T, TR>::init(*static_cast<typename A<T, TR>::State* >(state.data()), value);
-            state.setNull(-1);
+        if (! isStateInitialized(state)) {
+            initializeState(state);
+            assert(isStateInitialized(state));
         }
-        A<T, TR>::aggregate(*static_cast< typename A<T, TR>::State* >(state.data()),
-                            *reinterpret_cast<T*>(input.data()));
-    }
 
-    virtual void accumulatePayload(Value& state, ConstRLEPayload const* tile)
-    {
         if (!tile->payloadSize()) {
             return;
         }
 
-        if (state.isNull())
+        if (! isMergeable(state))
         {
             for (size_t i = 0; i < tile->payloadCount(); i++) {
-                T value = getPayloadValue<T>(tile, i);
-                state.setVector(sizeof(typename A<T, TR>::State));
-                typename A<T, TR>::State& si = *static_cast< typename A<T, TR>::State* >(state.data());
-                A<T, TR>::init(si, value);
-                state.setNull(-1);
+                state.setSize(sizeof(State));
+                Agg::init(state.get<State>(), getPayloadValue<T>(tile, i));
                 break;
             }
         }
-        if (state.isNull()) {
+        if (!isMergeable(state)) {
             return;
         }
+        assert(! state.isNull());
 
-        typename A<T, TR>::State& s = *static_cast< typename A<T, TR>::State* >(state.data());
-        for (size_t i = 0; i < tile->nSegments(); i++)
+        State& s = state.get<State>();
+
+        for (size_t i=0,n=tile->nSegments(); i < n; i++)
         {
             const RLEPayload::Segment& v = tile->getSegment(i);
             if (v._null)
                 continue;
             if (v._same) {
-                A<T, TR>::multAggregate(s, getPayloadValue<T>(tile, v._valueIndex), v.length());
+                Agg::multAggregate(s, getPayloadValue<T>(tile, v._valueIndex), v.length());
             } else {
                 const size_t end = v._valueIndex + v.length();
                 for (size_t j = v._valueIndex; j < end; j++) {
-                    A<T, TR>::aggregate(s, getPayloadValue<T>(tile, j));
+                    Agg::aggregate(s, getPayloadValue<T>(tile, j));
                 }
             }
         }
     }
 
-    void merge(Value& dstState, Value const& srcState)
+    void finalResult(Value& dstValue, Value const& srcState)
     {
-        if(srcState.isNull()) {
-            return;
-        }
-        if(dstState.isNull()) {
-            dstState = srcState;
-            return;
-        }
-        A<T, TR>::merge(*static_cast< typename A<T, TR>::State* >(dstState.data()), *static_cast< typename A<T, TR>::State* >(srcState.data()));
-    }
+        dstValue.setSize(sizeof(TR));
+        bool valid;
 
-    void finalResult(Value& result, Value const& state)
-    {
-        result.setVector(sizeof(TR));
-        if (!A<T, TR>::final(*static_cast< typename A<T, TR>::State* >(state.data()), state.isNull(), *static_cast< TR* >(result.data()))) {
-            result.setNull();
-        } else {
-            result.setNull(-1);
+        if (srcState.isNull())
+        {
+            valid = Agg::final(srcState.getMissingReason(),dstValue.get<TR>());
+        }
+        else
+        {
+            valid = Agg::final(srcState.get<State>(),dstValue.get<TR>());
+        }
+
+        if (!valid)
+        {
+            dstValue.setNull();
         }
     }
 };
@@ -490,8 +605,8 @@ public:
     // N smart pointer copies in PhysicalVariableWindow.  *Sigh*, OK, OK.
     const std::vector<AggregatePtr>& getAggregates() const { return _aggregates; }
 
-    size_t size() const { return _aggregates.size(); }
-    bool empty() const { return _aggregates.empty(); }
+    size_t size()  const { return _aggregates.size(); }
+    bool   empty() const { return _aggregates.empty(); }
 
     void push_back(AttributeID id, AggregatePtr ptr)
     {
@@ -517,6 +632,47 @@ private:
     std::vector<AttributeID> _outputAttributeIds;
     std::vector<AggregatePtr> _aggregates;
 };
+
+#ifndef SCIDB_CLIENT
+/**
+ * A partial chunk merger which uses an aggregate function to form the complete chunk.
+ * It expects the partial chunks to contain aggreagte state value suitable for using with the Aggregate methods.
+ */
+class AggregateChunkMerger : public MultiStreamArray::PartialChunkMerger
+{
+protected:
+    AggregatePtr const _aggregate;
+private:
+    bool const _isEmptyable;
+    boost::shared_ptr<MemChunk> _mergedChunk;
+
+public:
+    /// Constructor
+    AggregateChunkMerger(AggregatePtr const& agg,
+                     bool isEmptyable)
+    : _aggregate(agg),
+      _isEmptyable(isEmptyable)
+    {
+        assert(_aggregate);
+    }
+
+    /// Destructor
+    ~AggregateChunkMerger() {}
+
+    /// Clear the internal state in preparation for the next chunk (position)
+    void clear();
+
+    /// @see MultiStreamArray::PartialChunkMerger::mergePartialChunk
+    virtual bool mergePartialChunk(InstanceID instanceId,
+                                   AttributeID attId,
+                                   boost::shared_ptr<MemChunk>& chunk,
+                                   const boost::shared_ptr<Query>& query);
+
+    /// @see MultiStreamArray::PartialChunkMerger::getMergedChunk
+    virtual boost::shared_ptr<MemChunk> getMergedChunk(AttributeID attId,
+                                                       const boost::shared_ptr<Query>& query);
+};
+#endif
 
 } //namespace scidb
 

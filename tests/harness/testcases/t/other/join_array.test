@@ -36,7 +36,7 @@ join(UB,data_array)
 join(Media,Media)
 join(Media_A,Media)
 join(Media_B,Media_C)
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(subarray(Media,1,1,2,2),two_dimension)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "join(subarray(Media,1,1,2,2),two_dimension)"
 join(Media,Media_D)
 join(Media_D,Media)
 join(Media,Media_E)

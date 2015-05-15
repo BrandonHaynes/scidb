@@ -10,23 +10,17 @@ store(redimension(A,A3),A3)
 
 --test
 
-echo ('iquery   -o lcsv+ -aq \'scan ( A )\'')
---shell --command " iquery   -o lcsv+ -aq 'scan ( A )' " --store
+--shell --store --command " iquery   -o lcsv+ -aq 'scan ( A )' "
 
-echo ('iquery   -o lsparse -aq \'scan ( A )\'')
---shell --command " iquery   -o lsparse -aq 'scan ( A )' " --store
+--shell --store --command " iquery   -o lsparse -aq 'scan ( A )' "
 
-echo ('iquery   -o lcsv+ -aq \'scan ( A2 )\'')
---shell --command " iquery   -o lcsv+ -aq 'scan ( A2 )' " --store
+--shell --store --command " iquery   -o lcsv+ -aq 'scan ( A2 )' "
 
-echo ('iquery   -o lsparse -aq \'scan ( A2 )\'')
---shell --command " iquery   -o lsparse -aq 'scan ( A2 )' " --store
+--shell --store --command " iquery   -o lsparse -aq 'scan ( A2 )' "
 
-echo ('iquery   -o lcsv+ -aq \'scan ( A3 )\'')
---shell --command " iquery   -o lcsv+ -aq 'scan ( A3 )' " --store
+--shell --store --command " iquery   -o lcsv+ -aq 'scan ( A3 )' "
 
-echo ('iquery   -o lsparse -aq \'scan ( A3 )\'')
---shell --command " iquery   -o lsparse -aq 'scan ( A3 )' " --store
+--shell --store --command " iquery   -o lsparse -aq 'scan ( A3 )' "
 
 
 --cleanup

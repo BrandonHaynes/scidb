@@ -55,7 +55,6 @@ class ConcatChunk : public DelegateChunk
 	virtual Coordinates const& getLastPosition(bool withOverlap) const;
     virtual void setInputChunk(ConstChunk const& inputChunk);
     virtual void setProxy();
-    virtual bool isSparse() const;
     ConcatChunk(ConcatArray const& array, ConcatArrayIterator const& arrayIterator, AttributeID attrID);
 
   private:
@@ -64,7 +63,6 @@ class ConcatChunk : public DelegateChunk
     Coordinates firstPosWithOverlap; 
     Coordinates lastPos; 
     Coordinates lastPosWithOverlap; 
-    bool        sparse;
     bool        direct;    
 };
 

@@ -1,0 +1,24 @@
+# Cancel query midway through writing to a temp array, and check that we
+# recover properly and that the write is not committed.
+
+--setup
+--start-query-logging
+--test
+
+create array abort_var_window1 <v:double> [I=0:20,1,0]
+create array abort_var_window2 <v:double NULL DEFAULT null> [I=0:20,1,0]
+--igdata "store(build(abort_var_window1, I),abort_var_window1)"
+--igdata "store(build(abort_var_window2,-I),abort_var_window2)"
+
+--shell --store --command "${TEST_UTILS_DIR}/killquery.sh -afl 2  2 'store(variable_window(abort_var_window1,I,2,2,max(v)),abort_var_window2)' 1> /tmp/${HPID}_1.stdout || echo FAILURE"
+# log the output
+--shell --command "cat /tmp/${HPID}_1.stdout"
+aggregate(filter(apply(join(abort_var_window1,abort_var_window2),attrSum,abort_var_window1.v + abort_var_window2.v), attrSum<>0),count(*))
+
+--cleanup
+remove(abort_var_window1)
+remove(abort_var_window2)
+--stop-query-logging
+# this should fail due to the above abort
+--shell --command "rm -f /tmp/${HPID}_1.stdout 2>/dev/null"
+

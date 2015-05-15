@@ -6,7 +6,6 @@ Query was executed successfully
 
 SCIDB QUERY : <sort(filter(list('operators'),library='scidb'),name)>
 name,library
-'adddim','scidb'
 'aggregate','scidb'
 'allversions','scidb'
 'analyze','scidb'
@@ -22,12 +21,12 @@ name,library
 'concat','scidb'
 'consume','scidb'
 'create_array','scidb'
+'create_array_using','scidb'
+'cross_between','scidb'
 'cross_join','scidb'
 'cumulate','scidb'
-'deldim','scidb'
 'dimensions','scidb'
 'diskinfo','scidb'
-'echo','scidb'
 'explain_logical','scidb'
 'explain_physical','scidb'
 'filter','scidb'
@@ -43,9 +42,8 @@ name,library
 'lookup','scidb'
 'materialize','scidb'
 'merge','scidb'
-'mstat','scidb'
 'normalize','scidb'
-'old_unpack','scidb'
+'old_sort','scidb'
 'project','scidb'
 'quantile','scidb'
 'rank','scidb'
@@ -53,11 +51,11 @@ name,library
 'reduce_distro','scidb'
 'regrid','scidb'
 'remove','scidb'
+'remove_versions','scidb'
 'rename','scidb'
 'repart','scidb'
 'reshape','scidb'
 'reverse','scidb'
-'sample','scidb'
 'save','scidb'
 'scan','scidb'
 'setopt','scidb'
@@ -80,8 +78,9 @@ name,library
 'window','scidb'
 'xgrid','scidb'
 
-SCIDB QUERY : <sort(filter(list('functions'),library='scidb'),name)>
+SCIDB QUERY : <sort(filter(list('functions'),library='scidb'),name, profile)>
 name,profile,deterministic,library
+'%','double %(double,double)',true,'scidb'
 '%','int16 %(int16,int16)',true,'scidb'
 '%','int32 %(int32,int32)',true,'scidb'
 '%','int64 %(int64,int64)',true,'scidb'
@@ -90,7 +89,6 @@ name,profile,deterministic,library
 '%','uint32 %(uint32,uint32)',true,'scidb'
 '%','uint64 %(uint64,uint64)',true,'scidb'
 '%','uint8 %(uint8,uint8)',true,'scidb'
-'%','double %(double,double)',true,'scidb'
 '*','double *(double,double)',true,'scidb'
 '*','float *(float,float)',true,'scidb'
 '*','int16 *(int16,int16)',true,'scidb'
@@ -101,20 +99,19 @@ name,profile,deterministic,library
 '*','uint32 *(uint32,uint32)',true,'scidb'
 '*','uint64 *(uint64,uint64)',true,'scidb'
 '*','uint8 *(uint8,uint8)',true,'scidb'
-'+','int8 +(int8,int8)',true,'scidb'
-'+','uint8 +(uint8,uint8)',true,'scidb'
-'+','uint64 +(uint64,uint64)',true,'scidb'
-'+','uint32 +(uint32,uint32)',true,'scidb'
-'+','uint16 +(uint16,uint16)',true,'scidb'
-'+','string +(string,string)',true,'scidb'
-'+','double +(double,double)',true,'scidb'
-'+','int32 +(int32,int32)',true,'scidb'
 '+','datetime +(datetime,int64)',true,'scidb'
-'+','int64 +(int64,int64)',true,'scidb'
+'+','double +(double,double)',true,'scidb'
 '+','float +(float,float)',true,'scidb'
 '+','int16 +(int16,int16)',true,'scidb'
+'+','int32 +(int32,int32)',true,'scidb'
+'+','int64 +(int64,int64)',true,'scidb'
+'+','int8 +(int8,int8)',true,'scidb'
+'+','string +(string,string)',true,'scidb'
+'+','uint16 +(uint16,uint16)',true,'scidb'
+'+','uint32 +(uint32,uint32)',true,'scidb'
+'+','uint64 +(uint64,uint64)',true,'scidb'
+'+','uint8 +(uint8,uint8)',true,'scidb'
 '-','datetime -(datetime)',true,'scidb'
-'-','int64 -(datetime,datetime)',true,'scidb'
 '-','datetime -(datetime,int64)',true,'scidb'
 '-','double -(double)',true,'scidb'
 '-','double -(double,double)',true,'scidb'
@@ -122,18 +119,19 @@ name,profile,deterministic,library
 '-','float -(float,float)',true,'scidb'
 '-','int16 -(int16)',true,'scidb'
 '-','int16 -(int16,int16)',true,'scidb'
-'-','int32 -(int32)',true,'scidb'
-'-','int32 -(int32,int32)',true,'scidb'
-'-','int64 -(int64)',true,'scidb'
-'-','int64 -(int64,int64)',true,'scidb'
-'-','int8 -(int8)',true,'scidb'
-'-','int8 -(int8,int8)',true,'scidb'
 '-','int16 -(uint16)',true,'scidb'
 '-','int16 -(uint16,uint16)',true,'scidb'
+'-','int32 -(int32)',true,'scidb'
+'-','int32 -(int32,int32)',true,'scidb'
 '-','int32 -(uint32)',true,'scidb'
 '-','int32 -(uint32,uint32)',true,'scidb'
+'-','int64 -(datetime,datetime)',true,'scidb'
+'-','int64 -(int64)',true,'scidb'
+'-','int64 -(int64,int64)',true,'scidb'
 '-','int64 -(uint64)',true,'scidb'
 '-','int64 -(uint64,uint64)',true,'scidb'
+'-','int8 -(int8)',true,'scidb'
+'-','int8 -(int8,int8)',true,'scidb'
 '-','int8 -(uint8)',true,'scidb'
 '-','int8 -(uint8,uint8)',true,'scidb'
 '/','double /(double,double)',true,'scidb'
@@ -191,36 +189,36 @@ name,profile,deterministic,library
 '<>','bool <>(uint32,uint32)',true,'scidb'
 '<>','bool <>(uint64,uint64)',true,'scidb'
 '<>','bool <>(uint8,uint8)',true,'scidb'
-'=','bool =(uint8,uint8)',true,'scidb'
-'=','bool =(uint64,uint64)',true,'scidb'
-'=','bool =(uint32,uint32)',true,'scidb'
-'=','bool =(uint16,uint16)',true,'scidb'
-'=','bool =(int64,int64)',true,'scidb'
-'=','bool =(string,string)',true,'scidb'
-'=','bool =(int8,int8)',true,'scidb'
-'=','bool =(double,double)',true,'scidb'
-'=','bool =(datetime,datetime)',true,'scidb'
-'=','bool =(int16,int16)',true,'scidb'
 '=','bool =(bool,bool)',true,'scidb'
 '=','bool =(char,char)',true,'scidb'
-'=','bool =(float,float)',true,'scidb'
-'=','bool =(int32,int32)',true,'scidb'
+'=','bool =(datetime,datetime)',true,'scidb'
 '=','bool =(datetimetz,datetimetz)',true,'scidb'
-'>','bool >(int32,int32)',true,'scidb'
-'>','bool >(uint64,uint64)',true,'scidb'
-'>','bool >(uint32,uint32)',true,'scidb'
-'>','bool >(uint16,uint16)',true,'scidb'
-'>','bool >(string,string)',true,'scidb'
-'>','bool >(int8,int8)',true,'scidb'
-'>','bool >(int64,int64)',true,'scidb'
-'>','bool >(uint8,uint8)',true,'scidb'
-'>','bool >(int16,int16)',true,'scidb'
-'>','bool >(float,float)',true,'scidb'
-'>','bool >(double,double)',true,'scidb'
-'>','bool >(datetimetz,datetimetz)',true,'scidb'
-'>','bool >(datetime,datetime)',true,'scidb'
-'>','bool >(char,char)',true,'scidb'
+'=','bool =(double,double)',true,'scidb'
+'=','bool =(float,float)',true,'scidb'
+'=','bool =(int16,int16)',true,'scidb'
+'=','bool =(int32,int32)',true,'scidb'
+'=','bool =(int64,int64)',true,'scidb'
+'=','bool =(int8,int8)',true,'scidb'
+'=','bool =(string,string)',true,'scidb'
+'=','bool =(uint16,uint16)',true,'scidb'
+'=','bool =(uint32,uint32)',true,'scidb'
+'=','bool =(uint64,uint64)',true,'scidb'
+'=','bool =(uint8,uint8)',true,'scidb'
 '>','bool >(bool,bool)',true,'scidb'
+'>','bool >(char,char)',true,'scidb'
+'>','bool >(datetime,datetime)',true,'scidb'
+'>','bool >(datetimetz,datetimetz)',true,'scidb'
+'>','bool >(double,double)',true,'scidb'
+'>','bool >(float,float)',true,'scidb'
+'>','bool >(int16,int16)',true,'scidb'
+'>','bool >(int32,int32)',true,'scidb'
+'>','bool >(int64,int64)',true,'scidb'
+'>','bool >(int8,int8)',true,'scidb'
+'>','bool >(string,string)',true,'scidb'
+'>','bool >(uint16,uint16)',true,'scidb'
+'>','bool >(uint32,uint32)',true,'scidb'
+'>','bool >(uint64,uint64)',true,'scidb'
+'>','bool >(uint8,uint8)',true,'scidb'
 '>=','bool >=(bool,bool)',true,'scidb'
 '>=','bool >=(char,char)',true,'scidb'
 '>=','bool >=(datetime,datetime)',true,'scidb'
@@ -252,8 +250,8 @@ name,profile,deterministic,library
 'cos','float cos(float)',true,'scidb'
 'day_of_week','uint8 day_of_week(datetime)',true,'scidb'
 'day_of_week','uint8 day_of_week(datetimetz)',true,'scidb'
-'exp','float exp(float)',true,'scidb'
 'exp','double exp(double)',true,'scidb'
+'exp','float exp(float)',true,'scidb'
 'first_index','int64 first_index(string)',true,'scidb'
 'first_index','int64 first_index(string,string)',true,'scidb'
 'floor','int64 floor(double)',true,'scidb'
@@ -263,10 +261,6 @@ name,profile,deterministic,library
 'high','int64 high(string,string)',true,'scidb'
 'hour_of_day','uint8 hour_of_day(datetime)',true,'scidb'
 'hour_of_day','uint8 hour_of_day(datetimetz)',true,'scidb'
-'hygecdf','double hygecdf(double,double,double,double)',true,'scidb'
-'hygecdf','double hygecdf(double,double,double,double,bool)',true,'scidb'
-'hygepmf','double hygepmf(double,double,double,double)',true,'scidb'
-'hygequant','double hygequant(double,double,double,double,bool)',true,'scidb'
 'iif','<any> iif(bool, <any>, <any>)',true,'scidb'
 'instanceid','int64 instanceid()',true,'scidb'
 'is_nan','bool is_nan(double)',true,'scidb'
@@ -353,6 +347,94 @@ SCIDB QUERY : <select name,schema from list('arrays')>
 SCIDB QUERY : <list('error_test')>
 [An error expected at this place for the query "list('error_test')". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LIST_ERROR1. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LIST_ERROR1.]
 
+SCIDB QUERY : <store(list('chunk map'),chunk_map_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <attributes(chunk_map_array)>
+name,type_id,nullable
+'svrsn','uint32',false
+'instn','uint32',false
+'dguid','uint64',false
+'dhdrp','uint64',false
+'doffs','uint64',false
+'uaid','uint64',false
+'arrid','uint64',false
+'attid','uint64',false
+'coord','string',false
+'comp','int8',false
+'flags','uint8',false
+'nelem','uint32',false
+'csize','uint64',false
+'usize','uint64',false
+'asize','uint64',false
+'addrs','uint64',false
+'clnof','uint64',false
+'clons','string',false
+'next','uint64',false
+'prev','uint64',false
+'data','uint64',false
+'accnt','int32',false
+'nwrit','int32',false
+'tstmp','uint64',false
+'raw','bool',false
+'waitn','bool',false
+'lpos','string',false
+'fposo','string',false
+'lposo','string',false
+'strge','uint64',false
+
+SCIDB QUERY : <store(list('chunk descriptors'),chunk_desc_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <attributes(chunk_desc_array)>
+name,type_id,nullable
+'svrsn','uint32',false
+'insn','uint32',false
+'dguid','uint64',false
+'dhdrp','uint64',false
+'doffs','uint64',false
+'arrid','uint64',false
+'attid','uint64',false
+'coord','string',false
+'comp','int8',false
+'flags','uint8',false
+'nelem','uint32',false
+'csize','uint64',false
+'usize','uint64',false
+'asize','uint64',false
+'free','bool',false
+
+SCIDB QUERY : <store(list('datastores'),ds_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <attributes(ds_array)>
+name,type_id,nullable
+'uaid','uint64',false
+'file_bytes','uint64',false
+'file_blocks_512','uint64',false
+'log_resv_bytes','uint64',false
+'log_free_bytes','uint64',false
+
+SCIDB QUERY : <store(list('macros'),macro_array)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <attributes(macro_array)>
+name,type_id,nullable
+'name','string',false
+'type','string',false
+
 SCIDB QUERY : <remove(query_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(chunk_map_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(chunk_desc_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(ds_array)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(macro_array)>
 Query was executed successfully
 

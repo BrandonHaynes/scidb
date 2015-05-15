@@ -64,7 +64,12 @@ SCIDB QUERY : <aggregate(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),cou
 {0} 16
 
 SCIDB QUERY : <join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),m5x5_sparse)>
-[An error expected at this place for the query "join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),m5x5_sparse)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2.]
+{x,y} val,z,val
+{0,0} 0,0,0
+{0,1} -1.14286,0,-1.14286
+{0,2} -1.14286,0,-2.28571
+{0,3} -2.28571,0,-3.42857
+{0,4} -2.28571,0,-4.57143
 
 SCIDB QUERY : <join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0]))>
 {x,y} val,z,val

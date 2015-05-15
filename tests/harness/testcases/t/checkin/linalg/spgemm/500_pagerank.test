@@ -9,6 +9,7 @@ load_library('linear_algebra')
 
 # csv to .scidb
 #--shell --command "csv2scidb < ${TEST_DATA_DIR}/graph_triplets6_9.csv > /tmp/graph_triplets6_9.scidb.txt"
+# Note: load() supports direct loading of CSV in 14.12 and later.
 
 # load
 --justrun "remove(GRAPH_TRIPLETS_6_9)"
@@ -30,12 +31,16 @@ store(project(apply(redimension(GRAPH_TRIPLETS_6_9,TRANSPOSE_GRAPH_WEIGHTS_6_9),
 store(substitute(project(apply(cross_join(TRANSPOSE_GRAPH_EDGES as E, aggregate(TRANSPOSE_GRAPH_EDGES, sum(e), v0) as SUM, E.v0, SUM.v0), prob, float(float(E.e)/SUM.e_sum)), prob), build(<v:float>[dc=0:0,1,0],NaN)), TRANSITION_PROBABILITY_COLS)
 --stop-igdata
 --test
+
 # now the test: run the pagerank algorithm, outputting to RANK_VEC
 
 --justrun "remove(RANK_VEC)"
---shell --command "pagerank_example.sh TRANSITION_PROBABILITY_COLS RANK_VEC"
+--shell --command "pagerank_example.sh TRANSITION_PROBABILITY_COLS RANK_VEC rightReplicate=true"
+--echo "pagerank, as scanned by the .test script"
+scan(RANK_VEC)
 
-# show the raw pagerank vector we got back
+--justrun "remove(RANK_VEC)"
+--shell --command "pagerank_example.sh TRANSITION_PROBABILITY_COLS RANK_VEC rightReplicate=false"
 --echo "pagerank, as scanned by the .test script"
 scan(RANK_VEC)
 

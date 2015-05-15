@@ -1,0 +1,99 @@
+--setup
+--start-query-logging
+
+load_library('linear_algebra')
+load_library('dense_linear_algebra')
+
+# NOTE: NNcNN notation means size Rows,Cols ; chunkSize Rows,Cols
+
+create array narrowA<a: double >   [r=0: 1* 100*1000-1,10000,0, c=0:100-1,  25,0]
+create array narrowB<a: double >    [r=0: 1*1000*1000-1,10000,0, c=0:100-1,  25,0]
+create array narrowC<a: double >      [r=0:10*1000*1000-1,10000,0, c=0:100-1,  25,0]
+create array narrowD<a: double >       [r=0:10*1000*1000-1,10000,0, c=0:100-1, 100,0]
+
+# above with square chunksize suitable for gemm
+create array narrowA_SC<a: double >  [r=0: 1* 100*1000-1,1000, 0, c=0:100-1,1000,0]
+create array narrowB_SC<a: double >   [r=0: 1*1000*1000-1,1000, 0, c=0:100-1,1000,0]
+create array narrowC_SC<a: double >     [r=0:10*1000*1000-1,1000, 0, c=0:100-1,1000,0]
+create array narrowD_SC<a: double >      [r=0:10*1000*1000-1, 250, 0, c=0:100-1, 250,0]
+
+# and the transpose of the first four, to generate transposed matrices for spgemm
+# note we re-build() rather than transpose, because tranpose is *abysmally* slow
+create array wideA<a: double >      [r=0:100-1,  25,0, c=0: 1* 100*1000-1,10000,0]
+create array wideB<a: double >       [r=0:100-1,  25,0, c=0: 1*1000*1000-1,10000,0]
+create array wideC<a: double >        [r=0:100-1,  25,0, c=0:10*1000*1000-1,10000,0]
+create array wideD<a: double >         [r=0:100-1, 100,0, c=0:10*1000*1000-1,10000,0]
+
+# NOTE that for GEMM we don't need a transposed matrix, because gemm can transpose its own input
+# as part of its algorithm, for very low cost
+
+#
+# build them
+#
+
+--start-igdata
+
+# 100K long case
+store(build(narrowA, 1), narrowA)
+store(build(wideA,    1), wideA)
+store(build(narrowA_SC, 1), narrowA_SC)
+
+# 1M long case
+store(build(narrowB, 1), narrowB)
+store(build(wideB,    1), wideB)
+store(build(narrowB_SC, 1), narrowB_SC)
+
+# 10M long case
+store(build(narrowC, 1), narrowC)
+store(build(wideC,   1), wideC)
+store(build(narrowC_SC, 1), narrowC_SC)
+
+# 10M case with 4-way parallelism
+# [but it takes too long to set up this test in addition to the ones above
+#store(build(narrowD, 1), narrowD)
+#store(build(wideD,   1), wideD)
+# and here, narrowD_SC takes 10 minutes just to build, while narrowC_SC takes only 2
+# so this is not worth persuing at the 250 chunksize, either
+#store(build(narrowD_SC, 1), narrowD_SC)
+
+--stop-igdata
+
+
+load_library('dense_linear_algebra')
+
+--test
+
+# 100K long case
+spgemm(wideA, narrowA)
+gemm(narrowA_SC, narrowA_SC, build(<a:double>[r=0:100-1,1000,0, c=0:100-1,1000,0], 0), 'TRANSA=1')
+
+# 1M long case
+spgemm(wideB, narrowB)
+gemm(narrowB_SC, narrowB_SC, build(<a:double>[r=0:100-1,1000,0, c=0:100-1,1000,0], 0), 'TRANSA=1')
+
+# 10M long case
+spgemm(wideC, narrowC)
+gemm(narrowC_SC, narrowC_SC, build(<a:double>[r=0:100-1,1000,0, c=0:100-1,1000,0], 0), 'TRANSA=1')
+
+# 10M long case with 4-way parallelism
+#spgemm(wideD, narrowD)
+#gemm(narrowD_SC, narrowD_SC, build(<a:double>[r=0:100-1,250,0, c=0:100-1,250,0], 0), 'TRANSA=1')
+
+
+--cleanup
+
+remove(narrowA)
+remove(narrowB)
+remove(narrowC)
+remove(narrowD)
+
+remove(narrowA_SC)
+remove(narrowB_SC)
+remove(narrowC_SC)
+remove(narrowD_SC)
+
+remove(wideA)
+remove(wideB)
+remove(wideC)
+remove(wideD)
+

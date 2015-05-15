@@ -27,10 +27,10 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "system/SystemCatalog.h"
-#include "system/Exceptions.h"
-#include "array/Metadata.h"
+#include <query/Operator.h>
+#include <system/SystemCatalog.h>
+#include <system/Exceptions.h>
+#include <array/Metadata.h>
 
 using namespace std;
 
@@ -106,16 +106,32 @@ public:
             Attributes const& rightAttributes = schemas[j].getAttributes();
             Dimensions const& rightDimensions = schemas[j].getDimensions();
 
-            if (nDims != rightDimensions.size())
-                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT);
+            if (nDims != rightDimensions.size()) {
+                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_DIMENSION_COUNT_MISMATCH)
+                    << "merge" << schemas[0] << schemas[j];
+            }
+
+            // Report all startIndex problems at once.
+            ostringstream ss;
+            int mismatches = 0;
+            for (size_t i = 0, n = leftDimensions.size(); i < n; i++)
+            {
+                if(leftDimensions[i].getStartMin() != rightDimensions[i].getStartMin())
+                {
+                    if (mismatches++) {
+                        ss << ", ";
+                    }
+                    ss << '[' << leftDimensions[i] << "] != [" << rightDimensions[i] << ']';
+                }
+            }
+            if (mismatches)
+            {
+                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_START_INDEX_MISMATCH) << ss.str();
+            }
+
 
             for (size_t i = 0; i < nDims; i++) {
-                if (   leftDimensions[i].getStart() != rightDimensions[i].getStart()
-                    || leftDimensions[i].getChunkInterval() != rightDimensions[i].getChunkInterval()
-                    || leftDimensions[i].getChunkOverlap() != rightDimensions[i].getChunkOverlap())
-                {
-                    throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT);
-                }
+                assert(leftDimensions[i].getStartMin() == rightDimensions[i].getStartMin());
 
                 DimensionDesc& dim = newDims[i];
                 dim = DimensionDesc(dim.getBaseName(),
@@ -127,12 +143,17 @@ public:
                                     dim.getChunkInterval(), 
                                     dim.getChunkOverlap());
             }
+
             if (leftAttributes.size() != rightAttributes.size()
                     && (leftAttributes.size() != rightAttributes.size()+1
                         || !leftAttributes[leftAttributes.size()-1].isEmptyIndicator())
                     && (leftAttributes.size()+1 != rightAttributes.size()
                         || !rightAttributes[rightAttributes.size()-1].isEmptyIndicator()))
-                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT);
+            {
+                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ATTR_COUNT_MISMATCH)
+                    << schemas[0] << schemas[j];
+            }
+
             size_t nAttrs = min(leftAttributes.size(), rightAttributes.size());
             if (rightAttributes.size() > newAttributes->size()) { 
                 newAttributes = &rightAttributes;
@@ -141,7 +162,11 @@ public:
             {
                 if (leftAttributes[i].getType() != rightAttributes[i].getType()
                     || leftAttributes[i].getFlags() != rightAttributes[i].getFlags())
-                    throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT);
+                {
+                    throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ATTR_TYPE_MISMATCH)
+                        << leftAttributes[i].getName() << rightAttributes[i].getName()
+                        << schemas[0] << schemas[j];
+                }
             }
         }
         return ArrayDesc(schemas[0].getName(), *newAttributes, newDims);

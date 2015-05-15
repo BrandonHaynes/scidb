@@ -99,7 +99,9 @@ public:
         std::vector<boost::shared_ptr<OperatorParamPlaceholder> > res;
         res.push_back(END_OF_VARIES_PARAMS());
         switch (_parameters.size()) {
+        // either one or two extra parameters, both of which must be string
         case 0:
+        case 1:
             res.push_back(PARAM_CONSTANT("string"));
             break;
         default:
@@ -125,7 +127,7 @@ public:
             throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_MULTIPLY_ERROR4);
 
         if (schemas[0].getDimensions()[1].getLength() != schemas[1].getDimensions()[0].getLength()
-                || schemas[0].getDimensions()[1].getStart() != schemas[1].getDimensions()[0].getStart())
+                || schemas[0].getDimensions()[1].getStartMin() != schemas[1].getDimensions()[0].getStartMin())
             throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_MULTIPLY_ERROR5);
 
         if (schemas[0].getDimensions()[1].getChunkInterval() != schemas[1].getDimensions()[0].getChunkInterval())
@@ -145,16 +147,20 @@ public:
 
         //
         // get the optional 3rd argument: the semiring string: "min.+" or "max.+". They only apply to float and double
+        //  or the optional 3rd/4th argument: the rightReplicate flag
         //
         string namedOptionStr;
-        switch (_parameters.size()) {
+        switch (_parameters.size()) { // number of options remaining to be processed?
         case 0:
-            break;
+            break; // done
         case 1:
+        case 2:
             typedef boost::shared_ptr<OperatorParamLogicalExpression> ParamType_t ;
             namedOptionStr = evaluate(reinterpret_cast<ParamType_t&>(_parameters[0])->getExpression(), query, TID_STRING).getString();
             if (namedOptionStr != "min.+" &&
                 namedOptionStr != "max.+" &&
+                namedOptionStr != "rightReplicate=true" &&
+                namedOptionStr != "rightReplicate=false" &&
                 namedOptionStr != "count-mults") {
                 throw(SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_OPERATION_FAILED)
                       << "LogicalSpgemm::inferSchema(): unrecognized option '" << namedOptionStr << "'");
@@ -202,4 +208,4 @@ public:
 
 REGISTER_LOGICAL_OPERATOR_FACTORY(LogicalSpgemm, "spgemm");
 
-} // emd namespace scidb
+} // end namespace scidb

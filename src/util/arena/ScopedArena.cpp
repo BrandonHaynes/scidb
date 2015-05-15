@@ -22,11 +22,10 @@
 
 /****************************************************************************/
 
-#include <util/arena/LockingArena.h>                     // For LockingArena
 #include <util/arena/ScopedArena.h>                      // For ScopedArena
 #include <boost/foreach.hpp>                             // For BOOST_FOREACH
-#include "ArenaHeader.h"                                 // For ArenaHeader
 #include "ArenaDetails.h"                                // For implementation
+#include "ArenaHeader.h"                                 // For ArenaHeader
 
 /****************************************************************************/
 namespace scidb { namespace arena {
@@ -34,8 +33,8 @@ namespace scidb { namespace arena {
 
 /**
  *  Class Page extends the CustomScalar allocation header to save a pointer to
- *  the allocating Arena, and supplies as the custom finalizer a function that
- *  returns the underlying memory for the page to this Arena.
+ *  the allocating arena, and supplies as the custom finalizer a function that
+ *  returns the underlying memory for the page to this %arena.
  */
 class Page : Header::CS
 {
@@ -55,7 +54,7 @@ class Page : Header::CS
 };
 
 /**
- *  Return the page in which this header lives to the Arena that allocated it.
+ *  Return the page in which this header sits to the %arena that allocated it.
  */
 void Page::free(Arena*& arena)
 {
@@ -67,10 +66,10 @@ void Page::free(Arena*& arena)
 /****************************************************************************/
 
 /**
- *  Construct a resetting Arena that allocates storage o.pagesize() bytes at a
- *  time from the Arena o.parent().  Actually, we increment the page size just
+ *  Construct a resetting arena that allocates storage o.pagesize() bytes at a
+ *  time from the %arena o.parent(). Actually, we increment the page size just
  *  a bit to make room for a header - class Page - in which we put a finalizer
- *  and pointer back to this Arena; thus we're reusing the finalizer machinery
+ *  and pointer back to the %arena; thus we're reusing the finalizer machinery
  *  to arrange for our pages to, in a sense, 'destroy themselves'.
  */
     ScopedArena::ScopedArena(const Options& o)
@@ -83,7 +82,7 @@ void Page::free(Arena*& arena)
 }
 
 /**
- *  Reset the Arena, so returning any remaining pages to our parent Arena.
+ *  Reset the %arena, thus returning any remaining pages to our parent.
  */
     ScopedArena::~ScopedArena()
 {
@@ -91,12 +90,11 @@ void Page::free(Arena*& arena)
 }
 
 /**
- *  Overrides Arena::supports() to indicate that we also support resetting and
- *  finalizing.
+ *  Return a bitfield indicating the set of features this %arena supports.
  */
-bool ScopedArena::supports(features_t f) const
+features_t ScopedArena::features() const
 {
-    return Arena::supports(f & ~(finalizing|resetting)); // Skip LimitedArena
+    return finalizing | resetting;                       // Supported features
 }
 
 /**
@@ -106,7 +104,7 @@ void ScopedArena::insert(std::ostream& o) const
 {
     LimitedArena::insert(o);                             // First insert base
 
-    o <<",pagesize=" << _size  << ','                    // Emit page size
+    o <<",pagesize=" << bytes_t(_size)  << ','           // Emit page size
       << "pending="  << _list.size();                    // Emit list size
 }
 
@@ -132,7 +130,7 @@ void* ScopedArena::allocate(size_t n)
         this->overflowed();                              // ...signal overflow
     }
 
-    return this->malloc(n);                              // Align and allocate
+    return this->doMalloc(n);                            // Align and allocate
 }
 
 /**
@@ -145,7 +143,7 @@ void* ScopedArena::allocate(size_t n,finalizer_t f)
 
     if (f != 0)                                          // Needs finalizing?
     {
-        _list.push_front(p);                             // ...push onto list
+        _list.push_back(p);                              // ...add to the list
     }
 
     return p;                                            // The new allocation
@@ -161,7 +159,7 @@ void* ScopedArena::allocate(size_t n,finalizer_t f,count_t c)
 
     if (f!=0 && c!=0)                                    // Needs finalizing?
     {
-        _list.push_front(p);                             // ...push onto list
+        _list.push_back(p);                              // ...add to the list
     }
 
     return p;                                            // The new allocation
@@ -180,17 +178,19 @@ void ScopedArena::recycle(void* payload)
 
 /**
  *  Allocate 'size' bytes of raw memory from the current page, or set up a new
- *  page by allocating from our parent Arena if there is insufficient space in
+ *  page by allocating from our parent %aarena if there is not enough space in
  *  the current page to satisfy the request.
  *
  *  We write a custom finalizing header (class Page) at the front of each page
- *  and push this onto the front of the finalizer list where reset() can later
+ *  and push this onto the back of the finalizer list, where reset() can later
  *  find it. This neatly ensures that the pages are deallocated only after the
  *  objects in them have been finalized.
  */
 void* ScopedArena::doMalloc(size_t size)
 {
-    assert(size!=0 && isAligned(size));                  // Is already aligned
+    assert(size != 0);                                   // Validate arguments
+
+    size = align(size);                                  // Round up the size
 
     if (_next + size < _next)                            // Pointer overflows?
     {
@@ -203,7 +203,7 @@ void* ScopedArena::doMalloc(size_t size)
         void*  m = LimitedArena::doMalloc(n);            // ...allocate memory
         Page*  p = (new(m) Page(n,_parent.get()));       // ...init the header
 
-        _list.push_front(p->getPayload());               // ...add to the list
+        _list.push_back(p->getPayload());                // ...add to the list
 
         _next = static_cast<byte_t*>(m) + sizeof(Page);  // ...aim past header
         _last = static_cast<byte_t*>(m) + n;             // ...end of the page
@@ -213,32 +213,32 @@ void* ScopedArena::doMalloc(size_t size)
 
     byte_t* p = _next;                                   // Copy next pointer
     _next    += size;                                    // Then step over it
-    return  p;                                           // Our new allocation
+
+    assert(aligned(p));                                  // Check it's aligned
+    return p;                                            // The new allocation
 }
 
 /**
  *  Ignore a request to free the given allocation: the memory will instead be
  *  recovered when reset() is next called.
  */
-size_t ScopedArena::doFree(void*,size_t)
-{
-    return 0;                                            // Wait until reset()
-}
+void ScopedArena::doFree(void*,size_t)
+{}
 
 /**
- *  Reset the Arena,  finalizing allocations that have not yet been explicitly
+ *  Reset the %arena, finalizing allocations that have not yet been explicitly
  *  destroyed, and returning the underlying pages in which the allocations sit
- *  to our parent Arena.
+ *  to our parent %arena.
  *
- *  We iterate forward over the finalizer list, firing each finalizer in turn;
+ *  We iterate backward over the finalizer list firing each finalizer in turn;
  *  this has the effect of destroying both objects and the pages in which they
  *  sit in the opposite order to that in which they were allocated.
  */
 void ScopedArena::reset()
 {
-    BOOST_FOREACH (void* p,_list)                        // For each payload
+    BOOST_REVERSE_FOREACH(void* p,_list)                 // For each payload
     {
-        Header::retrieve(p).finalize();                  // ...finalize it
+        Header::retrieve(p).finalize();                  // ...finalize block
     }
 
     _list.clear();                                       // Discard finalizers
@@ -257,33 +257,24 @@ bool ScopedArena::consistent() const
 {
     assert(LimitedArena::consistent());                  // Check base is good
 
-    assert(isAligned(_size));                            // Validate page size
-    assert(isAligned(sizeof(Page)));                     // And header size
+    assert(aligned(_size));                              // Validate page size
+    assert(aligned(sizeof(Page)));                       // And header size
     assert(_list.size() <= _allocations);                // Check page list
     assert(_next<=_last && _last<=_next+_size);          // Check page extent
-    assert(!_next  == !_last);                           // Both, or neither
+    assert(iff(_next==0,_last==0));                      // Both, or neither
 
     return true;                                         // Appears to be good
 }
 
 /**
- *  Construct and return a ScopedArena that constrains the Arena o.parent() to
+ *  Construct and return a ScopedArena that constrains the arena o.parent() to
  *  allocating at most o.limit() bytes of memory before it throws an Exhausted
  *  exception, that allocates memory in pages of o.pagesize() bytes at a time,
  *  and that defers the recycling of memory until reset() is eventually called.
  */
 ArenaPtr newScopedArena(const Options& o)
 {
-    using boost::make_shared;                            // For make_shared()
-
-    if (o.locking())                                     // Needs locking too?
-    {
-        return make_shared< Locking<ScopedArena> >(o);   // ...locking arena
-    }
-    else                                                 // No locking needed
-    {
-        return make_shared<ScopedArena>(o);              // ...vanilla arena
-    }
+    return boost::make_shared<ScopedArena>(o);           // Allocate new arena
 }
 
 /****************************************************************************/

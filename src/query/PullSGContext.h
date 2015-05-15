@@ -35,6 +35,7 @@
 #include <string>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/unordered_set.hpp>
 
 #include <array/Array.h>
 #include <array/MemChunk.h>
@@ -74,13 +75,31 @@ private:
         InstanceState() : _requestedNum(0), _lastFetchId(0) {}
     };
 
+    struct AttributeState
+    {
+        // Total size of cached chunks (i.e # of chunks) per attribute
+        size_t _size;
+        // This value reflects the number of shallow chunks in the cache.
+        // Shallow chunks either share the payload with some other chunks or have no payload at all.
+        size_t _shallowSize;
+        // NO more data available for attribute
+        bool   _eof;
+        AttributeState() : _size(0), _shallowSize(0), _eof(0) {}
+    };
+
     // This is the prefetch chunk cache. Each remote request tries to drain iterator until the cache is full
     // and then scatters the chunks eligible for delivery.
     std::vector< std::vector<InstanceState> >  _instanceStates;
     std::vector<boost::shared_ptr<ConstArrayIterator> >  _attributeIterators;
-    std::vector<size_t> _instanceStatesSizes;
-    std::vector<size_t> _eofs;
-    size_t _instanceStatesMaxSize;
+    std::vector<AttributeState> _attributeStates;
+    size_t _perAttributeMaxSize;
+    /// A set of attributes for which the chunks are temporarily unavailable
+    /// Generally, SinglePassArray iterators can indicate such a condition
+    /// because their attribute chunks have to be consumed "horizontally".
+    boost::unordered_set<size_t> _unavailableAttributes;
+
+    /// true if a data integrity issue has been found
+    bool _hasDataIntegrityIssue;
 
 public:
 
@@ -95,7 +114,15 @@ public:
      * @param shift
      * @param instanceIdMask
      * @param psData a pointer to the data that is specific to the particular partitioning schema
-     * @param cacheSize the maximum number of input array chunks to be cached
+     * @param cacheSizePerAttribute the maximum number of input array chunks to be cached per attribute;
+     *        CONFIG_SG_SEND_QUEUE_SIZE by default
+     * @note
+     * Right now all attributes are serialized via Query::_operatorQueue.
+     * Performing the SG one attribute at a time should be optimal because of
+     * the maximum utilization of the prefetch chunk cache (controlled by cacheSizePerAttribute).
+     * Multiple attributes can be SGed in parallel trading-off the cache size
+     * (if the total cache size has to remain constant).
+     * However, by default, cacheSizePerAttribute will be set to  the same value for all attributes.
      */
     PullSGContext(const boost::shared_ptr<Array>& source,
                   const boost::shared_ptr<PullSGArray>& result,
@@ -105,7 +132,7 @@ public:
                   const size_t shift,
                   const InstanceID instanceIdMask,
                   const boost::shared_ptr<PartitioningSchemaData>& psData,
-                  size_t cacheSize=64);
+                  size_t cacheSizePerAttribute=0);
 
     virtual ~PullSGContext() {}
 
@@ -172,7 +199,11 @@ private:
                  const AttributeID attributeId,
                  const InstanceID destSGInstance,
                  const ConstChunk& chunk,
-                 const Coordinates& chunkPosition);
+                 const Coordinates& chunkPosition,
+                 boost::shared_ptr<CompressedBuffer>& buffer);
+    void verifyPositions(ConstChunk const& chunk,
+                         boost::shared_ptr<ConstRLEEmptyBitmap>& emptyBitmap);
+
     /**
      * Extract a chunk and/or position message from the chunk cache
      */
@@ -205,6 +236,25 @@ private:
     void
     insertEOFChunks(const QueryID queryId,
                     const AttributeID attributeId);
+    /**
+     * Advance an iterator to the next chunk
+     * @return false if the next chunk is not yet available; true otherwise
+     */
+    bool
+    advanceInputIterator(const AttributeID attrId,
+                         boost::shared_ptr<ConstArrayIterator>& inputArrIter);
+
+    /**
+     * Helper method that that attempts to find chunks eligible for delivery
+     * only for a given attribute
+     */
+    void
+    getNextChunksInternal(const boost::shared_ptr<Query>& query,
+                          const InstanceID pullingInstance,
+                          const AttributeID attrId,
+                          const bool positionOnlyOK,
+                          ChunksWithDestinations& chunksToSend);
+
 };
 
 } // namespace

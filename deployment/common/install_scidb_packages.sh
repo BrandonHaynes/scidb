@@ -33,6 +33,12 @@ echo "Install SciDB packages: ${PACKAGE_FILE_NAME_LIST}"
 dpkg -i ${PACKAGE_FILE_NAME_LIST}
 }
 
+function ubuntu1404
+{
+echo "Install SciDB packages: ${PACKAGE_FILE_NAME_LIST}"
+dpkg -i ${PACKAGE_FILE_NAME_LIST}
+}
+
 function centos6
 {
 echo "Install SciDB packages: ${PACKAGE_FILE_NAME_LIST}"
@@ -52,6 +58,10 @@ fi
 
 if [ "${OS}" = "Ubuntu 12.04" ]; then
     ubuntu1204
+fi
+
+if [ "${OS}" = "Ubuntu 14.04" ]; then
+    ubuntu1404
 fi
 
 rm -rf ${PACKAGE_FILE_NAME_LIST}

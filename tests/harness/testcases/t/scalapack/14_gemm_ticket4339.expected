@@ -1,0 +1,16 @@
+SCIDB QUERY : <create array smSquare<a: double>     [r=0:1000-1,1000,0, c=0:1000-1,      1000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <create array tooLarge<a: double >    [r=0:1000-1,1000,0, c=0:2500*1000-1,1000,0]>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <load_library('dense_linear_algebra')>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <gemm(build(smSquare,0), build(tooLarge,0), build(tooLarge,0))>
+SCIDB QUERY : <remove(smSquare)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(tooLarge)>
+Query was executed successfully
+

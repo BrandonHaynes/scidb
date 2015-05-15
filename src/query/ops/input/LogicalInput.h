@@ -37,7 +37,7 @@ namespace scidb
  * @brief The operator: input().
  *
  * @par Synopsis:
- *   input( schemaArray | schema, filename, instance=-2, format="", maxErrors=0, shadowArray="" )
+ *   input( schemaArray | schema, filename, instance=-2, format="", maxErrors=0, shadowArray="", isStrict=false )
  *
  * @par Summary:
  *   Produces a result array and loads data from a given file, and optionally stores to shadowArray.
@@ -49,6 +49,7 @@ namespace scidb
  *   - format: ??
  *   - maxErrors: ??
  *   - shadowArray: if provided, the result array will be written to it.
+ *   - isStrict if true, enables the data integrity checks such as for data collisions and out-of-order input chunks, defualt=false.
  *
  * @par Output array:
  *   n/a
@@ -70,6 +71,7 @@ public:
     std::vector<boost::shared_ptr<OperatorParamPlaceholder> > nextVaryParamPlaceholder(const std::vector< ArrayDesc> &schemas);
     ArrayDesc inferSchema(std::vector< ArrayDesc> inputSchemas, boost::shared_ptr< Query> query);
     void inferArrayAccess(boost::shared_ptr<Query>& query);
+    static const char* OP_INPUT_NAME;
 };
 
 } //namespace

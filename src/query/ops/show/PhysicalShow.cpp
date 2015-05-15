@@ -81,7 +81,7 @@ public:
 
             boost::shared_ptr<QueryProcessor> queryProcessor = QueryProcessor::create();
             boost::shared_ptr<Query> innerQuery = Query::createFakeQuery(
-                             query->mapLogicalToPhysical(query->getCoordinatorID()),
+                             query->getPhysicalCoordinatorID(),
                              query->mapLogicalToPhysical(query->getInstanceID()),
                              query->getCoordinatorLiveness());
             boost::function<void()> func = boost::bind(&Query::destroyFakeQuery, innerQuery.get());

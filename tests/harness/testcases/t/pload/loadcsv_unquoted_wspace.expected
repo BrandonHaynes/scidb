@@ -1,0 +1,16 @@
+Leading and trailing spaces...
+{i} one,two,three
+{0} 'one',' two ',' three'
+
+Leading and trailing tabs...
+{i} one,two,three
+{0} 'doh','	ray	  ','	me	'
+
+DateTime attributes...
+{i} t0,t1,t2
+{0} '1989-11-09 12:34:56','1999-12-31 23:59:59','2525-01-01 00:00:01'
+
+Query was executed successfully
+
+Query was executed successfully
+

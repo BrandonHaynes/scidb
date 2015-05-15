@@ -195,7 +195,7 @@ SCIDB QUERY : <rename(Farquar,winners)>
 
 SCIDB QUERY : <show(winners)>
 {i} schema
-{0} 'winners<event:string,person:string,year:int64,time:double,country:string,country_id:int64> [i=0:*,144,0]'
+{0} 'winners<event:string,person:string,year:int64,time:double,country:string,country_id:int64> [i=0:*,1000000,0]'
 
 SCIDB QUERY : <scan(winners)>
 {i} event,person,year,time,country,country_id

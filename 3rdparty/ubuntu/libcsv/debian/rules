@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+# export DH_VERBOSE=1
+
+export prefix=/opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/libcsv
+
+%:
+	dh $@ 
+
+override_dh_auto_configure:
+	./configure --prefix=${prefix} --includedir=${prefix}/include --mandir=${prefix}/share/man --infodir=${prefix}/share/info --sysconfdir=${prefix}/etc --localstatedir=${prefix}/var --libdir=${prefix}/lib --libexecdir=${prefix}/lib --disable-maintainer-mode --disable-dependency-tracking
+
+override_dh_installdocs:
+	dh_installdocs

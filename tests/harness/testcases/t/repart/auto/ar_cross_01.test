@@ -1,0 +1,29 @@
+# Test automatic repartitioning of cross_join() inputs.
+# Based on doscript.cross_join test.
+
+# Differing chunksizes and overlaps.
+
+--test
+--start-query-logging
+
+--set-format dcsv
+--start-igdata
+CREATE ARRAY left_array<val:double>[i=0:9,5,0, j=0:9,5,0]  
+--set-format dense
+--stop-igdata
+store(build(left_array,i*3+j),left_array)  
+--set-format dcsv
+--start-igdata
+CREATE ARRAY right_array<val:double>[k=0:19,10,4]
+--set-format dense
+--stop-igdata
+store(build(right_array,k+101),right_array)  
+cross_join(left_array,right_array,j,k)  
+
+--stop-query-logging
+
+
+--cleanup
+
+remove(left_array)
+remove(right_array)

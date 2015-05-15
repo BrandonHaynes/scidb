@@ -36,6 +36,13 @@
 namespace scidb
 {
 
+/**
+ * Obtain various information about the host system and its hardware.
+ *
+ * @note
+ * Code that formerly used the constant Sysinfo::INTEL_L1_DATA_CACHE_BYTES
+ * should instead call Sysinfo::getCPUCacheSize(Sysinfo::CPU_CACHE_L1).
+ */
 class Sysinfo
 {
 public:
@@ -46,13 +53,18 @@ public:
         CPU_CACHE_L3 = 4
     };
 
-    enum {
-        INTEL_L1_DATA_CACHE_BYTES = 32*KiB      // This hasn't changed for Intel for years and years.
-                                                // (We don't have access from Linux to the L1 size,
-                                                // only the last-level-cache size.)
-    };
-
     static int getNumberOfCPUs();
+
+    /**
+     * Get hardware cache sizes from the operating system.
+     *
+     * @param level a mask of @c Sysinfo::CacheLevel flags
+     * @return sum of bytes in all caches in the level mask
+     *
+     * @note Returned cache size values are themselves cached, so that
+     * only the initial calls to this method will actually perform
+     * system calls.
+     */
     static int getCPUCacheSize(int level);
 };    
 

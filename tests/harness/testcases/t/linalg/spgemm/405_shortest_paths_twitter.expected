@@ -13,8 +13,8 @@ SCIDB QUERY : <remove(GRAPH_WEIGHTS)>
 SCIDB QUERY : <create array  GRAPH_WEIGHTS <w:float>[v0=0:10959642,   10959642/4+1,0,  v1=0:10959642,  10959642/4+1,0]>
 Query was executed successfully
 
-SCIDB QUERY : <load(GRAPH_PAIRS,    '/tmp/405_twitter.scidb.txt')>
-[Query was executed successfully, ignoring data output by this query.]
+SCIDB QUERY : <iquery -p ${IQUERY_PORT} -c ${IQUERY_HOST} -naq "load(GRAPH_PAIRS, '/tmp/405_twitter.csv.link', -2, 'csv')">
+Query was executed successfully
 
 SCIDB QUERY : <store( redimension(apply(filter(GRAPH_PAIRS, v0<=10959642 and v1<=10959642), w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)>
 [Query was executed successfully, ignoring data output by this query.]

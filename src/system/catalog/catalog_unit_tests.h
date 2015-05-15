@@ -27,8 +27,8 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <algorithm>
 
-#include "system/SystemCatalog.h"
-#include "array/Metadata.h"
+#include <system/SystemCatalog.h>
+#include <array/Metadata.h>
 
 //FIXME: Some tests will be work only when tests running consequentially.
 //Need cleaninig of catalog for each test to get independent tests.
@@ -43,7 +43,6 @@ CPPUNIT_TEST(getArrayByID);
 CPPUNIT_TEST(getArrayAttributes);
 CPPUNIT_TEST(getArrayDimensions);
 CPPUNIT_TEST(addGetUpdateInstance);
-CPPUNIT_TEST(setDefaultCompressionMethod);
 CPPUNIT_TEST(getArrays);
 CPPUNIT_TEST(deleteArrayByName);
 CPPUNIT_TEST(deleteArrayByID);
@@ -188,13 +187,13 @@ public:
 		 SystemCatalog::getInstance()->getArrayDesc(id_orig, array_get);
 
 		CPPUNIT_ASSERT(array_get.getDimensions()[0].getName() == "x");
-		CPPUNIT_ASSERT(array_get.getDimensions()[0].getStart() == 0);
+		CPPUNIT_ASSERT(array_get.getDimensions()[0].getStartMin() == 0);
 		CPPUNIT_ASSERT(array_get.getDimensions()[0].getLength() == 10);
 		CPPUNIT_ASSERT(array_get.getDimensions()[0].getChunkInterval() == 5);
 		CPPUNIT_ASSERT(array_get.getDimensions()[0].getChunkOverlap() == 1);
 
 		CPPUNIT_ASSERT(array_get.getDimensions()[1].getName() == "y");
-		CPPUNIT_ASSERT(array_get.getDimensions()[1].getStart() == -10);
+		CPPUNIT_ASSERT(array_get.getDimensions()[1].getStartMin() == -10);
 		CPPUNIT_ASSERT(array_get.getDimensions()[1].getLength() == 20);
 		CPPUNIT_ASSERT(array_get.getDimensions()[1].getChunkInterval() == 6);
 		CPPUNIT_ASSERT(array_get.getDimensions()[1].getChunkOverlap() == 2);
@@ -271,30 +270,6 @@ public:
 		CPPUNIT_ASSERT(instance1_get.isOnline() == false);
 	}
 
-	void setDefaultCompressionMethod()
-	{
-		 Attributes att;
-		att.push_back(AttributeDesc("a", 0, AttributeDesc::IS_NULLABLE, 0));
-		att.push_back(AttributeDesc("b", 1, AttributeDesc::IS_EMPTY_INDICATOR, 1));
-		 Dimensions dim;
-		dim.push_back(DimensionDesc("x", 0, 10, 5, 1));
-		dim.push_back(DimensionDesc("y", -10, 20, 6, 2));
-
-		 ArrayDesc array_orig = ArrayDesc("test_array_5", 10, 100, att, dim);
-		 ArrayID id_orig = SystemCatalog::getInstance()->addArray(array_orig);
-
-		 SystemCatalog::getInstance()->setDefaultCompressionMethod(id_orig, 0, 2);
-		 SystemCatalog::getInstance()->setDefaultCompressionMethod(id_orig, 1, 3);
-
-		 ArrayDesc array_get;
-		 SystemCatalog::getInstance()->getArrayDesc(id_orig, array_get);
-
-		CPPUNIT_ASSERT_EQUAL((uint16_t)2, array_get.getAttributes()[0].getDefaultCompressionMethod());
-		CPPUNIT_ASSERT_EQUAL((uint16_t)3, array_get.getAttributes()[1].getDefaultCompressionMethod());
-		
-		 SystemCatalog::getInstance()->deleteArray(id_orig);
-	}
-	
 	void getArrays()
 	{
 		 Attributes att;

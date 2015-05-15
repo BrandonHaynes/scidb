@@ -38,7 +38,7 @@
 #include <array/MemArray.h>
 #include <array/StreamArray.h>
 #include <log4cxx/logger.h>
-#include <query/Network.h>
+#include <util/Network.h>
 #include <query/Operator.h>
 #include <query/Query.h>
 #include <system/BlockCyclic.h>
@@ -331,12 +331,12 @@ shared_ptr<Array>  MPICopyPhysical::invokeMPI(std::vector< shared_ptr<Array> >& 
     //
     Dimensions const& dims = Ain->getArrayDesc().getDimensions();
     Coordinates first(2);
-    first[0] = dims[0].getStart() + MYPROW * dims[0].getChunkInterval();
-    first[1] = dims[1].getStart() + MYPCOL * dims[1].getChunkInterval();
+    first[0] = dims[0].getStartMin() + MYPROW * dims[0].getChunkInterval();
+    first[1] = dims[1].getStartMin() + MYPCOL * dims[1].getChunkInterval();
 
     Coordinates last(2);
-    last[0] = dims[0].getStart() + dims[0].getLength() - 1;
-    last[1] = dims[1].getStart() + dims[1].getLength() - 1;
+    last[0] = dims[0].getStartMin() + dims[0].getLength() - 1;
+    last[1] = dims[1].getStartMin() + dims[1].getLength() - 1;
 
     Coordinates iterDelta(2);
     iterDelta[0] = NPROW * dims[0].getChunkInterval();
@@ -345,7 +345,7 @@ shared_ptr<Array>  MPICopyPhysical::invokeMPI(std::vector< shared_ptr<Array> >& 
     if(DBG) std::cerr << "MPICopy OUT SplitArray from ("<<first[0]<<","<<first[1]<<") to (" << last[0] <<"," <<last[1]<<") delta:"<<iterDelta[0]<<","<<iterDelta[1]<< std::endl;
     LOG4CXX_DEBUG(logger, "MPICopyPhysical::invokeMPI(): Creating array ("<<first[0]<<","<<first[1]<<"), (" << last[0] <<"," <<last[1]<<")");
 
-    reformatOp_t    pdelgetOp(OUTx, DESC_OUT, dims[0].getStart(), dims[1].getStart());
+    reformatOp_t    pdelgetOp(OUTx, DESC_OUT, dims[0].getStartMin(), dims[1].getStartMin());
     shared_ptr<Array> result  = shared_ptr<Array>(new OpArray<reformatOp_t>(outSchema, resPtrDummy, pdelgetOp,
                                                                             first, last, iterDelta, query));
     releaseMPISharedMemoryInputs(shmIpc, resultShmIpcIndx);
@@ -494,12 +494,12 @@ shared_ptr<Array> MPICopyPhysical::execute(std::vector< shared_ptr<Array> >& inp
     LOG4CXX_DEBUG(logger, "MPICopyPhysical::execute(): preparing to extractData, nRows=" << nRows << ", nCols = " << nCols);
 
     Coordinates first(2);
-    first[0] = dims[0].getStart() + MYPROW * dims[0].getChunkInterval();
-    first[1] = dims[1].getStart() + MYPCOL * dims[1].getChunkInterval();
+    first[0] = dims[0].getStartMin() + MYPROW * dims[0].getChunkInterval();
+    first[1] = dims[1].getStartMin() + MYPCOL * dims[1].getChunkInterval();
 
     Coordinates last(2);
-    last[0] = dims[0].getStart() + dims[0].getLength() - 1;
-    last[1] = dims[1].getStart() + dims[1].getLength() - 1;
+    last[0] = dims[0].getStartMin() + dims[0].getLength() - 1;
+    last[1] = dims[1].getStartMin() + dims[1].getLength() - 1;
 
     shared_ptr<Array> result = invokeMPI(inputArrays, query, _schema);
 

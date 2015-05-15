@@ -28,14 +28,15 @@
  * @author Konstantin Knizhnik <knizhnik@garret.ru>
  */
 
-#include "array/DelegateArray.h"
-#include "system/Cluster.h"
-#include "system/Exceptions.h"
+#include <array/DelegateArray.h>
+#include <system/Cluster.h>
+#include <system/Exceptions.h>
+#include <system/SciDBConfigOptions.h>
+#include <util/RegionCoordinatesIterator.h>
+
 #ifndef SCIDB_CLIENT
-#include "system/Config.h"
+#include <system/Config.h>
 #endif
-#include "system/SciDBConfigOptions.h"
-#include "util/RegionCoordinatesIterator.h"
 
 //#define NO_MATERIALIZE_CACHE 1
 
@@ -114,14 +115,9 @@ namespace scidb
         return isClone ? chunk->isCountKnown() : ConstChunk::isCountKnown();
     }
 
-    ConstChunk const* DelegateChunk::getPersistentChunk() const
-    {
-        return isClone ? chunk->getPersistentChunk() : NULL;
-    }
-
     bool DelegateChunk::isMaterialized() const
     {
-        return isClone && chunk->isMaterialized()/* && !chunk->isRLE()*/;
+        return isClone && chunk->isMaterialized();
     }
 
     bool DelegateChunk::isDirectMapping() const
@@ -129,16 +125,6 @@ namespace scidb
         return isClone;
     }
 
-    bool DelegateChunk::isSparse() const
-    {
-        return !isDense && chunk->isSparse();
-    }
-    
-    bool DelegateChunk::isRLE() const
-    {
-        return chunk->isRLE();
-    }
-    
     bool DelegateChunk::pin() const
     {
         return isClone && chunk->pin();
@@ -153,42 +139,40 @@ namespace scidb
 
     void* DelegateChunk::getData() const
     {
-        return isClone/* && !chunk->isRLE()*/ ? chunk->getData() : ConstChunk::getData();
+        return isClone ? chunk->getData() : ConstChunk::getData();
     }
 
     size_t DelegateChunk::getSize() const
     {
-        return isClone/* && !chunk->isRLE()*/ ? chunk->getSize() : ConstChunk::getSize();
+        return isClone ? chunk->getSize() : ConstChunk::getSize();
     }
 
-    void DelegateChunk::compress(CompressedBuffer& buf, boost::shared_ptr<ConstRLEEmptyBitmap>& emptyBitmap) const
+    void DelegateChunk::compress(CompressedBuffer& buf,
+                                 boost::shared_ptr<ConstRLEEmptyBitmap>& emptyBitmap) const
     {
-        if (isClone/* && !chunk->isRLE()*/) { 
+        if (isClone) { 
             chunk->compress(buf, emptyBitmap);
         } else { 
             ConstChunk::compress(buf, emptyBitmap);
         }
     }
 
-    DelegateChunk::DelegateChunk(DelegateArray const& arr, DelegateArrayIterator const& iter, AttributeID attr, bool clone)
-    : array(arr), iterator(iter), attrID(attr), chunk(NULL), isClone(clone), isDense(false), tileMode(false)
+    DelegateChunk::DelegateChunk(DelegateArray const& arr,
+                                 DelegateArrayIterator const& iter,
+                                 AttributeID attr,
+                                 bool clone)
+    : array(arr),
+      iterator(iter),
+      attrID(attr),
+      chunk(NULL),
+      isClone(clone),
+      tileMode(false)
     {
     }
 
     //
     // Delegate chunk iterator methods
     //
-
-    bool DelegateChunkIterator::supportsVectorMode() const
-    {
-        return chunk->isClone && inputIterator->supportsVectorMode();
-    }
-    
-    void DelegateChunkIterator::setVectorMode(bool enabled)
-    {
-        inputIterator->setVectorMode(enabled);
-    }
-    
     int DelegateChunkIterator::getMode()
     {
         return inputIterator->getMode();
@@ -353,21 +337,25 @@ namespace scidb
         for (size_t i = 0; i < emptyTagID; i++) { 
             newAttrs[i] = oldAttrs[i];
         }
-        newAttrs[emptyTagID] = AttributeDesc(emptyTagID, DEFAULT_EMPTY_TAG_ATTRIBUTE_NAME,
-                                            TID_INDICATOR, AttributeDesc::IS_EMPTY_INDICATOR, 0);
+        newAttrs[emptyTagID] = AttributeDesc(emptyTagID,
+                                             DEFAULT_EMPTY_TAG_ATTRIBUTE_NAME,
+                                             TID_INDICATOR,
+                                             AttributeDesc::IS_EMPTY_INDICATOR, 0);
         desc = ArrayDesc(desc.getName(), newAttrs, desc.getDimensions());
-        rle = true;
     }
 
     DelegateArrayIterator* NonEmptyableArray::createArrayIterator(AttributeID id) const
     {  
-        if (rle && id == emptyTagID) { 
+        if (id == emptyTagID) { 
             return new DummyBitmapArrayIterator(*this, id, inputArray->getConstIterator(0));
         }
-        return new DelegateArrayIterator(*this, id, inputArray->getConstIterator(id == emptyTagID ? 0 : id));
+        return new DelegateArrayIterator(*this, id,
+                                         inputArray->getConstIterator(id == emptyTagID ?
+                                                                      0 : id));
     }
 
-    DelegateChunkIterator* NonEmptyableArray::createChunkIterator(DelegateChunk const* chunk, int iterationMode) const
+    DelegateChunkIterator* NonEmptyableArray::createChunkIterator(DelegateChunk const* chunk,
+                                                                  int iterationMode) const
     {
         AttributeDesc const& attr = chunk->getAttributeDesc();
         return attr.isEmptyIndicator()
@@ -375,7 +363,8 @@ namespace scidb
             : (DelegateChunkIterator*)new DelegateChunkIterator(chunk, iterationMode);
     }
     
-    DelegateChunk* NonEmptyableArray::createChunk(DelegateArrayIterator const* iterator, AttributeID id) const
+    DelegateChunk* NonEmptyableArray::createChunk(DelegateArrayIterator const* iterator,
+                                                  AttributeID id) const
     {
         return new DelegateChunk(*this, *iterator, id, id != emptyTagID);
     }
@@ -400,16 +389,12 @@ namespace scidb
     ConstChunk const& NonEmptyableArray::DummyBitmapArrayIterator::getChunk()
     {
         ConstChunk const& inputChunk = inputIterator->getChunk();
-        //if (!inputChunk.isRLE())              
-        if (!((NonEmptyableArray&)array).rle) 
-        {             
-            return DelegateArrayIterator::getChunk();
-        }
-        if (!shapeChunk.isInitialized() || shapeChunk.getFirstPosition(false) != inputChunk.getFirstPosition(false)) {
+        if (!shapeChunk.isInitialized() ||
+            shapeChunk.getFirstPosition(false) != inputChunk.getFirstPosition(false)) {
             ArrayDesc const& arrayDesc = array.getArrayDesc();
             Address addr(attr, inputChunk.getFirstPosition(false));
-            shapeChunk.initialize(&array, &arrayDesc, addr, inputChunk.getCompressionMethod());
-            shapeChunk.setSparse(inputChunk.isSparse());
+            shapeChunk.initialize(&array, &arrayDesc, addr,
+                                  inputChunk.getCompressionMethod());
             shapeChunk.fillRLEBitmap();
         }
         return shapeChunk;
@@ -486,10 +471,27 @@ namespace scidb
                 last[i] = min(lastChunkPosition[i], lastArrayPosition[i]);
             }
             Value value;
-            const boost::shared_ptr<scidb::Query> localQueryPtr(Query::getValidQueryPtr(array._query));  // duration of getChunk() short enough
-            boost::shared_ptr<ChunkIterator> chunkIter = chunk.getIterator(localQueryPtr, nDims <= 2 ? ChunkIterator::SEQUENTIAL_WRITE : 0);
+            
+            // duration of getChunk() short enough
+            const boost::shared_ptr<scidb::Query> 
+                localQueryPtr(Query::getValidQueryPtr(array._query));
+
+            boost::shared_ptr<ChunkIterator> chunkIter = 
+                chunk.getIterator(localQueryPtr, nDims <= 2 ?
+                                  ChunkIterator::SEQUENTIAL_WRITE : 0);
             double* src = reinterpret_cast<double*>(array._src.get());
             CoordinatesMapper bufMapper( array.from(), array.till());
+
+            // Per the THE REQUEST TO JUSTIFY LOGICAL-SPACE ITERATION (see RegionCoordinatesIterator.h),
+            // here is why it is ok to iterate over the logical space.
+            //
+            // [from Alex Poliakov:]
+            // The input array is passed in as a C++ array.
+            // It is safe to assume this input _src is dense or near dense. It is also safe to assume _src is small enough to fit in memory.
+            // Iterating over the logical space is therefore a perfectly reasonable solution.
+            // This should be self evident in the code: for each position, there is one value in _src that we take and insert.
+            // There is a writeItem() call for each position. None of the values are skipped. So clearly the data is dense.
+            //
             RegionCoordinatesIterator coordinatesIter(first, last);
             while(!coordinatesIter.end())
             {
@@ -589,8 +591,7 @@ namespace scidb
         MaterializeFormat format = _array._format;
         if (chunk.isMaterialized() 
             && (format == PreserveFormat 
-                || (format == RLEFormat && chunk.isRLE())
-                || (format == DenseFormat && !chunk.isRLE() && !chunk.isSparse())))
+                || (format == RLEFormat)))
         {
             ((ConstChunk&)chunk).overrideTileMode(false);
             _chunkToReturn = &chunk;
@@ -675,7 +676,7 @@ MaterializedArray::MaterializedArray(boost::shared_ptr<Array> input,
         assert(query);
         _query = query;
 #ifndef SCIDB_CLIENT
-        _cacheSize = Config::getInstance()->getOption<int>(CONFIG_PREFETCHED_CHUNKS);
+        _cacheSize = Config::getInstance()->getOption<int>(CONFIG_RESULT_PREFETCH_QUEUE_SIZE);
 #else
         _cacheSize = 1;
 #endif
@@ -691,21 +692,12 @@ void MaterializedArray::materialize(const shared_ptr<Query>& query,
         nMaterializedChunks += 1;
         materializedChunk.initialize(chunk);
         materializedChunk.setBitmapChunk((Chunk*)chunk.getBitmapChunk());
-        if (format == RLEFormat) { 
-            materializedChunk.setRLE(true);
-        } else if (format == DenseFormat) { 
-            materializedChunk.setSparse(false);
-            materializedChunk.setRLE(false);
-        }
         boost::shared_ptr<ConstChunkIterator> src 
             = chunk.getConstIterator(ChunkIterator::IGNORE_DEFAULT_VALUES|ChunkIterator::IGNORE_EMPTY_CELLS|
                                      (chunk.isSolid() ? ChunkIterator::INTENDED_TILE_MODE : 0));
         boost::shared_ptr<ChunkIterator> dst 
             = materializedChunk.getIterator(query,
                                             (src->getMode() & ChunkIterator::TILE_MODE)|ChunkIterator::ChunkIterator::NO_EMPTY_CHECK|ChunkIterator::SEQUENTIAL_WRITE);
-        bool vectorMode = src->supportsVectorMode() && dst->supportsVectorMode();
-        src->setVectorMode(vectorMode);
-        dst->setVectorMode(vectorMode);
         size_t count = 0;
         while (!src->end()) {
             if (!dst->setPosition(src->getPosition()))
@@ -714,7 +706,8 @@ void MaterializedArray::materialize(const shared_ptr<Query>& query,
             count += 1;
             ++(*src);
         }
-        if (!vectorMode && !(src->getMode() & ChunkIterator::TILE_MODE) && !chunk.getArrayDesc().hasOverlap()) {
+        if (!(src->getMode() & ChunkIterator::TILE_MODE) &&
+            !chunk.getArrayDesc().hasOverlap()) {
             materializedChunk.setCount(count);
         }
         dst->flush();

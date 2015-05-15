@@ -118,6 +118,9 @@ class UbuntuChroot():
         self.release = release
         self.arch = arch
         self.tgz = self.pbuilder_tgz_dir+'/'+release+'-'+arch+'.tgz'
+        # trusty is Ubuntu 14.04 release. precise is Ubuntu 12.04 release.
+        if self.release == "trusty":
+            self.scidb_3rdparty_mirror='deb https://downloads.paradigm4.com/ ubuntu14.04/3rdparty/'
         self.mirror = '|'.join([(self.ubuntu_mirror % release), self.scidb_3rdparty_mirror])
         self.temp_dir=temp_dir
         self.logfile = os.path.join(self.temp_dir,'pbuilder.log')
@@ -220,6 +223,7 @@ class CentOSChroot():
             '--root', self.chroot,
             '--arch', self.arch,
             '--resultdir', buildresult,
+                    '--no-cleanup-after',
             sources]
         info("Building %s in %s" % (sources, self.chroot))
         try:

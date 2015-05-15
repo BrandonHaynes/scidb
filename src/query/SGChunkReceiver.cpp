@@ -54,8 +54,6 @@ void initMemChunkFromNetwork(
         Coordinates const& coordinates,
         AttributeID attributeID,
         int compMethod,
-        bool sparse,
-        bool rle,
         shared_ptr<CompressedBuffer>& compressedBuffer
         )
 {
@@ -65,8 +63,6 @@ void initMemChunkFromNetwork(
     pinTmpChunk = make_shared<PinBuffer>(*pTmpChunk);
     Address chunkAddr(attributeID, coordinates);
     pTmpChunk->initialize(array.get(), &array->getArrayDesc(), chunkAddr, compMethod);
-    pTmpChunk->setSparse(sparse);
-    pTmpChunk->setRLE(rle);
     pTmpChunk->decompress(*compressedBuffer);
 }
 
@@ -236,9 +232,6 @@ void SGChunkReceiver::generateOutputForOneInstance(
         Query::validateQueryPtr(query);
 
         const ConstChunk& chunk = dynamic_pointer_cast<ConstArrayIterator>(inputIters[attrId])->getChunk();
-        if (!chunk.isRLE()) {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_UNREACHABLE_CODE) << "redistributeAggregate; must be RLE";
-        }
 
         bool isEmptyIndicator = (isEmptyable && attrId+1 == _nAttrs);
 
@@ -283,7 +276,7 @@ void SGChunkReceiver::generateOutputForOneInstance(
             std::vector<AggregatePtr> const& aggs = sgCtx->_aggregateList;
             if (aggs[attrId].get())
             {
-                if( _schema.getEmptyBitmapAttribute() == NULL && dstChunk.isRLE() && chunk.isRLE())
+                if (_schema.getEmptyBitmapAttribute() == NULL)
                 {
                     dstChunk.nonEmptyableAggregateMerge(*srcChunk, aggs[attrId], query);
                 }
@@ -317,8 +310,6 @@ void SGChunkReceiver::processReceivedChunkAtExistingPos(
         size_t decompressedSize,
         AttributeID attributeID,
         size_t count,
-        bool rle,
-        bool sparse,
         Coordinates& coordinates,
         boost::shared_ptr<Array> outputArray,
         boost::shared_ptr<ArrayIterator> outputIter,
@@ -337,17 +328,12 @@ void SGChunkReceiver::processReceivedChunkAtExistingPos(
     Chunk* outChunk = &outputIter->updateChunk();
 
     if (! isAggregateChunk) {
-        if (outChunk->getPersistentChunk() != NULL) {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_MERGE, SCIDB_LE_CANT_UPDATE_CHUNK);
-        }
         outChunk->setCount(0); // unknown
     }
 
-    // if (a) either dest is NULL or merge by bitwise-or is possible; and (b) src is not compressed
+    // If there is no local chunk at the position already, and if src chunk is not compressed, copy from the source chunk.
     char* dst = static_cast<char*>(outChunk->getData());
-    if ( (dst == NULL || (outChunk->isPossibleToMergeByBitwiseOr() && !sparse && !rle))
-         &&
-         compMethod == 0 )
+    if (dst == NULL && compMethod == 0)
     {
         char const* src = (char const*)compressedBuffer->getData();
 
@@ -356,7 +342,7 @@ void SGChunkReceiver::processReceivedChunkAtExistingPos(
         // - Otherwise, add the empty bitmap from the SGContext to the chunk's data.
         if (_cachingLastEmptyBitmap) {
             initMemChunkFromNetwork(pTmpChunk, pinTmpChunk, outputArray, coordinates, attributeID,
-                    compMethod, sparse || outChunk->isSparse(), rle, compressedBuffer);
+                                    compMethod, compressedBuffer);
 
             if (isEmptyIndicator) {
                 setCachedEmptyBitmapChunk(sourceId, pTmpChunk, coordinates);
@@ -370,14 +356,12 @@ void SGChunkReceiver::processReceivedChunkAtExistingPos(
             }
         }
 
-        if (dst == NULL) {
-            outChunk->allocateAndCopy(src, decompressedSize, sparse, rle, count, query);
-        } else {
-            outChunk->mergeByBitwiseOr(src, decompressedSize, query);
-        }
-    } else {
+        outChunk->allocateAndCopy(src, decompressedSize, count, query);
+    }
+    // Otherwise, perform chunk merge.
+    else {
         initMemChunkFromNetwork(pTmpChunk, pinTmpChunk, outputArray, coordinates, attributeID,
-                compMethod, sparse || outChunk->isSparse(), rle, compressedBuffer);
+                compMethod, compressedBuffer);
 
         ConstChunk const* srcChunk = &(*pTmpChunk);
 
@@ -399,7 +383,7 @@ void SGChunkReceiver::processReceivedChunkAtExistingPos(
 
         if (isAggregateChunk) {
             AggregatePtr aggregate = sgCtx->_aggregateList[attributeID];
-            if (!isEmptyable && rle) {
+            if (!isEmptyable) {
                 assert(!_cachingLastEmptyBitmap);
                 assert(srcChunk==&(*pTmpChunk));
                 outChunk->nonEmptyableAggregateMerge(*srcChunk, aggregate, query);
@@ -411,7 +395,7 @@ void SGChunkReceiver::processReceivedChunkAtExistingPos(
         }
     }
 
-    assert(checkChunkMagic(*outChunk));
+    checkChunkMagic(*outChunk);
 }
 
 void SGChunkReceiver::processReceivedChunkAtNewPos(
@@ -423,8 +407,6 @@ void SGChunkReceiver::processReceivedChunkAtNewPos(
         size_t decompressedSize,
         AttributeID attributeID,
         size_t count,
-        bool rle,
-        bool sparse,
         Coordinates& coordinates,
         boost::shared_ptr<Array> outputArray,
         boost::shared_ptr<ArrayIterator> outputIter,
@@ -440,9 +422,7 @@ void SGChunkReceiver::processReceivedChunkAtNewPos(
     // the PinBuffer objects protect tmpChunk and closure, respectively.
     shared_ptr<PinBuffer> pinTmpChunk, pinClosure;
 
-    Chunk* outChunk = &outputIter->newChunk(coordinates, compMethod);
-    outChunk->setSparse(sparse);
-    outChunk->setRLE(rle);
+    Chunk* outChunk = &outputIter->newChunk(coordinates);
     shared_ptr<CompressedBuffer> myCompressedBuffer = compressedBuffer;
 
     // Special care is needed if _cachingLastEmptyBitmap.
@@ -450,7 +430,7 @@ void SGChunkReceiver::processReceivedChunkAtNewPos(
     // - Otherwise, add the empty bitmap from the SGContext to the chunk's data.
     if (_cachingLastEmptyBitmap) {
         initMemChunkFromNetwork(pTmpChunk, pinTmpChunk, outputArray, coordinates, attributeID,
-                compMethod, sparse || outChunk->isSparse(), rle, compressedBuffer);
+                compMethod, compressedBuffer);
         if (isEmptyIndicator) {
             setCachedEmptyBitmapChunk(sourceId, pTmpChunk, coordinates);
         } else {
@@ -464,7 +444,7 @@ void SGChunkReceiver::processReceivedChunkAtNewPos(
     outChunk->setCount(count);
     outChunk->write(query);
 
-    assert(checkChunkMagic(*outChunk));
+    checkChunkMagic(*outChunk);
 }
 
 void SGChunkReceiver::handleReceivedChunk(
@@ -476,8 +456,6 @@ void SGChunkReceiver::handleReceivedChunk(
         size_t decompressedSize,
         AttributeID attributeID,
         size_t count,
-        bool rle,
-        bool sparse,
         Coordinates& coordinates
         )
 {
@@ -504,7 +482,6 @@ void SGChunkReceiver::handleReceivedChunk(
     }
 
     assert(compressedBuffer->getData());
-    PinBuffer pin(*compressedBuffer); // this line protects compressedBuffer->data from being freed, allowing MemChunk::decompressed(*compressedBuffer) to be called multiple times.
 
     compressedBuffer->setCompressionMethod(compMethod);
     compressedBuffer->setDecompressedSize(decompressedSize);
@@ -515,14 +492,12 @@ void SGChunkReceiver::handleReceivedChunk(
         // The chunk cannot already exist in the received-chunk cache.
         assert( ! _arrayIteratorsForReceivedChunkCache[indexInstAttr(sourceId, attributeID)]->setPosition(coordinates));
 
-        Chunk* outChunk = &_arrayIteratorsForReceivedChunkCache[indexInstAttr(sourceId, attributeID)]->newChunk(coordinates, compMethod);
-        outChunk->setSparse(sparse);
-        outChunk->setRLE(rle);
+        Chunk* outChunk = &_arrayIteratorsForReceivedChunkCache[indexInstAttr(sourceId, attributeID)]->newChunk(coordinates);
         shared_ptr<CompressedBuffer> myCompressedBuffer = compressedBuffer;
         outChunk->decompress(*myCompressedBuffer);
         outChunk->setCount(count);
         outChunk->write(query);
-        assert(checkChunkMagic(*outChunk));
+        checkChunkMagic(*outChunk);
     } else if (outputIter->setPosition(coordinates)) { // merge into an existing chunk
         processReceivedChunkAtExistingPos(
                 sgCtx,
@@ -533,8 +508,6 @@ void SGChunkReceiver::handleReceivedChunk(
                 decompressedSize,
                 attributeID,
                 count,
-                rle,
-                sparse,
                 coordinates,
                 outputArray,
                 outputIter,
@@ -552,8 +525,6 @@ void SGChunkReceiver::handleReceivedChunk(
                 decompressedSize,
                 attributeID,
                 count,
-                rle,
-                sparse,
                 coordinates,
                 outputArray,
                 outputIter,

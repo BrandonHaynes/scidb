@@ -56,6 +56,8 @@ const char OUTPUT_QUOTE = '\'';
 // See http://www.parashift.com/c++-faq/macro-for-ptr-to-memfn.html
 #define CALL_MEMBER_FN(_object, _ptrToMbrFun) ((_object).*(_ptrToMbrFun))
 
+#define SCIDB_ASSERT(_cond_) do { size_t _rc_ = sizeof(_cond_); assert(bool(_cond_)); _rc_ = _rc_; /* avoid compiler warning */ } while(0)
+
 /* Options */
 size_t gChunkSize = 1;
 string gInFile;
@@ -67,7 +69,7 @@ bool gVerbose = false;
 string gOutFormat("csv");
 unsigned char gDelim = '\0';
 string gTypePattern;
-string gPgm;
+string gPgm;                    // Program name (to be used in warnings and errors but *not* verbose output).
 
 /**
  * Should value 'val' in column 'col' get the CSV quote treatment on output?
@@ -134,8 +136,12 @@ class Row
 public:
     Row() : _total(0) {}
 
-    size_t size() const { return _fields.size(); }
-    size_t length() const { return _total; }
+    size_t length() const
+    {
+        size_t delim_count = _fields.empty() ? 0 : _fields.size() - 1;
+        return _total + delim_count;
+    }
+    size_t field_count() const { return _fields.size(); }
     const string& operator[](size_t i) const { return _fields[i]; }
     const string& back() const { return _fields.back(); }
 
@@ -154,7 +160,7 @@ public:
     string str() const
     {
         stringstream ss;
-        for (unsigned i = 0; i < size(); ++i) {
+        for (unsigned i = 0; i < _fields.size(); ++i) {
             if (i) ss << ' ';
             ss << '[' << _fields[i] << ']';
         }
@@ -291,7 +297,7 @@ void ChunkBufferedFile::resize(size_t need)
     assert(_dataPtr == _bufPtr);
 
     size_t remaining = _bufLen - _dataLen;
-    assert(need > remaining);
+    SCIDB_ASSERT(need > remaining);
 
     // Did we run out while writing the new longest line?
     size_t rlen = (_dataLen - _eor) + need;
@@ -386,7 +392,7 @@ bool ChunkBufferedFile::flush(size_t nbytes)
     size_t n = std::min(nbytes, _dataLen);
     size_t nwritten = ::fwrite(_dataPtr, 1, n, _fp);
     if (nwritten != n) {
-        cerr << "ERROR: Cannot write to " << str()
+        cerr << gPgm << ": ERROR: Cannot write to " << str()
              << ": " << ::strerror(errno) << endl;
         ::exit(1);
     }
@@ -472,7 +478,6 @@ Splitter::Splitter()
     , _skipCount(0)
     , _currFile(0)
     , _rowsWritten(0)
-    , _rowsRead(0)
     , _maxRowLen(0)
 { }
 
@@ -497,7 +502,7 @@ bool Splitter::open()
         _fnames[i] = fileName.str();
         FILE *fp = ::fopen(_fnames[i].c_str(), "wb");
         if (!fp) {
-            cerr << "ERROR: Cannot open " << _fnames[i] << ": "
+            cerr << gPgm << ": ERROR: Cannot open " << _fnames[i] << ": "
                  << ::strerror(errno) << endl;
             return false;
         }
@@ -547,28 +552,33 @@ void Splitter::drain()
  *
  * @note
  * Unfortunately our input is buffer oriented and not line oriented,
- * so the _rowsRead count is not necessarily the same as the line
+ * so the @c rowsRead count is not necessarily the same as the line
  * number (since CSV records can span lines).
  */
 void Splitter::sanityCheck(const Row& row)
 {
+    static size_t rowsChecked = 0;
+
     const size_t MIN_SAMPLES = 10;
-    if (_rowsRead < MIN_SAMPLES) {
+    if (++rowsChecked < MIN_SAMPLES) {
         // Not enough rows seen to judge what's too long.
-        if (row.size() > _maxRowLen)
-            _maxRowLen = row.size();
+        if (row.length() > _maxRowLen) {
+            _maxRowLen = row.length();
+        }
         return;
     }
 
     const size_t WAY_TOO_LONG = _maxRowLen * 3;
-    if (row.size() > WAY_TOO_LONG) {
+    if (row.length() > WAY_TOO_LONG) {
+        size_t rowsRead = rowsChecked + _skipCount;
         string r(row.str().substr(0,60));
-        cerr << "WARNING: Long record at or near line " << _rowsRead
+        cerr << gPgm << ": WARNING: Long " << row.length() << "-byte record"
+             << " at or near line " << rowsRead
              << " may indicate a quoting error.\n"
              << "Record: " << r << " ..." << endl;
     }
-    else if (row.size() > _maxRowLen) {
-        _maxRowLen = row.size();
+    else if (row.length() > _maxRowLen) {
+        _maxRowLen = row.length();
     }
 }
 
@@ -581,7 +591,8 @@ Splitter& Splitter::setOutputFormat(const string& fmt)
     } else if (!::strcasecmp(fmt.c_str(), "debug")) {
         _writeRowInternal = &Splitter::writeDebugRow;
     } else {
-        cerr << "ERROR: Unrecogized output format '" << fmt << '\'' << endl;
+        cerr << gPgm << ": ERROR: Unrecogized output format '" << fmt << '\''
+             << endl;
         ::exit(1);
     }
     return *this;
@@ -615,7 +626,7 @@ void Splitter::writeDebugRow(const Row& row)
     string s(row.str());
     size_t n = ::fwrite(s.c_str(), 1, s.size(), fp);
     if (n != s.size()) {
-        cerr << "ERROR: Cannot write to " << _fnames[_currFile]
+        cerr << gPgm << ": ERROR: Cannot write to " << _fnames[_currFile]
              << ": " << ::strerror(errno) << endl;
         ::exit(1);
     }
@@ -628,7 +639,7 @@ void Splitter::writeCsvRow(const Row& row)
     size_t buflen = 0;
     CbfPtr file = _files[_currFile];
 
-    for (unsigned i = 0; i < row.size(); ++i) {
+    for (unsigned i = 0; i < row.field_count(); ++i) {
         if (i) {
             // Ensure enuf space for this comma and at least one more byte.
             if (buflen < 2) {
@@ -665,7 +676,7 @@ void Splitter::writeTsvRow(const Row& row)
 {
     // Compose the TSV row.
     stringstream ss;
-    for (unsigned i = 0; i < row.size(); ++i) {
+    for (unsigned i = 0; i < row.field_count(); ++i) {
         if (i) ss << '\t';
         if (row[i].find_first_of(TSV_ESCAPED_CHARS) != string::npos) {
             ss << encode(row[i]);
@@ -676,14 +687,14 @@ void Splitter::writeTsvRow(const Row& row)
     string tsvRow(ss.str());
 
     // Write it.  Easy.
-    _files[_currFile]->write(tsvRow.c_str(), tsvRow.length());
+    _files[_currFile]->write(tsvRow.c_str(), tsvRow.size());
     _files[_currFile]->putNewline();
 }
 
 string Splitter::encode(const string& s)
 {
     stringstream ss;
-    for (unsigned i = 0; i < s.length(); ++i) {
+    for (unsigned i = 0; i < s.size(); ++i) {
         switch (s[i]) {
 
         // These characters MUST be encoded per the TSV standard.
@@ -779,15 +790,14 @@ void studyInputBuffer(const char *buf,
         delim = '|';
 
     if (gVerbose) {
-        cerr << gPgm << ": Guessing quote=" << quote << " delim='" << delim
+        cerr << "Guessing quote=" << quote << " delim='" << delim
              << "' maxline=" << maxLineLen << endl;
     }
 }
 
 /** Application state passed to libcsv parser's callbacks. */
 struct ParseState {
-    ParseState() : fields(0), records(0) {}
-    int fields;
+    ParseState() : records(0) {}
     int records;
     Row currentRow;
     Splitter splitter;
@@ -800,7 +810,6 @@ void fieldCbk(void* s, size_t n, void* state)
     string field;
     if (s)
         field = static_cast<const char*>(s);
-    ps->fields++;
     ps->currentRow.push_back(field);
 }
 
@@ -809,8 +818,44 @@ void recordCbk(int endChar, void* state)
 {
     ParseState* ps = static_cast<ParseState*>(state);
     ps->records++;
+
+    // Changing field count is worth a warning... but not too many.
+    static unsigned fields = ~0U;
+    static unsigned warnings = 0;
+    const unsigned MAX_WARNINGS = 8;
+    if (fields == ~0U) {
+        fields = ps->currentRow.field_count();
+    } else if (warnings < MAX_WARNINGS) {
+        if (fields != ps->currentRow.field_count()) {
+            cerr << gPgm << ": WARNING: Field count changed from "
+                 << fields << " to " << ps->currentRow.field_count()
+                 << " at input record " << ps->records;
+            if (++warnings == MAX_WARNINGS) {
+                cerr << " (Done complaining about this!)";
+            }
+            cerr << endl;
+            fields = ps->currentRow.field_count();
+        }
+    }
+
+    // Write the row to the correct output file.
     ps->splitter.writeRow(ps->currentRow);
     ps->currentRow.clear();
+}
+
+/**
+ * Tell the libcsv parser what constitutes a space character.
+ *
+ * @description The parser ordinarily removes spaces and tabs from the
+ * beginning and end of unquoted fields.  Apparently this is
+ * undesirable, so we supply this callback to indicate that unquoted
+ * fields should be left as is.
+ *
+ * @see Ticket #4353.
+ */
+int spaceFunc(unsigned char ch)
+{
+    return 0;
 }
 
 void splitCsvFile(FILE* fp)
@@ -819,9 +864,10 @@ void splitCsvFile(FILE* fp)
 
     int rc = csv_init(&parser, CSV_APPEND_NULL);
     if (rc != 0) {
-        cerr << "csv_init: " << rc << endl;
+        cerr << gPgm << ": csv_init: " << rc << endl;
         ::exit(rc);
     }
+    csv_set_space_func(&parser, spaceFunc);
     if (gDelim) {
         csv_set_delim(&parser, gDelim);
     }
@@ -866,8 +912,8 @@ void splitCsvFile(FILE* fp)
 
         nparse = csv_parse(&parser, buf, nread, fieldCbk, recordCbk, &state);
         if (nparse != nread) {
-            cerr << "CSV parse error, record " << state.records
-                 << " near field " << state.currentRow.size()
+            cerr << gPgm << ": CSV parse error, record " << state.records
+                 << " near field " << state.currentRow.field_count()
                  << " '" << state.currentRow.back() << "': "
                  << csv_strerror(csv_error(&parser)) << endl;
             ::exit(2);
@@ -1012,11 +1058,11 @@ int main(int ac, char** av)
         }
     }
     catch (boost::bad_lexical_cast& exc) {
-        cerr << "Bad or missing option value: " << exc.what() << endl;
+        cerr << gPgm << ": Bad or missing option value: " << exc.what() << endl;
         return 2;
     }
     catch (std::exception& exc) {
-        cerr << "Option parsing error: " << exc.what() << endl;
+        cerr << gPgm << ": Option parsing error: " << exc.what() << endl;
         return 2;
     }
 
@@ -1026,33 +1072,44 @@ int main(int ac, char** av)
     //
     if ((optind + 1) == ac) {
         if (!gInFile.empty()) {
-            cerr << "Too many input files: " << av[optind]
+            cerr << gPgm << ": Too many input files: " << av[optind]
                  << ", " << gInFile << endl;
             return 2;
         }
         gInFile = av[optind];
     }
     else if ((optind + 1) < ac) {
-        cerr << "Too many input files: " << av[optind]
+        cerr << gPgm << ": Too many input files: " << av[optind]
              << ", " << av[optind+1] << ", ..." << endl;
         return 2;
+    }
+
+    // For unset options that have environment vars, set them now.
+    if (gSplitCount == BAD_SIZE) {
+        char *cp = ::getenv("SCIDB_INSTANCE_NUM");
+        if (cp) {
+            try {
+                gSplitCount = lexical_cast<size_t>(cp);
+            }
+            catch (boost::bad_lexical_cast& exc) {
+                cerr << gPgm << ": Bad SCIDB_INSTANCE_NUM '" << cp << "': "
+                     << exc.what() << "\nUse explicit -n/--split-count option."
+                     << endl;
+                return 2;
+            }
+        }
     }
 
     // Validate options and arguments.
     if (gInFile.empty()) {
         gInFile = "-";          // stdin
     }
-    if (gSplitCount == BAD_SIZE) {
-        cerr << "Missing required option: -n N, --split-count=N" << endl;
-        printUsage();
-        return 2;
+    if (gSplitCount == BAD_SIZE || gSplitCount == 0) {
+        cerr << gPgm << ": Assuming --split-count=1" << endl;
+        gSplitCount = 1;
     }
-    if (gSplitCount < 2) {
-        cerr << "Split count must be >= 2" << endl;
-        return 2;
-    }        
     if (gChunkSize == 0) {
-        cerr << "Chunk size of zero is meaningless" << endl;
+        cerr << gPgm << ": Chunk size of zero is meaningless" << endl;
         return 2;
     }
     if (gOutputBase.empty()) {
@@ -1083,7 +1140,8 @@ int main(int ac, char** av)
     } else {
         fp = ::fopen(gInFile.c_str(), "rb");
         if (!fp) {
-            cerr << "fopen: " << gInFile << ": " << ::strerror(errno) << endl;
+            cerr << gPgm << ": fopen: " << gInFile << ": " << ::strerror(errno)
+                 << endl;
             return 2;
         }
     }

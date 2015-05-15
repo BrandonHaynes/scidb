@@ -51,7 +51,7 @@ namespace scidb
      * Inheritance is only used to factor out similarity between two structures.
      *
      * Storage addresses have an interesting ordering scheme. They are ordered by
-     * AttributeID, Coordinates, ArrayID (reverse). 
+     * AttributeID, Coordinates, ArrayID (reverse).
      *
      * Internally the storage manager keeps all chunks for a given array name in the same subtree.
      * For a given array, you will see this kind of ordering:
@@ -253,7 +253,7 @@ namespace scidb
         virtual InstanceID getInstanceId() const = 0;
 
         /**
-         * Remove all versions prior to lastLiveArrId from the storage. If 
+         * Remove all versions prior to lastLiveArrId from the storage. If
          * lastLiveArrId is 0, removes all versions. Does nothing if the
          * specified array is not present.
          * @param uaId the Unversioned Array ID
@@ -278,8 +278,8 @@ namespace scidb
          */
         virtual void rollback(std::map<ArrayID,VersionID> const& undoUpdates) = 0;
 
-        struct DiskInfo 
-        {             
+        struct DiskInfo
+        {
             uint64_t used;
             uint64_t available;
             uint64_t clusterSize;
@@ -290,7 +290,9 @@ namespace scidb
         virtual void getDiskInfo(DiskInfo& info) = 0;
 
         virtual uint64_t getCurrentTimestamp() const = 0;
-        
+
+        virtual uint64_t getUsedMemSize() const = 0;
+
         /**
          * Method for creating a list of chunk descriptors. Implemented by LocalStorage.
          * @param builder a class that creates a list array
@@ -340,7 +342,7 @@ namespace scidb
          * @param chunk new chunk created by newChunk Method
          * @param query performing the operation
          */
-        virtual void writeChunk(ArrayDesc const& desc, PersistentChunk* chunk, boost::shared_ptr<Query>& query) = 0;
+        virtual void writeChunk(ArrayDesc const& desc, PersistentChunk* chunk, boost::shared_ptr<Query> const& query) = 0;
 
         /**
          * Find and fetch a chunk from a particular array. Throws exception if chunk does not exist.
@@ -408,9 +410,9 @@ namespace scidb
          * Get a list of the chunk positions for a particular persistent array. If the array is not found, no fields
          * shall be added to the chunks argument.
          * @param[in] desc the array descriptor. Must be for a persistent stored array with proper identifiers.
-         * @param[in] query the query context. 
+         * @param[in] query the query context.
          * @param[out] chunks the set of coordinates to which the chunk positions of the array shall be appended.
-         */       
+         */
         virtual void getChunkPositions(ArrayDesc const& desc, boost::shared_ptr<Query> const& query, CoordinateSet& chunks) = 0;
 
          /**
@@ -446,17 +448,21 @@ namespace scidb
           * @param coords the coordinates of the removed chunk
           * @param query the query context
           */
-         virtual void removeLocalChunkVersion(ArrayDesc const& arrayDesc, Coordinates const& coord, boost::shared_ptr<Query>& query) =0;
+         virtual void removeLocalChunkVersion(ArrayDesc const& arrayDesc,
+                                              Coordinates const& coord,
+                                              boost::shared_ptr<Query> const& query) =0;
 
          /**
           * Remove a previously existing chunk from existence in the given version in the system.
           * Effectively this function sends the proper replica messages and then calls removeLocalChunkVersion on this instance.
           * Note this method removes all attributes at once.
-          * @param arrayDesc the array descriptor 
+          * @param arrayDesc the array descriptor
           * @param coords the coordinates of the tombstone
           * @param query the query context
           */
-         virtual void removeChunkVersion(ArrayDesc const& arrayDesc, Coordinates const& coords, boost::shared_ptr<Query>& query) =0;
+         virtual void removeChunkVersion(ArrayDesc const& arrayDesc,
+                                         Coordinates const& coords,
+                                         boost::shared_ptr<Query> const& query) =0;
 
          /**
           * Given an array descriptor desc and the coordinate set liveChunks - remove the chunk version for every
@@ -466,12 +472,15 @@ namespace scidb
           * @param liveChunks the set of chunks that should NOT be tombstoned
           * @param query the query context
           */
-         virtual void removeDeadChunks(ArrayDesc const& arrayDesc, set<Coordinates, CoordinatesLess> const& liveChunks, boost::shared_ptr<Query>& query) = 0;
+         virtual void removeDeadChunks(ArrayDesc const& arrayDesc,
+                                       set<Coordinates, CoordinatesLess> const& liveChunks,
+                                       boost::shared_ptr<Query> const& query) = 0;
 
          /**
           * Return DataStores object used by storage manager to store data
           */
          virtual DataStores& getDataStores() = 0;
+
     };
 
     /**

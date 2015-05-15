@@ -73,7 +73,7 @@ PhysicalAnalyze::PhysicalAnalyze(const string& logicalName, const string& physic
 boost::shared_ptr<Array> PhysicalAnalyze::execute(vector<boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
 {
     Attributes inputAtts = inputArrays[0]->getArrayDesc().getAttributes();
-    boost::shared_ptr<Array> resultArray = createTmpArray(_schema, query);
+    boost::shared_ptr<Array> resultArray = make_shared<MemArray>(_schema, query);
     const AttributeDesc *emptyIndicator = inputArrays[0]->getArrayDesc().getEmptyBitmapAttribute();
     set<AttributeID> requestedAtts;
 
@@ -87,16 +87,16 @@ boost::shared_ptr<Array> PhysicalAnalyze::execute(vector<boost::shared_ptr<Array
             assert (!emptyIndicator || emptyIndicator->getId() != attIndex);
 
             const AttributeDesc& att = inputAtts[attIndex];
-            assert(att.getId() == attIndex);
-            assert(att.getName() == ((boost::shared_ptr<OperatorParamReference>&)_parameters[i])->getObjectName());
+            SCIDB_ASSERT(att.getId() == attIndex);
+            SCIDB_ASSERT(att.getName() == ((boost::shared_ptr<OperatorParamReference>&)_parameters[i])->getObjectName());
             bool rc = requestedAtts.insert(attIndex).second;
-            assert(rc); rc=rc;
+            SCIDB_ASSERT(rc);
         }
     } else {
         size_t attsCount = emptyIndicator ? inputAtts.size()-1 : inputAtts.size();
         for (size_t i=0; i < attsCount; ++i) {
             bool rc = requestedAtts.insert(i).second;
-            assert(rc); rc=rc;
+            SCIDB_ASSERT(rc);
         }
 
     }
@@ -165,8 +165,6 @@ boost::shared_ptr<Array> PhysicalAnalyze::execute(vector<boost::shared_ptr<Array
                     cIter[j]->flush();
                 }
                 Chunk& chunk = resultIterator[j]->newChunk(Coordinates(1, i));
-                chunk.setRLE(true);
-                chunk.setSparse(false);
                 assert(chunk.getBitmapChunk());
                 if (j!=0 ) {
                     cIter[j] = chunk.getIterator(query, ConstChunkIterator::NO_EMPTY_CHECK);
@@ -373,7 +371,7 @@ void PhysicalAnalyze::analyzeBuiltInType(AnalyzeData *data, boost::shared_ptr<Co
 
     //send/receive
 
-    const InstanceID coord = query->getCoordinatorInstanceID();
+    const InstanceID coord = (query->isCoordinator() ? query->getInstanceID() : query->getCoordinatorID());
     if (query->isCoordinator())
     {
         const size_t nInstances = query->getInstancesCount();
@@ -682,7 +680,7 @@ void PhysicalAnalyze::analyzeStringsAndUDT(AnalyzeData *data, boost::shared_ptr<
 
     //send/receive
 
-    const InstanceID coord = query->getCoordinatorInstanceID();
+    const InstanceID coord = (query->isCoordinator() ? query->getInstanceID() : query->getCoordinatorID());
     if (query->isCoordinator())
     {
         const size_t nInstances = query->getInstancesCount();

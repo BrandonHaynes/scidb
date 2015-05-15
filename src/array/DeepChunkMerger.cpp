@@ -36,7 +36,7 @@ namespace scidb
 {
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.array.deepChunkMerge"));
 
-DeepChunkMerger::DeepChunkMerger(MemChunk& dst, MemChunk const& with, boost::shared_ptr<Query>& query)
+DeepChunkMerger::DeepChunkMerger(MemChunk& dst, MemChunk const& with, boost::shared_ptr<Query> const& query)
 : _dst(dst), _with(with), _query(query), _pinBufferWith(with),
   _numFinishedPPositionsDst(0), _numFinishedPPositionsWith(0), _numOverlappedPPositions(0)
 {
@@ -44,7 +44,6 @@ DeepChunkMerger::DeepChunkMerger(MemChunk& dst, MemChunk const& with, boost::sha
 
 void DeepChunkMerger::merge()
 {
-    assert(_dst.isRLE() && _with.isRLE());
     assert(_dst.getAttributeDesc().isEmptyIndicator() == _with.getAttributeDesc().isEmptyIndicator());
 
     // The case when both chunks are empty-bitmap chunks.

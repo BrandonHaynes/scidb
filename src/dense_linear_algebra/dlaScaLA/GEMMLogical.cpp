@@ -195,7 +195,7 @@ ArrayDesc GEMMLogical::inferSchema(std::vector<ArrayDesc> schemas, boost::shared
                                                                               dimsCC[COL].getBaseName());
     Dimensions outDims(2);
     outDims[ROW] = DimensionDesc(distinctNames.first,
-                                 dimsCC[ROW].getStart(),
+                                 dimsCC[ROW].getStartMin(),
                                  dimsCC[ROW].getCurrStart(),
                                  dimsCC[ROW].getCurrEnd(),
                                  dimsCC[ROW].getEndMax(),
@@ -203,7 +203,7 @@ ArrayDesc GEMMLogical::inferSchema(std::vector<ArrayDesc> schemas, boost::shared
                                  0);
 
     outDims[COL] = DimensionDesc(distinctNames.second,
-                                 dimsCC[COL].getStart(),
+                                 dimsCC[COL].getStartMin(),
                                  dimsCC[COL].getCurrStart(),
                                  dimsCC[COL].getCurrEnd(),
                                  dimsCC[COL].getEndMax(),

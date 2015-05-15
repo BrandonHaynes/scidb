@@ -1,0 +1,1 @@
+--shell --command "${TESTDIR}/abort_remove.sh"

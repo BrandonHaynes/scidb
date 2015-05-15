@@ -51,6 +51,9 @@ Patch10: compiler-warnings.patch
 Patch11: boost-container_leak.patch
 # Suppress empty macro argument warnings
 Patch12: boost-empty_macro.patch
+# https://svn.boost.org/trac/boost/ticket/9064
+# select_on_container_copy_construction for scoped_allocator segfaults
+Patch13: boost-containers-1.55.patch
 
 %define srcdir boost_1_54_0
 %define _docdir %{scidb_path}/doc
@@ -300,6 +303,7 @@ web page (http://www.boost.org/doc/libs/1_40_0).
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 
 %build
 ./bootstrap.sh --prefix=/usr

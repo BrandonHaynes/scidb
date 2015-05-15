@@ -1,0 +1,21 @@
+# not a correctness test
+--shell --command "echo 'Not intended as a test of correctness.  This test produces timing results'"
+
+--setup 
+
+--shell --command "I=4 S=20 SECTION="SETUP" ${TESTDIR}/310_spmv_g500.sh"
+--shell --command "I=4 S=21 SECTION="SETUP" ${TESTDIR}/310_spmv_g500.sh"
+--shell --command "I=4 S=22 SECTION="SETUP" ${TESTDIR}/310_spmv_g500.sh"
+
+--test
+
+--shell --command "I=4 S=20 SECTION="TEST" ${TESTDIR}/310_spmv_g500.sh"
+--shell --command "I=4 S=21 SECTION="TEST" ${TESTDIR}/310_spmv_g500.sh"
+--shell --command "I=4 S=22 SECTION="TEST" ${TESTDIR}/310_spmv_g500.sh"
+
+
+--cleanup
+
+--shell --command "I=4 S=20 SECTION="CLEANUP" ${TESTDIR}/310_spmv_g500.sh"
+--shell --command "I=4 S=21 SECTION="CLEANUP" ${TESTDIR}/310_spmv_g500.sh"
+--shell --command "I=4 S=22 SECTION="CLEANUP" ${TESTDIR}/310_spmv_g500.sh"

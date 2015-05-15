@@ -137,8 +137,6 @@ private:
                                 // once more with the POST_FINAL
                                 // call type.
 
-    bool    _supportsVectorMode;    // true if function is able to support vector calcualations
-
     bool _commutativity; // true for binary commutative operations like int + int
 
     InferFunctionArgTypes _inferFunctionArgTypes; // NULL for polymorphic function. It's used in find function.
@@ -151,15 +149,55 @@ public:
         _isInternal ( true ),
         _isDeterministic ( false ),
         _needsFinalCall ( false ),
-        _supportsVectorMode ( false ),
         _commutativity(false),
         _inferFunctionArgTypes(NULL)
     {}
 
     FunctionDescription(const std::string& name, const ArgTypes& inputArgs,
-            TypeId outputArg, FunctionPointer func_ptr = NULL, size_t scratchSize = 0,
-            bool supportsVectorMode = false, bool commulativity = false, InferFunctionArgTypes inferFunctionArgTypes = NULL,
-            bool isDeterministic = true):
+                        TypeId outputArg, FunctionPointer func_ptr) :
+        _name(name),
+        _inputArgs(inputArgs),
+        _outputArgs(std::vector<TypeId>(1, outputArg)),
+        _func_ptr(func_ptr),
+        _scratchSize(0),
+        _isInternal(false),
+        _isDeterministic(true),
+        _needsFinalCall(false),
+        _commutativity(false),
+        _inferFunctionArgTypes(NULL)
+    {
+        assert(!_commutativity || inputArgs.size() == 2);
+
+        if (name == "random") {
+            std::cerr << "random's _isDeterministic is: " << _isDeterministic << std::endl;
+        }
+    }
+
+    FunctionDescription(const std::string& name, const ArgTypes& inputArgs,
+                        TypeId outputArg, FunctionPointer func_ptr,
+                        size_t scratchSize) :
+        _name(name),
+        _inputArgs(inputArgs),
+        _outputArgs(std::vector<TypeId>(1, outputArg)),
+        _func_ptr(func_ptr),
+        _scratchSize(scratchSize),
+        _isInternal(false),
+        _isDeterministic(true),
+        _needsFinalCall(false),
+        _commutativity(false),
+        _inferFunctionArgTypes(NULL)
+    {
+        assert(!_commutativity || inputArgs.size() == 2);
+
+        if (name == "random") {
+            std::cerr << "random's _isDeterministic is: " << _isDeterministic << std::endl;
+        }
+    }
+
+    FunctionDescription(const std::string& name, const ArgTypes& inputArgs,
+            TypeId outputArg, FunctionPointer func_ptr, size_t scratchSize,
+            bool commulativity, InferFunctionArgTypes inferFunctionArgTypes,
+            bool isDeterministic=true):
         _name(name),
         _inputArgs(inputArgs),
         _outputArgs(std::vector<TypeId>(1, outputArg)),
@@ -168,7 +206,6 @@ public:
         _isInternal(false),
         _isDeterministic(isDeterministic),
         _needsFinalCall(false),
-        _supportsVectorMode(supportsVectorMode),
         _commutativity(commulativity),
         _inferFunctionArgTypes(inferFunctionArgTypes)
     {
@@ -246,11 +283,6 @@ public:
      * that needs to be free() after the query completes.
      */
     bool needsPostFinalCall() const  { return _needsFinalCall; }
-
-    /**
-     * Returns true if function support vector calculations
-     */
-    bool supportsVectorMode() const  { return _supportsVectorMode; }
 
     bool isCommulative() const
     {

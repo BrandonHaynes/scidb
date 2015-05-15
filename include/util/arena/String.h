@@ -34,7 +34,7 @@ namespace scidb { namespace arena { namespace managed {
 /****************************************************************************/
 /**
  *  @brief      Specializes the standard container to allocate its memory from
- *              an Arena.
+ *              an %arena.
  *
  *  @details    This class specializes the standard library container class of
  *              the same name to take an arena::Allocator at construction, and
@@ -86,7 +86,7 @@ inline void swap(basic_string<C,T>& a,basic_string<C,T>& b) {a.swap(b);}
 
 /**
  *  @brief      Represents a string of characters that are allocated within an
- *              Arena.
+ *              %arena.
  *
  *  @see        http://www.cplusplus.com/reference/string/string
  */

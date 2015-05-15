@@ -54,7 +54,8 @@ public:
                   std::string const& physicalName,
                   Parameters const& parameters,
                   ArrayDesc const& schema):
-        PhysicalOperator(logicalName, physicalName, parameters, schema)
+    PhysicalOperator(logicalName, physicalName, parameters, schema),
+    _shadowVersion(0), _shadowAID(INVALID_ARRAY_ID), _shadowUAID(INVALID_ARRAY_ID)
     {
     }
 
@@ -80,17 +81,103 @@ public:
             std::vector<ArrayDesc> const&) const
     {
         InstanceID sourceInstanceID = getSourceInstanceID();
-        if (sourceInstanceID == ALL_INSTANCES_MASK) {
+        if (sourceInstanceID == ALL_INSTANCE_MASK) {
             //The file is loaded from multiple instances - the distribution could be possibly violated - assume the worst
             return ArrayDistribution(psUndefined);
         }
         else {
-            return ArrayDistribution(psLocalInstance);
+            return ArrayDistribution(psLocalInstance,
+                                     boost::shared_ptr<DistributionMapper>(),
+                                     sourceInstanceID);
+        }
+    }
+
+    void preSingleExecute(boost::shared_ptr<Query> query)
+    {
+        string shadowArrayName;
+
+        if (_parameters.size() >= 6 &&
+            _parameters[5]->getParamType() == PARAM_ARRAY_REF) {
+            shadowArrayName = ((boost::shared_ptr<OperatorParamArrayReference>&)_parameters[5])->getObjectName();
+        } else {
+            // no shadow array
+            return;
+        }
+
+        shared_ptr<const InstanceMembership> membership(Cluster::getInstance()->getInstanceMembership());
+        assert(membership);
+        if ((membership->getViewId() != query->getCoordinatorLiveness()->getViewId()) ||
+            (membership->getInstances().size() != query->getInstancesCount())) {
+            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_QUORUM2);
+        }
+
+        //All arrays are currently stored as round-robin. Let's store shadow arrays round-robin as well
+        //TODO: revisit this when we allow users to store arrays with specified distributions
+        PartitioningSchema ps = psHashPartitioned;
+        ArrayDesc shadowArrayDesc = InputArray::generateShadowArraySchema(_schema, shadowArrayName);
+        assert(shadowArrayName == shadowArrayDesc.getName());
+
+        LOG4CXX_DEBUG(oplogger, "Preparing catalog for shadow array " << shadowArrayName);
+        assert(query->isCoordinator());
+
+        boost::shared_ptr<SystemCatalog::LockDesc> lock(new SystemCatalog::LockDesc(shadowArrayName,
+                                                                                    query->getQueryID(),
+                                                                                    Cluster::getInstance()->getLocalInstanceId(),
+                                                                                    SystemCatalog::LockDesc::COORD,
+                                                                                    SystemCatalog::LockDesc::WR));
+        shared_ptr<Query::ErrorHandler> ptr(new UpdateErrorHandler(lock));
+        query->pushErrorHandler(ptr);
+
+        ArrayDesc desc;
+        bool arrayExists = SystemCatalog::getInstance()->getArrayDesc(shadowArrayName, desc, false);
+        VersionID lastVersion = 0;
+        if (!arrayExists) {
+            lock->setLockMode(SystemCatalog::LockDesc::CRT);
+            bool updatedArrayLock = SystemCatalog::getInstance()->updateArrayLock(lock);
+            SCIDB_ASSERT(updatedArrayLock);
+            desc = shadowArrayDesc;
+            SystemCatalog::getInstance()->addArray(desc, ps);
+        } else {
+            if (desc.getAttributes().size() != shadowArrayDesc.getAttributes().size() ||
+                desc.getDimensions().size() != shadowArrayDesc.getDimensions().size())
+            {
+                throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_ARRAY_ALREADY_EXIST) << desc.getName();
+            }
+            lastVersion = SystemCatalog::getInstance()->getLastVersion(desc.getId());
+        }
+        _shadowVersion = lastVersion+1;
+        LOG4CXX_DEBUG(oplogger, "Use version " << _shadowVersion << " of shadow array " << shadowArrayName);
+        _shadowUAID = desc.getId();
+        lock->setArrayId(_shadowUAID);
+        lock->setArrayVersion(_shadowVersion);
+        bool updatedArrayLock = SystemCatalog::getInstance()->updateArrayLock(lock);
+        SCIDB_ASSERT(updatedArrayLock);
+
+        string shadowArrayVersionName = ArrayDesc::makeVersionedName(shadowArrayName, _shadowVersion);
+        LOG4CXX_DEBUG(oplogger, "Create shadow array " << shadowArrayVersionName);
+        shadowArrayDesc = ArrayDesc(shadowArrayVersionName,  desc.getAttributes(), desc.getDimensions());
+        SystemCatalog::getInstance()->addArray(shadowArrayDesc, ps);
+
+        _shadowAID = shadowArrayDesc.getId();
+        lock->setArrayVersionId(shadowArrayDesc.getId());
+        updatedArrayLock = SystemCatalog::getInstance()->updateArrayLock(lock);
+        SCIDB_ASSERT(updatedArrayLock);
+    }
+
+    void postSingleExecute(boost::shared_ptr<Query> query)
+    {
+        if(_shadowUAID != INVALID_ARRAY_ID) {
+            assert (_parameters.size() >= 6 &&
+                    _parameters[5]->getParamType() == PARAM_ARRAY_REF);
+
+            VersionID newVersionID = SystemCatalog::getInstance()->createNewVersion(_shadowUAID, _shadowAID);
+            LOG4CXX_DEBUG(oplogger, "Created new shadow version " << newVersionID << " of shadow array ID" << _shadowAID);
+            assert(newVersionID == _shadowVersion);
         }
     }
 
     boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays,
-                              boost::shared_ptr<Query> query)
+                                     boost::shared_ptr<Query> query)
     {
         assert(inputArrays.size() == 0);
         assert(_parameters.size() >= 2);
@@ -101,19 +188,20 @@ public:
         const string fileName = paramExpr->getExpression()->evaluate().getString();
 
         InstanceID sourceInstanceID = getSourceInstanceID();
-        
-        if (sourceInstanceID != COORDINATOR_INSTANCE_MASK && sourceInstanceID != ALL_INSTANCES_MASK && (size_t)sourceInstanceID >= query->getInstancesCount())
+
+        if (sourceInstanceID != COORDINATOR_INSTANCE_MASK &&
+            sourceInstanceID != ALL_INSTANCE_MASK &&
+            (size_t)sourceInstanceID >= query->getInstancesCount())
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_INVALID_INSTANCE_ID) << sourceInstanceID;
 
-        if (sourceInstanceID == COORDINATOR_INSTANCE_MASK) { 
-            sourceInstanceID = query->getCoordinatorInstanceID();
+        if (sourceInstanceID == COORDINATOR_INSTANCE_MASK) {
+            sourceInstanceID = (query->isCoordinator() ? query->getInstanceID() : query->getCoordinatorID());
         }
 
         int64_t maxErrors = 0;
-        string shadowArray;
+        string shadowArrayName;
         InstanceID myInstanceID = query->getInstanceID();
-
-        boost::shared_ptr<Array> result;
+        bool enforceDataIntegrity = false;
         string format;
         if (_parameters.size() >= 4)
         {
@@ -129,30 +217,84 @@ public:
                 maxErrors = paramExpr->getExpression()->evaluate().getInt64();
                 if (_parameters.size() >= 6)
                 {
-                    assert(_parameters[5]->getParamType() == PARAM_ARRAY_REF);
-                    shadowArray = ((boost::shared_ptr<OperatorParamArrayReference>&)_parameters[5])->getObjectName();
-                } 
+                    if (_parameters[5]->getParamType() == PARAM_ARRAY_REF) {
+                        shadowArrayName = ((boost::shared_ptr<OperatorParamArrayReference>&)_parameters[5])->getObjectName();
+                        if (_shadowVersion > 0) {
+                            shadowArrayName = ArrayDesc::makeVersionedName(shadowArrayName, _shadowVersion);
+                            assert(_shadowAID != INVALID_ARRAY_ID && _shadowUAID != INVALID_ARRAY_ID);
+                        }
+                    } else {
+                        assert(_parameters[5]->getParamType() == PARAM_PHYSICAL_EXPRESSION);
+                        OperatorParamPhysicalExpression* paramExpr = static_cast<OperatorParamPhysicalExpression*>(_parameters[5].get());
+                        assert(paramExpr->isConstant());
+                        enforceDataIntegrity = paramExpr->getExpression()->evaluate().getBool();
+                    }
+                    if (_parameters.size() >= 7) {
+                        assert(_parameters[5]->getParamType() == PARAM_ARRAY_REF);
+                        assert(_parameters[6]->getParamType() == PARAM_PHYSICAL_EXPRESSION);
+                        OperatorParamPhysicalExpression* paramExpr = static_cast<OperatorParamPhysicalExpression*>(_parameters[6].get());
+                        assert(paramExpr->isConstant());
+                        enforceDataIntegrity = paramExpr->getExpression()->evaluate().getBool();
+                    }
+                    assert(_parameters.size() <= 7);
+                }
             }
-        } 
-        try
-        {
-            bool isBinary = compareStringsIgnoreCase(format, "opaque") == 0 || format[0] == '(';
-            result = boost::shared_ptr<Array>(new InputArray(_schema, fileName, format, query, 
-                                                             sourceInstanceID != ALL_INSTANCES_MASK && sourceInstanceID != myInstanceID ? AS_EMPTY : isBinary ? AS_BINARY_FILE : AS_TEXT_FILE, maxErrors, shadowArray, sourceInstanceID == ALL_INSTANCES_MASK));
         }
-        catch(const Exception& e)
-        {
-            if (e.getLongErrorCode() != SCIDB_LE_CANT_OPEN_FILE || sourceInstanceID == myInstanceID)
-            {
-                throw;
-            }
 
-            LOG4CXX_WARN(oplogger, "Failed to open file " << fileName << " for input");
-            result = boost::shared_ptr<Array>(new MemArray(_schema,query));
+        boost::shared_ptr<Array> result;
+        bool emptyArray = (sourceInstanceID != ALL_INSTANCE_MASK &&
+                           sourceInstanceID != myInstanceID);
+        InputArray* ary = new InputArray(_schema, format, query,
+                                         emptyArray,
+                                         enforceDataIntegrity,
+                                         maxErrors,
+                                         shadowArrayName,
+                                         sourceInstanceID == ALL_INSTANCE_MASK);
+        result.reset(ary);
+
+        if (emptyArray) {
+            // No need to actually open the file.  (In fact, if the file is a pipe and
+            // double-buffering is enabled, opening it would wrongly steal data intended for
+            // some other instance!  See ticket #4466.)
+            SCIDB_ASSERT(ary->inEmptyMode());
+        } else {
+            try
+            {
+                ary->openFile(fileName);
+            }
+            catch(const Exception& e)
+            {
+                if (e.getLongErrorCode() != SCIDB_LE_CANT_OPEN_FILE)
+                {
+                    // Only expecting an open failure, but whatever---pass it up.
+                    throw;
+                }
+
+                if (sourceInstanceID == myInstanceID)
+                {
+                    // If mine is the one-and-only load instance, let
+                    // callers see the open failure.
+                    throw;
+                }
+
+                // No *local* file to load... but we must return the
+                // InputArray result, since even in its failed state it
+                // knows how to cooperate with subsequent SG pulls of the
+                // shadow array.  An empty MemArray won't do.
+                //
+                // The open failure itself has already been logged.
+
+                assert(ary->inEmptyMode()); // ... regardless of emptyArray value above.
+            }
         }
 
         return result;
     }
+
+    private:
+    VersionID _shadowVersion;
+    ArrayID _shadowAID;
+    ArrayID _shadowUAID;
 };
 
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalInput, "input", "impl_input")

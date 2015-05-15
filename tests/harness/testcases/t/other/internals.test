@@ -2,10 +2,10 @@
 --start-query-logging
 --test
 
---igdata "mstat()"
+--igdata "list('meminfo')"
 --igdata "diskinfo()"
 
---igdata --aql "select count(*) from (select 1.*fordblks/(uordblks+fordblks) as hl from mstat()) where hl > .15 "
+--igdata --aql "select count(*) from (select 1.*fordblks/(uordblks+fordblks) as hl from list('meminfo')) where hl > .15 "
 
 --cleanup
 --stop-query-logging

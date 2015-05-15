@@ -170,16 +170,15 @@ void HabilisOptimizer::n_addParentNode(PhysNodePtr target, PhysNodePtr nodeToIns
     if (target->hasParent())
     {
         PhysNodePtr parent = target->getParent();
-        nodeToInsert->setParent(parent);
         parent->replaceChild(target, nodeToInsert);
     }
     else
     {
         assert(_root == target);
         _root = nodeToInsert;
+        _root->resetParent();   // paranoid
     }
 
-    target->setParent(nodeToInsert);
     nodeToInsert->addChild(target);
 
     LOG4CXX_TRACE(logger, "[n_addParentNode] done");
@@ -201,7 +200,6 @@ void HabilisOptimizer::n_cutOutNode(PhysNodePtr nodeToRemove)
         {
             PhysNodePtr child = children[0];
             parent->replaceChild(nodeToRemove, child);
-            child->setParent(parent);
         }
         else
         {
@@ -329,7 +327,7 @@ PhysNodePtr HabilisOptimizer::n_buildSgNode(const ArrayDesc & outputSchema,
 
     psConst->compile(false, TID_INT32, ps);
     sgParams.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(), psConst, true)));
-
+    LOG4CXX_TRACE(logger, "Building SG node, output schema = "<<outputSchema);
     if (storeArray)
     {
        boost::shared_ptr<Expression> instanceConst = boost::make_shared<Expression> ();
@@ -339,7 +337,7 @@ PhysNodePtr HabilisOptimizer::n_buildSgNode(const ArrayDesc & outputSchema,
         sgParams.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(),
                                                                                           instanceConst,
                                                                                           true)));
-
+        LOG4CXX_TRACE(logger, "Building storing SG node, output schema name = "<<outputSchema.getName());
         sgParams.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamArrayReference(boost::make_shared<ParsingContext>(),
                                                                                       "",
                                                                                       outputSchema.getName(),
@@ -398,7 +396,6 @@ PhysNodePtr HabilisOptimizer::tw_createPhysicalTree(boost::shared_ptr<LogicalQue
     for (size_t i = 0; i < physicalChildren.size(); i++)
     {
         PhysNodePtr physicalChild = physicalChildren[i];
-        physicalChild->setParent(physicalRoot);
         physicalRoot->addChild(physicalChild);
     }
     boost::shared_ptr<LogicalOperator> logicalOp = logicalRoot->getLogicalOperator();
@@ -412,7 +409,6 @@ PhysNodePtr HabilisOptimizer::tw_createPhysicalTree(boost::shared_ptr<LogicalQue
         globalOp->setQuery(_query);
         PhysNodePtr globalNode(new PhysicalQueryPlanNode(globalOp, true, false, false));
         physicalRoot->inferBoundaries();
-        physicalRoot->setParent(globalNode);
         globalNode->addChild(physicalRoot);
         physicalRoot = globalNode;
     }
@@ -434,18 +430,22 @@ static void s_setSgDistribution(PhysNodePtr sgNode,
     Value ps(TypeLibrary::getType(TID_INT32));
     ps.setInt32(dist.getPartitioningSchema());
     psConst->compile(false, TID_INT32, ps);
-    newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(), psConst, true)));
+    newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(),
+                                                                                                  psConst, true)));
+
+    LOG4CXX_TRACE(logger, "Adding new param to SG node, ps="<<ps.get<int32_t>());
 
     size_t nParams = 1;
     if( dist.getPartitioningSchema() == psLocalInstance)
     {   //add instance number for local node distribution
         Value instanceId(TypeLibrary::getType(TID_INT64));
         instanceId.setInt64(dist.getInstanceId());
-        LOG4CXX_DEBUG(logger, "Setting dist to "<<dist.getInstanceId());
 
         boost::shared_ptr<Expression> instanceIdExpr = boost::make_shared<Expression> ();
         instanceIdExpr->compile(false, TID_INT64, instanceId);
-        newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(), instanceIdExpr, true)));
+        newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(),
+                                                                                                      instanceIdExpr, true)));
+        LOG4CXX_TRACE(logger, "Adding new param to SG node, instanceId="<<instanceId.get<int64_t>());
 
         nParams = 2;
     }
@@ -463,21 +463,25 @@ static void s_setSgDistribution(PhysNodePtr sgNode,
         Value instance(TypeLibrary::getType(TID_INT64));
         instance.setInt64(-1);
         instanceConst->compile(false, TID_INT64, instance);
-        newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(), instanceConst, true)));
+        newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(),
+                                                                                                      instanceConst, true)));
+        LOG4CXX_TRACE(logger, "Adding new param to SG node, instanceId="<<instance.get<int64_t>());
     }
 
     if (newParameters.size() < 3)
-    {   //if not already there - add fake schema name and fake store flag set to "false"
+    {   //if not already there - add fake schema name and fake strict flag set to "false"
         newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamArrayReference(boost::make_shared<ParsingContext>(),
                                                                                       "",
-                                                                                      sgSchema.getName(),
+                                                                                      "",
                                                                                       true)));
-
-        boost::shared_ptr<Expression> storeFlagExpr(new Expression());
-        Value storeFlag(TypeLibrary::getType(TID_BOOL));
-        storeFlag.setBool(false);
-        storeFlagExpr->compile(false, TID_BOOL, storeFlag);
-        newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(), storeFlagExpr, true)));
+        LOG4CXX_TRACE(logger, "Adding new param to SG node, array name=");
+        boost::shared_ptr<Expression> strictFlagExpr(new Expression());
+        Value strictFlag(TypeLibrary::getType(TID_BOOL));
+        strictFlag.setBool(false);
+        strictFlagExpr->compile(false, TID_BOOL, strictFlag);
+        newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(),
+                                                                                                      strictFlagExpr, true)));
+        LOG4CXX_TRACE(logger, "Adding new param to SG node, isStrict="<<false);
     }
 
     DimensionVector offset;
@@ -492,8 +496,12 @@ static void s_setSgDistribution(PhysNodePtr sgNode,
         Value vectorValue(TypeLibrary::getType(TID_INT64));
         vectorValue.setInt64(offset[i]);
         vectorValueExpr->compile(false, TID_INT64, vectorValue);
-        newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(), vectorValueExpr, true)));
+        newParameters.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamPhysicalExpression(boost::make_shared<ParsingContext>(),
+                                                                                                      vectorValueExpr, true)));
+        LOG4CXX_TRACE(logger, "Adding new param to SG node, <offset vector> ");
     }
+
+    LOG4CXX_TRACE(logger, "Setting params to SG node, size = "<<newParameters.size());
 
     sgNode->getPhysicalOperator()->setParameters(newParameters);
 }
@@ -1244,35 +1252,102 @@ void HabilisOptimizer::tw_rewriteStoringSG(PhysNodePtr root)
     }
 }
 
-void HabilisOptimizer::tw_insertRepartNodes(PhysNodePtr root)
+/**
+ *  Insert any needed repart() operators into the physical plan.
+ */
+bool HabilisOptimizer::tw_insertRepartNodes(PhysNodePtr nodep)
 {
-    if ( root->getChildren().size() == 1)
+    bool subtreeModified = false;
+
+    // Leaf node?  Done.
+    const size_t N_CHILDREN = nodep->getChildren().size();
+    if (N_CHILDREN == 0)
     {
-        ArrayDesc const& inputSchema = root->getChildren()[0]->getPhysicalOperator()->getSchema();
-        if (root->getPhysicalOperator()->requiresRepart(inputSchema))
+        return false;
+    }
+    
+    // Handle children first.  Change the tree from bottom to top, so that any inferences about
+    // boundaries and distributions can percolate up.
+    //
+    for (size_t i = 0; i < N_CHILDREN; ++i)
+    {
+        subtreeModified |= tw_insertRepartNodes(nodep->getChildren()[i]);
+    }
+
+    // Now for the current node.  Ask it: want to repartition any input schema?
+    vector<ArrayDesc> schemas(nodep->getChildSchemas());
+    assert(schemas.size() == N_CHILDREN);
+    vector<ArrayDesc const*> repartPtrs(N_CHILDREN);
+    nodep->getPhysicalOperator()->requiresRepart(schemas, repartPtrs);
+    if (repartPtrs.empty())
+    {
+        // Nothing to do here, but keep the inference chain going.
+        if (subtreeModified) {
+            nodep->inferBoundaries();
+            nodep->inferDistribution();
+        }
+        return subtreeModified;
+    }
+
+    // Scan the children... if any are themselves repart operators, they were manually inserted.
+    // (We know this because we are walking the query tree from leaves to root.)  Therefore
+    // we'll not do any automatic repartitioning; manual repartitioning takes precedence.
+    //
+    for (size_t i = 0; i < N_CHILDREN; ++i)
+    {
+        if (nodep->getChildren()[i]->isRepartNode())
         {
-            ArrayDesc repartSchema = root->getPhysicalOperator()->getRepartSchema(inputSchema);
-
-            PhysicalOperator::Parameters repartParams;
-            repartParams.push_back(boost::shared_ptr<OperatorParam> (new OperatorParamSchema(boost::make_shared<ParsingContext>(), repartSchema)));
-
-            PhysOpPtr repartOp = OperatorLibrary::getInstance()->createPhysicalOperator("repart", "physicalRepart", repartParams, repartSchema);
-            repartOp->setQuery(_query);
-
-            PhysNodePtr repartInstance(new PhysicalQueryPlanNode(repartOp, false, false, false));
-            n_addParentNode(root->getChildren()[0], repartInstance);
-            repartInstance->inferBoundaries();
-            repartInstance->inferDistribution();
-
-            root->inferBoundaries();
-            root->inferDistribution();
+            LOG4CXX_INFO(logger, "Inputs to query " << _query->getQueryID()
+                         << " " << nodep->getPhysicalOperator()->getLogicalName()
+                         << " operator are manually repartitioned");
+            if (subtreeModified) {
+                nodep->inferBoundaries();
+                nodep->inferDistribution();
+            }
+            return subtreeModified;
         }
     }
 
-    for (size_t i =0; i < root->getChildren().size(); i++)
+    // The repartSchema vector describes how the nodep operator wants
+    // each of its children repartitioned.
+    //
+    OperatorLibrary* oplib = OperatorLibrary::getInstance();
+    PhysicalOperator::Parameters repartParms(1);
+    size_t numReparts = 0;
+    for (size_t i = 0; i < N_CHILDREN; ++i)
     {
-        tw_insertRepartNodes(root->getChildren()[i]);
+        if (repartPtrs[i] == 0)
+        {
+            // This child's schema is fine, no change.
+            continue;
+        }
+        ArrayDesc const& repartSchema = *repartPtrs[i];
+        numReparts += 1;
+
+        // Wrap desired schema in Parameters object.
+        repartParms[0] = shared_ptr<OperatorParam>(
+            new OperatorParamSchema(make_shared<ParsingContext>(), repartSchema));
+
+        // Create repartOp and bind to its parameter(s) and query.
+        PhysOpPtr repartOp = oplib->createPhysicalOperator("repart", "physicalRepart", repartParms, repartSchema);
+        repartOp->setQuery(_query);
+
+        // Create phys. plan node for repartOP and splice it in above child[i].
+        PhysNodePtr repartNode(new PhysicalQueryPlanNode(repartOp, false/*agg*/, false/*ddl*/, false/*tile*/));
+        n_addParentNode(nodep->getChildren()[i], repartNode);
+
+        // Re-run inferences for new repart child.
+        repartNode->inferBoundaries();
+        repartNode->inferDistribution();
     }
+    
+    // If requiresRepart() gave us a non-empty vector, it better have at least one repartSchema for us.
+    assert(numReparts > 0);
+
+    // Re-run inferences for this node and we are done.
+    nodep->inferBoundaries();
+    nodep->inferDistribution();
+    return true;
 }
 
 void HabilisOptimizer::tw_insertChunkMaterializers(PhysNodePtr root)

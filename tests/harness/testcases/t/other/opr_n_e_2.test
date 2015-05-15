@@ -30,8 +30,6 @@ transpose(A)
 #unpack(A,z)
 xgrid(A,2)
 
-adddim(A,z)
-deldim(adddim(A,z))
 cast(A,<z:int32 null> [y=0:7,3,2])
 
 

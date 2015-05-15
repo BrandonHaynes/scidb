@@ -99,13 +99,4 @@ namespace scidb
         StorageManager::getInstance().getChunkPositions(_desc, query, *(result.get()));
         return result;
     }
-
-    void DBArray::populateFrom(boost::shared_ptr<Array>& input)
-    {
-        bool vertical = (input->getSupportedAccess() == Array::RANDOM);
-        set<Coordinates, CoordinatesLess> newChunkCoords;
-        Array::append(input, vertical, &newChunkCoords);
-        boost::shared_ptr<Query> query(Query::getValidQueryPtr(_query));
-        StorageManager::getInstance().removeDeadChunks(_desc, newChunkCoords, query);
-    }
 }

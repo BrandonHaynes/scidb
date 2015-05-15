@@ -1,0 +1,13 @@
+Source: libcsv
+Maintainer: Robert Gamble
+Homepage: http://sourceforge.net/projects/libcsv
+Section: libs
+Priority: extra
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9)
+
+Package: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libcsv
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: csv library
+ A small, simple and fast CSV library written in pure ANSI C89 that can read and write CSV data. It provides a straight-forward interface using callback functions to handle parsed fields and rows and can parse improperly formatted CSV files.

@@ -78,7 +78,7 @@
     driver:</para>
 
     <programlisting>cd $JDBC
-wget https://downloads.paradigm4.com/client/&scidb_version;/jdbc/scidb4j.jar</programlisting>
+wget http://downloads.paradigm4.com/client/&scidb_version;/jdbc/scidb4j.jar</programlisting>
   </section>
 
   <section id="JDBCPATH">
@@ -219,7 +219,7 @@ class JDBCExample
 
     <para>To run this example, make sure SciDB is running, then run the
     following commands:<programlisting>cd $JDBC
-wget https://downloads.paradigm4.com/client/&scidb_version;/jdbc/example.jar
+wget http://downloads.paradigm4.com/client/&scidb_version;/jdbc/example.jar
 java -classpath example.jar:$CLASSPATH org.scidb.JDBCExample</programlisting></para>
 
     <para>If the example runs without error, the output is similar to the

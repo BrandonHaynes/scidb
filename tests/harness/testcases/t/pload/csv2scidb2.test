@@ -1,0 +1,21 @@
+# Testing in-engine CSV loader for compatibility with csv2scidb.
+# Our output should be (and is!) remarkably similar to cvs2scidb1.expected .
+
+--setup
+--start-query-logging
+
+CREATE array Raw_CSVLoad_2 < symbl : string, time : string, price : double, qty : int64 > [ Offset=0:*,10,0 ]
+
+--test
+--start-igdata
+--shell --command "sed 1d ${TEST_DATA_DIR}/csv2scidb_1.csv > /tmp/csv2scidb_test_2.csv" 
+ load ( Raw_CSVLoad_2, '/tmp/csv2scidb_test_2.csv', -2, 'csv' )
+--stop-igdata
+sort( Raw_CSVLoad_2,symbl )
+--cleanup
+remove ( Raw_CSVLoad_2 )
+
+--shell --store --command "rm -rf /tmp/csv2scidb_test_2.csv"
+
+--stop-query-logging
+

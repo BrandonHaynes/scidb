@@ -38,6 +38,8 @@ class LogicalExpression;
 class LogicalQueryPlanNode;
 
 /****************************************************************************/
+namespace arena {typedef boost::shared_ptr<class Arena> ArenaPtr;}
+/****************************************************************************/
 
 boost::shared_ptr<LogicalQueryPlanNode> parseStatement (const boost::shared_ptr<Query>&,bool afl);
 boost::shared_ptr<LogicalExpression>    parseExpression(const std::string&);
@@ -50,7 +52,7 @@ void                                    loadModule(const std::string&);
 /****************************************************************************/
 
 ArrayDesc                               logicalListMacros ();
-boost::shared_ptr<Array>                physicalListMacros();
+boost::shared_ptr<Array>                physicalListMacros(const arena::ArenaPtr&);
 
 /****************************************************************************/
 }

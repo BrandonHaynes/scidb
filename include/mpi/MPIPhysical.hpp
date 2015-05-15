@@ -42,10 +42,10 @@
 namespace scidb {
 using namespace boost;
 
-inline Coordinates getStart(Array* a) {
+inline Coordinates getStartMin(Array* a) {
     Coordinates result(2);
-    result[0] = a->getArrayDesc().getDimensions()[0].getStart();
-    result[1] = a->getArrayDesc().getDimensions()[1].getStart();
+    result[0] = a->getArrayDesc().getDimensions()[0].getStartMin();
+    result[1] = a->getArrayDesc().getDimensions()[1].getStartMin();
     return result;
 }
 inline Coordinates getEndMax(Array* a) {

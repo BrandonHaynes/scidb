@@ -109,7 +109,6 @@ def getMoreArrayQueries():
         eval_attr = 'at' + arr[1][1]  # select the attribute for use in the operator
 
         MORE_ARRAY_QUERIES += [
-            'adddim(' + arr[1] + ',z)',
             'aggregate(' + arr[1] + ',count(*))',
             'allversions(' + arr[1] + ')',
             'attributes(' + arr[1] + ')',

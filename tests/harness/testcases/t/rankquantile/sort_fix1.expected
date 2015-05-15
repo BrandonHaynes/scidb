@@ -100,8 +100,8 @@ SCIDB QUERY : <sort(A, desc)>
 
 SCIDB QUERY : <sort(B,s)>
 {n} r,s
-{0} '321',null
-{1} '261',null
+{0} '261',null
+{1} '321',null
 {2} '201',10
 {3} '221',11
 {4} '241',12
@@ -117,13 +117,13 @@ SCIDB QUERY : <sort(B, s desc)>
 {3} '241',12
 {4} '221',11
 {5} '201',10
-{6} '321',null
-{7} '261',null
+{6} '261',null
+{7} '321',null
 
 SCIDB QUERY : <sort(B, s asc)>
 {n} r,s
-{0} '321',null
-{1} '261',null
+{0} '261',null
+{1} '321',null
 {2} '201',10
 {3} '221',11
 {4} '241',12
@@ -190,18 +190,18 @@ SCIDB QUERY : <sort(SortNanNullInf)>
 
 SCIDB QUERY : <sort(SortNanNullInf, V)>
 {n} I,V
-{0} 12,null
+{0} 3,null
 {1} 6,null
-{2} 3,null
+{2} 12,null
 {3} 13,null
-{4} 7,nan
-{5} 2,nan
-{6} 10,nan
-{7} 5,nan
+{4} 2,nan
+{5} 5,nan
+{6} 7,nan
+{7} 10,nan
 {8} 11,nan
 {9} 1,-inf
-{10} 14,9
-{11} 0,9
+{10} 0,9
+{11} 14,9
 {12} 4,10
 {13} 8,inf
 {14} 9,inf

@@ -270,21 +270,12 @@ namespace scidb
             static uint64_t getNextGenId()
             {
                 const uint64_t billion = 1000000000;
-#ifdef __APPLE__
-                struct timeval tv;
-                if (gettimeofday(&tv, NULL) == -1) {
-                    assert(false);
-                    throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_GET_SYSTEM_TIME);
-                }
-                return tv.tv_sec*billion + tv.tv_usec*1000;
-#else
                 struct timespec ts;
                 if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1) {
                     assert(false);
                     throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_GET_SYSTEM_TIME);
                 }
                 return (ts.tv_sec*billion + ts.tv_nsec);
-#endif
             }
         };
 

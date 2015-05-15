@@ -1,0 +1,48 @@
+SCIDB QUERY : <create array parse_woes<f1:string,f2:string null,f3:string null,f4:string null>[i=0:*,20,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c ${IQUERY_HOST} -p ${IQUERY_PORT} -aq "load(parse_woes, '${TEST_DATA_DIR}/parse_errors.tsv', -2, 'tsv', 100, parse_shadow)">
+{i} f1,f2,f3,f4
+{0} 'field1','field2','field3','field4-substitute-%-for-tab-to-see-them-better'
+{1} '','','a3','a4'
+{2} '','','b3',null
+{3} '','c2','c3','c4'
+{4} 'd1','','d3d3a
+d3b\\d3c',''
+{5} 'e1','','e3e3a
+e3b\\e3c',''
+{6} '\\f1','','f3','\\x\\y\\zf4'
+{7} 'g1',null,'g3','g4'
+{8} 'h1','h2','h3','all-good-here-h4'
+{9} '','','',''
+{10} 'j1-all-empty-above','j2','j3','j4-one-tab-too-many-below'
+{11} '','','',''
+{12} 'm1-skipped-l','m2','m3','m4-one-tab-too-few-below'
+{13} '','','',null
+{14} 'o1','o2','o3-line-ends-w-crlf','o4'
+{15} 'p1-short-line-ends-w-crlf','p2','p3',null
+{16} 'q1-now-test-some-nulls',null,null,?127
+{17} '\\N',null,'r3-sql-style-nulls',null
+{18} 's1-more-nulls-crlf',null,null,null
+{19} 't1-non-nulls','??0','?','NULL'
+{20} 'u1-more-non-nulls','?-42','Null','NA'
+{21} 'v1-eof-in-mid-line','q2',null,null
+Warnings during execution:
+Too many fields in input at position 124, line 5, column 4 (truncating input records to fit)
+
+SCIDB QUERY : <scan(parse_shadow)>
+{i} f1,f2,f3,f4,row_offset
+{2} null,null,null,'TSV parsing error, raw delimiter must not be escaped',81
+{3} 'TSV parsing error, raw delimiter must not be escaped',null,null,null,85
+{7} null,'TSV parsing error, raw delimiter must not be escaped',null,null,168
+{13} null,null,null,'Too few input record fields at position 311, line 14, column 3',310
+{15} null,null,null,'Too few input record fields at position 374, line 16, column 3',372
+{16} null,null,'The integer \'?128\' is not a valid missing reason code',null,400
+{21} null,null,'Too few input record fields at position 545, line 22, column 2','Too few input record fields at position 545, line 22, column 3',545
+
+SCIDB QUERY : <remove(parse_woes)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(parse_shadow)>
+Query was executed successfully
+

@@ -35,7 +35,6 @@ namespace scidb
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.query.ops.test.splitarray.LogicalSplitArrayTest"));
 
-
 class PhysicalSplitArrayTest: public PhysicalOperator
 {
 public:
@@ -59,9 +58,13 @@ public:
         size_t cSCol = dims[1].getChunkInterval();
 
         size_t instanceID = query->getInstanceID();
-        size_t nInstances = query->getInstancesCount();
+        const size_t nInstances = query->getInstancesCount();
         if (nInstances > 1) {
-            input = redistribute(input, query, psByCol);
+            input = redistributeToRandomAccess(input, query, psByCol,
+                                               ALL_INSTANCE_MASK,
+                                               shared_ptr<DistributionMapper>(),
+                                               0,
+                                               shared_ptr<PartitioningSchemaData>());
         }
 
         // the following is somewhat convoluted, and can be cleaned up, if deemed necessary, as a later step
@@ -123,8 +126,8 @@ public:
         // create split array from _schema, matrix, and _schema coordinates
         shared_array<char> matrixShared(reinterpret_cast<char*>(matrix));
         Coordinates first(2), last(2);
-        first[0] = dims[0].getStart();
-        first[1] = dims[1].getStart() + colStartOffset;
+        first[0] = dims[0].getStartMin();
+        first[1] = dims[1].getStartMin() + colStartOffset;
         last[0] = dims[0].getEndMax();
         last[1] = first[1] + nColLocal - 1;
 

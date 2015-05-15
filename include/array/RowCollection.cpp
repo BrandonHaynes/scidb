@@ -78,7 +78,7 @@ void RowCollection<Group,Hash>::getChunkIterators(vector<boost::shared_ptr<Chunk
         Coordinates itemPos(2);
         itemPos[0] = rowId;
         itemPos[1] = _counts[rowId];
-        int chunkMode = ChunkIterator::APPEND_CHUNK;
+        int chunkMode = ChunkIterator::APPEND_EMPTY_BITMAP | ChunkIterator::APPEND_CHUNK;
         for (size_t i=0; i<_attributes.size(); ++i) {
             ScopedMutexLock lock(_mutexArrayIterators);
             _arrayIterators[i]->setPosition(chunkPos);

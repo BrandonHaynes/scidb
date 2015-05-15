@@ -289,7 +289,7 @@ SCIDB QUERY : <show(Dsp_1d)>
 {i} schema
 {0} 'Dsp_1d<val:double> [probe_id=0:9,5,0]'
 
-SCIDB QUERY : <SELECT * into Dsp_new FROM concat(adddim(Dsp_slice_0, d), adddim(Dsp_slice_2, d))>
+SCIDB QUERY : <store( concat( redimension( apply(Dsp_slice_0, d, 0), <val:double> [d=0:0,1,0,probe_id=0:4,5,0]), redimension( apply(Dsp_slice_2, d, 0), <val:double> [d=0:0,1,0,probe_id=0:4,5,0]) ), Dsp_new)>
 {d,probe_id} val
 {0,0} 0.01
 {0,1} 30.36

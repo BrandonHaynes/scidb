@@ -1,0 +1,6 @@
+--setup
+--test
+subarray(between(build(<a0:bool>[d0=11:40,7,5],false),14,36),20,38)
+between(between(build(<a0:bool>[d0=11:40,7,5],false),14,36),20,38)
+
+--cleanup

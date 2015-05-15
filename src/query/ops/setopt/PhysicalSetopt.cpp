@@ -44,7 +44,7 @@ using namespace boost;
 
 namespace scidb
 {
-    
+
 class PhysicalSetopt: public PhysicalOperator
 {
   public:
@@ -58,13 +58,14 @@ class PhysicalSetopt: public PhysicalOperator
     shared_ptr<Array> execute(vector< shared_ptr<Array> >& inputArrays, shared_ptr<Query> query)
     {
         string oldValue;
-        vector< shared_ptr<Tuple> > tuples(1);        
+
+        boost::shared_ptr<TupleArray> tuples(boost::make_shared<TupleArray>(_schema, _arena));
 
         shared_ptr<OperatorParamPhysicalExpression> p0 =
             (shared_ptr<OperatorParamPhysicalExpression>&)_parameters[0];
         string name = p0->getExpression()->evaluate().getString();
 
-        if (_parameters.size() == 2) { 
+        if (_parameters.size() == 2) {
             shared_ptr<OperatorParamPhysicalExpression> p1 =
                 (shared_ptr<OperatorParamPhysicalExpression>&)_parameters[1];
             string newValue = p1->getExpression()->evaluate().getString();
@@ -81,17 +82,17 @@ class PhysicalSetopt: public PhysicalOperator
                     << e.what() << name;
             }
 
-            Tuple& tuple = *new Tuple(2);
+            Value tuple[2];
             tuple[0].setString(oldValue.c_str());
             tuple[1].setString(newValue.c_str());
-            tuples[0] = shared_ptr<Tuple>(&tuple);
-        } else { 
+            tuples->appendTuple(tuple);
+        } else {
             oldValue = Config::getInstance()->getOptionValue(name);
-            Tuple& tuple = *new Tuple(1);
+            Value tuple[1];
             tuple[0].setString(oldValue.c_str());
-            tuples[0] = shared_ptr<Tuple>(&tuple);
+            tuples->appendTuple(tuple);
         }
-        return shared_ptr<Array>(new TupleArray(_schema, tuples, Coordinate(query->getInstanceID())));
+        return tuples;
     }
 };
 

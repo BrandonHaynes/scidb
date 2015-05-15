@@ -42,6 +42,8 @@
 
 #include <strings.h>
 #include <stdio.h>
+#include <sstream>
+#include <iomanip>
 
 inline int compareStringsIgnoreCase(const std::string& a, const std::string& b)
 {
@@ -66,25 +68,37 @@ struct __lesscasecmp
 #define REL_FILE \
     (__FILE__[0] == '/' ? std::string(__FILE__).substr(strlen(PROJECT_ROOT)).c_str() : __FILE__)
 
-
 /**
- * Encode the non-printable characters in a string with their octal format.
- * For instance, encode the 'DEL' character with '\177'.
+ * Encode the non-printable characters in a string in hex format.
+ *
+ * For instance, encode the DEL character with '%7F'.  The '%'
+ * character itself becomes '%25'.  Beware: this is NOT true URL
+ * encoding by any stretch, nor does it have any knowledge of UTF-8.
+ * Its intended use is for error logging.
  */
-inline std::string encodeString(std::string s) {
-    std::string dest;
-    char buf[] = {'\\', 0, 0, 0, 0}; // 3 digits are needed; the fourth one is to avoid overwriting.
-    for (size_t i=0; i<s.size(); ++i) {
-        char c = s[i];
-        if (isprint(c)) {
-            dest += c;
-        }
-        else {
-            snprintf(&buf[1], 3, "%03o", static_cast<unsigned char>(c)); // print c as three octal digits, padding with 0.
-            dest.append(buf, 4);
+inline std::string debugEncode(const std::string& s)
+{
+    std::stringstream ss;
+    for (std::string::const_iterator pos = s.begin(); pos != s.end(); ++pos) {
+        char ch = *pos;
+        if (ch == '%' || !::isprint(ch)) {
+            ss << '%' << std::hex << std::setw(2) << std::uppercase
+               << std::setfill('0') << int(ch);
+        } else {
+            ss << ch;
         }
     }
-    return dest;
+    return ss.str();
+}
+
+/// @see debugEncode(const std::string&)
+inline std::string debugEncode(const char* s)
+{
+    std::string str;
+    if (s) {
+        str = s;
+    }
+    return debugEncode(str);
 }
 
 /**

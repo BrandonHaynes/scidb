@@ -44,7 +44,85 @@ import select
 import argparse
 import traceback
 import functools
+import itertools
 import getpass
+import random
+
+# This horrible violation of the SPOT principle brought to you by ticket #3533.
+# Table with scidb command line options.  Each line below lists the name of
+# the command line option and the flag indicating whether or not it is a
+# required option.  The table immediately below lists options that appear on
+# scidb command line in "--option=value" format.  if a required option is
+# missing from config.ini, the script will error out.
+scidb_cmdline_options = {
+    'install_root':                  True,
+    'pluginsdir':                    True,
+    'chunk-reserve':                 False,
+    'redundancy':                    False,
+    'merge-sort-buffer':             False,
+    'merge-sort-nstreams':           False,
+    'merge-sort-pipeline-limit':     False,
+    'redimension-chunksize':         False,
+    'max-open-fds':                  False,
+    'smgr-cache-size':               False,
+    'mem-array-threshold':           False,
+    'redim-chunk-overhead-limit-mb': False,
+    'chunk-size-limit-mb':           False,
+    'network-buffer':                False,
+    'liveness-timeout':              False,
+    'deadlock-timeout':              False,
+    'execution-threads':             False,
+    'operator-threads':              False,
+    'result-prefetch-threads':       False,
+    'result-prefetch-queue-size':    False,
+    'sync-io-interval':              False,
+    'io-log-threshold':              False,
+    'max-memory-limit':              False,
+    'small-memalloc-size':           False,
+    'large-memalloc-limit':          False,
+    'replication-send-queue-size':   False,
+    'replication-receive-queue-size':False,
+    'sg-send-queue-size':            False,
+    'sg-receive-queue-size':         False,
+    'requests':                      False,
+    'load-scan-buffer':              False,
+    'mpi-dir':                       False,
+    'mpi-type':                      False,
+    'preallocate-shared-mem':        False,
+    'materialized-window-threshhold':False,
+    'ssh-port':                      False,
+    'pg-port':                       False,
+    'key-file-list':                 False,
+    'data-dir-prefix':               False,
+    'input-double-buffering':        False
+}
+# Same table as above, except these options are boolean flags.  That is, they
+# appear on scidb command line simply as --option.  Note that if a boolean flag
+# appears on the command line as --option=True or --option=False, then it has
+# to be treated as a regular option and should be placed in the table of
+# regular options above (scidb_cmdline_options).
+scidb_cmdline_bool_options = {
+    'enable-delta-encoding':  False,
+    'daemon-mode':            False,
+    'no-watchdog':            False,
+    'enable-catalog-upgrade': False
+    }
+# The options below either require special handling or apply only to scidb.py
+# (this script) only.
+non_cmdline_options = {
+    'malloc_check_':    False, # For scidb.py (causes env. variable changes).
+    'tcmalloc':         False, # For scidb.py (causes env. variable changes).
+    'preload':          False, # For scidb.py (changes LD_PRELOAD env. variable).
+    'purge-days':       False, # For scidb.py.
+    'logconf':          True,  # Used during init sub-command.
+    'malloc_arena_max': False, # For scidb.py (env. variable changes).
+    'db_user':          True,  # For command line, but requires special handling.
+    'db_passwd':        True,  # For command line, but requires special handling.
+    'base-path':        True,  # For command line, but requires special handling.
+    'base-port':        True,  # For command line, but requires special handling.
+    'interface':        False, # Looks like a legacy option: probably not used.
+    'gcov_prefix':      False  # For scidb.py (causes env. variable changes).
+}
 
 def printError(string):
    print >> sys.stderr, "%s: ERROR: %s" % (sys.argv[0], string)
@@ -76,6 +154,155 @@ def removeInstDir(srv, liid, dt):
                 raise Exception("Unexpected data directory %s for server %d (%s) local instance %d" %\
                                         (ldir,srv[0],srv[1],liid))
 # end def removeInstDir
+
+def random_string(size=5):
+   """ Return a pseudo-randomly selected string of specified size
+       composed of letters and digits.
+       @param size length (in characters) of the random string to
+              produce
+       @return string composed of letters and digist of specified
+               size
+   """
+   return ''.join(
+      random.sample(
+         string.digits + string.letters,
+         size
+         )
+      )
+
+def get_required_opts(opts_dict):
+    """ Filter all options and return a set of required ones.
+        @param all_options set of all possible options
+        @param opts_dict dictionary with all possible options and
+                         their attributes
+        @return set of required options (strings)
+    """
+    required_options = []
+    for op in gCtx._all_options.keys():
+        if (gCtx._all_options[op]):
+            required_options.append(op)
+    return set(required_options)
+
+def validate_config_init_settings(opts_dict):
+    """ Perform a simple check on the config.ini options specified
+        by the user.  Config.ini settings will be checked against
+        a subset (an ever-growing subset) of available options.
+
+        @param opts_dict dictionary with the parsed settings
+    """
+    ignore_specified_opts = set([
+        'db_name' # This option is not in config.ini: it is derived from the cluster name.
+        ])
+
+    specified_options = set(opts_dict.keys())
+    all_options = set(gCtx._all_options.keys())
+
+    specified_options = specified_options - ignore_specified_opts
+
+    required_options = get_required_opts(opts_dict)
+
+    # Check if any of the required options are missing:
+    missing_required_opts = required_options - (required_options & specified_options)
+    if (len(missing_required_opts) > 0):
+        missing_list = ['Following required config.ini options are not specified:']
+        missing_list.extend(missing_required_opts)
+        raise Exception('\n'.join(missing_list))
+
+    # Remove data dir prefix and server-N option(s):
+    data_dir_options = []
+    server_options = []
+    unknown_options = []
+    for op in specified_options:
+        if ('data-dir-prefix' in op):
+            data_dir_options.append(op)
+            continue
+        if ('server-' in op):
+            server_options.append(op)
+            continue
+        if (op not in all_options):
+            unknown_options.append(op)
+
+    if (len(unknown_options) > 0):
+        unknown_list = list(unknown_options)
+        unknown_list.sort()
+        unknown_list = ['Unsupported options found in config.ini:'] + unknown_list
+        printWarn('\n'.join(unknown_list))
+
+    # Validate server name options.
+    # First, check that servers are specified:
+    if (len(server_options) <= 0):
+        raise Exception('No servers specified in config.ini!')
+
+    # Then check that all of the entries conform to the documented syntax:
+    server_entries = ['server-' + str(i) for i in range(len(gCtx._srvList))]
+    bad_server_entries = set(server_options) - set(server_entries)
+    if (len(bad_server_entries) > 0):
+        unknown_list = list(bad_server_entries)
+        unknown_list.sort()
+        unknown_list = ['Unsupported server options found in config.ini:'] + unknown_list
+        raise Exception('\n'.join(unknown_list))
+
+    # Validate (if specified) data dir prefix options:
+    if (len(data_dir_options) > 1 and 'data-dir-prefix' in data_dir_options):
+        msg_list = ['Bad data-dir-prefix entries found!']
+        msg_list.append(
+            'Please specify either one data-dir-prefix entry or data-dir-prefix-X-Y for each instance!'
+            )
+        raise Exception('\n'.join(msg_list))
+    else:
+        data_dir_options = set(data_dir_options) - set(['data-dir-prefix'])
+
+        # Reconstruct and remove per-instance data prefixes:
+        instance_ranges = []
+
+        # Add the instance number range for the coordinator.
+        instance_ranges.extend([range(gCtx._srvList[gCtx._coordSrvId][2]+1)])
+        worker_list = list(gCtx._srvList)
+        worker_list.remove(gCtx._srvList[gCtx._coordSrvId])
+        instance_ranges.extend(
+            [
+                range(1,srv[2]+1) for srv in worker_list
+            ]
+            )
+
+        data_prefixes = [
+            'data-dir-prefix-' + str(i) + '-' + str(j) \
+            for i in range(len(gCtx._srvList)) for j in instance_ranges[i]
+            ]
+
+        # Make sure that each instance has its own specified data dir prefix:
+        if ((len(data_prefixes) != len(data_dir_options)) and (len(data_dir_options) > 0)):
+            raise Exception('Mismatch between data dir prefixes and total number of scidb instances in config.ini!')
+
+        bad_dir_options = data_dir_options - set(data_prefixes)
+
+        # If there are still options, raise an exception.
+        if (len(bad_dir_options) > 0):
+            unknown_list = list(bad_dir_options)
+            unknown_list.sort()
+            unknown_list = ['Unsupported data prefix dir options found in config.ini:'] + unknown_list
+            raise Exception('\n'.join(unknown_list))
+
+def get_ld_library_path(addVarName=True):
+   """ Return value for environment variable LD_LIBRARY_PATH and
+       optionally append LD_LIBRARY_PATH= to the beginning of
+       the string.
+
+       @param addVarName optional keyword parameter that indicates
+                     if LD_LIBRARY_PATH= definition header should
+                     be added to the return value
+       @return path-like string with the value for the LD_LIBRARY_PATH
+               environment variable
+   """
+   # Lib and lib/scidb/plugins were removed from LD_LIBRARY_PATH
+   # because they are no longer required.  LD_LIBRARY_PATH variable
+   # is defined on all commands sent to local and remote hosts.
+   ld_lib_path = os.environ.get("LD_LIBRARY_PATH", "")
+
+   if (addVarName): # Add the definition header
+      ld_lib_path = 'LD_LIBRARY_PATH=' + ld_lib_path
+
+   return ld_lib_path
 
 # get the path for a srv (parent) directory
 def getSrvDataPath(srv, liid):
@@ -131,23 +358,25 @@ def createConnstr(remote=False):
    return connstr
 
 def runRemoteCommands(clients,cmds,timeout=600):
-    channels = map(lambda client: client.get_transport().open_session(),clients)
-    _ = map(lambda client: client.get_transport().set_keepalive(0),clients)
-    _ = map(lambda channel: channel.settimeout(timeout),channels)
-    _ = map(lambda chCmdZip: chCmdZip[0].exec_command(chCmdZip[1]),zip(channels,cmds))
-    return channels
+   channels = map(lambda client: client.get_transport().open_session(),clients)
+   _ = map(lambda client: client.get_transport().set_keepalive(0),clients)
+   # Put all channels in non-blocking mode: receive data operations will not block.
+   _ = map(lambda channel: channel.settimeout(0),channels)
+   _ = map(lambda chCmdZip: chCmdZip[0].exec_command(chCmdZip[1]),zip(channels,cmds))
+   return channels
 
 def trackRemoteCommandExecution(
-    clients,
-    remoteChannels,
-    cmds,
-    auto_close=False,
-    wait=True,
-    timeout=600,
-    read_max=10*1024*1024
+    clients, # SSH connections.
+    remoteChannels, # Channels obtained from the SSH connections.
+    cmds, # Running commands.
+    auto_close=False, # Flag to close remote channels in this function.
+    wait=True, # Flag that indicates the function should wait for commands to exit.
+    timeout=600, # Timeout value (in seconds) for the select call.
+    read_max=128*1024 # Max number of bytes to read from channel buffer.
     ):
     #...............................................................
     read_max = int(read_max / 2)
+
     stdins = map(lambda x: x.makefile('wb', -1),remoteChannels)
     validStdins = [x for x in stdins if x]
 
@@ -155,16 +384,16 @@ def trackRemoteCommandExecution(
     map(lambda x: x.channel.shutdown_write(),validStdins)
     map(lambda x: x.close(), validStdins)
 
-    stdouts = map(lambda x: x.makefile('rb', -1),remoteChannels)
-    stderrs = map(lambda x: x.makefile_stderr('rb', -1),remoteChannels)
-
-    # Set up status-checking functions for stdouts:
+    # Set up flag lists for status-checking.
     stdoutsDone = [False for i in range(len(remoteChannels))]
     stderrsDone = [False for i in range(len(remoteChannels))]
     statusDone = [False for i in range(len(remoteChannels))]
 
-    stdoutsText = ['' for i in range(len(stdouts))]
-    stderrsText = ['' for i in range(len(stderrs))]
+    # Set up lists for storing chunks of output text.
+    stdoutsText = [[] for i in range(len(remoteChannels))]
+    stderrsText = [[] for i in range(len(remoteChannels))]
+
+    # Set up the list for storing command exit codes.
     exits = [-1 for i in range(len(remoteChannels))]
 
     # No wait + auto_close: close clients (ssh connections).
@@ -174,66 +403,68 @@ def trackRemoteCommandExecution(
        return exits,stdoutsText,stderrsText
 
     start_time = time.time()
+
+    # Keep a dynamic list of active SSH channels.
     activeChannels = list(remoteChannels)
 
-    getExitFunctions = [lambda i: exits[i],lambda i: remoteChannels[i].recv_exit_status()]
-    getStatusFunctions = [lambda i: statusDone[i],lambda i: True]
-
     while (len(activeChannels) > 0):
-        stderrsStatus = map(
-            lambda x: getStreamStatus(x[0],x[1],x[2],x[3],x[2].channel.recv_stderr_ready,read_max),
-            zip(stderrsDone,statusDone,stderrs,stderrsText)
-            )
-        stdoutsStatus = map(
-            lambda x: getStreamStatus(x[0],x[1],x[2],x[3],x[2].channel.recv_ready,read_max),
-            zip(stdoutsDone,statusDone,stdouts,stdoutsText)
-            )
+       # Collect stderr data for all channels.
+       stderrsDone = map(
+          lambda x: getStreamStatus(x[0],x[1],x[2],x[3],x[2].recv_stderr_ready,x[2].recv_stderr,read_max),
+          zip(stderrsDone,statusDone,remoteChannels,stderrsText)
+          )
+       # Collect stdout data for all channels.
+       stdoutsDone = map(
+          lambda x: getStreamStatus(x[0],x[1],x[2],x[3],x[2].recv_ready,x[2].recv,read_max),
+          zip(stdoutsDone,statusDone,remoteChannels,stdoutsText)
+          )
 
-        # Update lists:
-        stderrsDone = [x[0] for x in stderrsStatus]
-        stderrsText = [x[1] for x in stderrsStatus]
-        stdoutsDone = [x[0] for x in stdoutsStatus]
-        stdoutsText = [x[1] for x in stdoutsStatus]
+       # Check which which channels have commands that exited.
+       exitsStatus = [
+          ((not statusDone[i]) and remoteChannels[i].exit_status_ready()) for i in range(len(remoteChannels))
+          ]
+       # Grab the exits for channels whose commands have exited.
+       exits = [
+          remoteChannels[i].recv_exit_status() if exitsStatus[i] else exits[i] \
+             for i in range(len(exitsStatus))
+          ]
+       # Check "done" status for all channels.
+       statusDone = [
+          True if exitsStatus[i] else statusDone[i] \
+             for i in range(len(exitsStatus))
+          ]
 
-        # Check channels exit status:
-        exitsStatus = [
-            ((not statusDone[i]) and remoteChannels[i].exit_status_ready()) for i in range(len(remoteChannels))
-            ]
+       # Reconstruct the list of active channels and remove the finished ones.
+       activeChannels = [
+          remoteChannels[i] for i in range(len(remoteChannels)) if (not statusDone[i]) or (not stdoutsDone[i]) or (not (stderrsDone[i]))
+          ]
 
-        exits = [getExitFunctions[exitsStatus[i]](i) for i in range(len(exitsStatus))]
-        statusDone = [getStatusFunctions[exitsStatus[i]](i) for i in range(len(exitsStatus))]
+       # Timeouts handling
+       time2wait = (int(start_time) + (timeout*len(remoteChannels))) - int(time.time())
+       if (time2wait <= 0):
+          timeoutIndices = [x for i in range(len(cmds)) if not statusDone[i]]
+          for i in timeoutIndices:
+             printError( "remote_exec(%s) timed out" % (cmds[i]))
+             stderrsText[i] += "\nexit_status("+str(exits[i])+") after timeout ("+str(timeout)+")"
+          break
 
-        activeChannels = [
-            remoteChannels[i] for i in range(len(remoteChannels)) if (not statusDone[i]) or (not stdoutsDone[i]) or (not (stderrsDone[i]))
-            ]
-
-        # Timeouts handling
-        time2wait = (int(start_time) + (timeout*len(remoteChannels))) - int(time.time())
-        if (time2wait <= 0):
-            timeoutIndices = [x for i in range(len(cmds)) if not statusDone[i]]
-            for i in timeoutIndices:
-                printError( "remote_exec(%s) timed out" % (cmds[i]))
-                stderrsText[i] += "\nexit_status("+str(exits[i])+") after timeout ("+str(timeout)+")"
-            break
-
-        if (len(activeChannels) > 0):
-            select.select(activeChannels,activeChannels,[],time2wait)
+       # Wait for channels to become ready (for IO).
+       if (len(activeChannels) > 0):
+          select.select(activeChannels,activeChannels,[],time2wait)
 
     map(lambda x: x.close(),stdins)
-    map(lambda x: x.close(),stdouts)
-    map(lambda x: x.close(),stderrs)
 
     if (auto_close):
        map(lambda client: client.close(),clients)
 
-    return exits,stdoutsText,stderrsText
+    # Done; collapse the output chunks for every channel and return everything.
+    return exits,[''.join(t) for t in stdoutsText],[''.join(t) for t in stderrsText]
 
 def parallelRemoteExec(
     clients,
     cmds,
     waitFlag=True,
-    ignoreError=False,
-    silent=False
+    ignoreError=False
     ):
     global _DBG
     cmds = [prepareRemoteShellCmd(cmd) for cmd in cmds]
@@ -249,11 +480,8 @@ def parallelRemoteExec(
         if _DBG:
             traceback.print_exc()
         printDebug( 'Remote command exceptions:\n%s\n%s'%(str(cmds),str(e1)) )
-        if (not silent):
+        if (not ignoreError):
             printError( 'Remote command exceptions:\n%s'%(str(e1)) )
-        if (ignoreError):
-            pass
-        else:
             sshclose(clients)
             sys.exit(1)
     return exits,outputs,errors
@@ -267,22 +495,20 @@ def remote_exec(client, lcmd, auto_close=False, wait=True, tmo=600, read_max=10*
 
         chan = client.get_transport().open_session()
         client.get_transport().set_keepalive(0)
-        chan.settimeout(tmo)
+        chan.settimeout(0) # Make channel IO non-blocking.
         chan.exec_command(lcmd)
 
         stdin = chan.makefile('wb', -1)
         if stdin:
-                stdin.channel.shutdown_write()
-                stdin.close()
+           stdin.channel.shutdown_write()
+           stdin.close()
         # end if
-        stdout = chan.makefile('rb', -1)
-        stderr = chan.makefile_stderr('rb', -1)
 
         start_time = time.time()
 
         if (not wait):
                 if (auto_close):
-                        client.close
+                   client.close
                 # end if
                 return (exit_status, output, err)
         # end if
@@ -292,21 +518,25 @@ def remote_exec(client, lcmd, auto_close=False, wait=True, tmo=600, read_max=10*
         statusDone=False
 
         # Wait for status
+        err = []
+        output = []
         while True:
-                stderrDone, err = getStreamStatus(
+                stderrDone = getStreamStatus(
                         stderrDone,
                         statusDone,
-                        stderr,
+                        chan,
                         err,
-                        stderr.channel.recv_stderr_ready,
+                        chan.recv_stderr_ready,
+                        chan.recv_stderr,
                         read_max
                         )
-                stdoutDone, output = getStreamStatus(
+                stdoutDone = getStreamStatus(
                         stdoutDone,
                         statusDone,
-                        stdout,
+                        chan,
                         output,
-                        stdout.channel.recv_ready,
+                        chan.recv_ready,
+                        chan.recv,
                         read_max
                         )
 
@@ -332,44 +562,43 @@ def remote_exec(client, lcmd, auto_close=False, wait=True, tmo=600, read_max=10*
         # end while
 
         stdin.close()
-        stdout.close()
-        stderr.close()
 
         if auto_close:
                 client.close()
         # end if
 
-        return (exit_status, output, err)
+        return (exit_status, ''.join(output), ''.join(err))
 # end def remote_exec
 #.............................................................................
 # getStreamStatus: returns whether or not a given stream has any more bytes
 # in it along with the current (appended) output text.
 def getStreamStatus(
         streamDone, # Flag indicating if this stream is finished or not.
-        statusDone, # Flag indicating if the stream parent has all of its streams exhausted.
-        stream,     # I/O stream for reading.
-        streamText, # Current text from the stream in string form.
-        readyFunction, # Callable function to check if stream has bytes in it for reading.
+        statusDone, # Flag indicating if the command run by the channel has finished.
+        channel,     # I/O stream for reading.
+        streamTextList, # Current text from the stream in string form.
+        readyFunction, # Callable function to check if channel's stream has bytes in it for reading.
+        receiveFunction,# Callable function to retrieve bytes from the channel stream buffer.
         read_max  # Maximum number of bytes to read from the stream.
         ):
-        outText = [streamText]
         sDone = streamDone
+        # ReadyFunction returns True only if there are actual bytes of data in
+        # the channel's I/O pipes; on EOF readyFunction still returns False
+        # which is why we rely on statusDone variable to check for EOF
+        # condition.
         if (not streamDone) and (statusDone or readyFunction()):
-                try:
-                        ret = stream.read(read_max)
-                        if ret:
-                                outText.append(ret)
-                                # print "Reading stderr ..."
-                        else:
-                                # print "Closing stderr ..."
-                                stream.close()
-                                sDone=True
-                # end if
-                except socket.timeout:
-                        pass
-                # end try
+           try:
+              ret = receiveFunction(read_max)
+              if ret:
+                 streamTextList.append(ret)
+              else:
+                 sDone=True
+              # end if
+           except socket.timeout: # Non-blocking recv call throws exception if there is no text in buffer.
+              pass
+           # end try
         # end if
-        return sDone,''.join(outText)
+        return sDone
 #.............................................................................
 # Use globals sshPort, keyFilenameList
 def sshconnect( srv, username=None, password=None):
@@ -442,8 +671,8 @@ def executeLocal( cmdList,
                   stdoutFile=None,
                   stderrFile=None,
                   useShell=False,
-                  ignoreError=False,
-                  silent=False):
+                  ignoreError=False
+                  ):
         ret = 0
         out = ''
         err = ''
@@ -499,6 +728,7 @@ def executeLocal( cmdList,
 
         executable=None
         if useShell:
+           cmdList = ['source ~/.bashrc;'] + cmdList
            cmdList=[" ".join(cmdList)]
            executable="/bin/bash"
         # end if
@@ -523,25 +753,23 @@ def executeLocal( cmdList,
                                 err = serr.read()
                  # end if
         except Exception, e1:
-                if (ignoreError):
-                        pass
-                else:
-                        if (not silent):
-                                printError(str(e1))
-                                printError("command %s: " % (" ".join(cmdList)))
-                                logs = ""
-                                if (stderrFile):
-                                        logs = logs + stderrFile
-                          # end if
-                                if (stdoutFile):
-                                        logs = logs + " " + stdoutFile
-                          # end if
-                                if (logs != ""):
-                                        printError("Check logs in %s"%(logs))
-                        # end if
-                        # end if
-                        sys.exit(1)
-                  # end if
+           printDebug(str(e1))
+           if (not ignoreError):
+              printError(str(e1))
+              printError("command %s: " % (" ".join(cmdList)))
+              logs = ""
+              if (stderrFile):
+                 logs = logs + stderrFile
+              # end if
+              if (stdoutFile):
+                 logs = logs + " " + stdoutFile
+              # end if
+              if (logs != ""):
+                 printError("Check logs in %s"%(logs))
+              # end if
+
+              sys.exit(1)
+           # end if
         # end try
         #       print ret, out, err
         return (ret, out, err)
@@ -550,7 +778,10 @@ def executeLocal( cmdList,
 # Make sure the command is executed by bash
 def prepareRemoteShellCmd(cmdString):
    cmdString = cmdString.replace("'","\\'")
-   cmdString = "exec /bin/bash -c $'"+cmdString+"'"
+   cmdString = "exec /bin/bash -c $'" + \
+       'source ~/.bashrc; ' + \
+       cmdString + \
+       "'"
 
    printDebug("Remote command="+cmdString)
    return cmdString
@@ -565,8 +796,8 @@ def executeRemote( cmdList, srv, liid,
                    sshc=None,
                    stdoutFile=None,
                    stderrFile=None,
-                   ignoreError=False,
-                   silent=False):
+                   ignoreError=False
+                   ):
         ret = 0
         out = ''
         err = ''
@@ -616,15 +847,13 @@ def executeRemote( cmdList, srv, liid,
                       raise Exception("Abnormal return code: %s stderr: %s" % (ret,err))
 
         except Exception, e1:
-                if (not silent):
-                   printError("Remote command exception:\n%s\n%s"%(cmdString,str(e1)))
-                # end if
-                if ignoreError:
-                   pass
-                else:
-                   if needsClose: sshclose([sshc])
-                   sys.exit(1)
-                # end if
+           printDebug("Remote command exception:\n%s\n%s"%(cmdString,str(e1)))
+           if not ignoreError:
+              printError("Remote command exception:\n%s\n%s"%(cmdString,str(e1)))
+              if needsClose:
+                 sshclose([sshc])
+              sys.exit(1)
+           # end if
         # end try
         return (ret, out, err)
 # end def executeIt
@@ -637,7 +866,7 @@ def executeIt( cmdList, srv, liid,
                useConnstr=True, executable=None,
                sshc=None, stdoutFile=None, stderrFile=None,
                useSSH4Local=False, useShell=False,
-               ignoreError=False, silent=False):
+               ignoreError=False):
 
         if srv[0] == 0 and not useSSH4Local :
                 dataDir = getInstanceDataPath( srv,liid)
@@ -649,8 +878,7 @@ def executeIt( cmdList, srv, liid,
                                     stdoutFile=stdoutFile,
                                     stderrFile=stderrFile,
                                     useShell=useShell,
-                                    ignoreError=ignoreError,
-                                    silent=silent)
+                                    ignoreError=ignoreError)
         else:
                 return executeRemote(cmdList, srv, liid,
                                      waitFlag=waitFlag,
@@ -659,8 +887,7 @@ def executeIt( cmdList, srv, liid,
                                      sshc=sshc,
                                      stdoutFile=stdoutFile,
                                      stderrFile=stderrFile,
-                                     ignoreError=ignoreError,
-                                     silent=silent)
+                                     ignoreError=ignoreError)
 
 # end def executeIt
 
@@ -697,7 +924,7 @@ def createDirsAndLinks( srv, liid):
    # create/link directories and add symlink for executable
    if (ddir != ""):
       cmdList = ['ls', ddir+'/*', '1>/dev/null', '2>/dev/null']
-      (ret,out,err) = executeIt( cmdList, srv, liid, nocwd=True, useConnstr=False, ignoreError=True, useShell=True, silent=True)
+      (ret,out,err) = executeIt( cmdList, srv, liid, nocwd=True, useConnstr=False, ignoreError=True, useShell=True)
       if ret == 0:
          print "Data directory %s for server %d (%s) local instance %d must be empty" % (ddir,srv[0],srv[1],liid)
          sys.exit(1)
@@ -717,7 +944,7 @@ def createDirsAndLinks( srv, liid):
 def relink_binary(srv, liid):
    global gCtx
    cmdList = ['rm', '-f', binFile(srv, liid)]
-   executeIt(cmdList, srv, liid, useConnstr=False, ignoreError=True, silent=True)
+   executeIt(cmdList, srv, liid, useConnstr=False, ignoreError=True)
    cmdList = ['ln', '-fs', gCtx._installPath + "/bin/scidb", binFile(srv, liid)]
    executeIt(cmdList, srv, liid, useConnstr=False)
 # end def relink_binary
@@ -725,7 +952,7 @@ def relink_binary(srv, liid):
 def get_scidb_pids(srv, liid):
    cmdList = [ getScidbPidsCmd(srv, liid) ]
    (ret,out,err)=executeIt(cmdList, srv, liid, useSSH4Local=True, useConnstr=False,
-                           useShell=True, ignoreError=True, silent=True, nocwd=True,
+                           useShell=True, ignoreError=True, nocwd=True,
                            stdoutFile=None, stderrFile=None)
 
    # Drop additional whitespace characters
@@ -746,7 +973,7 @@ def getAllScidbInstancePids(
     ):
     cmdList = [ getAllScidbPidsCmd(srv) ]
     (ret,out,err)=executeIt(cmdList, srv, liid, sshc=sshConn,useSSH4Local=True, useConnstr=False,
-                           useShell=True, ignoreError=True, silent=True, nocwd=True,
+                           useShell=True, ignoreError=True, nocwd=True,
                            stdoutFile=None, stderrFile=None)
 
     # Drop additional whitespace characters
@@ -853,7 +1080,7 @@ def init( srv, liid, dt):
          logconf = gCtx._configOpts.get('logconf')
          cmdList.extend(["-i", srv[1], #get_ip_address(gCtx._configOpts.get('interface')),
                                          "-s", getInstanceDataPath(srv,liid) + '/storage.cfg',
-                                         "-l", logconf])
+                                         "--logconf", logconf])
 
          ## XXX temp setting for trac #.
          if gCtx._configOpts.get('enable-delta-encoding') in ['true', 'True', 'on', 'On']:
@@ -862,7 +1089,7 @@ def init( srv, liid, dt):
          # end if
 
          if gCtx._configOpts.get('daemon-mode') in ['true', 'True', 'on', 'On']:
-                 daemonClause = "--daemon"
+                 daemonClause = "--daemon-mode"
                  cmdList.extend([daemonClause])
          # end if
 
@@ -877,7 +1104,7 @@ def init( srv, liid, dt):
          # end if
 
          executeIt(cmdList, srv, liid,
-                   stdoutFile="init-stdout.log", stderrFile="init-stderr.log")
+                   stdoutFile="init-stdout.log", stderrFile="init-stderr.log",useShell=True)
 # end def init
 
 def check_scidb_ready(coordinator,liid):
@@ -928,13 +1155,16 @@ def check_scidb_running(
          raise Exception("Connections dont match servers %d != %d" % (len(sshConns),len(servers)))
 
       # Gather a list of pid-collection commands for every server.
-      cmds = [getAllScidbPidsCmd(srv) for srv in sortedSrvList]
+      random_prefix = 'scidb_' + random_string(10)
+      cmds = [getAllScidbPidsCmd(srv,prefix=random_prefix) for srv in sortedSrvList]
 
       # Run all of the server pid-collecting commands in parallel.
       (ret,out,err) = parallelRemoteExec(sshConns,cmds)
 
       # Analyze the results.
       pids = [o.splitlines() for o in out]
+      pids = [[line.replace(random_prefix,'') for line in lines if random_prefix in line] for lines in pids]
+
       c = sum([len(p) for p in pids])
       if (c > 0):
          msgs = [ "checking (server %d (%s)) %s..." % (tpl[0][0], tpl[0][1], " ".join(tpl[1])) for tpl in zip(sortedSrvList,pids) ]
@@ -958,8 +1188,8 @@ def check_scidb_version(srv, liid):
    (ret,out,err) = executeIt(cmdList, srv, liid,
                              useSSH4Local=True, useConnstr=False,
                              useShell=False, ignoreError=False,
-                             silent=True, nocwd=True,
-                             stdoutFile=None, stderrFile=None)
+                             nocwd=True,stdoutFile=None,
+                             stderrFile=None)
    return out
 # end def check_scidb_version
 
@@ -984,30 +1214,62 @@ def check_scidb_versions_all():
 # the paths to scidb binary files on all servers.
 def makeRelinkBinaryCommands(coordinator,workers):
     global gCtx
+
+    # Set up the instance number range for the coordinator host.
     crdRange = range(0,coordinator[2]+1)
-    workerRmLinkCmds = [
-        ['rm -f '+ os.path.join(getInstanceDataPath(worker,i_id),binFile(worker,i_id)) for i_id in range(1,worker[2]+1)] for worker in workers
-        ]
-    workerLinkCmds = [
-        ['ln -fs '+ gCtx._installPath + '/bin/scidb ' + os.path.join(getInstanceDataPath(worker,i_id),binFile(worker,i_id)) for i_id in range(1,worker[2]+1)] for worker in workers
-        ]
+
+    allWorkerCommands = []
+    allCoordinatorCommands = []
+
+    # Set up the tuples (worker machine,instance id) for all
+    # worker machines; group them into lists by machine:
+    # [
+    #   [(machine_1,instance_1),(machine_1,instance_2),...],
+    #   [(machine_2,instance_1),(machine_2,instance_2),...],
+    #   ...
+    #   [(machine_N,instance_1),(machine_N,instance_2),...]
+    # ]
+    workerIdList = [
+       [(w,w_id) for w_id in range(1,w[2]+1)] for w in workers
+       ]
+    # Set up the same (coordinator,instance id) tuple list
+    # for the coordinator machine:
+    # [(coordinator,instance_1),(coordinator,instance_2),...]
+    coord_id_list = [(coordinator,c_id) for c_id in crdRange]
+
+    # This is a small funstion that returns a set of commands
+    # for s single machine-instance tuple (commands are
+    # separated by &&)
+    relinkCmds = lambda wk,wk_id: ' && '.join(
+       [
+          'rm -f '+ os.path.join(getInstanceDataPath(wk,wk_id),binFile(wk,wk_id)),
+          'ln -fs '+ gCtx._installPath + '/bin/scidb ' + os.path.join(getInstanceDataPath(wk,wk_id),binFile(wk,wk_id))
+       ]
+       )
+
+    # Put together the list of all worker machine commands:
+    # starmap call calls relinkCmds function (above) on all
+    # worker-instance id tuples and stores the command sets
+    # grouped into lists by machine.
     allWorkerCommands = [
-        [cmdZip[0] + ' && ' + cmdZip[1] for cmdZip in zip(listZip[0],listZip[1])] for listZip in zip(workerRmLinkCmds,workerLinkCmds)
-        ]
-    coordinatorRmLinkCmds = [
-        'rm -f '+ os.path.join(getInstanceDataPath(coordinator,i_id),binFile(coordinator,i_id)) for i_id in crdRange
-        ]
-    coordinatorLinkCmds = [
-        'ln -fs '+ gCtx._installPath + '/bin/scidb ' + os.path.join(getInstanceDataPath(coordinator,i_id),binFile(coordinator,i_id)) for i_id in crdRange
-        ]
+       [cmd for cmd in itertools.starmap(relinkCmds,wk_ids)] \
+          for wk_ids in workerIdList
+       ]
+    # Put together the list of all coordinator machine
+    # commands: starmap calls the same relinkCmds function
+    # (above) on all coordinator-instance id tuples and
+    # stores the resulting command set strings in one
+    # list for the coordinator machine.
     allCoordinatorCommands = [
-        coordCmdZip[0] + ' && ' + coordCmdZip[1] for coordCmdZip in zip(coordinatorRmLinkCmds,coordinatorLinkCmds)
-        ]
+       cmd for cmd in itertools.starmap(relinkCmds,coord_id_list)
+       ]
+
+    # Bundle up all commands together and return them back to
+    # the caller.
     allCommands = [allCoordinatorCommands]
     allCommands.extend(allWorkerCommands)
+
     return allCommands
-
-
 #............................................................................
 # Put together commands to start all scidb instances on all servers in
 # config.ini.
@@ -1131,258 +1393,119 @@ def startSomeServers( servers):
        allCmds = [' '.join(x) for x in allCmds]
     #........................................................................
     # Run all of the commands.
-       exits,outputs,errors = parallelRemoteExec(sshConnections,allCmds,waitFlag=False)
+       exits,outputs,errors = parallelRemoteExec(sshConnections,allCmds,waitFlag=True)
        map(lambda x: x.close(),sshConnections)
     finally:
     #........................................................................
        # Close down all of the ssh connections.
        sshclose(sshConnections)
+# end startSomeServers
 
- # Start this liid (single/cluster).
+def useValgrind():
+   @CONFIGURE_SCIDB_PY_VALGRIND@
+   return use_valgrind
+# end useValgrind
+
+def filter_options_for_command_line(all_options, config_options):
+    """ Pre-compute the subset of specified options that can appear on scidb
+        command line.
+        @param all_options dictionary of all possible options known to this 
+               script
+        @param config_options dictionary of user-specified options from 
+               config.ini
+        @return a dictionary of user-specified options from config.ini without
+                data prefix options, server options, and any other options
+                unknown to this script.
+    """
+    options = {}
+    # Create a copy of the dictionary and copy
+    for op in config_options.keys():
+        if (op in non_cmdline_options.keys()):
+            continue # Ignore script, special handling, and other options.
+        if ('data-dir-prefix' in op):
+            continue # Ignore data prefix options.
+        if ('server-' in op):
+            continue # Ignore server options.
+        if (op not in all_options.keys()):
+            continue # Ignore unknown options.
+        options[op] = {op:config_options[op]}
+
+    return options
+
+def setup_scidb_options(ctx):
+    """ Pre-compute all options table and actual command line option strings
+        for scidb.  These tables will be accesible through the global settings
+        object ctx.
+        @param ctx global object with script settings; config.ini settings
+               should be parsed and present in the ctx object when this
+               function is called.
+        @return a dictionary comprised of all possible options (script and 
+                config.ini) known to this script and a list of command line 
+                switches for starting scidb corresponding to options specified
+                by the user.
+    """
+    all_options = dict( # Combine all options into one table.
+        non_cmdline_options.items() + \
+        scidb_cmdline_bool_options.items() + \
+        scidb_cmdline_options.items()
+        )
+    # Filter out everything except options that actually go onto the command
+    # line.
+    user_supplied_options = filter_options_for_command_line(all_options,ctx._configOpts)
+    # Record the actual command line switches to used on scidb command line.
+    scidb_start_switches = map(
+        lambda option: cmd_line_option_to_switch(option,ctx),
+        user_supplied_options.keys()
+        )
+    # Remove any blank strings that could be returned by
+    # cmd_line_option_to_switch.
+    while ('' in gCtx._scidb_start_switches):
+        scidb_start_switches.remove('')
+
+    return all_options,scidb_start_switches
+    
+def cmd_line_option_to_switch(option,ctx):
+    """ Turn an option into actual command line switch for scidb.
+        @param option string representing config.ini option
+        @param ctx 
+        @return string form of the actual command line switch for scidb
+    """
+    switch = ''
+    # If boolean option, then return "--option".
+    if (option in scidb_cmdline_bool_options.keys()):
+        # If not "true" or "on", then "" will be returned.
+        if (ctx._configOpts[option].lower() in ['true','on','yes']):
+            switch = '--' + option
+    else: # It is a "value" option: return "--option=value".
+        val = str(ctx._configOpts[option])
+        if (val.lower() in ['false','off','no']):
+            val = 'False'
+        switch = '--' + option + '=' + gCtx._configOpts[option]
+    return switch
+
+# Start this liid (single/cluster).
 def start(srv, liid, dryRun=False):
    global gCtx
    print "start(server %d (%s) local instance %d)"%(srv[0],srv[1],liid)
-   db = gCtx._configOpts.get('db_name')
-   pluginsdir = gCtx._configOpts.get('pluginsdir')
-   logconf = gCtx._configOpts.get('logconf')
-   threadsClause = ''
 
-   if gCtx._configOpts.get('redundancy'):
-          redundancy = "--redundancy=%s" % gCtx._configOpts.get('redundancy')
-   else:
-          redundancy = ''
-   # end if
+   scidb_switches = gCtx._scidb_start_switches
 
-   if gCtx._configOpts.get('tmp-path'):
-          tmpPathClause = "--tmp-path=%s" % gCtx._configOpts.get('tmp-path')
-   else:
-          tmpPathClause = ''
-   # end if
-
-   if gCtx._configOpts.get('install_root'):
-          installPathClause = "--install_root=%s" % gCtx._configOpts.get('install_root')
-   else:
-          installPathClause = ''
-   # end if
-
-   if gCtx._configOpts.get('merge-sort-buffer'):
-          mergeSortClause = "--merge-sort-buffer=%s" % gCtx._configOpts.get('merge-sort-buffer')
-   else:
-          mergeSortClause = ''
-   # end if
-
-   if gCtx._configOpts.get('merge-sort-nstreams'):
-           mergeSortNstreamClause = "--merge-sort-nstreams=%s" % gCtx._configOpts.get('merge-sort-nstreams')
-   else:
-           mergeSortNstreamClause = ''
-   # end if
-
-   if gCtx._configOpts.get('merge-sort-pipeline-limit'):
-           mergeSortPipelineLimitClause = "--merge-sort-pipeline-limit=%s" % gCtx._configOpts.get('merge-sort-pipeline-limit')
-   else:
-           mergeSortPipelineLimitClause = ''
-   # end if
-
-   if gCtx._configOpts.get('redimension-chunksize'):
-          redimChunksizeClause = "--redimension-chunksize=%s" % gCtx._configOpts.get('redimension-chunksize')
-   else:
-          redimChunksizeClause = ''
-   # end if
-
-   if gCtx._configOpts.get('max-open-fds'):
-      maxOpenFdsClause = "--max-open-fds=%s" % gCtx._configOpts.get('max-open-fds')
-   else:
-      maxOpenFdsClause = ''
-
-   if gCtx._configOpts.get('smgr-cache-size'):
-      smgrCacheSize = gCtx._configOpts.get('smgr-cache-size')
-   else:
-      smgrCacheSize = '256'
-
-   if gCtx._configOpts.get('mem-array-threshold'):
-          memArrayClause = "--mem-array-threshold=%s" % gCtx._configOpts.get('mem-array-threshold')
-   else:
-          memArrayClause = ''
-   # end if
-
-   if gCtx._configOpts.get('network-buffer'):
-          netbuffClause = "--network-buffer=%s" % gCtx._configOpts.get('network-buffer')
-   else:
-          netbuffClause = ''
-   # end if
-
-   if gCtx._configOpts.get('daemon-mode') in ['true', 'True', 'on', 'On']:
-          daemonClause = "--daemon"
-   else:
-          daemonClause = ''
-   # end if
-
-   if gCtx._configOpts.get('liveness-timeout'):
-          liveness = "--liveness-timeout=%s" % gCtx._configOpts.get('liveness-timeout')
-   else:
-          liveness = ''
-   # end if
-
-   if gCtx._configOpts.get('deadlock-timeout'):
-          deadlock = "--deadlock-timeout=%s" % gCtx._configOpts.get('deadlock-timeout')
-   else:
-          deadlock = ''
-   # end if
-
- # Shared pool
-   if gCtx._configOpts.get('execution-threads'):
-          threadsClause = threadsClause + " -j %s" % gCtx._configOpts.get('execution-threads')
-   # end if
-
- # Per instantiation of an operator (only for multi-threaded ops)
-   if gCtx._configOpts.get('operator-threads'):
-          threadsClause = threadsClause + " -x %s" % gCtx._configOpts.get('operator-threads')
-   # end if
-
- # Shared pool
-   if gCtx._configOpts.get('result-prefetch-threads'):
-          threadsClause = threadsClause + " -t %s" % gCtx._configOpts.get('result-prefetch-threads')
-   # end if
-
- # Per-query queue of chunks, will consume memory
-   if gCtx._configOpts.get('result-prefetch-queue-size'):
-          threadsClause = threadsClause + " -q  %s" % gCtx._configOpts.get('result-prefetch-queue-size')
-   # end if
-
-   if gCtx._configOpts.get('chunk-reserve'):
-          reserveClause = "--chunk-reserve=%s" % gCtx._configOpts.get('chunk-reserve')
-   else:
-          reserveClause = ''
-   # end if
-
-   no_watchdog = (gCtx._configOpts.get('no-watchdog') in ['true', 'True', 'on', 'On'])
-   if no_watchdog:
-          noWatchDogClause = "--no-watchdog"
-   else:
-          noWatchDogClause = ''
-   # end if
-
-   if gCtx._configOpts.get('sync-io-interval'):
-          sitClause = "--sync-io-interval=%s" % gCtx._configOpts.get('sync-io-interval')
-   else:
-          sitClause = ''
-   # end if
-
-   if gCtx._configOpts.get('io-log-threshold'):
-          wrtClause = "--io-log-threshold=%s" % gCtx._configOpts.get('io-log-threshold')
-   else:
-          wrtClause = ''
-   # end if
-
-   if gCtx._configOpts.get('max-memory-limit'):
-          memLimit = "--max-memory-limit=%s" % gCtx._configOpts.get('max-memory-limit')
-   else:
-          memLimit = ''
-   # end if
-
-   if gCtx._configOpts.get('small-memalloc-size'):
-          malloc_mmap_threshold = "--small-memalloc-size=%s" % gCtx._configOpts.get('small-memalloc-size')
-   else:
-          malloc_mmap_threshold = ''
-   # end if
-
-   if gCtx._configOpts.get('large-memalloc-limit'):
-          mmap_count_limit = "--large-memalloc-limit=%s" % gCtx._configOpts.get('large-memalloc-limit')
-   else:
-          mmap_count_limit = ''
-   # end if
-
-   if gCtx._configOpts.get('replication-send-queue-size'):
-          repSendQSize = "--replication-send-queue-size=%s" % gCtx._configOpts.get('replication-send-queue-size')
-   else:
-          repSendQSize = ''
-   # end if
-
-   if gCtx._configOpts.get('replication-receive-queue-size'):
-          repRecvQSize = "--replication-receive-queue-size=%s" % gCtx._configOpts.get('replication-receive-queue-size')
-   else:
-          repRecvQSize = ''
-   # end if
-
-
-   if gCtx._configOpts.get('sg-send-queue-size'):
-          sgSendQSize = "--sg-send-queue-size=%s" % gCtx._configOpts.get('sg-send-queue-size')
-   else:
-          sgSendQSize = ''
-   # end if
-
-   if gCtx._configOpts.get('sg-receive-queue-size'):
-          sgRecvQSize = "--sg-receive-queue-size=%s" % gCtx._configOpts.get('sg-receive-queue-size')
-   else:
-          sgRecvQSize = ''
-   # end if
-
-
-   if gCtx._configOpts.get('requests'):
-           requests = "--requests=%s" % gCtx._configOpts.get('requests')
-   else:
-           requests = ''
-   # end if
-
-   if gCtx._configOpts.get('enable-delta-encoding') in ['true', 'True', 'on', 'On']:
-          deltaClause = "--enable-delta-encoding"
-   else:
-          deltaClause = ''
-   # end if
-
-   if gCtx._configOpts.get('load-scan-buffer'):
-          lsbClause = "--load-scan-buffer=%s" % gCtx._configOpts.get('load-scan-buffer')
-   else:
-          lsbClause = ''
-   # end if
-
-   if gCtx._configOpts.get('mpi-dir'):
-          mpiClause = "--mpi-dir=%s" % gCtx._configOpts.get('mpi-dir')
-   else:
-          mpiClause = ''
-   # end if
-
-   if gCtx._configOpts.get('mpi-type'):
-          mpiTypeClause = "--mpi-type=%s" % gCtx._configOpts.get('mpi-type')
-   else:
-          mpiTypeClause = ''
-   # end if
-
-   if gCtx._configOpts.get('preallocate-shared-mem') in ['false', 'False', 'off', 'Off']:
-          preallocateShmClause = "--preallocate-shared-mem=False"
-   else:
-          preallocateShmClause = ""
-   # end if
-
-   if gCtx._configOpts.get('materialized-window-threshhold'):
-          materializeWindowThreshholdTypeClause = "--materialized-window-threshhold=%s" % gCtx._configOpts.get('materialized-window-threshhold')
-   else:
-          materializeWindowThreshholdTypeClause = ''
-   # end if
-
-   if gCtx._configOpts.get('enable-catalog-upgrade') in  ['true', 'True', 'on', 'On']:
-      upgradeClause = "--enable-catalog-upgrade"
-   else:
-      upgradeClause = ''
-   # end if
-
-   want_valgrind = None
-   @CONFIGURE_SCIDB_PY_VALGRIND@
-
+   use_valgrind = useValgrind()
    #relink_binary(srv, liid)
-   print "Starting SciDB server%s."%(" with valgrind" if want_valgrind else "")
-   libDir = gCtx._installPath+"/lib"
-   cmdList = [ ''.join(("LD_LIBRARY_PATH=",
-                        libDir, ":",
-                        libDir, "/scidb/plugins:",
-                        os.environ.get("LD_LIBRARY_PATH", ""),
-                        " ")),
-               "exec" ]
+   print "Starting SciDB server%s."%(" with valgrind" if use_valgrind else "")
 
-   if want_valgrind:
+   cmdList = [get_ld_library_path(addVarName=True)]
+
+   preloadLib=gCtx._configOpts.get('preload')
+   if preloadLib:
+      cmdList = [' ','LD_PRELOAD='+str(preloadLib)]
+   cmdList += [' ','exec']
+
+   if use_valgrind:
+      assert (not preloadLib), str(preloadLib)+" cannot be preloaded for valgrind"
       assert os.path.exists('/usr/bin/valgrind'), "Missing /usr/bin/valgrind"
-      if not noWatchDogClause:
-         noWatchDogClause = '--no-watchdog'
+      if not gCtx._configOpts.get('no-watchdog',False):
+         scidb_switches.append('--no-watchdog')
       # Name compatibility for z_valgrind test, which expects only 1 instance.
       vg_log = ('/tmp/valgrind.%s.log' % liid) if liid else '/tmp/valgrind.log'
       # WARNING: Place only tool-agnostic options here!  See below.
@@ -1406,44 +1529,15 @@ def start(srv, liid, dryRun=False):
             vg_cmd.append('--track-origins=yes')
       cmdList += vg_cmd
 
-   cmdList += [ getInstanceDataPath(srv,liid)+'/'+binFile(srv, liid),
+   cmdList += [
+                getInstanceDataPath(srv,liid)+'/'+binFile(srv, liid),
                 "-i", srv[1],
                 "-p", str(gCtx._basePort+liid),
-                mergeSortClause,
-                mergeSortNstreamClause,
-                mergeSortPipelineLimitClause,
-                redimChunksizeClause,
-                maxOpenFdsClause,
-                "--cache", smgrCacheSize,
-                noWatchDogClause,
-                "-k", "-l", logconf,
-                sitClause,
-                wrtClause,
-                "--plugins", pluginsdir,
-                redundancy,
-                tmpPathClause,
-                installPathClause,
-                mpiClause,
-                mpiTypeClause,
-                preallocateShmClause,
-                materializeWindowThreshholdTypeClause,
-                memArrayClause] + threadsClause.split() + [ netbuffClause,
-                reserveClause,
-                liveness,
-                deadlock,
-                memLimit,
-                repSendQSize,
-                repRecvQSize,
-                sgSendQSize,
-                sgRecvQSize,
-                requests,
-                malloc_mmap_threshold,
-                mmap_count_limit,
-                deltaClause,
-                lsbClause,
-                upgradeClause,
-                daemonClause,
-                "-s", getInstanceDataPath(srv,liid) + '/storage.cfg']
+                "-k",
+                "-l",gCtx._configOpts.get('logconf'),
+                "-s", getInstanceDataPath(srv,liid) + '/storage.cfg'
+              ]
+   cmdList += scidb_switches
 
    if (not dryRun):
        cmdList=[" ".join(cmdList)]
@@ -1582,6 +1676,15 @@ def collectDbg( srv, liid, dt, mode='full'):
             if detail.errno != errno.ENOENT:
                printError(str(detail))
                raise
+         except Exception, e1:
+            if (sftp is None):
+               msg_list = [
+                  'Error: could not establish sftp connection!',
+                  'One possible cause is a known problem with scp/sftp service: echo statements in ~/.bashrc.',
+                  'Please try removing echo statements from ~/.bashrc and re-run dbginfo command.'
+                  ]
+               printError('\n'.join(msg_list))
+            raise(e1)
          finally:
             if sftp: sshclose([sftp])
          conn.close()
@@ -1605,34 +1708,37 @@ def getScidbPidsCmd(srv, liid):
 #                     Returned value is a string that does *not* end
 #                     in a newline (since caller typically wants to
 #                     pipe this into xargs or whatever).
-def getAllScidbPidsCmd(srv):
+def getAllScidbPidsCmd(srv,prefix=''):
    global gCtx
    path = "%s/%03d/"%(gCtx._baseDataPath, srv[0])
-   want_valgrind = None
-   @CONFIGURE_SCIDB_PY_VALGRIND@
-   if want_valgrind:
+
+   pid_prefix = prefix
+   if (pid_prefix != ''):
+      pid_prefix = '\"' + pid_prefix + '\"'
+
+   if useValgrind():
       # When using valgrind, 'path' will not match the first cmd token... so
       # the awk script searches for 'path' anywhere in the line.
       return ''.join(('ps --no-headers -e -o pid,cmd |',
                       '''awk 'BEGIN { pat = "''', path, '''" ;
                                       gsub("/", "\\/", pat) }
                               /awk/ { next }
-                              $0 ~ pat { print $1 }' ''')) # No newline!
+                              $0 ~ pat { print ''',pid_prefix,'''$1 }' ''')) # No newline!
    else:
       # Easy, the 'path' is the first cmd token so return that pid.
       return ('ps --no-headers -e -o pid,cmd | awk \'{print $1 \" \" $2}\' | grep "' +
-              path +'*"' + ' | awk \'{print $1}\'')
-
+              path +'*"' + ' | awk \'{print ' + pid_prefix + '$1}\'')
 # stop a particular server
 def stop(srv, force=False):
    if (not force):
-         print "stop(server %d (%s))"%(srv[0],srv[1])
-         cmdList = [getAllScidbPidsCmd(srv) + ' | xargs kill']
+      print "stop(server %d (%s))"%(srv[0],srv[1])
+      cmdList = [getAllScidbPidsCmd(srv) + ' | xargs kill']
    else:
-         cmdList = [getAllScidbPidsCmd(srv) + ' | xargs kill -9']
+      cmdList = [getAllScidbPidsCmd(srv) + ' | xargs kill -9']
    # end if
    liid = srv[2] # any valid liid would do, we stop all liids on srv
-   executeIt(cmdList, srv, liid, waitFlag=False, useConnstr=False, nocwd=True, useShell=True, useSSH4Local=True)
+   executeIt(cmdList, srv, liid, waitFlag=True, ignoreError=True,useConnstr=False, nocwd=True, useShell=True, useSSH4Local=True)
+
    return
 
  # check the system status. at the moment a trivial view into the postgres Srv table.
@@ -1684,8 +1790,7 @@ def checkMaxPostgresConns():
       useConnstr=False,
       useSSH4Local=True,
       nocwd=True,
-      useShell=True,
-      silent=True
+      useShell=True
       )
 
    if (ret != 0):
@@ -1695,17 +1800,17 @@ def checkMaxPostgresConns():
          ]
       raise Exception('\n'.join(msgs))
 
-   line = out.split('\n')[0] # Take the first line from the output.
-   line = line.strip()
+   lines = out.split('\n')
+   maxConnLines = [line for line in lines if 'max_connections' in line]
 
-   if (len(line) <= 0):
+   if (len(maxConnLines) <= 0):
       msgs = [
          'Error: cannot extract result of Postgres max_connections query!',
          postgresErrMsg
          ]
       raise Exception('\n'.join(msgs))
 
-   tokens = [t.strip() for t in line.split('|')] # Split the line into individual values.
+   tokens = [t.strip() for t in maxConnLines[0].split('|')] # Split the line into individual values.
 
    if (tokens[0] != 'max_connections'):
       msgs = [
@@ -1797,6 +1902,8 @@ class Context:
       self._pgPort = pgPort
       self._keyFilenameList = keyFilenameList
       self._args = args
+      self._scidb_start_switches = {}
+      self._all_options = {}
 
 class CmdExecutor:
     def __init__(self, ctx):
@@ -1809,11 +1916,12 @@ class CmdExecutor:
           conns = [sshconnect(srv) for srv in servers]
           pidCount = check_scidb_running(sshConns=conns,servers=servers)
           while pidCount > 0:
-             attempts += 1
-             if attempts>5:
-                stopSomeServers(servers,force=True)
-             if attempts>10:
-                raise Exception(errorStr)
+             if (not useValgrind()):
+                attempts += 1
+                if attempts>5:
+                   stopSomeServers(servers,force=True)
+                if attempts>10:
+                   raise Exception(errorStr)
              time.sleep(1)
              pidCount = check_scidb_running(sshConns=conns,servers=servers)
           map(lambda x: x.close(),conns)
@@ -1828,12 +1936,15 @@ class CmdExecutor:
        init_syscat(coordinator, 0)
 
     def init_all(self):
+       validate_config_init_settings(self._ctx._configOpts)
        initAll(force=self._ctx._args.force)
 
     def init_all_force(self):
+       validate_config_init_settings(self._ctx._configOpts)
        initAll(force=True)
 
     def start_all(self):
+       validate_config_init_settings(self._ctx._configOpts)
        startAllServers()
        attempts=0
        coordinator=self._ctx._srvList[self._ctx._coordSrvId]
@@ -1877,6 +1988,9 @@ def parseOptions(ctx):
       printError("Cannot read config file: %s" % str(e))
       sys.exit(1)
    section_name = ctx._scidb_name
+   # Check for upper case letters in database name.
+   if (not section_name.islower()):
+      raise Exception("Invalid specification for database name = %s; uppercase letters are not allowed!" % (str(section_name)))
 
    # First process the "global" section.
    try:
@@ -1896,6 +2010,10 @@ def parseOptions(ctx):
             if srv[0]<0 or srv[2]<0:
                raise Exception("Invalid server specification for coordinator %s = %s" % (str(key),str(value)))
             ctx._srvList.append(srv)
+         # Check for upper case letters in db_user and db_passwd entries.
+         if (key in ['db_user','db_passwd']):
+            if (not value.islower()):
+               raise Exception("Invalid specification for %s = %s; uppercase letters are not allowed!" % (str(key),str(value)))
 
    except Exception, e:
       printError("config file parser error in file %s: %s" % (ctx._config_file,str(e)))
@@ -1903,6 +2021,8 @@ def parseOptions(ctx):
 
    ctx._srvList.sort()
    ctx._configOpts['db_name'] = ctx._scidb_name
+   # Pre-compute all options and command line switches to start scidb.
+   ctx._all_options,ctx._scidb_start_switches = setup_scidb_options(ctx) 
 
 def getContext(args):
    ctx = Context()
@@ -2079,10 +2199,9 @@ def handle(superParser, superArgs, cmdArgs=[]):
 
    args = parser.parse_args(cmdArgs)
 
-   gCtx = getContext(args)
-   cmdExec._ctx = gCtx
-
    try:
+      gCtx = getContext(args)
+      cmdExec._ctx = gCtx
       args.func()
    except Exception, e:
       printError("Command %s failed: %s\n"% (args.subparser_name,str(e)))

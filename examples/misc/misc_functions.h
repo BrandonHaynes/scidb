@@ -133,7 +133,7 @@ void injectRemoteErrorForQuery(std::deque<scidb::QueryID>& idList, long int errC
         errorRecord->set_short_error_code(SCIDB_SE_INJECTED_ERROR);
         errorRecord->set_long_error_code(SCIDB_LE_INJECTED_ERROR);
         errorRecord->set_what_str("Injected error");
-        NetworkManager::getInstance()->broadcast(errorMessage);
+        NetworkManager::getInstance()->broadcastPhysical(errorMessage);
     }
 }
 void injectRemoteError(const Value** args, Value* res, void*)
@@ -220,13 +220,15 @@ void setMemCap(const Value** args, Value* res, void*)
    struct rlimit rlim;
    if (getrlimit(RLIMIT_AS, &rlim) != 0) {
        LOG4CXX_ERROR(log4cxx::Logger::getRootLogger(),
-                     " getrlimit call failed with errno "<<errno<<"; memory cap not set.");
+                     " getrlimit call failed: " << ::strerror(errno) << " (" <<
+                     errno << "); memory cap not set.");
        return;
    }
    rlim.rlim_cur = maxMem;
    if (setrlimit(RLIMIT_AS, &rlim) != 0) {
        LOG4CXX_ERROR(log4cxx::Logger::getRootLogger(),
-                     " setrlimit call failed with errno "<<errno<<"; memory cap not set.");
+                     " setrlimit call failed: " << ::strerror(errno) << " (" <<
+                     errno << "); memory cap not set.");
        return;
    }
    res->setInt64(instanceID);

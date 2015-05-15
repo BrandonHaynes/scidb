@@ -102,7 +102,7 @@ while [ "$ORDER" -le "$ORDER_MAX" ] ; do
     CMD="${CMD} /opt/scidb/12.11/lib/scidb/plugins/mpi_slave_direct $ORDER $PROC_ORDER $PROC_ORDER"
     echo "-------------------------------------"
     echo $CMD
-    LD_LIBRARY_PATH=/opt/scidb/12.11/lib /usr/bin/time -f"order ${ORDER} %e s elapsed" $CMD
+    /usr/bin/time -f"order ${ORDER} %e s elapsed" $CMD
     echo
 
 

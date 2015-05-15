@@ -597,7 +597,8 @@ void Config::parse(int argc, char **argv, const char* configFileName)
 
         if (!ifile.is_open())
         {
-            throw USER_EXCEPTION(SCIDB_SE_CONFIG, SCIDB_LE_CANT_OPEN_FILE) << _configFileName << errno;
+            throw USER_EXCEPTION(SCIDB_SE_CONFIG, SCIDB_LE_CANT_OPEN_FILE)
+                << _configFileName << ::strerror(errno) << errno;
         }
 
         string str((istreambuf_iterator<char>(ifile)), istreambuf_iterator<char>());

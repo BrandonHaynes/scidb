@@ -21,44 +21,53 @@ List of Types
 End Testing TypeLibrary and Type Class handling
 .Start Testing TypeLibrary and Type Class handling
 End Testing TypeLibrary and Type Class handling
-......................
-Options{name="A",limit=unlimited,pagesize=1KiB,parent="root",finalizing=1,recycling=0,resetting=0,debugging=0,locking=0}
-Options{name="B",limit=unlimited,pagesize=4KiB,parent="root",finalizing=1,recycling=0,resetting=1,debugging=0,locking=1}
+.......................
+.
+Options{name="A",limit=unlimited,pagesize=1KiB,parent="root",finalizing=1,recycling=0,resetting=0,debugging=0,threading=0}
+Options{name="B",limit=unlimited,pagesize=4KiB,parent="root",finalizing=1,recycling=0,resetting=1,debugging=0,threading=1}
 .
 .
 .
-{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/",available=unlimited,allocated=0B,peakusage=4.6e+02KiB,allocations=0,features="FC"}
 .
-{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
-{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/limited 1",available=1GiB,allocated=0B,peakusage=4.6e+02KiB,allocations=0,features="FC"}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/limited 2",available=1GiB,allocated=0B,peakusage=4.6e+02KiB,allocations=0,features="FCD"}
 .
-{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
-{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
-{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
-{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
-{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/scoped 1",available=unlimited,allocated=9.7e+02KiB,peakusage=9.7e+02KiB,allocations=242,pagesize=4KiB,pending=242,features="FS"}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/scoped 2",available=unlimited,allocated=2.2MiB,peakusage=2.2MiB,allocations=52946,pagesize=24B,pending=52946,features="FS"}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/scoped 3",available=unlimited,allocated=2.2MiB,peakusage=2.2MiB,allocations=52946,pagesize=24B,pending=52946,features="FSD"}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/scoped 4",available=unlimited,allocated=1.3MiB,peakusage=1.3MiB,allocations=11770,pagesize=120B,pending=11770,features="FST"}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/scoped 5",available=unlimited,allocated=1.3MiB,peakusage=1.3MiB,allocations=11771,pagesize=120B,pending=11771,features="FSDT"}
+.
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/lea 1",available=unlimited,allocated=0B,peakusage=1.4MiB,allocations=0,pagesize=0B,features="FCS"}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/lea 2",available=unlimited,allocated=0B,peakusage=1.1MiB,allocations=0,pagesize=96B,features="FCS"}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/lea 3",available=unlimited,allocated=0B,peakusage=8e+02KiB,allocations=0,pagesize=10KiB,features="FCS"}
+{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{A,B}{B,A}{B,A}{65,66}{65,66}{65,66}{65,66}{65,66}{65,66}{66,65}{66,65}{name="root/lea 4",available=unlimited,allocated=0B,peakusage=64MiB,allocations=0,pagesize=64MiB,features="FCS"}
 .
 78: extensive testing shows that allocate_shared() is AOK.
 .
-SystemException in file: src/util/arena/Arena.cpp function: exhausted line: 508
+SystemException in file: src/util/arena/Arena.cpp function: exhausted line: 520
 Error id: scidb::SCIDB_SE_NO_MEMORY::SCIDB_LE_ARENA_EXHAUSTED
 Error description: Not enough memory. An attempt was made to allocate more memory than is available.
-   arena  : {name="root/100",available=100B,allocated=0B,peakUsage=96B,allocations=0}
-   request: 112B.
+   arena  : {name="root/100",available=100B,allocated=0B,peakusage=96B,allocations=0,features="FC"}
+   request: 109B.
+.
+test string concatenation: ss
+.
 .
 An Example ==================================================
-SystemException in file: src/util/arena/Arena.cpp function: exhausted line: 508
+SystemException in file: src/util/arena/Arena.cpp function: exhausted line: 520
 Error id: scidb::SCIDB_SE_NO_MEMORY::SCIDB_LE_ARENA_EXHAUSTED
 Error description: Not enough memory. An attempt was made to allocate more memory than is available.
-   arena  : {name="root/B",available=1e+03KiB,allocated=8B,peakUsage=136B,allocations=1}
+   arena  : {name="root/B",available=1e+03KiB,allocated=8B,peakusage=136B,allocations=1,features="FC"}
    request: 7.6MiB.
 
-update("PhysicalFoo.cpp checkpoint",{name="root/Foo",available=1GiB,allocated=0B,peakUsage=0B,allocations=0})
+update("PhysicalFoo.cpp checkpoint",{name="root/Foo",available=1GiB,allocated=0B,peakusage=0B,allocations=0,features="FC"})
 =============================================================
 
 
 
-OK (63 tests)
+OK (68 tests)
 
 
 

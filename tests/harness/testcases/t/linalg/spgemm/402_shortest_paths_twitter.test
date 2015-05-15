@@ -46,12 +46,7 @@ create array GRAPH_PAIRS <v0:int64, v1:int64>[dummy=0:*,10000*10000,0]
 --start-query-logging
 --start-igdata
 
-# csv to .scidb
---shell --command "csv2scidb < ${TEST_DATA_DIR}/twitter_combined_unique_20k.csv > /tmp/401_twitter.scidb.txt"
-# e.g. .5 s
-
-load(GRAPH_PAIRS,    '/tmp/401_twitter.scidb.txt')
---shell --command "rm /tmp/401_twitter.scidb.txt"
+--shell --store --command "iquery -p ${IQUERY_PORT} -c ${IQUERY_HOST} -naq "load(GRAPH_PAIRS, '${TEST_DATA_DIR}/twitter_combined_unique_20k.csv', -2, 'csv')" "
 
 # turn list of pairs into adjacency matrix
 #   what should the initialization be?  1/n  where n is ... what?
@@ -63,6 +58,8 @@ store(redimension(apply(filter(GRAPH_PAIRS, v0<=428333 and v1<=428333), w, float
 #store(redimension(apply(filter(GRAPH_PAIRS, v0<=1000 and v1<=1000), w, float(1.0)), GRAPH_WEIGHTS), GRAPH_WEIGHTS)
 
 --stop-igdata
+
+--test
 
 # now call bellmanFord, finding the distances from the 12 vertex
 --justrun "remove(SHORTEST_PATHS_VEC)"

@@ -212,8 +212,4 @@ endif (MPI_CXX_FOUND AND MPI_Fortran_FOUND) # SCALAPACK_FOUND AND LAPACK_FOUND A
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libdense_linear_algebra${CMAKE_SHARED_LIBRARY_SUFFIX}" dense_linear_algebra)
 set_target_properties(dense_linear_algebra PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
 
-if (APPLE)
-    set_target_properties(dense_linear_algebra PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif ()
-
 message(STATUS "*****END linear_algebra/CMakeLists.txt ***********************")

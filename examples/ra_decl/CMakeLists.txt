@@ -27,6 +27,3 @@ set (ra_decl_src
 add_library(ra_decl SHARED ${ra_decl_src})
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libra_decl${CMAKE_SHARED_LIBRARY_SUFFIX}" ra_decl)
 set_target_properties(ra_decl PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
-if (APPLE)
-  set_target_properties(ra_decl PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif (APPLE)

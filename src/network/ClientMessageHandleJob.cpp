@@ -246,7 +246,8 @@ ClientMessageHandleJob::fetchChunk()
     }
 }
 
-void ClientMessageHandleJob::fetchMergedChunk(boost::shared_ptr<RemoteMergedArray>& fetchArray, AttributeID attributeId,
+void ClientMessageHandleJob::fetchMergedChunk(boost::shared_ptr<RemoteMergedArray>& fetchArray,
+                                              AttributeID attributeId,
                                               Notification<scidb::Exception>::ListenerID queryErrorListenerID)
 {
     static const char *funcName="ClientMessageHandleJob::fetchMergedChunk: ";
@@ -254,18 +255,21 @@ void ClientMessageHandleJob::fetchMergedChunk(boost::shared_ptr<RemoteMergedArra
     RemoteMergedArray::RescheduleCallback cb;
     try
     {
-        ASSERT_EXCEPTION((queryID == _query->getQueryID()), "Query ID mismatch in fetchMergedChunk");
+        ASSERT_EXCEPTION((queryID == _query->getQueryID()),
+                         "Query ID mismatch in fetchMergedChunk");
         _query->validate();
 
         const string arrayName = _messageDesc->getRecord<scidb_msg::Fetch>()->array_name();
         boost::shared_ptr<MessageDesc> chunkMsg;
 
-        LOG4CXX_TRACE(logger, funcName << "Processing chunk of arrayName= "<< arrayName
+        LOG4CXX_TRACE(logger,
+                      funcName << "Processing chunk of arrayName= " << arrayName
                       <<", attId="<< attributeId
                       << " queryID=" << queryID);
         try
         {
-            boost::shared_ptr< ConstArrayIterator> iter = fetchArray->getConstIterator(attributeId);
+            boost::shared_ptr< ConstArrayIterator> iter = 
+                fetchArray->getConstIterator(attributeId);
             if (!iter->end()) {
                 const ConstChunk* chunk = &iter->getChunk();
                 assert(chunk);
@@ -276,8 +280,10 @@ void ClientMessageHandleJob::fetchMergedChunk(boost::shared_ptr<RemoteMergedArra
         }
         catch (const scidb::MultiStreamArray::RetryException& )
         {
-            LOG4CXX_TRACE(logger, funcName << " reschedule arrayName= "<< arrayName << ", attId="<<attributeId
-                             <<" queryID="<<queryID);
+            LOG4CXX_TRACE(logger,
+                          funcName << " reschedule arrayName= " << arrayName 
+                          << ", attId="<<attributeId
+                          <<" queryID="<<queryID);
             return;
         }
 
@@ -335,8 +341,6 @@ void ClientMessageHandleJob::populateClientChunk(const std::string& arrayName,
         chunkMsg = boost::make_shared<MessageDesc>(mtChunk, buffer);
         chunkRecord = chunkMsg->getRecord<scidb_msg::Chunk>();
         chunkRecord->set_eof(false);
-        chunkRecord->set_sparse(chunk->isSparse());
-        chunkRecord->set_rle(chunk->isRLE());
         chunkRecord->set_compression_method(buffer->getCompressionMethod());
         chunkRecord->set_attribute_id(chunk->getAttributeDesc().getId());
         chunkRecord->set_decompressed_size(buffer->getDecompressedSize());

@@ -224,13 +224,8 @@ namespace scidb
 	  return chunkSize;
 	}
 
-
-	if(elementSize == 0 || elementSize > 8 || chunk.isRLE() || !chunk.getArrayDesc().isImmutable() || chunk.isSparse()) // too big or too small or sparse = regard it as a string
-	  {
-	    nElems = chunkSize;
-	    elementSize = 1;
-	  }
-
+        nElems = chunkSize;
+        elementSize = 1;
 
 	ByteOutputItr out((uint8_t *) dst, chunkSize-1);
 
@@ -307,12 +302,8 @@ namespace scidb
     size_t elementSize = TypeLibrary::getType(type).byteSize();
     size_t nElems = chunkSize / elementSize;
 
-
-    if(elementSize == 0 || elementSize > 8 || chunk.isRLE() || !chunk.getArrayDesc().isImmutable() || chunk.isSparse())
-      {
-	nElems = chunkSize;
-	elementSize = 1;
-      }
+    nElems = chunkSize;
+    elementSize = 1;
 
     if(!nElems)
       {

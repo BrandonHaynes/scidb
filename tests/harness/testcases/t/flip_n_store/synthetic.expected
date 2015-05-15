@@ -18,6 +18,15 @@ SCIDB QUERY : <store(build(Input, i/2), Input)>
 {6} 3
 {7} 3
 
+SCIDB QUERY : <create array SYNTH_SRC <v:int64>[i=0:64,17,3, j=-32:32,13,5, k=-16:48,19,2, l=-64:0,11,1]>
+Query was executed successfully
+
+SCIDB QUERY : <create array SYNTH_DST <v:int64>[i=0:64,17,0, l=-64:0,11,0, s=0:65*65*2, 65*65,0]>
+Query was executed successfully
+
+SCIDB QUERY : <store(build(SYNTH_SRC, i+j+k+l), SYNTH_SRC)>
+[Query was executed successfully, ignoring data output by this query.]
+
 SCIDB QUERY : <store(redimension(Input, Good), Good)>
 {x,s} i
 {0,0} 0
@@ -32,6 +41,17 @@ SCIDB QUERY : <store(redimension(Input, Good), Good)>
 SCIDB QUERY : <store(redimension(Input, Bad), Bad)>
 [An error expected at this place for the query "store(redimension(Input, Bad), Bad)". And it failed with error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_OP_REDIMENSION_STORE_ERROR7. Expected error code = scidb::SCIDB_SE_OPERATOR::SCIDB_LE_OP_REDIMENSION_STORE_ERROR7.]
 
+SCIDB QUERY : <store(redimension(SYNTH_SRC, SYNTH_DST), SYNTH_DST)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <aggregate(filter(apply(join(aggregate(SYNTH_SRC, sum(v), count(*)) as L, aggregate(SYNTH_DST, sum(v),count(*)) as R), diffC, L.count-R.count, diffV, L.v_sum-R.v_sum), diffC<>0 or diffV<>0), count(*))>
+{i} count
+{0} 0
+
+SCIDB QUERY : <aggregate(filter(apply(join(aggregate(SYNTH_SRC, sum(v), count(*),i,l) as L, aggregate(SYNTH_DST, sum(v),count(*),i,l) as R), diffC, L.count-R.count, diffV, L.v_sum-R.v_sum), diffC<>0 or diffV<>0), count(*))>
+{i} count
+{0} 0
+
 SCIDB QUERY : <remove(Input)>
 Query was executed successfully
 
@@ -39,5 +59,11 @@ SCIDB QUERY : <remove(Good)>
 Query was executed successfully
 
 SCIDB QUERY : <remove(Bad)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SYNTH_SRC)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(SYNTH_DST)>
 Query was executed successfully
 

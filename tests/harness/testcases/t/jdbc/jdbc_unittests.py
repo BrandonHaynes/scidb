@@ -26,6 +26,12 @@ import os
 
 def main():
     print 'SCIDB_INSTALL_PATH',os.environ['SCIDB_INSTALL_PATH']
+    iquery_host = 'localhost'
+    iquery_port = '1239'
+    if (os.environ.has_key('IQUERY_HOST')):
+        iquery_host = os.environ['IQUERY_HOST']
+    if (os.environ.has_key('IQUERY_PORT')):
+        iquery_port = os.environ['IQUERY_PORT']
     cmd = [
         'java',
         '-classpath',
@@ -34,7 +40,9 @@ def main():
                   '/usr/share/java/protobuf.jar',
                   '/usr/share/java/protobuf-java.jar',
                   '/usr/share/java/junit.jar')),
-        'org.scidb.JDBCTest'
+        'org.scidb.JDBCTest',
+        iquery_host,
+        iquery_port
         ]
 
     proc = subprocess.Popen( # Run the command.

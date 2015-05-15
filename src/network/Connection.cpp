@@ -115,7 +115,6 @@ void Connection::handleReadMessage(const boost::system::error_code& error, size_
               bind(&Connection::handleReadRecordPart,
                    shared_from_this(),  asio::placeholders::error,
                    asio::placeholders::bytes_transferred));
-
    LOG4CXX_TRACE(logger, "Connection::handleReadMessage: messageType=" << _messageDesc->_messageHeader.messageType
                  << "; instanceID="<< _messageDesc->_messageHeader.sourceInstanceID <<
                  " ; recordSize=" << _messageDesc->_messageHeader.recordSize <<
@@ -295,12 +294,11 @@ void Connection::handleSendMessage(const boost::system::error_code& error,
    if (!error) { // normal case
        assert(msgs);
        assert(bytes_transferred == bytes_sent);
-
        if (logger->isTraceEnabled()) {
            for (std::list<shared_ptr<MessageDesc> >::const_iterator i = msgs->begin();
                 i != msgs->end(); ++i) {
                const boost::shared_ptr<MessageDesc>& messageDesc = *i;
-               LOG4CXX_TRACE(logger, "handleSendMessage: bytes_transferredD="
+               LOG4CXX_TRACE(logger, "handleSendMessage: bytes_transferred="
                              << messageDesc->getMessageSize()
                              << ", "<< getPeerId()
                              <<", msgID =" << messageDesc->getMessageType());

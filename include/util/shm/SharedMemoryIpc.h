@@ -76,10 +76,10 @@ class SharedMemoryIpc
         }
         virtual ~SystemErrorException() throw () {}
         virtual void raise() const { throw *this; }
-        const std::string& getFile() const { return _file; }
-        const std::string& getFunction() const { return _function; }
-        int32_t getLine() const { return _line; }
-        int getErrorCode() const {return _err; }
+        virtual const std::string& getFile() const { return _file; }
+        virtual const std::string& getFunction() const { return _function; }
+        virtual int32_t getLine() const { return _line; }
+        virtual int getErrorCode() const {return _err; }
         virtual const char* what() const throw()
         {
             return "SharedMemoryIpc::SystemErrorException";
@@ -135,7 +135,24 @@ class SharedMemoryIpc
             return "SharedMemoryIpc::NoShmMemoryException: unable to allocate shared memory."
             " Try increasing the size of the partition backing the shared memory to accomodate your data,"
             " e.g. 'mount -oremount,size=<#GB_per_host>G /dev/shm'."
-            " If /dev/shm overcommits memory, make sure to add swap space as well (see 'man swapon' on Linux)";
+            " If /dev/shm overcommits memory, make sure to add swap space as well (see 'man swapon' on Linux).";
+        }
+    };
+
+    class ShmMapErrorException : public SystemErrorException, std::bad_alloc
+    {
+    public:
+        ShmMapErrorException(int err, const char* file, const char* function, int32_t line)
+        : SystemErrorException(err, file, function, line)
+        {
+        }
+        virtual ~ShmMapErrorException() throw () {}
+        virtual void raise() const { throw *this; }
+        virtual const char* what() const throw()
+        {
+            return "SharedMemoryIpc::ShmMapErrorException: unable to map shared memory."
+            " Try increasing the size of the ulimit of the shell from which SciDB was started"
+            " or check your config.ini for a 'max-memory-limit=' that is too small.";
         }
     };
 

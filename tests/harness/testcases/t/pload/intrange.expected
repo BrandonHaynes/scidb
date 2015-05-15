@@ -1,0 +1,96 @@
+SCIDB QUERY : <csv2scidb -s 1 -p NNNNNNNNS < ${TEST_DATA_DIR}/integer_range.csv > /tmp/intrange.scidb>
+
+SCIDB QUERY : <CREATE ARRAY a_flat <i8:int8,i16:int16 null,i32:int32,i64:int64,u8:uint8,u16:uint16,u32:uint32,u64:uint64,s:string>[i=0:*,1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -q "LOAD a_flat FROM '/tmp/intrange.scidb' AS 'text' ERRORS 99 SHADOW ARRAY a_shadow">
+{i} i8,i16,i32,i64,u8,u16,u32,u64,s
+{0} 0,0,0,0,0,0,0,0,'int8 overflow'
+{1} 66,0,0,0,0,0,0,0,'int8 hex input'
+{2} 0,0,0,0,0,0,0,0,'int8 extra chars'
+{3} 41,0,0,0,0,0,0,0,'int8 octal input is taken as decimal'
+{4} 0,0,0,0,0,0,0,0,'int8 underflow'
+{5} 0,null,0,0,0,0,0,0,'int16 overflow'
+{6} 0,-13570,0,0,0,0,0,0,'int16 hex input'
+{7} 0,null,0,0,0,0,0,0,'int16 extra chars'
+{8} 0,43,0,0,0,0,0,0,'int16 octal input is taken as decimal'
+{9} 0,null,0,0,0,0,0,0,'int16 underflow'
+{10} 0,0,0,0,0,0,0,0,'int32 overflow'
+{11} 0,0,-559038737,0,0,0,0,0,'int32 hex input'
+{12} 0,0,0,0,0,0,0,0,'int32 extra chars'
+{13} 0,0,479,0,0,0,0,0,'int32 octal input is taken as decimal'
+{14} 0,0,0,0,0,0,0,0,'int32 underflow'
+{15} 0,0,0,0,0,0,0,0,'int64 overflow'
+{16} 0,0,0,496704877035502,0,0,0,0,'int64 hex input'
+{17} 0,0,0,0,0,0,0,0,'int64 extra chars'
+{18} 0,0,0,123456789123456789,0,0,0,0,'int64 octal input is taken as decimal'
+{19} 0,0,0,0,0,0,0,0,'int64 underflow'
+{20} 0,0,0,0,0,0,0,0,'uint8 overflow'
+{21} 0,0,0,0,254,0,0,0,'uint8 hex input'
+{22} 0,0,0,0,254,0,0,0,'uint8 hex trailing spaces'
+{23} 0,0,0,0,0,0,0,0,'uint8 octal input is taken as decimal: overflow'
+{24} 0,0,0,0,0,0,0,0,'uint16 overflow'
+{25} 0,0,0,0,0,48879,0,0,'uint16 hex input'
+{26} 0,0,0,0,0,0,0,0,'uint16 hex extra chars'
+{27} 0,0,0,0,0,727,0,0,'uint16 octal input is taken as decimal'
+{28} 0,0,0,0,0,0,0,0,'uint32 overflow'
+{29} 0,0,0,0,0,0,3134984174,0,'uint32 hex input'
+{30} 0,0,0,0,0,0,0,0,'uint32 extra chars'
+{31} 0,0,0,0,0,0,987654321,0,'uint32 octal input is taken as decimal'
+{32} 0,0,0,0,0,0,0,0,'uint64 overflow'
+{33} 0,0,0,0,0,0,0,13464654573481085694,'uint64 hex input'
+{34} 0,0,0,0,0,0,0,0,'uint64 extra chars'
+{35} 0,0,0,0,0,0,0,429496729600,'uint64 octal input is taken as decimal'
+{36} 0,0,0,0,0,0,0,0,'int8 using an empty string'
+{37} 43,0,0,0,0,0,0,0,'int8 trailing spaces'
+{38} 44,0,0,0,0,0,0,0,'int8 trailing tab'
+{39} 0,null,0,0,0,0,0,0,'int16 nullable using an empty string'
+{40} 0,0,0,0,0,0,45,0,'uint32 trailing spaces'
+{41} 0,0,0,0,0,0,46,0,'uint32 trailing tabs'
+{42} 0,0,0,0,0,0,0,0,'int16 nullable using a zero'
+{43} 0,null,0,0,0,0,0,0,'int16 nullable using whitespace'
+{44} 45,0,0,0,0,0,0,0,'int8 leading spaces'
+{45} 0,0,0,0,254,0,0,0,'uint8 hex leading and trailing spaces'
+{46} 0,null,0,0,0,0,0,0,'int16 nullable using Linear-TSV N null'
+{47} 0,null,0,0,0,0,0,0,'int16 nullable using Linear-TSV N null and spaces'
+{48} 0,?5,0,0,0,0,0,0,'int16 nullable using SciDB missing reason 5'
+{49} 0,null,0,0,0,0,0,0,'int16 nullable using SciDB notation and spaces'
+{50} 0,null,0,0,0,0,0,0,'int16 nullable using SciDB null'
+{51} 0,null,0,0,0,0,0,0,'int16 nullable using SciDB null and spaces'
+
+SCIDB QUERY : <show(a_shadow)>
+{i} schema
+{0} 'a_shadow<i8:string NULL DEFAULT null,i16:string NULL DEFAULT null,i32:string NULL DEFAULT null,i64:string NULL DEFAULT null,u8:string NULL DEFAULT null,u16:string NULL DEFAULT null,u32:string NULL DEFAULT null,u64:string NULL DEFAULT null,s:string NULL DEFAULT null,row_offset:int64> [i=0:*,1000,0]'
+
+SCIDB QUERY : <scan(a_shadow)>
+{i} i8,i16,i32,i64,u8,u16,u32,u64,s,row_offset
+{0} 'Failed to parse string \'128\' as int8 (signed overflow)',null,null,null,null,null,null,null,null,9
+{2} 'Failed to parse string \'42hike\' as int8 (non-digits)',null,null,null,null,null,null,null,null,88
+{4} 'Failed to parse string \'-129\' as int8 (signed underflow)',null,null,null,null,null,null,null,null,189
+{5} null,'Failed to parse string \'32768\' as int16 (signed overflow)',null,null,null,null,null,null,null,231
+{7} null,'Failed to parse string \'42hike\' as int16 (non-digits)',null,null,null,null,null,null,null,314
+{9} null,'Failed to parse string \'-32769\' as int16 (signed underflow)',null,null,null,null,null,null,null,419
+{10} null,null,'Failed to parse string \'2147483648\' as int32 (signed overflow)',null,null,null,null,null,null,467
+{12} null,null,'Failed to parse string \'10000Maniacs\' as int32 (non-digits)',null,null,null,null,null,null,560
+{14} null,null,'Failed to parse string \'-2147483649\' as int32 (signed underflow)',null,null,null,null,null,null,672
+{15} null,null,null,'Failed to parse string \'9223372036854775808\' as int64 (Numerical result out of range)',null,null,null,null,null,729
+{17} null,null,null,'Failed to parse string \'12345foobar6789\' as int64 (non-digits)',null,null,null,null,null,830
+{19} null,null,null,'Failed to parse string \'-9223372036854775809\' as int64 (Numerical result out of range)',null,null,null,null,null,966
+{20} null,null,null,null,'Failed to parse string \'256\' as uint8 (unsigned overflow)',null,null,null,null,1007
+{23} null,null,null,null,'Failed to parse string \'0377\' as uint8 (unsigned overflow)',null,null,null,null,1138
+{24} null,null,null,null,null,'Failed to parse string \'65536\' as uint16 (unsigned overflow)',null,null,null,1213
+{26} null,null,null,null,null,'Failed to parse string \'0Xbeef_is_whats_4_dinner\' as uint16 (non-digits)',null,null,null,1316
+{28} null,null,null,null,null,null,'Failed to parse string \'4294967296\' as uint32 (unsigned overflow)',null,null,1434
+{30} null,null,null,null,null,null,'Failed to parse string \'4billion\' as uint32 (non-digits)',null,null,1525
+{32} null,null,null,null,null,null,null,'Failed to parse string \'18446744073709551616\' as uint64 (Numerical result out of range)',null,1655
+{34} null,null,null,null,null,null,null,'Failed to parse string \'184467440737095516foo\' as uint64 (non-digits)',null,1767
+{36} 'Assigning NULL to non-nullable attribute',null,null,null,null,null,null,null,null,1868
+{46} null,'Failed to parse string \'N\' as int16 (non-digits)',null,null,null,null,null,null,null,2379
+{47} null,'Failed to parse string \'N\' as int16 (non-digits)',null,null,null,null,null,null,null,2443
+
+SCIDB QUERY : <remove(a_flat)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(a_shadow)>
+Query was executed successfully
+

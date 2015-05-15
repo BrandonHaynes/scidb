@@ -24,7 +24,9 @@ set -eu
 
 function print_usage()
 {
-echo <<EOF "USAGE
+cat <<EOF
+
+USAGE
   deploy.sh usage - print this usage
   deploy.sh help  - print verbose help
 
@@ -51,11 +53,11 @@ SciDB control on remote machines:
   deploy.sh scidb_prepare    <scidb_os_user> <scidb_os_passwd> <db_user> <db_passwd>
                              <database> <base_path>
                              <instance_count> <no_watchdog> <redundancy>
-                             <coordinator-host> [host ...]
+                             <coordinator-dns-host/IP> [host ...]
   deploy.sh scidb_start      <scidb_os_user> <database> <coordinator-host>
-  deploy.sh scidb_stop       <scidb_os_user> <database> <coordinator-host>"
+  deploy.sh scidb_stop       <scidb_os_user> <database> <coordinator-host>
+
 EOF
-echo
 }
 
 function print_usage_exit ()
@@ -66,20 +68,21 @@ exit ${1}
 
 function print_example ()
 {
-echo
-echo <<EOF "EXAMPLE
-Using deploy.sh to set up a development/test environment on local machine (localhost).
+cat <<EOF
+
+EXAMPLE
+Using deploy.sh to set up a development/test environment on local machine (127.0.0.1).
 
 1) Password-less ssh access from localhost to localhost:
 
 sudo su
 if [ ! -f ~/.ssh/id_rsa.pub ] ; then  ssh-keygen ; fi #(all defaults or consult ssh manual)
 exit
-./deploy.sh access root \"\" localhost
+./deploy.sh access root "" 127.0.0.1
 
 2) Install the packages required for building SciDB from sources:
 
-./deploy.sh prepare_toolchain localhost
+./deploy.sh prepare_toolchain 127.0.0.1
 
 3) Build SciDB packages in the current environment:
 
@@ -91,11 +94,11 @@ make
 
 4) Install & configure PostgreSQL:
 
-./deploy.sh prepare_postgresql postgres my_postgres_password 192.168.0.0/24 localhost
+./deploy.sh prepare_postgresql postgres my_postgres_password 192.168.0.0/24 127.0.0.1
 
 5) Install SciDB packages to a cluster
 
-./deploy.sh scidb_install /tmp/my_packages_path localhost
+./deploy.sh scidb_install /tmp/my_packages_path 127.0.0.1
 
 6) Install SciDB release to a cluster
 
@@ -104,20 +107,21 @@ make
 7) Configure SciDB cluster on localhost with 4 instances redundancy=1
    and data directory root at ~/scidb-data
 
-./deploy.sh scidb_prepare my_username \"\" mydb mydb mydb ~/scidb-data 4 1 default localhost
+./deploy.sh scidb_prepare my_username "" mydb mydb mydb ~/scidb-data 4 1 default 127.0.0.1
 
 8) Start SciDB:
 
-./deploy.sh scidb_start my_username mydb localhost"
+./deploy.sh scidb_start my_username mydb 127.0.0.1
+
 EOF
-echo
 }
 
 function print_help ()
 {
 print_usage
-echo
-echo <<EOF "DESCRIPTION
+cat <<EOF
+
+DESCRIPTION
 
   deploy.sh can be used to bootstrap a cluster of machines/hosts for building/running SciDB.
   It assumes that its user has the root privileges on all the hosts in the cluster.
@@ -175,6 +179,7 @@ Commands:
                        Supplying passwords on the command line in clear text is a well-known security risk because they can be viewed by
                        other users of the system. The option is only for backwards compatibility.
                        The first host, <coordinator-host>, is the cluster coordinator, and some steps are performed only on that host.
+                       The host names must not include 'localhost', use 127.0.0.1 instead.
                        Among other steps, this command generates a config.ini file describing a SciDB database as follows:
                        <database> - SciDB database name
                        <db_user> - PostgreSQL user/role to associated with the SciDB database
@@ -187,12 +192,12 @@ Commands:
                        Consult a detailed description of config.ini in the user guide or elsewhere.
                        It will also setup a password-less ssh from <coordinator-host>
                        to *all* hosts using <scidb_os_user> and <scidb_os_passwd>
-                       and update <scidb_os_user>'s default PATH & LD_LIBRARY_PATH in ~<scidb_os_user>/.bashrc
+                       and update <scidb_os_user>'s default PATH in ~<scidb_os_user>/.bashrc
 
   scidb_start          Start SciDB cluster  <database> as <scidb_os_user> using <coordinator-host>
-  scidb_stop           Start SciDB cluster  <database> as <scidb_os_user> using <coordinator-host>"
+  scidb_stop           Start SciDB cluster  <database> as <scidb_os_user> using <coordinator-host>
+
 EOF
-echo
 print_example
 }
 
@@ -286,6 +291,20 @@ function provide_password_less_ssh_access ()
     remote "${username}" "${password}" "${hostname}" "./user_access.sh \\\"${username}\\\" \\\"${key}\\\""
 }
 
+# create revision file
+function revision ()
+{
+    pushd ${1}
+    if [ -d .git ]; then
+	echo "Extracting revision from git."
+	git svn find-rev master > revision
+    elif [ -d .svn ]; then
+	echo "Extracting revision from svn."
+	svn info|grep Revision|awk '{print $2}'|perl -p -e 's/\n//' > revision
+    fi
+    popd
+}
+
 # Copy source code to remote host to result
 function push_source ()
 {
@@ -297,14 +316,15 @@ function push_source ()
     local remote_name=`basename ${remote_path}`
     echo "Archive the ${source_path} to ${source_path}.tar.gz"
     rm -f ${source_path}.tar.gz
-    (cd ${source_path}/.. && tar -czpf ${source_path}.tar.gz ${source_name})
+    revision ${source_path}
+    (cd ${source_path}/.. && tar -czpf ${source_path}.tar.gz --exclude-vcs ${source_name})
     echo "Remove ${username}@${hostname}:${remote_path}"
     remote_no_password "${username}" "" "${hostname}" "${SSH} ${username}@${hostname} \"rm -rf ${remote_path} && rm -rf ${remote_path}.tar.gz\""
     echo "Copy ${source_path} to ${username}@${hostname}:${remote_path}"
     remote_no_password "${username}" "" "${hostname}" "${SCP} ${source_path}.tar.gz ${username}@${hostname}:${remote_path}.tar.gz"
     echo "Unpack ${remote_path}.tar.gz to ${remote_path}"
-    remote_no_password "${username}" "" "${hostname}" "${SSH} ${username}@${hostname} \"cd `dirname ${remote_path}` && tar xf ${remote_name}.tar.gz \""    
-    if [ "${source_name}" != "${remote_name}" ]; then 
+    remote_no_password "${username}" "" "${hostname}" "${SSH} ${username}@${hostname} \"cd `dirname ${remote_path}` && tar xf ${remote_name}.tar.gz \""
+    if [ "${source_name}" != "${remote_name}" ]; then
         remote_no_password "${username}" "" "${hostname}" "${SSH} ${username}@${hostname} \"cd `dirname ${remote_path}` && mv ${source_name} ${remote_name}\""
     fi;
 }
@@ -326,11 +346,25 @@ function configure_rpm ()
 }
 
 # Configure script for work with deb/apt-get
-function configure_deb ()
+function configure_deb_1204 ()
 {
     # build target
     target=ubuntu-precise-amd64
-    # package king
+    # package kind
+    kind=deb
+    # get package name from filename
+    function package_info ()
+    {
+	dpkg -I ${1} | grep Package | awk '{print $2}'
+    }
+    # command for remove packages
+    remove="apt-get remove -y"
+}
+function configure_deb_1404 ()
+{
+    # build target
+    target=ubuntu-trusty-amd64
+    # package kind
     kind=deb
     # get package name from filename
     function package_info ()
@@ -349,14 +383,14 @@ function configure_package_manager ()
     local with_redhat=${2}
     # Get file for detect OS
     FILE=/etc/issue
-    if [ "${hostname}" != "localhost" ]; then
+    if [ "${hostname}" != "localhost" -a "${hostname}" != "127.0.0.1" ]; then
 	# grab remote /etc/issue to local file
 	remote_no_password root "" "${hostname}" "${SCP} root@${hostname}:/etc/issue ./issue"
 	FILE=./issue
     fi;
     # Detech OS
     local OS=`${bin_path}/os_detect.sh ${FILE}`
-    if [ "${hostname}" != "localhost" ]; then
+    if [ "${hostname}" != "localhost" -a "${hostname}" != "127.0.0.1" ]; then
 	rm -f ./issue
     fi;
     # Match OS
@@ -373,7 +407,10 @@ function configure_package_manager ()
 	    fi;
 	    ;;
 	"Ubuntu 12.04")
-	    configure_deb
+	    configure_deb_1204
+	    ;;
+	"Ubuntu 14.04")
+	    configure_deb_1404
 	    ;;
 	*)
 	    echo "Not supported OS"
@@ -406,10 +443,11 @@ function push_and_pull_packages ()
 # Build packages ("chroot" or "insource")
 function build_scidb_packages ()
 {
-    configure_package_manager "localhost" 0
+    configure_package_manager "127.0.0.1" 0
     local packages_path=`readlink -f ${1}`
     local way="${2}"
     rm -rf ${packages_path}
+    revision ${source_path}
     (cd ${build_path}; ${source_path}/utils/make_packages.sh ${kind} ${way} ${packages_path} ${target})
 }
 
@@ -466,6 +504,7 @@ function prepare_toolchain ()
     stop_virtual_bridge_zero "${hostname}"
 }
 
+
 # Prepare machine for coordinator
 function prepare_coordinator ()
 {
@@ -474,7 +513,8 @@ function prepare_coordinator ()
     remote root "" ${hostname} "./prepare_coordinator.sh ${SCIDB_VER}"
 }
 
-# Prepare chroot on remote machine for build packages 
+# Prepare chroot on remote machine for build packages
+
 function prepare_chroot ()
 {
     local username="${1}"
@@ -532,7 +572,7 @@ function scidb_install()
     remote root "" "${hostname}" "./scidb_install.sh" "${packages}"
 }
 
-# Install SciDB to remote host from a release on 
+# Install SciDB to remote host from a release on
 function scidb_install_release()
 {
     local release=${1}
@@ -620,7 +660,7 @@ function scidb_prepare ()
 	provide_password_less_ssh_access ${username} "${password}" "${coordinator_key}" ${hostname}
     done;
     rm -f ./config.ini
-    remote root "" ${coordinator} "./scidb_prepare_coordinator.sh ${username} ${database} ${SCIDB_VER}" 
+    remote root "" ${coordinator} "./scidb_prepare_coordinator.sh ${username} ${database} ${SCIDB_VER}"
 }
 
 # Start SciDB
@@ -685,7 +725,7 @@ case ${1} in
         if [ "${password}" == "" ]; then
            get_password "${username}"
         fi
-	for hostname in $@; do 
+	for hostname in $@; do
 	    provide_password_less_ssh_access "${username}" "${password}" "${key}" "${hostname}"
 	done;
 	;;
@@ -730,7 +770,7 @@ case ${1} in
 	fi
 	shift 1
 
-	for hostname in $@; do 
+	for hostname in $@; do
 	    prepare_toolchain "${hostname}"
 	done;
 	;;
@@ -740,7 +780,7 @@ case ${1} in
 	fi
 	shift 1
 
-	for hostname in $@; do 
+	for hostname in $@; do
 	    prepare_coordinator "${hostname}"
 	done;
 	;;
@@ -754,7 +794,7 @@ case ${1} in
         # get password from stdin
         get_password "${username}"
 
-	for hostname in $@; do 
+	for hostname in $@; do
 	    setup_ccache "${username}" "${password}" ${hostname}
 	done;
 	;;
@@ -853,7 +893,7 @@ case ${1} in
 	fi
 	;;
     scidb_prepare)
-	if [ $# -lt 12 ]; then
+	if [ $# -lt 11 ]; then
 	    print_usage_exit 1
 	fi
         username=${2}

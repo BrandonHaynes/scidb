@@ -1,0 +1,32 @@
+# Test remaining join/merge/cross_join error cases.
+# We still can't automatically repartition if join() dimensions have
+# different start boundaries.
+
+--setup
+
+create array aa <v1:int64> [x=10:15,10,0,y=0:5,20,0]
+create array bb <v2:int64> [x=0:5,100,0,y=0:5,10,0]
+create array cc <v1:int64> [x=0:5,10,0,y=0:5,20,0,z=0:5,20,0]
+
+--start-igdata
+store(build(aa, x+y), aa)
+store(between(build(bb, x-y), 3, 3, 5, 5), bb)
+store(build(cc, x+y+z), cc)
+--stop-igdata
+
+--test
+--start-query-logging
+
+# Differing number of dimensions?  No way.
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSION_COUNT_MISMATCH "join(aa, cc)"
+
+# Differing starting index?  Denied.
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "join(aa, bb)"
+
+--stop-query-logging
+
+--cleanup
+
+remove(aa)
+remove(bb)
+remove(cc)

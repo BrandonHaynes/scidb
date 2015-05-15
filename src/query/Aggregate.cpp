@@ -26,25 +26,96 @@
  * @author roman.simakov@gmail.com
  */
 
-#include "query/Aggregate.h"
-#include "query/FunctionLibrary.h"
+#include <query/Aggregate.h>
+#include <query/FunctionLibrary.h>
+#include <log4cxx/logger.h>
 
 using boost::shared_ptr;
 using namespace std;
 
 namespace scidb
 {
+#ifndef SCIDB_CLIENT
+
+static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.aggregate.AggregateChunkMerger"));
+
+void  AggregateChunkMerger::clear()
+{
+    _mergedChunk.reset();
+}
+
+bool
+AggregateChunkMerger::mergePartialChunk(InstanceID instanceId,
+                                             AttributeID attId,
+                                             boost::shared_ptr<MemChunk>& chunk,
+                                             const boost::shared_ptr<Query>& query)
+{
+    static const char* funcName = "AggregateChunkMerger::mergePartialChunk: ";
+    assert(chunk);
+    static const bool withoutOverlap = false;
+
+    if (!_mergedChunk) {
+        LOG4CXX_TRACE(logger, funcName
+                      << "first partial chunk pos="<< CoordsToStr(chunk->getFirstPosition(withoutOverlap))
+                      << " from instanceId="<<instanceId
+                      << " attId="<<attId
+                      << " count=" << chunk->count());
+        _mergedChunk.swap(chunk);
+        assert(!chunk);
+        return false;
+    }
+    _mergedChunk->setCount(0); // unknown
+
+    assert(_mergedChunk->getFirstPosition(withoutOverlap) == chunk->getFirstPosition(withoutOverlap));
+
+    if (!_isEmptyable) {
+        _mergedChunk->nonEmptyableAggregateMerge(*chunk, _aggregate, query);
+        LOG4CXX_TRACE(logger, funcName
+                      << "next non-emptyable partial chunk pos="
+                      << CoordsToStr(chunk->getFirstPosition(withoutOverlap))
+                      << " from instanceId="<<instanceId
+                      <<" attId="<<attId
+                      << " count=" << _mergedChunk->count());
+    } else {
+        _mergedChunk->aggregateMerge(*chunk, _aggregate, query);
+        LOG4CXX_TRACE(logger, funcName
+                      << "next emptyable partial chunk pos="<< CoordsToStr(chunk->getFirstPosition(withoutOverlap))
+                      << " from instanceId="<<instanceId
+                      << " attId="<<attId
+                      << " count=" << _mergedChunk->count());
+    }
+    checkChunkMagic(*_mergedChunk);
+    return true;
+}
+
+boost::shared_ptr<MemChunk>
+AggregateChunkMerger::getMergedChunk(AttributeID attId,
+                                     const boost::shared_ptr<Query>& query)
+{
+    static const char* funcName = "AggregateChunkMerger::getMergedChunk: ";
+    boost::shared_ptr<MemChunk> result;
+    LOG4CXX_TRACE(logger, funcName
+                  << "final chunk pos="<< CoordsToStr(_mergedChunk->getFirstPosition(false))
+                  <<" attId="<<attId
+                  << " count=" << _mergedChunk->count());
+    result.swap(_mergedChunk);
+    clear();
+    assert(result);
+    assert(!_mergedChunk);
+    return result;
+}
+
+#endif //SCIDB_CLIENT
 
 void AggregateLibrary::addAggregate(AggregatePtr const& aggregate)
 {
-    if (!aggregate)
+    if (!aggregate) {
         throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_ADD_NULL_FACTORY);
-
+    }
     //Try to find functions with 1 argument which can match new aggregate
     std::vector<TypeId> inputTypes(1, aggregate->getAggregateType().typeId());
     FunctionDescription functDescription;
     std::vector<FunctionPointer> converters;
-    bool supportsVectorMode;
     bool foundScalar = false;
 
     foundScalar |= FunctionLibrary::getInstance()->findFunction(
@@ -52,7 +123,6 @@ void AggregateLibrary::addAggregate(AggregatePtr const& aggregate)
             inputTypes,
             functDescription,
             converters,
-            supportsVectorMode,
             true);
 
     foundScalar |= FunctionLibrary::getInstance()->findFunction(
@@ -60,7 +130,6 @@ void AggregateLibrary::addAggregate(AggregatePtr const& aggregate)
             inputTypes,
             functDescription,
             converters,
-            supportsVectorMode,
             false);
 
     if (foundScalar)
@@ -112,6 +181,5 @@ AggregatePtr AggregateLibrary::createAggregate(std::string const& aggregateName,
 
     return i2->second->clone(aggregateType);
 }
-
 
 } // namespace scidb

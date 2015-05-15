@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+<!ENTITY scidb_version "14.12">
+<!ENTITY scidb_revision "7896">
+<!ENTITY scidb_year "2014">
+]>
+<chapter id="installationChapter">
+  <title>SciDB Installation and Administration</title>
+
+  <para><indexterm>
+      <primary>platforms</primary>
+    </indexterm><indexterm>
+      <primary>SciDB</primary>
+
+      <secondary>platforms</secondary>
+    </indexterm>SciDB is supported on the following platforms:</para>
+
+  <itemizedlist>
+    <listitem>
+      <para>Ubuntu 12.04 or 14.04</para>
+    </listitem>
+
+    <listitem>
+      <para>CentOS 6</para>
+    </listitem>
+
+    <listitem>
+      <para>Red Hat Enterprise Linux (RHEL) 6</para>
+    </listitem>
+  </itemizedlist>
+
+  <note>
+    <para>SciDB requires a 64-bit (x86_64 or amd64) platform.</para>
+  </note>
+
+  <para>A complete SciDB installation is a multi-database environment that
+  includes the core SciDB engine, Postgres, the open source SQL database
+  engine which is used for system catalog data, as well as ScaLAPACK/MPI which
+  is used as a computational engine for dense linear algebra.</para>
+
+  <note>
+    <para>SciDB installation must be done by an account with root
+    privileges.</para>
+  </note>
+
+  <para><indexterm>
+      <primary>SciDB</primary>
+
+      <secondary>contact</secondary>
+    </indexterm><indexterm>
+      <primary>support</primary>
+    </indexterm>To report issues, contact
+  <email>support@paradigm4.com</email>.</para>
+
+  <section id="installationResources">
+    <title>Installation Resources</title>
+
+    <para>The linchpin of the SciDB installation procedure is the Cluster
+    Install script, located at <ulink
+    url="www.scidb.org/forum/viewforum.php?f=16">www.scidb.org/forum/viewforum.php?f=16</ulink>.
+    In addition, these other resources are available:<itemizedlist>
+        <listitem>
+          <para>Configurator (generates a config.ini file from your
+          interactive input): <ulink
+          url="https://github.com/Paradigm4/configurator">https://github.com/Paradigm4/configurator</ulink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>A how-to video on installing SciDB is available here: <ulink
+          url="http://www.paradigm4.com/scidb-installation-video/">http://www.paradigm4.com/scidb-installation-video/</ulink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>A backup-and-restore script, useful if you are upgrading from
+          a previous version of SciDB. The script is available on your SciDB
+          cluster (provided your existing installation is version 14.3 or
+          later; previous versions did not include this script) in
+          /opt/scidb/14.3/bin/scidb_backup.py or
+          /opt/scidb/14.8/bin/scidb_backup.py.</para>
+        </listitem>
+
+        <listitem>
+          <para>An appendix describing the detailed steps which are
+          automatically performed by the Cluster Install script. If local
+          policies prevent you from running the cluster install script, you
+          can use this appendix as a guide to manual installation. See <xref
+          linkend="troubleInstall"/>.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>See the remainder of the chapter for more details about the
+    installation process and files.</para>
+
+    <note>
+      <para>Previous versions (14.3 and 14.8) included a script to help you
+      install without root privileges—on CentOS/RHEL only. However, we are not
+      aware of anyone actively using that script, so in this release it is not
+      supported. If you need such a script, contact us at
+      support@paradigm4.com.</para>
+    </note>
+  </section>
+
+  <section id="firstTimeInstallation">
+    <title>First-Time Installation</title>
+
+    <indexterm>
+      <primary>SciDB</primary>
+
+      <secondary>installing for the first time</secondary>
+    </indexterm>
+
+    <indexterm>
+      <primary>install SciDB</primary>
+    </indexterm>
+
+    <para>If you are installing SciDB for the first time on a cluster, the
+    process is straightforward:</para>
+
+    <procedure>
+      <step>
+        <para>Prepare the platform. This includes creating or adjusting user
+        accounts and configuring storage for the SciDB database files. For
+        details, see <xref linkend="PlatformPrep"/>.</para>
+      </step>
+
+      <step>
+        <para>Prepare a configuration file for SciDB. See <xref
+        linkend="ConfiguringSciDB"/>. </para>
+      </step>
+
+      <step>
+        <para>Run the cluster install script. See <xref
+        linkend="runClusterInstall"/>.</para>
+      </step>
+    </procedure>
+
+    <section xml:id="PlatformPrep">
+      <title>Preparing the Platform</title>
+
+      <para>Before installing SciDB, the following steps are required to
+      prepare a cluster for running SciDB. Many of these steps must be
+      executed as the Linux 'root' account.</para>
+
+      <section xml:id="linuxAccounts">
+        <title>Prepare Accounts</title>
+
+        <para>Before you install SciDB, you need to ensure that you have a
+        user account under which SciDB processes -- on all servers of the
+        cluster -- will run. This will also be the owner of all data and log
+        files created by SciDB, and it is the account that initializes,
+        starts, and stops the SciDB cluster. This account must have
+        passwordless SSH access configured between the default coordinator
+        server and all other servers in the cluster. Throughout this
+        documentation, this account is referred to as the scidb account,
+        although strictly speaking, it can be any account with the appropriate
+        settings.</para>
+
+        <para>In addition to setting up the scidb account, you may need to
+        perform these tasks depending on your operating system:<itemizedlist>
+            <listitem>
+              <para>Ubuntu does not enable root login by default. To enable
+              root login on Ubuntu, run the following command:<programlisting>sudo passwd</programlisting>Sudo
+              will prompt you for your password, and then ask you to supply a
+              new password for root.</para>
+            </listitem>
+
+            <listitem>
+              <para>For CentOS and RHEL, you should create a user account
+              (<command>adduser</command>), and provide sudo access for this
+              account. For details, see your OS documentation. If you need to
+              install <command>sudo</command>, execute the following command
+              (as root):<programlisting>yum install sudo</programlisting></para>
+            </listitem>
+          </itemizedlist></para>
+      </section>
+
+      <section xml:id="DataDir">
+        <title>Configure Storage</title>
+
+        <note>
+          <para>This action must be performed by a user with sudo privileges
+          on each server in the cluster. Once created, the base path should be
+          owned by the account used by SciDB.</para>
+        </note>
+
+        <para><indexterm>
+            <primary>configuration</primary>
+          </indexterm><indexterm>
+            <primary>storage</primary>
+
+            <secondary>configuring</secondary>
+          </indexterm>On each server, create a directory on the local file
+        system to serve as the data directory for each instance. This must be
+        accessible via the same path name on every server.</para>
+      </section>
+    </section>
+
+    <section xml:id="ConfiguringSciDB">
+      <title>Configuring SciDB</title>
+
+      <para>This section shows a configuration file: the result of using the
+      configurator (<ulink
+      url="https://github.com/Paradigm4/configurator">https://github.com/Paradigm4/configurator</ulink>)
+      utility. The configurator will place the file wherever you choose. Then,
+      the Cluster Install script will move the file to its proper location on
+      the default coordinator server -- in
+      <literal>/opt/scidb/&scidb_version;/etc/config.ini.</literal></para>
+
+      <para>The configuration 'test1' below is an example of the configuration
+      for a single-node, four-instance system:<programlisting>[test1]
+server-0=localhost,3
+db_user=test1user
+db_passwd=test1passwd
+install_root=/opt/scidb/&scidb_version;
+metadata=/opt/scidb/&scidb_version;/share/scidb/meta.sql
+pluginsdir=/opt/scidb/&scidb_version;/lib/scidb/plugins
+logconf=/opt/scidb/&scidb_version;/share/scidb/log4cxx.properties
+base-path=/home/scidb/data
+base-port=1239
+network-buffer=1024
+mem-array-threshold=1024
+smgr-cache-size=1024
+execution-threads=16
+result-prefetch-queue-size=4
+result-prefetch-threads=4</programlisting></para>
+    </section>
+
+    <section xml:id="runClusterInstall">
+      <title>Running Cluster Install</title>
+
+      <para>The Cluster Install script, and a README file with instructions
+      for running it, are here: <ulink
+    url="www.scidb.org/forum/viewforum.php?f=16">www.scidb.org/forum/viewforum.php?f=16</ulink>.
+</para>
+    </section>
+
+    <section xml:id="StartingSciDB">
+      <title>Starting SciDB</title>
+
+      <para>You start SciDB from the server containing the default coordinator
+      instance.</para>
+
+      <para>As the scidb user, run the following command to start a SciDB
+      database. The command starts the set of local SciDB instances specified
+      in your config.ini file.</para>
+
+      <note>
+        <simpara>For the following command, replace
+        <replaceable>scidb_cluster_name</replaceable> with the name of your
+        actual cluster. (In the sample configuration of the preceding section,
+        the value of <replaceable>scidb_cluster_name</replaceable> is
+        'test1'.</simpara>
+
+        <simpara>Also note that the cluster install script automatically
+        performs the first two steps of this procedure.</simpara>
+      </note>
+
+      <programlisting>scidb.py startall <replaceable>scidb_cluster_name</replaceable></programlisting>
+
+      <note>
+        <para>Initialization may fail if you are using the Lustre file system.
+        To correct the problem, use the <code>-o localflock</code> option when
+        mounting the file system.</para>
+      </note>
+    </section>
+  </section>
+
+  <section id="upgradingSciDB">
+    <title>Upgrading SciDB</title>
+
+    <para><indexterm>
+        <primary>SciDB</primary>
+
+        <secondary>upgrading</secondary>
+      </indexterm><indexterm>
+        <primary>upgrade SciDB</primary>
+      </indexterm><indexterm>
+        <primary>versions</primary>
+
+        <secondary>SciDB</secondary>
+      </indexterm>This section describes the process for installing SciDB
+    14.12 on a cluster where a previous version of SciDB is already installed.
+    This section uses the following conventions:<itemizedlist>
+        <listitem>
+          <para>To represent your current version: <emphasis
+          role="bold">scidbOldVersion</emphasis>.</para>
+        </listitem>
+
+        <listitem>
+          <para>To represent the new version that you are installing:
+          <emphasis role="bold">scidbNewVersion</emphasis>.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>For example, if you are upgrading from 14.8 to 14.12:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">scidbOldVersion</emphasis> = 14.8</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">scidbNewVersion</emphasis> =
+          14.12</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>If you are installing SciDB 14.12 on a cluster with a previous
+    version of SciDB, perform the following steps:</para>
+
+    <procedure>
+      <step>
+        <para><emphasis role="bold">Backup.</emphasis> If your existing
+        installation is 14.3 or later, you should back up your data using the
+        script, <code>scidb_backup.py</code>. This file is in the
+        /opt/scidb/&lt;scidbOldVersion&gt;/bin folder. (If your existing
+        installation is a version earlier than 14.3, you must perform manual
+        backup.) First, confirm that you have enough storage space, because
+        the following command will backup all your SciDB arrays. From the
+        <emphasis role="bold">scidb</emphasis> user account, run the backup
+        script. As an example, the following command creates a folder,
+        <emphasis role="bold">./mySavedArrays</emphasis>, and saves all of
+        your arrays, using the OPAQUE format, into that
+        folder:<programlisting>$ /opt/scidb/14.8/bin/scidb_backup.py -s opaque mySavedArrays</programlisting>For
+        usage details of the backup script, see the SciDB Reference
+        Manual.</para>
+
+        <note>
+          <para>If your existing installation is earlier than 14.8, do not use
+          the OPAQUE format for this step. OPAQUE is guaranteed to work only
+          between consecutive releases of SciDB.</para>
+        </note>
+      </step>
+
+      <step>
+        <para>Stop SciDB.</para>
+      </step>
+
+      <step>
+        <para>If you want to use the SciDB configuration from your existing
+        installation as the basis for the 14.12 configuration file, make a
+        backup copy of it somewhere. By default, the file is in the following
+        location:<screen>opt/scidb/<emphasis role="bold">scidbOldVersion</emphasis>/etc/config.ini</screen></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">OPTIONAL.</emphasis> You can run multiple
+        versions of SciDB. <!--
+For details, see <xref linkend="multipleSciDBs"/>.
+--> However, if you need only the latest version of SciDB, you can remove the
+        previous version. If you installed to the default location, run the
+        following command to remove the old version:<programlisting>sudo rm -Rf /opt/scidb/<emphasis
+              role="bold">scidbOldVersion</emphasis>/</programlisting></para>
+      </step>
+
+      <step>
+        <para>Remove any older version of SciDB. For CentOS and RHEL, remove
+        scidb.list.* and p4.list.* from /etc/yum.repos.d, then perform the
+        following command. <programlisting>yum list | grep scidb |awk '{print $1}' | grep '[a-zA-Z]' | xargs sudo rpm -e</programlisting>
+        For Ubuntu, remove scidb.list.* and p4.list.* from
+        /etc/apt/sources.list.d, then perform the following
+        command.<programlisting>dpkg --list | grep scidb |awk '{print $2}' | xargs sudo dpkg --purge </programlisting></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Upgrade. </emphasis>Perform the following
+        steps to upgrade to version 14.12 of SciDB.<orderedlist
+            numeration="loweralpha">
+            <listitem>
+              <para>Set up your configuration file. If you are starting from
+              the configuration file you saved in step 3, be sure to change
+              all occurrences of <emphasis
+              role="bold">scidbOldVersion</emphasis> to <emphasis
+              role="bold">scidbNewVersion</emphasis>. After you edit the file,
+              make a note of where you save it.</para>
+
+              <para>Typically, the following settings are
+              affected:<programlisting>install_root=/opt/scidb/14.8
+pluginsdir=/opt/scidb/14.8/lib/scidb/plugins
+logconf=/opt/scidb/14.8/share/scidb/log4cxx.properties</programlisting></para>
+
+              <para>Also, be sure to add the following setting to the
+              configuration file (if it does not already
+              exist):<programlisting>enable-catalog-upgrade=true</programlisting>For
+              more details about the configuration file, see <xref
+              linkend="ConfiguringSciDB"/>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Run the cluster install procedure, available at 
+<ulink
+    url="www.scidb.org/forum/viewforum.php?f=16">www.scidb.org/forum/viewforum.php?f=16</ulink>.
+              On the command line that invokes cluster install, include the
+              configuration file (the one you saved in step 5a) as a
+              parameter. See the cluster install README file for
+              details.</para>
+            </listitem>
+
+            <listitem>
+              <para>Restart SciDB. Use the following command:</para>
+
+              <programlisting>scidb.py initall <replaceable>scidb_cluster_name</replaceable></programlisting>
+
+              <note>
+                <para>If you get an error that says SciDB needs to upgrade the
+                system catalog, and that the action failed, make sure to set
+                the <code>enable-catalog-upgrade</code> parameter to <emphasis
+                role="bold">true</emphasis>, as detailed in step <emphasis
+                role="bold">6a</emphasis>.</para>
+              </note>
+            </listitem>
+          </orderedlist></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Restore. </emphasis>After you have the new
+        version of SciDB running, restore any data that you backed up in step
+        1. For example, if you used the command in step 1 to backup your
+        arrays, you would run the following command to restore
+        them:<programlisting>$ /opt/scidb/14.12/bin/scidb_backup.py -r opaque mySavedArrays</programlisting></para>
+      </step>
+    </procedure>
+  </section>
+</chapter>

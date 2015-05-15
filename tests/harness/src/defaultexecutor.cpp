@@ -47,6 +47,7 @@
 # include <boost/algorithm/string.hpp>
 # include <boost/filesystem.hpp>
 # include <boost/filesystem/fstream.hpp>
+# include <boost/date_time/posix_time/posix_time.hpp>
 # include <boost/date_time/posix_time/posix_time_types.hpp>
 # include <boost/thread/pthread/condition_variable.hpp>
 # include <boost/program_options/options_description.hpp>
@@ -1094,6 +1095,9 @@ int DefaultExecutor :: executeTestCase (void)
 {
 	LOG4CXX_INFO (_logger, "Starting executing the test case ...");
 	int i=-1, rv=FAILURE;
+	_ie.startTestSectionMillisec=0;
+	_ie.endTestSectionMillisec=0;
+	boost::posix_time::ptime time_of_epoch(boost::gregorian::date(1970,1,1));
 
 	try
 	{
@@ -1125,7 +1129,18 @@ int DefaultExecutor :: executeTestCase (void)
 			else
 			{
 				LOG4CXX_INFO (_logger, "Executing " << section_name << ".");
+				if (i == SECTION_TEST)
+				{
+					_ie.startTestSectionMillisec = (boost::posix_time::microsec_clock::local_time()-time_of_epoch).total_milliseconds();
+				}
+
 				rv = execCommandVector (*current_section);
+
+				if (i == SECTION_TEST)
+				{
+					_ie.endTestSectionMillisec = (boost::posix_time::microsec_clock::local_time()-time_of_epoch).total_milliseconds();
+				}
+
 				if (rv == EXIT || rv == FAILURE)
 				{
 					if (rv == EXIT)
@@ -1236,7 +1251,6 @@ int DefaultExecutor :: parseShellCommandOptions (string line, struct ShellComman
 		/* first parse and remove --command option */
 		size_t index = line.find (" --command ");
 		size_t index1 = line.find (" --command=");
-		int command_removed = 0;
 
 		if (index != string::npos || index1 != string::npos)
 		{
@@ -1290,8 +1304,6 @@ int DefaultExecutor :: parseShellCommandOptions (string line, struct ShellComman
 
             line = line.substr(0,starting_index); // Remove the command option from the line.
             //---------------------------------------------------------
-
-            command_removed = 1;
 
 			index = line.find ("--command");
 			if (index != string::npos)
@@ -2810,6 +2822,8 @@ void DefaultExecutor :: copyToLocal (const InfoForExecutor &ie)
 	_ie.record             = ie.record;
 	_ie.keepPreviousRun    = ie.keepPreviousRun;
 	_ie.selftesting        = ie.selftesting;
+	_ie.startTestSectionMillisec = ie.startTestSectionMillisec;
+	_ie.endTestSectionMillisec   = ie.endTestSectionMillisec;
 
 	_ie.expected_rfile     = ie.expected_rfile;
 	_ie.actual_rfile       = ie.actual_rfile;
@@ -2819,18 +2833,17 @@ void DefaultExecutor :: copyToLocal (const InfoForExecutor &ie)
 	_ie.logger_name       = ie.logger_name;
 }
 
-int DefaultExecutor :: execute (const InfoForExecutor &ie)
+int DefaultExecutor :: execute (InfoForExecutor &ie)
 {
 	time_t rawtime;
 	time ( &rawtime );
-	std::string _ctime = ctime (&rawtime);
-	_ctime = _ctime.substr(0,_ctime.size()-1);
+	std::string nowStr(ctime (&rawtime));
+	nowStr = nowStr.substr(0,nowStr.size()-1); // remove newline
 
 	if (strcasecmp (ie.logDestination.c_str (), LOGDESTINATION_CONSOLE) != 0)
 	{
-		const char * underlines30 = "______________________________";  // 30, more than enough
-		cout << "[" << ie.test_sequence_number << "][" << _ctime << "]: " << ie.testID
-                     << " " << underlines30 << " Executing" << std::endl << std::flush;
+		cout << "[" << ie.test_sequence_number << "][" << nowStr << "]: "
+		     << "[start] " << ie.testID << std::endl;
 	}
 
 	copyToLocal (ie);
@@ -2868,6 +2881,11 @@ int DefaultExecutor :: execute (const InfoForExecutor &ie)
 		}
 		return FAILURE;
 	}
+
+	// for success: update the caller's ie to publish the time taken
+	ie.startTestSectionMillisec = _ie.startTestSectionMillisec;
+	ie.endTestSectionMillisec   = _ie.endTestSectionMillisec;
+
 	if (_errorCodesDiffer == true)
 	{
 		LOG4CXX_INFO (_logger, "EXECUTOR returning FAILURE to the caller.");

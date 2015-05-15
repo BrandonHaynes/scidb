@@ -63,6 +63,7 @@ namespace scidb
         Mutex _mutex;
         size_t _swapNum;
         size_t _loadsNum;
+        size_t _dropsNum;
         uint64_t _genCount;
         DataStores _datastores;
         static SharedMemCache _sharedMemCache;
@@ -96,6 +97,10 @@ namespace scidb
 
         size_t getLoadsNum() const {
             return _loadsNum;
+        }
+
+        size_t getDropsNum() const {
+            return _dropsNum;
         }
 
         /**
@@ -144,7 +149,6 @@ namespace scidb
     {
         friend class MemChunk;
         friend class LruMemChunk;
-        friend class MemChunkIterator;
         friend class MemArrayIterator;
         friend class SharedMemCache;
       public:
@@ -158,8 +162,6 @@ namespace scidb
 
         virtual boost::shared_ptr<ArrayIterator> getIterator(AttributeID attId);
         virtual boost::shared_ptr<ConstArrayIterator> getConstIterator(AttributeID attId) const;
-
-        Chunk& operator[](Address const& addr);
 
         MemArray(ArrayDesc const& arr, boost::shared_ptr<Query> const& query);
 
@@ -188,6 +190,7 @@ namespace scidb
       protected:
         ArrayDesc desc;
       private:
+        Chunk& operator[](Address const& addr);
         void initLRU();
         void swapOut();
         void pinChunk(LruMemChunk& chunk);

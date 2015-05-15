@@ -30,11 +30,11 @@
 
 #include "ShiftArray.h"
 
-namespace scidb {
+using namespace boost;
+using namespace std;
 
-    using namespace boost;
-    using namespace std;
-
+namespace scidb
+{
     //
     // Shift chunk iterator methods
     //
@@ -75,7 +75,7 @@ namespace scidb {
     void ShiftChunk::setInputChunk(ConstChunk const& inputChunk)
     {
         DelegateChunk::setInputChunk(inputChunk);
-        isClone = !inputChunk.isSparse();
+        isClone = true;
         array.in2out(inputChunk.getFirstPosition(false), firstPos);
         array.in2out(inputChunk.getLastPosition(false), lastPos);
     }
@@ -120,14 +120,14 @@ namespace scidb {
     void ShiftArray::in2out(Coordinates const& inPos, Coordinates& outPos)  const
     { 
         for (size_t i = 0, n = inDims.size(); i < n; i++) { 
-            outPos[i] = inPos[i] + outDims[i].getStart() - inDims[i].getStart();
+            outPos[i] = inPos[i] + outDims[i].getStartMin() - inDims[i].getStartMin();
         }
     }
 
     void ShiftArray::out2in(Coordinates const& outPos, Coordinates& inPos)  const
     { 
         for (size_t i = 0, n = outDims.size(); i < n; i++) { 
-            inPos[i] = outPos[i] + inDims[i].getStart() - outDims[i].getStart();
+            inPos[i] = outPos[i] + inDims[i].getStartMin() - outDims[i].getStartMin();
         }
     }
 

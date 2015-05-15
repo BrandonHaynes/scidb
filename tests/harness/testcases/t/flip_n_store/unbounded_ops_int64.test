@@ -41,8 +41,6 @@ rename(temp,unbounded2)
 scan(unbounded2)
 bernoulli(unbounded2,1,1)
 dimensions(unbounded2)
-adddim(unbounded2,z)
-deldim(adddim(unbounded2,z))
 cast(unbounded2,unbounded3)
 dimensions(unbounded2)
 --error "normalize(unbounded2)"

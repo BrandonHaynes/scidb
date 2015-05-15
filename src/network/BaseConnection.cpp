@@ -68,6 +68,8 @@ MessageDesc::MessageDesc(const boost::shared_ptr<SharedBuffer>& binary)
 void
 MessageDesc::init(MessageID messageType)
 {
+    setToZeroInDebug(&_messageHeader, sizeof(_messageHeader));
+
     _messageHeader.netProtocolVersion = NET_PROTOCOL_CURRENT_VER;
     _messageHeader.sourceInstanceID = CLIENT_INSTANCE;
     _messageHeader.recordSize = 0;
@@ -75,8 +77,9 @@ MessageDesc::init(MessageID messageType)
     _messageHeader.messageType = static_cast<uint16_t>(messageType);
     _messageHeader.queryID = 0;
 
-    if (messageType != mtNone)
+    if (messageType != mtNone) {
         _record = createRecordByType(messageType);
+    }
 }
 void MessageDesc::writeConstBuffers(std::vector<asio::const_buffer>& constBuffers)
 {
@@ -97,9 +100,8 @@ void MessageDesc::writeConstBuffers(std::vector<asio::const_buffer>& constBuffer
     }
 
     LOG4CXX_TRACE(BaseConnection::logger, "writeConstBuffers: messageType=" << _messageHeader.messageType <<
-            " ; headerSize=" << sizeof(_messageHeader) <<
-            " ; recordSize=" << _messageHeader.recordSize <<
-            " ; binarySize=" << _messageHeader.binarySize);
+                  " ; recordSize=" << _messageHeader.recordSize <<
+                  " ; binarySize=" << _messageHeader.binarySize);
 }
 
 
@@ -271,7 +273,6 @@ void BaseConnection::configConnectedSocket()
    boost::asio::socket_base::keep_alive keep_alive(true);
    _socket.set_option(keep_alive);
 
-#ifndef __APPLE__
    int s = _socket.native();
    int optval;
    socklen_t optlen = sizeof(optval);
@@ -289,7 +290,6 @@ void BaseConnection::configConnectedSocket()
    if(setsockopt(s, SOL_TCP, TCP_KEEPINTVL, &optval, optlen) < 0) {
       perror("setsockopt()");
    }
-#endif
 
    if (logger->isTraceEnabled()) {
       boost::asio::socket_base::receive_buffer_size optionRecv;

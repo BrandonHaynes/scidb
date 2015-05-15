@@ -59,7 +59,11 @@ public:
         // Ensure inputArray supports random access, and rangesArray is replicated.
         assert(inputArrays.size() == 2);
         shared_ptr<Array> inputArray = ensureRandomAccess(inputArrays[0], query);
-        shared_ptr<Array> rangesArray = redistribute(inputArrays[1], query, psReplication);
+        shared_ptr<Array> rangesArray = redistributeToRandomAccess(inputArrays[1], query, psReplication,
+                                                                   ALL_INSTANCE_MASK,
+                                                                   shared_ptr<DistributionMapper>(),
+                                                                   0,
+                                                                   shared_ptr<PartitioningSchemaData>());
 
         // Some variables.
         SchemaUtils schemaUtilsInputArray(inputArray);

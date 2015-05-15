@@ -29,6 +29,7 @@
  */
 #include <log4cxx/logger.h>
 
+#include "InputArray.h"
 #include "query/Operator.h"
 #include "system/Exceptions.h"
 #include "system/SystemCatalog.h"
@@ -43,11 +44,10 @@ static log4cxx::LoggerPtr oplogger(log4cxx::Logger::getLogger("scidb.ops.input")
 
 namespace scidb
 {
-
+const char* LogicalInput::OP_INPUT_NAME="input";
 /**
  * Must be called as INPUT('existing_array_name', '/path/to/file/on/instance')
  */
-
 LogicalInput::LogicalInput(const std::string& logicalName, const std::string& alias): LogicalOperator(logicalName, alias)
 {
     ADD_PARAM_SCHEMA();   //0
@@ -58,6 +58,7 @@ LogicalInput::LogicalInput(const std::string& logicalName, const std::string& al
 std::vector<boost::shared_ptr<OperatorParamPlaceholder> > LogicalInput::nextVaryParamPlaceholder(const std::vector< ArrayDesc> &schemas)
 {
     std::vector<boost::shared_ptr<OperatorParamPlaceholder> > res;
+    res.reserve(2);
     res.push_back(END_OF_VARIES_PARAMS());
     switch (_parameters.size()) {
       case 0:
@@ -75,11 +76,14 @@ std::vector<boost::shared_ptr<OperatorParamPlaceholder> > LogicalInput::nextVary
         break;
       case 5:
         res.push_back(PARAM_OUT_ARRAY_NAME());
+        res.push_back(PARAM_CONSTANT("bool"));
+        break;
+      case 6:
+        res.push_back(PARAM_CONSTANT("bool"));
         break;
     }
     return res;
 }
-
 
 ArrayDesc LogicalInput::inferSchema(std::vector< ArrayDesc> inputSchemas, boost::shared_ptr< Query> query)
 {
@@ -90,7 +94,7 @@ ArrayDesc LogicalInput::inferSchema(std::vector< ArrayDesc> inputSchemas, boost:
     {
         instanceID = evaluate(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[2])->getExpression(),
                                   query, TID_INT64).getInt64();
-        if (instanceID != COORDINATOR_INSTANCE_MASK && instanceID != ALL_INSTANCES_MASK && (size_t)instanceID >= query->getInstancesCount())
+        if (instanceID != COORDINATOR_INSTANCE_MASK && instanceID != ALL_INSTANCE_MASK && (size_t)instanceID >= query->getInstancesCount())
             throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_INVALID_INSTANCE_ID,
                                        _parameters[2]->getParsingContext()) << instanceID;
     }
@@ -102,16 +106,43 @@ ArrayDesc LogicalInput::inferSchema(std::vector< ArrayDesc> inputSchemas, boost:
     if (_parameters.size() >= 4) {
         format = evaluate(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[3])->getExpression(),
                                             query, TID_STRING).getString();
-        if (format[0] != '('
-            && !format.empty()
-            && compareStringsIgnoreCase(format, "opaque") != 0
-            && compareStringsIgnoreCase(format, "text") != 0)
+        if (!InputArray::isSupportedFormat(format))
         {
             throw  USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_UNSUPPORTED_FORMAT,
                                         _parameters[3]->getParsingContext()) << format;
         }
     }
-    if (instanceID == ALL_INSTANCES_MASK)
+
+    bool isStrictSet = false;
+    if (_parameters.size() >= 6) {
+        if(_parameters[5]->getParamType() == PARAM_ARRAY_REF) {
+            // nothing
+        } else if (_parameters[5]->getParamType() == PARAM_LOGICAL_EXPRESSION) {
+            isStrictSet = true;
+            if(isDebug()) {
+                OperatorParamLogicalExpression* lExp = static_cast<OperatorParamLogicalExpression*>(_parameters[5].get());
+                SCIDB_ASSERT(lExp->isConstant());
+                assert(lExp->getExpectedType()==TypeLibrary::getType(TID_BOOL));
+            }
+        } else {
+            ASSERT_EXCEPTION(false, "LogicalInput::inferSchema: ");
+        }
+    }
+
+    if (_parameters.size() >= 7) {
+        if (isStrictSet) {
+            throw  USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_WRONG_OPERATOR_ARGUMENTS_COUNT,
+                                        _parameters[6]->getParsingContext()) << OP_INPUT_NAME << 6 << _parameters.size();
+        }
+        if (isDebug()) {
+            assert(_parameters[6]->getParamType() == PARAM_LOGICAL_EXPRESSION);
+            OperatorParamLogicalExpression* lExp = static_cast<OperatorParamLogicalExpression*>(_parameters[6].get());
+            SCIDB_ASSERT(lExp->isConstant());
+            assert(lExp->getExpectedType()==TypeLibrary::getType(TID_BOOL));
+        }
+    }
+
+    if (instanceID == ALL_INSTANCE_MASK)
     {
         /* Let's support it: lets each instance assign unique coordiantes to its chunks based on distribution function.
         * It is based on two assumptions:
@@ -147,9 +178,9 @@ ArrayDesc LogicalInput::inferSchema(std::vector< ArrayDesc> inputSchemas, boost:
         //Such file not found on any instance. Failing with exception
         if (!fileDetected)
         {
-        //    throw USER_QUERY_EXCEPTION(
-        //        SCIDB_SE_INFER_SCHEMA, SCIDB_LE_FILE_NOT_FOUND,
-        //        _parameters[1]->getParsingContext()) << path;
+            throw USER_QUERY_EXCEPTION(
+                SCIDB_SE_INFER_SCHEMA, SCIDB_LE_FILE_NOT_FOUND,
+                _parameters[1]->getParsingContext()) << path;
         }
 
         //If some instances missing this file posting appropriate warning
@@ -193,7 +224,7 @@ ArrayDesc LogicalInput::inferSchema(std::vector< ArrayDesc> inputSchemas, boost:
 
     //Use array name from catalog if possible or generate temporary name
     string inputArrayName = arrayDesc.getName();
-    PartitioningSchema partitioningSchema = instanceID == ALL_INSTANCES_MASK ? psUndefined : psLocalInstance;
+    PartitioningSchema partitioningSchema = instanceID == ALL_INSTANCE_MASK ? psUndefined : psLocalInstance;
     if (!SystemCatalog::getInstance()->containsArray(inputArrayName))
     {
         inputArrayName = "tmp_input_array";
@@ -215,8 +246,7 @@ ArrayDesc LogicalInput::inferSchema(std::vector< ArrayDesc> inputSchemas, boost:
 void LogicalInput::inferArrayAccess(boost::shared_ptr<Query>& query)
 {
     string shadowArrayName;
-    if (_parameters.size() >= 6) {
-        assert(_parameters[5]->getParamType() == PARAM_ARRAY_REF);
+    if (_parameters.size() >= 6 && _parameters[5]->getParamType() == PARAM_ARRAY_REF) {
         shadowArrayName = ((boost::shared_ptr<OperatorParamArrayReference>&)_parameters[5])->getObjectName();
     }
     if (!shadowArrayName.empty()) {
@@ -232,7 +262,7 @@ void LogicalInput::inferArrayAccess(boost::shared_ptr<Query>& query)
     }
 }
 
-DECLARE_LOGICAL_OPERATOR_FACTORY(LogicalInput, "input")
+DECLARE_LOGICAL_OPERATOR_FACTORY(LogicalInput, LogicalInput::OP_INPUT_NAME)
 
 
 } //namespace

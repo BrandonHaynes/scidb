@@ -342,6 +342,11 @@ namespace scidb
                                   int flags);
 
         /**
+         * @return full path of the temp directory
+         */
+        std::string getTempDir();
+
+        /**
          * Constructor -- need to ensure that everything in the temp dir
          * is wiped out
          */
@@ -373,12 +378,6 @@ namespace scidb
          *         lru list is pinned.
          */
         void checkActive(File& file);
-
-        /**
-         * Check that the static state has been initialized
-         * @pre _fileLock is locked
-         */
-        void checkInit();
 
         /**
          * Check if we have reached the limit of the lru list---

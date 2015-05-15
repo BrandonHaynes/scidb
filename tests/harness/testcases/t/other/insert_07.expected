@@ -144,12 +144,12 @@ SCIDB QUERY : <insert(build(<val:int64> [x=0:10000,5000,0,y=0:10000,5000,0],'[[{
 {9999,9999} 90
 {10000,10000} 90
 
-SCIDB QUERY : <insert(LU,RU)>
+SCIDB QUERY : <insert(scan(LU,true),RU)>
 {x,y} val
 {0,0} 100
 {5000,5000} 5000000
 
-SCIDB QUERY : <insert(LU,RU1)>
+SCIDB QUERY : <insert(scan(LU,true),RU1)>
 {x,y} val
 {0,0} 100
 {5000,5000} 5000000

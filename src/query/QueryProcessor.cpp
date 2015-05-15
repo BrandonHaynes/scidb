@@ -222,53 +222,70 @@ boost::shared_ptr<Array> QueryProcessorImpl::execute(boost::shared_ptr<PhysicalQ
     StatisticsScope sScope(&physicalOperator->getStatistics());
     if (node->isAgg())
     {
+        const size_t numInstances = query->getInstancesCount();
+
         // This assert should be provided by optimizer
         assert(childs.size() == 1);
 
         boost::shared_ptr<Array> currentResultArray = execute(childs[0], query, depth+1);
         assert(currentResultArray);
 
-        if (query->getCoordinatorID() != COORDINATOR_INSTANCE)
-        {
-            if (Config::getInstance()->getOption<int>(CONFIG_PREFETCHED_CHUNKS) > 1 && currentResultArray->getSupportedAccess() == Array::RANDOM) {
+        // Prepare RemoteArrayContext.
+        //   - worker instance: store the local result in RemoteArrayContext::_outboundArrays[0].
+        //   - coordinator instance: create a vector of RemoteArray objects, and store in RemoteArrayContext::_inboundArrays.
+        shared_ptr<RemoteArrayContext> remoteArrayContext = make_shared<RemoteArrayContext>(numInstances);
+
+        if (! query->isCoordinator()) {
+            if (Config::getInstance()->getOption<int>(CONFIG_RESULT_PREFETCH_QUEUE_SIZE) > 1 && currentResultArray->getSupportedAccess() == Array::RANDOM) {
                 boost::shared_ptr<ParallelAccumulatorArray> paa = boost::make_shared<ParallelAccumulatorArray>(currentResultArray);
                 currentResultArray = paa;
                 paa->start(query);
             } else {
                 currentResultArray = boost::make_shared<AccumulatorArray>(currentResultArray,query);
             }
+            remoteArrayContext->setOutboundArray(query->getCoordinatorID(), currentResultArray);
         }
-        query->setCurrentResultArray(currentResultArray);
-
-        notify(query);
-
-        if (query->getCoordinatorID() == COORDINATOR_INSTANCE)
-        {
-            for (size_t i = 0; i < query->getInstancesCount(); i++)
+        else {
+            for (size_t i = 0; i < numInstances; i++)
             {
                 boost::shared_ptr<Array> arg;
                 if (i != query->getInstanceID()) {
-                    arg = RemoteArray::create(query->getCurrentResultArray()->getArrayDesc(), query->getQueryID(), i);
+                    arg = RemoteArray::create(remoteArrayContext, currentResultArray->getArrayDesc(), query->getQueryID(), i);
                 } else {
-                    arg = query->getCurrentResultArray();
+                    arg = currentResultArray;
                 }
                 if (!arg)
                     throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_OPERATOR_RESULT);
                 operatorArguments.push_back(arg);
             }
+        }
 
+        // Record RemoteArrayContext in the query context.
+        ASSERT_EXCEPTION(!query->getOperatorContext(), "In QueryProcessorImpl, operator context is supposed to be empty.");
+        query->setOperatorContext(remoteArrayContext);
+        notify(query);
+
+        if (query->isCoordinator())
+        {
             /**
              * TODO: we need to get whole result on this instance before we call wait(query)
              * because we hope on currentResultArray of remote instances but it lives until we send wait notification
              */
-            boost::shared_ptr<Array> res = physicalOperator->execute(operatorArguments, query);
+            boost::shared_ptr<Array> res = physicalOperator->executeWrapper(operatorArguments, query);
             wait(query);
+
+            // Unset remote array context.
+            query->unsetOperatorContext();
 
             return res;
         }
         else
         {
             wait(query);
+
+            // Unset remote array context.
+            query->unsetOperatorContext();
+
             /**
              * TODO: This is temporary. 2-nd phase is performed only on coordinator but
              * other instances can continue execution with empty array with the same schema.
@@ -278,12 +295,12 @@ boost::shared_ptr<Array> QueryProcessorImpl::execute(boost::shared_ptr<PhysicalQ
              */
             return depth != 0
                 ? boost::shared_ptr<Array>(new MemArray(physicalOperator->getSchema(), query))
-                : query->getCurrentResultArray();
+                : currentResultArray;
         }
     }
     else if (node->isDdl())
     {
-        physicalOperator->execute(operatorArguments, query);
+        physicalOperator->executeWrapper(operatorArguments, query);
         return boost::shared_ptr<Array>();
     }
     else
@@ -295,7 +312,7 @@ boost::shared_ptr<Array> QueryProcessorImpl::execute(boost::shared_ptr<PhysicalQ
                 throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_OPERATOR_RESULT);
             operatorArguments.push_back(arg);
         }
-        return physicalOperator->execute(operatorArguments, query);
+        return physicalOperator->executeWrapper(operatorArguments, query);
     }
 }
 
@@ -325,7 +342,7 @@ void QueryProcessorImpl::execute(boost::shared_ptr<Query> query)
 
     if (currentResultArray)
     {
-        if (Config::getInstance()->getOption<int>(CONFIG_PREFETCHED_CHUNKS) > 1 && currentResultArray->getSupportedAccess() == Array::RANDOM) {
+        if (Config::getInstance()->getOption<int>(CONFIG_RESULT_PREFETCH_QUEUE_SIZE) > 1 && currentResultArray->getSupportedAccess() == Array::RANDOM) {
             if (typeid(*currentResultArray) != typeid(ParallelAccumulatorArray)) {
                boost::shared_ptr<ParallelAccumulatorArray> paa = boost::make_shared<ParallelAccumulatorArray>(currentResultArray);
                currentResultArray = paa;
@@ -337,7 +354,7 @@ void QueryProcessorImpl::execute(boost::shared_ptr<Query> query)
             }
         }
         if (query->getInstancesCount() > 1 &&
-            query->getCoordinatorID() == COORDINATOR_INSTANCE &&
+            query->isCoordinator() &&
             !rootNode->isAgg() && !rootNode->isDdl())
         {
             // RemoteMergedArray uses the Query::_currentResultArray as its local (stream) array
@@ -367,7 +384,7 @@ bool validateQueryWithTimeout(uint64_t startTime,
 
 void QueryProcessorImpl::notify(boost::shared_ptr<Query>& query, uint64_t timeoutNanoSec)
 {
-   if (query->getCoordinatorID() != COORDINATOR_INSTANCE)
+   if (! query->isCoordinator())
     {
         QueryID queryID = query->getQueryID();
         LOG4CXX_DEBUG(logger, "Sending notification in queryID: " << queryID << " to coord instance #" << query->getCoordinatorID())
@@ -391,13 +408,13 @@ void QueryProcessorImpl::notify(boost::shared_ptr<Query>& query, uint64_t timeou
 
 void QueryProcessorImpl::wait(boost::shared_ptr<Query>& query)
 {
-   if (query->getCoordinatorID() == COORDINATOR_INSTANCE)
+   if (query->isCoordinator())
     {
         QueryID queryID = query->getQueryID();
         LOG4CXX_DEBUG(logger, "Send message from coordinator for waiting instances in queryID: " << query->getQueryID())
         boost::shared_ptr<MessageDesc> messageDesc = makeWaitMessage(queryID);
 
-        NetworkManager::getInstance()->sendOutMessage(messageDesc);
+        NetworkManager::getInstance()->broadcastLogical(messageDesc);
     }
     else
     {

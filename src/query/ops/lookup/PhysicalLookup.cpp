@@ -72,20 +72,23 @@ public:
         boost::shared_ptr<Array> left = inputArrays[0];
         boost::shared_ptr<Array> right = inputArrays[1];
 
-        if ( query->getInstancesCount() > 1) { 
-            uint64_t coordinatorID = query->getCoordinatorID() == COORDINATOR_INSTANCE ?  query->getInstanceID() : query->getCoordinatorID();
-            left = redistribute(left, query, psLocalInstance, "", coordinatorID);
-            right = redistribute(right, query, psLocalInstance, "", coordinatorID);
-            if ( query->getInstanceID() != coordinatorID) { 
-                return boost::shared_ptr<Array>(new MemArray(_schema,query));
-            }
+        const shared_ptr<DistributionMapper> distMapper;
+        const shared_ptr<PartitioningSchemaData> psData;
+        left = redistributeToRandomAccess(left, query, psLocalInstance,
+                                          query->isCoordinator() ? query->getInstanceID() : query->getCoordinatorID(),
+                                          distMapper, 0, psData);
+
+        right = redistributeToRandomAccess(right, query, psLocalInstance,
+                                          query->isCoordinator() ? query->getInstanceID() : query->getCoordinatorID(),
+                                          distMapper, 0, psData);
+        if (!query->isCoordinator()) {
+            return boost::shared_ptr<Array>(new MemArray(_schema,query));
         }
-        left = ensureRandomAccess(left,query);
-        right = ensureRandomAccess(right,query);
-		return boost::shared_ptr<Array>(new LookupArray(_schema, left, right, query));
-	 }
+
+        return boost::shared_ptr<Array>(new LookupArray(_schema, left, right, query));
+    }
 };
-    
+
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalLookup, "lookup", "physicalLookup")
 
 }  // namespace scidb

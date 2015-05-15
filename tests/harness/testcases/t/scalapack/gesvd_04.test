@@ -34,21 +34,21 @@ store(M4x5c32x16, M4x5c32x16_UB)
 --error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR5 "gesvd(M8x8_ubi, 'right')"
 
 --echo changing the attribute type from int64 to double with default and testing gesvd
-gesvd(M8x8_default, 'values')
-gesvd(M8x8_default, 'left')
-gesvd(M8x8_default, 'right')
+gesvd(scan(M8x8_default,true), 'values')
+gesvd(scan(M8x8_default,true), 'left')
+gesvd(scan(M8x8_default,true), 'right')
 
-aggregate(gesvd(M8x8_default, 'values'),count(sigma))
-aggregate(gesvd(M8x8_default, 'left'),count(u))
-aggregate(gesvd(M8x8_default, 'right'),count(v))
+aggregate(gesvd(scan(M8x8_default,true), 'values'),count(sigma))
+aggregate(gesvd(scan(M8x8_default,true), 'left'),count(u))
+aggregate(gesvd(scan(M8x8_default,true), 'right'),count(v))
 
 --echo gesvd negative tests : array should have same chunking on both the dimensions
 --error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16, 'values')"
 --error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16, 'left')"
 --error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16, 'right')"
---error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16_UB, 'values')"
---error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16_UB, 'left')"
---error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(M4x5c32x16_UB, 'right')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(scan(M4x5c32x16_UB,true), 'values')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(scan(M4x5c32x16_UB,true), 'left')"
+--error --code DLA::SCIDB_SE_INFER_SCHEMA::DLA_ERROR41 "gesvd(scan(M4x5c32x16_UB,true), 'right')"
 
 --echo and when chunking is not the same, use repart to make it work
 gesvd(repart(M4x5c32x16, <a:double> [x=0:3,32,0, y=0:4,32,0]), 'values')
@@ -80,13 +80,13 @@ aggregate(gesvd(M4x5, 'values'), max(sigma), min(sigma), avg(sigma))
 
 --echo output comparison between M4x5 and M4x5_UB
 gesvd(M4x5, 'values')
-gesvd(M4x5_UB, 'values')
+gesvd(scan(M4x5_UB,true), 'values')
 
 gesvd(M4x5, 'left')
-gesvd(M4x5_UB, 'left')
+gesvd(scan(M4x5_UB,true), 'left')
 
 gesvd(M4x5, 'right')
-gesvd(M4x5_UB, 'right')
+gesvd(scan(M4x5_UB,true), 'right')
 
 
 --cleanup

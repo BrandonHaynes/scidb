@@ -266,7 +266,7 @@ SCIDB QUERY : <store(cross_join(teeth,A),BBB)>
 
 SCIDB QUERY : <show(BBB)>
 {i} schema
-{0} 'BBB<val:int64 NULL DEFAULT null,a:float> [x=0:5,2,0,y=0:3,2,0,x_2=-2:2,3,0]'
+{0} 'BBB<val:int64 NULL DEFAULT null,a:float> [x=0:*,2,0,y=0:*,2,0,x_2=-2:2,3,0]'
 
 SCIDB QUERY : <cross_join(A,d1)>
 {x,x,y} a,a1
@@ -1991,7 +1991,7 @@ SCIDB QUERY : <aggregate(cross_join(cross_join(filter(A, a>0),d1),cross_join(A,A
 {i} count
 {0} 1350
 
-SCIDB QUERY : <cross_join(A,xgrid(teeth,2,2))>
+SCIDB QUERY : <cross_join(A,xgrid(scan(teeth,true),2,2))>
 {x,x,y} a,val
 {-2,0,2} -1.56522,null
 {-2,0,3} -1.56522,null
@@ -2254,7 +2254,7 @@ SCIDB QUERY : <cross_join(A,xgrid(teeth,2,2))>
 {2,11,6} 2.43478,24
 {2,11,7} 2.43478,24
 
-SCIDB QUERY : <aggregate(cross_join(A,xgrid(teeth,2,2)),count(*))>
+SCIDB QUERY : <aggregate(cross_join(A,xgrid(scan(teeth,true),2,2)),count(*))>
 {i} count
 {0} 260
 
@@ -2983,7 +2983,7 @@ SCIDB QUERY : <store(cross_join(teeth,d1),CCC)>
 
 SCIDB QUERY : <show(CCC)>
 {i} schema
-{0} 'CCC<val:int64 NULL DEFAULT null,a1:double NULL DEFAULT null> [x=0:5,2,0,y=0:3,2,0,x_2=0:4,3,0,y_2=-2:1,2,1]'
+{0} 'CCC<val:int64 NULL DEFAULT null,a1:double NULL DEFAULT null> [x=0:*,2,0,y=0:*,2,0,x_2=0:4,3,0,y_2=-2:1,2,1]'
 
 SCIDB QUERY : <unpack(teeth,j)>
 {j} x,y,val
@@ -3019,7 +3019,7 @@ SCIDB QUERY : <store(unpack(teeth,j),ZZZ)>
 
 SCIDB QUERY : <show(ZZZ)>
 {i} schema
-{0} 'ZZZ<x:int64,y:int64,val:int64 NULL DEFAULT null> [j=0:*,24,0]'
+{0} 'ZZZ<x:int64,y:int64,val:int64 NULL DEFAULT null> [j=0:*,1000000,0]'
 
 SCIDB QUERY : <cross_join(unpack(teeth,j),A)>
 {j,x} x,y,val,a

@@ -62,9 +62,10 @@ public:
         while (!inputIterator->end())
         {
             Coordinates const& pos = inputIterator->getPosition();
+            shared_ptr<DistributionMapper> distMapper;
             if (getInstanceForChunk(Query::getValidQueryPtr(_query), pos,
                                     array.getArrayDesc(), _ps,
-                                    shared_ptr<DistributionMapper>(), 0, 0) == _myInstance)
+                                    distMapper, 0, 0) == _myInstance)
             {
                 _nextChunk = &inputIterator->getChunk();
                 _hasNext = true;
@@ -98,8 +99,9 @@ public:
     bool setPosition(Coordinates const& pos)
     {
         chunkInitialized = false;
+        shared_ptr<DistributionMapper> distMapper;
         if (getInstanceForChunk(Query::getValidQueryPtr(_query), pos, array.getArrayDesc(),
-                                _ps, shared_ptr<DistributionMapper>(), 0, 0) == _myInstance &&
+                                _ps, distMapper, 0, 0) == _myInstance &&
             inputIterator->setPosition(pos))
         {
             _nextChunk = &inputIterator->getChunk();
@@ -187,7 +189,7 @@ public:
         return boost::shared_ptr<Array>(new ReduceDistroArray(query, _schema, inputArrays[0], ps));
 	 }
 };
-    
+
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalReduceDistro, "reduce_distro", "physicalReduceDistro")
 
 }  // namespace scidb

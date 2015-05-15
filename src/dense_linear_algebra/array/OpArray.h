@@ -53,8 +53,8 @@ static log4cxx::LoggerPtr OP_ARRAY_logger(log4cxx::Logger::getLogger("scidb.line
 
 
 /**
- *  This template class takes an template operand Op_tt, which
- *  represents a function f(coord), and turn it into an Array
+ *  This template class takes a template operand Op_tt, which
+ *  represents a function f(coord), and turns it into an Array
  *  which generates dense chunks by calling the function.
  *  When Op_tt::operator()(row, col) is inline, this is extremely efficient.
  *  [There is also an Op_tt::operator()(index) 1D case]
@@ -69,19 +69,23 @@ static log4cxx::LoggerPtr OP_ARRAY_logger(log4cxx::Logger::getLogger("scidb.line
  *  It was originally designed to support the reformatting of ScaLAPACK
  *  output to look like an Array.
  *
- *  However, with some further generalization, this code could be extended to work with
+ *  With some further generalization, this code could be extended to work with
  *  arbitrary array dimensions, be moved into the SciDB tree, and re-base
  *  SplitArray off of it, rather than the other way around
  *
-
  */
 template<class Op_tt>
 class OpArray : public SplitArray
 {
 public:
-    enum dbgLevel_e { DBG_NONE=0, DBG_SIMPLE, DBG_DETAIL, DBG_LOOP_SIMPLE, DBG_LOOP_DETAIL,
-                      DBG=DBG_NONE}; // change this one to enable debug traces
-                                     // of your supplied Op_tt as the chunk is filled
+    enum dbgLevel_e {
+        DBG_NONE = 0, 
+        DBG_SIMPLE, 
+        DBG_DETAIL, 
+        DBG_LOOP_SIMPLE,
+        DBG_LOOP_DETAIL,
+        DBG = DBG_NONE};  // change this one to enable debug traces
+                          // of your supplied Op_tt as the chunk is filled
 
     // could have used SplitArray::ArrayIterator directly, this is just to add debugging
     class ArrayIterator : public SplitArray::ArrayIterator {
@@ -92,36 +96,48 @@ public:
 
         // debugs, same functionality as SplitArray, but adds ability to do debug printing
         // these overrides never needed in production builds
-        #if !defined(NDEBUG) && defined(SCALAPACK_DEBUG)
-            virtual bool end() {
-                bool tmp = SplitArray::ArrayIterator::end();
-                if(DBG >= DBG_DETAIL && tmp) std::cerr << "@@ " << _SDbgClass << "::end() returns:" << tmp << std::endl;
-                return tmp;
+#if !defined(NDEBUG) && defined(SCALAPACK_DEBUG)
+        virtual bool end() {
+            bool tmp = SplitArray::ArrayIterator::end();
+            if (DBG >= DBG_DETAIL && tmp) {
+                std::cerr << "@@ "
+                          << _SDbgClass << "::end() returns:" 
+                          << tmp << std::endl;
             }
-            virtual const Coordinates& getPosition() {
-                const Coordinates& tmp = SplitArray::ArrayIterator::getPosition();
-                if(DBG >= DBG_LOOP_DETAIL) std::cerr << "@@@@ " << _SDbgClass << "::getPos() -> " << tmp[0] << "," << tmp[1] << std::endl;
-                return tmp;
+            return tmp;
+        }
+        virtual const Coordinates& getPosition() {
+            const Coordinates& tmp = SplitArray::ArrayIterator::getPosition();
+            if (DBG >= DBG_LOOP_DETAIL) {
+                std::cerr << "@@@@ " 
+                          << _SDbgClass << "::getPos() -> " 
+                          << tmp[0] << "," << tmp[1] << std::endl;
             }
-            virtual bool setPosition(const Coordinates & pos) {
-                bool tmp = SplitArray::ArrayIterator::setPosition(pos);
-                if(DBG >= DBG_LOOP_DETAIL) std::cerr << "@@@@ " << _SDbgClass << "::setPos(" << pos[0] << "," << pos[1] << ") ->" << tmp << std::endl;
-                return tmp;
+            return tmp;
+        }
+        virtual bool setPosition(const Coordinates & pos) {
+            bool tmp = SplitArray::ArrayIterator::setPosition(pos);
+            if (DBG >= DBG_LOOP_DETAIL) {
+                std::cerr << "@@@@ "
+                          << _SDbgClass << "::setPos(" 
+                          << pos[0] << "," << pos[1] << ") ->" << tmp << std::endl;
             }
-        #endif // SCALAPCK_DEBUG
+            return tmp;
+        }
+#endif // SCALAPCK_DEBUG
 
     protected:
         static const char _SDbgClass[]; //e.g. = "OpArray<Op_tt>::ArrayIterator";
         const OpArray&  _array;
     };
-    friend class ArrayIterator ;
+    friend class ArrayIterator;
 
 public:
-                        OpArray(ArrayDesc const& desc, const boost::shared_array<char>& dummy,
-                                const Op_tt& op, Coordinates const& from, Coordinates const& till,
-                                Coordinates const& delta,
-                                const boost::shared_ptr<scidb::Query>& query);
-    virtual             ~OpArray();
+    OpArray(ArrayDesc const& desc, const boost::shared_array<char>& dummy,
+            const Op_tt& op, Coordinates const& from, Coordinates const& till,
+            Coordinates const& delta,
+            const boost::shared_ptr<scidb::Query>& query);
+    virtual ~OpArray();
 
     virtual Access getSupportedAccess() const
     {
@@ -129,7 +145,7 @@ public:
     }
 
     ArrayIterator*      createArrayIterator(AttributeID id) const;
-private:
+    private:
     Op_tt               _op;
     Coordinates         _delta; // distance in coordinates between successive chunks on
                                 // the same node.  by making this larger than the chunk
@@ -237,40 +253,54 @@ ConstChunk const& OpArray<Op_tt>::ArrayIterator::getChunk()
         std::cerr << dbgPrefix << "begin" << std::endl;
     }
 
-    if (!hasCurrent)
+    if (!hasCurrent) {
         throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_ELEMENT);
+    }
 
     if (!chunkInitialized) {
-        if(DBG >= DBG_DETAIL) {
+        if (DBG >= DBG_DETAIL) {
             std::cerr << dbgPrefix << "START chunk" << std::endl;
-            std::cerr << dbgPrefix << " addr.coords.size():" << addr.coords.size() << std::endl;
+            std::cerr << dbgPrefix << " addr.coords.size():"
+                      << addr.coords.size() << std::endl;
             std::cerr << dbgPrefix << " dims.size():" << dims.size() << std::endl;
         }
+        // chunk is the MemChunk on SplitArray::ArrayIterator
         chunk.initialize(&array, &array.getArrayDesc(), addr, 0);
+        
+        // duration of getChunk() short enough (<--- DJG this is worrisome!)
+        const boost::shared_ptr<scidb::Query>
+            localQueryPtr(Query::getValidQueryPtr(_array._query));
 
-        const boost::shared_ptr<scidb::Query> localQueryPtr(Query::getValidQueryPtr(_array._query));  // duration of getChunk() short enough
-        boost::shared_ptr<ChunkIterator> chunkIter = chunk.getIterator(localQueryPtr, ChunkIterator::SEQUENTIAL_WRITE);
+        boost::shared_ptr<ChunkIterator> chunkIter =
+            chunk.getIterator(localQueryPtr, ChunkIterator::SEQUENTIAL_WRITE);
 
         Coordinates const& first = chunk.getFirstPosition(false);
-        if(DBG >= DBG_DETAIL) std::cerr << dbgPrefix << " FIRST is: " << first << "*******" << std::endl;
+        if (DBG >= DBG_DETAIL) {
+            std::cerr << dbgPrefix << " FIRST is: " << first << "*******" << std::endl;
+        }
+
         // the last dimension
-        const size_t nDims = dims.size(); // OpArray dims
+        const size_t nDims = dims.size();  // OpArray dims
         int64_t colsTillEnd = (_array.till())[nDims-1] - first[nDims-1] + 1 ;
         int64_t chunkCols =  int64_t(dims[nDims-1].getChunkInterval());
         int64_t colCount = std::max(0L, std::min(colsTillEnd, chunkCols));
-        if(DBG >= DBG_DETAIL) {
+        if (DBG >= DBG_DETAIL) {
             std::cerr << dbgPrefix << " colCount:" << colCount
                                    << " = max(0,min(colsTillEnd:"<< colsTillEnd
                                    << ", chunkCols:"<< chunkCols
                                    << ")"<< std::endl;
         }
 
-        // temporaries to use the chunkIter->setPostion(), value.setDouble() and chunkIter->writeItem() API
+        // temporaries to use the chunkIter->setPostion(), value.setDouble(),
+        // and chunkIter->writeItem() API
         Coordinates pos = first;
         Value value;
 
-        if (nDims==1) {
-            if(DBG >= DBG_DETAIL) std::cerr << dbgPrefix << " case nDims 1" << std::endl;
+        if (nDims == 1) {
+            if (DBG >= DBG_DETAIL) {
+                std::cerr << dbgPrefix << " case nDims 1" << std::endl;
+            }
+
             //
             // note: we are not saying vectors are rows by using "cols" here to step through them
             //       we are just using a variable that is consistent with the "last" dimension, (nDims-1),

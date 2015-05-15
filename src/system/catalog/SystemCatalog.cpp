@@ -149,6 +149,10 @@ namespace scidb
             LOG4CXX_ERROR(logger, "SystemCatalog::invalidateTempArrays: query:"              << e.query());
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT,SCIDB_LE_PG_QUERY_EXECUTION_FAILED)       << e.query() << e.what();
         }
+        catch (const pqxx::failure &e)
+        {
+            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
+        }
 
         LOG4CXX_TRACE(logger, "Invalidated temp arrays");
     }
@@ -190,17 +194,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when initializing cluster";
         }
 
         LOG4CXX_TRACE(logger, "Initialized cluster uuid = " << _uuid << ", metadata version = " << _metadataVersion);
@@ -220,8 +216,14 @@ namespace scidb
     int maxTotalNewArrays;
 
     //Not thread safe. Must be called with active connection under _pgLock.
-    inline void fillArrayIdentifiers(pqxx::connection *connection, work& tr, string const& array_name, ArrayID arrId, ArrayUAID& uaid, VersionID& vid)
+    inline void fillArrayIdentifiers(pqxx::connection *connection,
+                                     pqxx::basic_transaction* tr,
+                                     string const& array_name,
+                                     ArrayID arrId,
+                                     ArrayUAID& uaid,
+                                     VersionID& vid)
     {
+        assert(tr);
         uaid = arrId;
         vid = 0;
         if(ArrayDesc::isNameVersioned(array_name))
@@ -231,7 +233,7 @@ namespace scidb
             string sql_u = "select id, name, partitioning_schema, flags from \"array\" where name = $1";
 
             connection->prepare("find-by-name2", sql_u)("varchar", treat_string);
-            result query_res_u = tr.prepared("find-by-name2")(unv_name).exec();
+            result query_res_u = tr->prepared("find-by-name2")(unv_name).exec();
             if (query_res_u.size() <= 0)
             {
                 throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_ARRAY_DOESNT_EXIST) << unv_name;
@@ -279,7 +281,7 @@ namespace scidb
 
             ArrayUAID uaid;
             VersionID vid;
-            fillArrayIdentifiers(_connection, tr, array_name, arrId, uaid, vid);
+            fillArrayIdentifiers(_connection, &tr, array_name, arrId, uaid, vid);
 
             string sql1 = "insert into \"array\"(id, name, partitioning_schema, flags) values ($1, $2, $3, $4)";
             _connection->prepare(sql1, sql1)
@@ -378,17 +380,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when adding array";
         }
     }
 
@@ -514,17 +508,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when adding array";
         }
     }
 
@@ -566,22 +552,14 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
         }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when getting array list";
-        }
-
         LOG4CXX_TRACE(logger, "Retrieved " << arrays.size() << " arrays from catalogs");
 
     }
+
 
     bool SystemCatalog::containsArray(const ArrayID array_id)
     {
@@ -615,19 +593,10 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
         }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when getting array";
-        }
-
         return false;
     }
 
@@ -635,7 +604,6 @@ namespace scidb
     {
         return findArrayByName(array_name) != INVALID_ARRAY_ID;
     }
-
 
     ArrayID SystemCatalog::findArrayByName(const std::string &array_name)
     {
@@ -672,17 +640,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when getting array";
         }
         return INVALID_ARRAY_ID;
     }
@@ -706,195 +666,169 @@ namespace scidb
 
     bool SystemCatalog::getArrayDesc(const string &array_name, ArrayDesc &array_desc, const bool throwException)
     {
-        boost::shared_ptr<Exception> exception;
-        getArrayDesc(array_name, array_desc, throwException, exception);
-
-        if (exception.get())
-        {
-            if (exception->getLongErrorCode() == SCIDB_LE_ARRAY_DOESNT_EXIST)
-            {
+        try {
+            getArrayDesc(array_name, array_desc);
+        } catch (const Exception& e) {
+            if (!throwException &&
+                e.getLongErrorCode() == SCIDB_LE_ARRAY_DOESNT_EXIST) {
                 return false;
             }
-            else
-            {
-                exception->raise();
-            }
+            throw;
         }
-
         return true;
     }
 
     void SystemCatalog::getArrayDesc(const std::string &array_name,
-                                     ArrayDesc &array_desc,
-                                     const bool throwException,
-                                     boost::shared_ptr<Exception> &exception)
+                                     ArrayDesc &array_desc)
     {
+        const bool ignoreOrphanAttributes = false;
         boost::function<void()> work = boost::bind(&SystemCatalog::_getArrayDesc,
-                this, cref(array_name), ref(array_desc), throwException, ref(exception));
-        return Query::runRestartableWork<void, broken_connection>(work, _reconnectTries);
+                                                   this,
+                                                   cref(array_name),
+                                                   ref(array_desc),
+                                                   ignoreOrphanAttributes);
+        Query::runRestartableWork<void, broken_connection>(work, _reconnectTries);
     }
 
-    void SystemCatalog::_getArrayDesc(const std::string &array_name,
-                                      ArrayDesc &array_desc,
-                                      const bool throwException,
-                                      boost::shared_ptr<Exception> &exception)
+
+
+void SystemCatalog::_getArrayDesc(const std::string &array_name,
+                                  ArrayDesc &array_desc,
+                                  bool ignoreOrphanAttributes)
+{
+    LOG4CXX_TRACE(logger, "SystemCatalog::_getArrayDesc( name = " << array_name << ")");
+
+    ScopedMutexLock mutexLock(_pgLock);
+
+    assert(_connection);
+
+    pqxx::transaction<pqxx::serializable> tr(*_connection);
+
+    _getArrayDesc(array_name, array_desc, ignoreOrphanAttributes, &tr);
+
+    tr.commit();
+}
+
+void SystemCatalog::_getArrayDesc(const std::string &array_name,
+                                  ArrayDesc &array_desc,
+                                  bool ignoreOrphanAttributes,
+                                  pqxx::basic_transaction* tr)
+{
+    assert(_connection);
+
+    string sql1 = "select id, name, partitioning_schema, flags from \"array\" where name = $1";
+    _connection->prepare("find-by-name", sql1)("varchar", treat_string);
+    result query_res1 = tr->prepared("find-by-name")(array_name).exec();
+    if (query_res1.size() <= 0)
     {
-        LOG4CXX_TRACE(logger, "SystemCatalog::getArrayDesc( name = " << array_name << ")");
-
-        ScopedMutexLock mutexLock(_pgLock);
-
-        LOG4CXX_TRACE(logger, "Failed to find array_name = " << array_name << " locally.");
-        assert(_connection);
-
-        try
-        {
-            work tr(*_connection);
-            string sql1 = "select id, name, partitioning_schema, flags from \"array\" where name = $1";
-            _connection->prepare("find-by-name", sql1)("varchar", treat_string);
-            result query_res1 = tr.prepared("find-by-name")(array_name).exec();
-            if (query_res1.size() <= 0)
-            {
-                boost::shared_ptr<SystemException> e = boost::shared_ptr<SystemException> (new SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_ARRAY_DOESNT_EXIST));
-                *e.get() << array_name;
-                if (throwException) {
-                    throw SystemException(*e.get());
-                }
-                exception = e;
-                return;
-            }
-			ArrayID array_id = query_res1[0].at("id").as(int64_t());
-			ArrayUAID uaid;
-			VersionID vid;
-            fillArrayIdentifiers(_connection, tr, array_name, array_id, uaid, vid);
-            int flags = query_res1[0].at("flags").as(int());
-
-            string sql2 = "select id, name, type, flags, default_compression_method, reserve, default_missing_reason, default_value"
-                " from \"array_attribute\" where array_id = $1 order by id";
-            _connection->prepare(sql2, sql2)("integer", treat_direct);
-            result query_res2 = tr.prepared(sql2)(array_id).exec();
-
-            Attributes attributes;
-            if (query_res2.size() > 0)
-            {
-                attributes.reserve(query_res2.size());
-                for (result::const_iterator i = query_res2.begin(); i != query_res2.end(); ++i)
-                {
-                    Value defaultValue;
-                    int missingReason = i.at("default_missing_reason").as(int());
-                    string defaultValueExpr;
-                    if (missingReason >= 0) {
-                        defaultValue.setNull(missingReason);
-                    } else {
-                        defaultValueExpr = i.at("default_value").as(string());
-
-                        try
-                        {
-                            // Do type check before constructor check in the next if.
-                            TypeId typeId = i.at("type").as(TypeId());
-                            defaultValue = Value(TypeLibrary::getType(typeId));
-
-                            // Evaluate expression if present and set default value
-                            if (defaultValueExpr != "")
-                            {
-                                Expression expr = deserializePhysicalExpression(defaultValueExpr);
-                                defaultValue = expr.evaluate();
-                            }
-                            // Else fallback to null or zero as before
-                            else
-                            {
-                                if (i.at("flags").as(int16_t()) & AttributeDesc::IS_NULLABLE)
-                                {
-                                    defaultValue.setNull();
-                                }
-                                else
-                                {
-                                    defaultValue = TypeLibrary::getDefaultValue(typeId);
-                                }
-                            }
-                        }
-                        catch (const Exception &e)
-                        {
-                            if (throwException)
-                                throw;
-
-                            if (!exception.get())
-                            {
-                                exception = e.copy();
-                            }
-                        }
-                    }
-                    AttributeDesc att(
-                        i.at("id").as(AttributeID()),
-                        i.at("name").as(string()),
-                        i.at("type").as(TypeId()),
-                        i.at("flags").as(int16_t()),
-                        i.at("default_compression_method").as(uint16_t()),
-                        std::set<std::string>(),
-                        i.at("reserve").as(int16_t()),
-                        &defaultValue,
-                        defaultValueExpr
-                        );
-                    attributes.push_back(att);
-                }
-            }
-
-            // string sql3 = "select name, start, length, chunk_interval, chunk_overlap "
-            //          " from \"array_dimension\" where array_id = $1 order by id";
-            string sql3 = "select name, startmin, currstart, currend, endmax, chunk_interval, chunk_overlap "
-                " from \"array_dimension\" where array_id = $1 order by id";
-
-            _connection->prepare(sql3, sql3)("integer", treat_direct);
-            result query_res3 = tr.prepared(sql3)(array_id).exec();
-
-            Dimensions dimensions;
-            if (query_res3.size() > 0)
-            {
-                attributes.reserve(query_res3.size());
-                for (result::const_iterator i = query_res3.begin(); i != query_res3.end(); ++i)
-                {
-                    dimensions.push_back(
-                        DimensionDesc(
-                            i.at("name").as(string()),
-                            i.at("startmin").as(int64_t()),
-                            i.at("currstart").as(int64_t()),
-                            i.at("currend").as(int64_t()),
-                            i.at("endmax").as(int64_t()),
-                            i.at("chunk_interval").as(int64_t()),
-                            i.at("chunk_overlap").as(int64_t())
-                            ));
-                }
-            }
-            ArrayDesc newDesc(array_id, uaid, vid,
-                              query_res1[0].at("name").as(string()),
-                              attributes,
-                              dimensions,
-                              flags);
-            newDesc.setPartitioningSchema((PartitioningSchema)query_res1[0].at("partitioning_schema").as(int()));
-            tr.commit();
-            array_desc = newDesc;
-        }
-        catch (const broken_connection &e)
-        {
-            throw;
-        }
-        catch (const sql_error &e)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
-        }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when getting array";
-        }
-        assert(array_desc.getUAId()!=0);
+        throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_ARRAY_DOESNT_EXIST) << array_name;
     }
+
+    ArrayID array_id = query_res1[0].at("id").as(int64_t());
+    ArrayUAID uaid(0);
+    VersionID vid(0);
+    fillArrayIdentifiers(_connection, tr, array_name, array_id, uaid, vid);
+    int flags = query_res1[0].at("flags").as(int());
+
+    string sql2 = "select id, name, type, flags, default_compression_method, reserve, default_missing_reason, default_value"
+    " from \"array_attribute\" where array_id = $1 order by id";
+    _connection->prepare(sql2, sql2)("integer", treat_direct);
+    result query_res2 = tr->prepared(sql2)(array_id).exec();
+
+    Attributes attributes;
+    attributes.reserve(query_res2.size());
+    for (result::const_iterator i = query_res2.begin(); i != query_res2.end(); ++i)
+    {
+        Value defaultValue;
+        int missingReason = i.at("default_missing_reason").as(int());
+        string defaultValueExpr;
+        if (missingReason >= 0) {
+            defaultValue.setNull(missingReason);
+        } else {
+            defaultValueExpr = i.at("default_value").as(string());
+            try {
+                // Do type check before constructor check in the next if.
+                TypeId typeId = i.at("type").as(TypeId());
+                defaultValue = Value(TypeLibrary::getType(typeId));
+
+                // Evaluate expression if present and set default value
+                if (defaultValueExpr != "")
+                {
+                    Expression expr = deserializePhysicalExpression(defaultValueExpr);
+                    defaultValue = expr.evaluate();
+                }
+                // Else fallback to null or zero as before
+                else
+                {
+                    if (i.at("flags").as(int16_t()) & AttributeDesc::IS_NULLABLE)
+                    {
+                        defaultValue.setNull();
+                    }
+                    else
+                    {
+                        defaultValue = TypeLibrary::getDefaultValue(typeId);
+                    }
+                }
+            } catch(const scidb::Exception& e) {
+                if (ignoreOrphanAttributes &&
+                    (e.getLongErrorCode() == SCIDB_LE_TYPE_NOT_REGISTERED ||
+                     e.getLongErrorCode() == SCIDB_LE_FUNCTION_NOT_FOUND)) {
+
+                    flags |= ArrayDesc::INVALID;
+                    Value tmp;
+                    defaultValue.swap(tmp);
+
+                } else { throw; }
+            }
+        }
+        AttributeDesc att(
+                          i.at("id").as(AttributeID()),
+                          i.at("name").as(string()),
+                          i.at("type").as(TypeId()),
+                          i.at("flags").as(int16_t()),
+                          i.at("default_compression_method").as(uint16_t()),
+                          std::set<std::string>(),
+                          i.at("reserve").as(int16_t()),
+                          &defaultValue,
+                          defaultValueExpr
+                          );
+        attributes.push_back(att);
+    }
+
+    // string sql3 = "select name, start, length, chunk_interval, chunk_overlap "
+    //          " from \"array_dimension\" where array_id = $1 order by id";
+    string sql3 = "select name, startmin, currstart, currend, endmax, chunk_interval, chunk_overlap "
+    " from \"array_dimension\" where array_id = $1 order by id";
+
+    _connection->prepare(sql3, sql3)("integer", treat_direct);
+    result query_res3 = tr->prepared(sql3)(array_id).exec();
+
+    Dimensions dimensions;
+    dimensions.reserve(query_res3.size());
+    for (result::const_iterator i = query_res3.begin(); i != query_res3.end(); ++i)
+    {
+        dimensions.push_back(
+                             DimensionDesc(
+                                           i.at("name").as(string()),
+                                           i.at("startmin").as(int64_t()),
+                                           i.at("currstart").as(int64_t()),
+                                           i.at("currend").as(int64_t()),
+                                           i.at("endmax").as(int64_t()),
+                                           i.at("chunk_interval").as(int64_t()),
+                                           i.at("chunk_overlap").as(int64_t())
+                                           ));
+    }
+    ArrayDesc newDesc(array_id, uaid, vid,
+                      query_res1[0].at("name").as(string()),
+                      attributes,
+                      dimensions,
+                      flags);
+    newDesc.setPartitioningSchema((PartitioningSchema)query_res1[0].at("partitioning_schema").as(int()));
+
+    array_desc = newDesc;
+
+    assert(array_desc.getUAId()!=0);
+}
 
     void SystemCatalog::getArrayDesc(const ArrayID array_id, ArrayDesc &array_desc)
     {
@@ -933,7 +867,7 @@ namespace scidb
             string array_name = query_res1[0].at("name").as(string());
             ArrayUAID uaid;
             VersionID vid;
-            fillArrayIdentifiers(_connection, tr, array_name, array_id, uaid, vid);
+            fillArrayIdentifiers(_connection, &tr, array_name, array_id, uaid, vid);
 
             string sql2 = "select id, name, type, flags, default_compression_method, reserve, default_missing_reason, default_value"
                 " from \"array_attribute\" where array_id = $1 order by id";
@@ -1032,19 +966,10 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
         }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when getting array";
-        }
-
         assert(newDesc->getUAId()!=0);
         return newDesc;
     }
@@ -1086,17 +1011,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when adding array";
         }
     }
 
@@ -1135,17 +1052,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when deleting array";
         }
         return rc;
     }
@@ -1193,6 +1102,11 @@ namespace scidb
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT,
                                    SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
+        catch (const pqxx::failure &e)
+        {
+            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
+        }
+
         return rc;
     }
 
@@ -1228,17 +1142,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when deleting array";
         }
     }
 
@@ -1291,18 +1197,9 @@ namespace scidb
             {
                 throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
             }
-            catch (const Exception &e)
-            {
-                throw;
-            }
-            catch (const std::exception &e)
+            catch (const pqxx::failure &e)
             {
                 throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-            }
-            catch (...)
-            {
-                throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                    "Unknown exception when creating a new version of an updateable array";
             }
         }
         return version_id;
@@ -1342,18 +1239,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when deleting a version of an updateable array";
         }
     }
 
@@ -1407,18 +1295,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when getting last version ID for updateble array";
         }
         return 0;
     }
@@ -1454,6 +1333,11 @@ namespace scidb
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT,
                                    SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
+        catch (const pqxx::failure &e)
+        {
+            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
+        }
+
         return 0;
     }
 
@@ -1491,18 +1375,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when looking up an updateble array's version by timestamp";
         }
         return 0;
     }
@@ -1544,18 +1419,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when retrieving versions of an updateable array";
         }
         return std::vector<VersionDesc>();
     }
@@ -1602,18 +1468,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when getting current upper dimension boundaries for array";
         }
         return Coordinates();
     }
@@ -1660,18 +1517,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when getting current lower dimension boundaries for array";
         }
         return Coordinates();
     }
@@ -1721,18 +1569,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when updating array low/high dimension coordinates";
         }
     }
 
@@ -1767,18 +1606,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when get number of instances";
         }
         return n_instances;
     }
@@ -1824,17 +1654,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when adding instance";
         }
         return instance_id;
     }
@@ -1888,19 +1710,10 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
         }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when getting instances list";
-        }
-
         LOG4CXX_TRACE(logger, "Retrieved " << instances.size() << " instances from catalogs");
     }
 
@@ -1948,17 +1761,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when getting instance";
         }
         LOG4CXX_TRACE(logger, "instance_id = " << instance_id << " is instance " << instance);
     }
@@ -2000,17 +1805,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when marking instance online";
         }
     }
 
@@ -2048,89 +1845,11 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
         }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when marking instance offline";
-        }
     }
-
-    void SystemCatalog::setDefaultCompressionMethod(ArrayID array_id,
-                                                    AttributeID attr_id,
-                                                    int16_t compressionMethod)
-    {
-        boost::function<void()> work = boost::bind(&SystemCatalog::_setDefaultCompressionMethod,
-                this, array_id, attr_id, compressionMethod);
-        Query::runRestartableWork<void, broken_connection>(work, _reconnectTries);
-    }
-
-    void SystemCatalog::_setDefaultCompressionMethod(ArrayID array_id,
-                                                    AttributeID attr_id,
-                                                    int16_t compressionMethod)
-    {
-
-        LOG4CXX_TRACE(logger, "SystemCatalog::setDefaultCompressionMethod( array_id = " << array_id
-                      << ", attr_id = " << attr_id << ", compressionMethod = " << compressionMethod << ")");
-        ScopedMutexLock mutexLock(_pgLock);
-
-        boost::shared_ptr<ArrayDesc> arrayDesc = getArrayDesc(array_id);
-        assert(arrayDesc);
-
-        assert(_connection);
-
-        try
-        {
-            if (attr_id > arrayDesc->getAttributes().size())
-            {
-                stringstream ss;
-                ss << "Attribute with id " << attr_id << " not exist in array '"
-                   << arrayDesc->getName() << "'";
-                throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_ATTRIBUTE_DOESNT_EXIST) << attr_id << arrayDesc->getName();
-            }
-
-            work tr(*_connection);
-
-            string sql = "update \"array_attribute\" set default_compression_method = $1 "
-                " where array_id = $2 and id = $3";
-            _connection->prepare(sql, sql)
-                ("int", treat_direct)
-                ("bigint", treat_direct)
-                ("bigint", treat_direct);
-
-            tr.prepared(sql)(compressionMethod)(array_id)(attr_id).exec();
-
-            tr.commit();
-        }
-        catch (const broken_connection &e)
-        {
-            throw;
-        }
-        catch (const sql_error &e)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
-        }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when setting default compression method to attribute";
-        }
-    }
-
 
     void SystemCatalog::connect(const std::string& connectionString, bool doUpgrade)
     {
@@ -2174,19 +1893,6 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_CANT_CONNECT_PG) << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when connecting to system catalog";
-        }
 
         if (_initialized && doUpgrade)
         {
@@ -2216,7 +1922,7 @@ namespace scidb
                 try
                 {
                     work tr(*_connection);
-                    sleep(5);
+                    sleep(5); //XXX why sleep ?
                     for(int ver = _metadataVersion + 1; ver <= METADATA_VERSION; ++ver)
                     {
                         LOG4CXX_WARN(logger, "Upgrading metadata from " << ver-1 << " to " << ver);
@@ -2230,17 +1936,9 @@ namespace scidb
                 {
                     throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
                 }
-                catch (const Exception &e)
-                {
-                    throw;
-                }
-                catch (const std::exception &e)
+                catch (const pqxx::failure &e)
                 {
                     throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-                }
-                catch (...)
-                {
-                    throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << "Unknown exception when upgrading metadata";
                 }
             }
         }
@@ -2294,18 +1992,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when adding library to catalog";
         }
     }
 
@@ -2346,20 +2035,10 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
         }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when getting info about library from catalog";
-        }
-
         LOG4CXX_TRACE(logger, "Loaded " << libraries.size() << " libraries.");
     }
 
@@ -2397,18 +2076,9 @@ namespace scidb
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
         }
-        catch (const Exception &e)
-        {
-            throw;
-        }
-        catch (const std::exception &e)
+        catch (const pqxx::failure &e)
         {
             throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-        }
-        catch (...)
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) <<
-                "Unknown exception when removing library from catalog";
         }
     }
 
@@ -2876,19 +2546,9 @@ bool SystemCatalog::_updateArrayLock(const boost::shared_ptr<LockDesc>& lockDesc
                     << ((!lockDesc) ? string("lock:NULL") : lockDesc->toString()));
       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
    }
-   catch (const Exception &e)
+   catch (const pqxx::failure &e)
    {
-      throw;
-   }
-   catch (const std::exception &e)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-   }
-   catch (...)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR)
-      << "Unknown exception when updating array lock: "
-      << ((!lockDesc) ? string("lock:NULL") : lockDesc->toString());
+       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
    }
    return rc;
 }
@@ -2953,18 +2613,9 @@ void SystemCatalog::_readArrayLocks(const InstanceID instanceId,
       LOG4CXX_ERROR(logger, "SystemCatalog::readArrayLocks: instance ID = " << instanceId);
       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
    }
-   catch (const Exception &e)
+   catch (const pqxx::failure &e)
    {
-      throw;
-   }
-   catch (const std::exception &e)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-   }
-   catch (...)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR)
-      << "Unknown exception when reading all instance locks";
+       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
    }
 }
 
@@ -3055,18 +2706,9 @@ uint32_t SystemCatalog::_deleteArrayLocks(InstanceID instanceId, QueryID queryId
    {
       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
    }
-   catch (const Exception &e)
+   catch (const pqxx::failure &e)
    {
-      throw;
-   }
-   catch (const std::exception &e)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-   }
-   catch (...)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR)
-      << "Unknown exception when deleting all instance locks";
+       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
    }
    return numLocksDeleted;
 }
@@ -3129,19 +2771,9 @@ SystemCatalog::_checkForCoordinatorLock(const string& arrayName, QueryID queryId
    {
       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
    }
-   catch (const Exception &e)
+   catch (const pqxx::failure &e)
    {
-      throw;
-   }
-   catch (const std::exception &e)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-   }
-   catch (...)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR)
-      << "Unknown exception when checking for coordinator lock on"
-      << arrayName << " for query "<< queryId ;
+       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
    }
    return coordLock;
 }
@@ -3190,19 +2822,71 @@ void SystemCatalog::_renameArray(const string &old_array_name, const string &new
    {
       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
    }
-   catch (const Exception &e)
+   catch (const pqxx::failure &e)
    {
-      throw;
+       throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
    }
-   catch (const std::exception &e)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
-   }
-   catch (...)
-   {
-      throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR)
-      << "Unknown exception when renaming an array";
-   }
+}
+
+void SystemCatalog::getArrays(std::vector<ArrayDesc> &arrays,
+                              bool ignoreOrphanAttributes,
+                              bool ignoreVersions)
+{
+    boost::function<void()> work = boost::bind(&SystemCatalog::_getArrays,
+                                               this, ref(arrays),
+                                               ignoreOrphanAttributes,
+                                               ignoreVersions);
+    Query::runRestartableWork<void, broken_connection>(work, _reconnectTries);
+}
+
+void SystemCatalog::_getArrays(std::vector<ArrayDesc> &arrays,
+                               bool ignoreOrphanAttributes,
+                               bool ignoreVersions)
+{
+    LOG4CXX_TRACE(logger, "SystemCatalog::getArrays(ArrayDescs)");
+
+    string sql ("select name from \"array\" where name is not null");
+    if (ignoreVersions) {
+        sql += " and name not like '%@%'";
+    }
+    sql += " order by name";
+    ScopedMutexLock mutexLock(_pgLock);
+
+    assert(_connection);
+
+    try
+    {
+        pqxx::transaction<pqxx::serializable> tr(*_connection);
+        result query_res = tr.exec(sql);
+
+        arrays.clear();
+        arrays.resize(query_res.size());
+        size_t i=0;
+        for (result::const_iterator cursor = query_res.begin();
+             cursor != query_res.end(); ++cursor, ++i) {
+
+            const string arrName(cursor.at("name").c_str());
+            ArrayDesc& arrDesc = arrays[i];
+
+            _getArrayDesc(arrName, arrDesc, ignoreOrphanAttributes, &tr);
+        }
+
+        tr.commit();
+    }
+    catch (const broken_connection &e)
+    {
+        throw;
+    }
+    catch (const sql_error &e)
+    {
+        throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_PG_QUERY_EXECUTION_FAILED) << e.query() << e.what();
+    }
+    catch (const pqxx::failure &e)
+    {
+        throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_UNKNOWN_ERROR) << e.what();
+    }
+
+    LOG4CXX_TRACE(logger, "Retrieved " << arrays.size() << " arrays from catalogs");
 }
 
 } // namespace catalog

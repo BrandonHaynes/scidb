@@ -35,6 +35,15 @@ def datetime_as_str(the_datetime = None, format = '%Y-%m-%d %H:%M:%S'):
         the_datetime = datetime.datetime.now()
     return the_datetime.strftime(format)
 
+def timedelta_total_seconds(timedelta):
+    """Get total_seconds out of a timedelta object.
+    
+    @param timedelta  an object of type datatime.timedelta.
+    @return total_seconds.
+    @note timedelta.total_seconds() is supported since Python 2.7.
+    """
+    return timedelta.seconds + (timedelta.days * 24 * 3600) + (timedelta.microseconds*0.000001)
+
 class VersionAndDate:
     """A class that makes it easy to parse, generate, or compare version and date.
 
@@ -216,8 +225,8 @@ class ProgressTracker:
             if what=='start' or what=='skip':
                 s += '. (' + self._id_2_name[step_id] + ')'  # print the step name
             elif step_id in self._start_time and step_id in self._end_time and self._end_time[step_id] > self._start_time[step_id]:
-                td = self._end_time[step_id]-self._start_time[step_id]
-                seconds = td.seconds + (td.days * 24 * 3600) + (td.microseconds*0.000001)
+                timedelta = self._end_time[step_id]-self._start_time[step_id]
+                seconds = timedelta_total_seconds(timedelta)
                 s += ' after ' + str(seconds) + ' s.'
             else:
                 s += '.'

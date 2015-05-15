@@ -34,7 +34,7 @@
 #include <array/MemArray.h>
 #include <array/Metadata.h>
 #include <log4cxx/logger.h>
-#include <query/Network.h>
+#include <util/Network.h>
 #include <query/Operator.h>
 #include <system/BlockCyclic.h>
 
@@ -81,11 +81,11 @@ inline int64_t brow(boost::shared_ptr<Array>& a) { return a->getArrayDesc().getD
 inline int64_t bcol(boost::shared_ptr<Array>& a) { return a->getArrayDesc().getDimensions()[1].getChunkInterval(); }
 
 // REFACTOR:
-inline Coordinates getStart(boost::shared_ptr<Array>& a) {
+inline Coordinates getStartMin(boost::shared_ptr<Array>& a) {
     Coordinates result(2);
-    result[0] = a->getArrayDesc().getDimensions()[0].getStart();
-    result[1] = a->getArrayDesc().getDimensions()[1].getStart();
-    std::cerr << "getStart(array) returns (" << result[0] << "," << result[1] << ")" << std::endl;
+    result[0] = a->getArrayDesc().getDimensions()[0].getStartMin();
+    result[1] = a->getArrayDesc().getDimensions()[1].getStartMin();
+    std::cerr << "getStartMin(array) returns (" << result[0] << "," << result[1] << ")" << std::endl;
     return result;
 }
 // REFACTOR:
@@ -98,7 +98,7 @@ inline Coordinates getEndMax(boost::shared_ptr<Array>& a) {
 }
 
 ///
-/// An operator that returuns the ScaLAPACK rank that is repsonsible for that
+/// An operator that returns the ScaLAPACK rank that is responsible for that
 /// cell, computed by actually receiving data from the ScaLAPACK slave process,
 /// in order that this mapping can be compared to the functions we use in SciDB to
 /// compute the same thing without using ScaLAPACK.
@@ -274,12 +274,12 @@ shared_ptr<Array> MPIRankPhysical::execute(std::vector< shared_ptr<Array> >& inp
     LOG4CXX_DEBUG(logger, "MPIRank: preparing to extractData, nRows=" << nRows << ", nCols = " << nCols);
 
     Coordinates first(2);
-    first[0] = dims[0].getStart() + MYPROW * dims[0].getChunkInterval();
-    first[1] = dims[1].getStart() + MYPCOL * dims[1].getChunkInterval();
+    first[0] = dims[0].getStartMin() + MYPROW * dims[0].getChunkInterval();
+    first[1] = dims[1].getStartMin() + MYPCOL * dims[1].getChunkInterval();
 
     Coordinates last(2);
-    last[0] = dims[0].getStart() + dims[0].getLength() - 1;
-    last[1] = dims[1].getStart() + dims[1].getLength() - 1;
+    last[0] = dims[0].getStartMin() + dims[0].getLength() - 1;
+    last[1] = dims[1].getStartMin() + dims[1].getLength() - 1;
 
     if(DBG) std::cerr << "@@@ calling invokeMPIRank()" << std::endl ;
     LOG4CXX_DEBUG(logger, "*@@@ calling invokeMPIRank()");
@@ -585,7 +585,7 @@ void  MPIRankPhysical::invokeMPIRank(std::vector< shared_ptr<Array> >* inputArra
 
     // use extractDataToOp() and the reformatToScalapack() operator
     // to reformat the data according to ScaLAPACK requirements.
-    Coordinates coordFirst = getStart(Ain);
+    Coordinates coordFirst = getStartMin(Ain);
     Coordinates coordLast = getEndMax(Ain);
 
     procRowCol_t firstChunkSize = { chunkRow(Ain), chunkCol(Ain) };
@@ -661,12 +661,12 @@ void  MPIRankPhysical::invokeMPIRank(std::vector< shared_ptr<Array> >* inputArra
     // by the chunkSize
     //
     Coordinates first(2);
-    first[0] = dims[0].getStart() + MYPROW * dims[0].getChunkInterval();
-    first[1] = dims[1].getStart() + MYPCOL * dims[1].getChunkInterval();
+    first[0] = dims[0].getStartMin() + MYPROW * dims[0].getChunkInterval();
+    first[1] = dims[1].getStartMin() + MYPCOL * dims[1].getChunkInterval();
 
     Coordinates last(2);
-    last[0] = dims[0].getStart() + dims[0].getLength() - 1;
-    last[1] = dims[1].getStart() + dims[1].getLength() - 1;
+    last[0] = dims[0].getStartMin() + dims[0].getLength() - 1;
+    last[1] = dims[1].getStartMin() + dims[1].getLength() - 1;
 
     Coordinates iterDelta(2);
     iterDelta[0] = NPROW * dims[0].getChunkInterval();
@@ -675,7 +675,7 @@ void  MPIRankPhysical::invokeMPIRank(std::vector< shared_ptr<Array> >* inputArra
     if(DBG) std::cerr << "MPIRank OUT SplitArray from ("<<first[0]<<","<<first[1]<<") to (" << last[0] <<"," <<last[1]<<") delta:"<<iterDelta[0]<<","<<iterDelta[1]<< std::endl;
     LOG4CXX_DEBUG(logger, "Creating array ("<<first[0]<<","<<first[1]<<"), (" << last[0] <<"," <<last[1]<<")");
 
-    reformatOp_t    pdelgetOp(OUTx, DESC_OUT, dims[0].getStart(), dims[1].getStart());
+    reformatOp_t    pdelgetOp(OUTx, DESC_OUT, dims[0].getStartMin(), dims[1].getStartMin());
     *result = shared_ptr<Array>(new OpArray<reformatOp_t>(outSchema, resPtrDummy, pdelgetOp,
                                                           first, last, iterDelta, query));
     releaseMPISharedMemoryInputs(shmIpc, resultShmIpcIndx);

@@ -125,27 +125,33 @@ namespace scidb {
         BOOST_SCOPE_EXIT ( (&_sorter) (&_id) )
         {
             ScopedMutexLock sm(_sorter._sortLock);
-            
+
             _sorter._stoppedJobs[_id] = _sorter._runningJobs[_id];
             _sorter._runningJobs[_id].reset();
             _sorter._nRunningJobs--;
             _sorter._sortEvent.signal();
         } BOOST_SCOPE_EXIT_END;
 
-        // TupleArray must handle the case that outputDesc.getAttributes().size() 
-        // is 1 larger than arrayIterators.size(), i.e. the case when the input array 
+        // TupleArray must handle the case that outputDesc.getAttributes().size()
+        // is 1 larger than arrayIterators.size(), i.e. the case when the input array
         // does not have an empty tag (but the output array does).
         //
+        size_t tupleArraySizeHint = _sorter._memLimit / _sorter._tupleSize;
         shared_ptr<TupleArray> buffer =
             make_shared<TupleArray>(*(_sorter._outputSchema),
                                     _sortIters.getIterators(),
-                                    0);
-        
+                                    _sorter.getInputArrayDesc(),
+                                    0,
+                                    tupleArraySizeHint,
+                                    10*MiB,
+                                    _sorter._arena,
+                                    _sorter.preservePositions());
+
         // Append chunks to buffer until we run out of input or reach limit
         bool limitReached = false;
         while (!_sortIters.end() && !limitReached)
         {
-            buffer->append(_sortIters.getIterators(), 1);
+            buffer->append(_sorter.getInputArrayDesc(), _sortIters.getIterators(), 1);
             size_t currentSize = buffer->getNumberOfTuples() * _sorter._tupleSize;
             if (currentSize > _sorter._memLimit)
             {
@@ -154,8 +160,9 @@ namespace scidb {
                 buffer->sort(_sorter._tupleComp);
                 buffer->truncate();
                 {
+                    shared_ptr<Array> ma(new MemArray(baseBuffer, getQuery()));
                     ScopedMutexLock sm(_sorter._sortLock);
-                    _sorter._results.push_back(shared_ptr<Array> (new MemArray(baseBuffer, getQuery())));
+                    _sorter._results.push_back(ma);
                     _sorter._runsProduced++;
                     LOG4CXX_DEBUG(logger, "[SortArray] Produced sorted run # " << _sorter._runsProduced);
                     if (_sorter._results.size() > _sorter._pipelineLimit)
@@ -163,7 +170,18 @@ namespace scidb {
                         limitReached = true;
                     }
                 }
-                buffer.reset(new TupleArray(*(_sorter._outputSchema), _sortIters.getIterators(), 0));
+                if (limitReached) {
+                    buffer.reset();
+                } else {
+                    buffer.reset(new TupleArray(*(_sorter._outputSchema),
+                                                _sortIters.getIterators(),
+                                                _sorter._inputSchema,
+                                                0,
+                                                tupleArraySizeHint,
+                                                10*MiB,
+                                                _sorter._arena,
+                                                _sorter.preservePositions()));
+                }
             }
             _sortIters.advanceIterators();
         }
@@ -171,15 +189,16 @@ namespace scidb {
         // May have some left-overs --- only in the case where we are at the end
         if (_sortIters.end())
         {
-            if (buffer->getNumberOfTuples())
+            if (buffer && buffer->getNumberOfTuples())
             {
                 shared_ptr<Array> baseBuffer =
                     static_pointer_cast<TupleArray, Array> (buffer);
                 buffer->sort(_sorter._tupleComp);
                 buffer->truncate();
                 {
+                    shared_ptr<Array> ma(new MemArray(baseBuffer, getQuery()));
                     ScopedMutexLock sm(_sorter._sortLock);
-                    _sorter._results.push_back(shared_ptr<Array> (new MemArray(baseBuffer, getQuery())));
+                    _sorter._results.push_back(ma);
                     _sorter._runsProduced++;
                     LOG4CXX_DEBUG(logger, "[SortArray] Produced sorted run # " << _sorter._runsProduced);
                 }
@@ -250,11 +269,18 @@ namespace scidb {
         }
 
         // merge the streams -- true means the array contains local data only
+        size_t nStreams = mergeStreams.size();
+        shared_ptr<vector<size_t> > streamSizes = shared_ptr<vector<size_t> >(new vector<size_t>(nStreams));
+        for (size_t i=0; i<nStreams; ++i) {
+            (*streamSizes)[i] = -1;
+        }
         merged.reset(new MergeSortArray(getQuery(),
                                         *(_sorter._outputSchema),
                                         mergeStreams,
                                         _sorter._tupleComp,
-                                        true));
+                                        0,  // Do not add an offset to the cell's coordinates.
+                                        streamSizes // Using -1 preserves the behavior of the original code here.
+                                        ));
 
         // false means perform a horizontal copy (copy all attributes for chunk 1,
         // all attributes for chunk 2,...)
@@ -272,7 +298,7 @@ namespace scidb {
         //Let's always call the output dimension "n". Because the input dimension no longer has any meaning!
         //It could've been "time", or "latitude", or "price" but after the sort it has no value.
 
-        //Right now we always return an unbounded arary. You can use subarray to bound it if you need to
+        //Right now we always return an unbounded array. You can use subarray to bound it if you need to
         //(but you should not need to very often!!). TODO: if we return bounded arrays, some logic inside
         //MergeSortArray gives bad results. We should fix this some day.
 
@@ -299,14 +325,33 @@ namespace scidb {
         Dimensions newDims(1);
         newDims[0] = DimensionDesc("n", 0, 0, MAX_COORDINATE, MAX_COORDINATE, chunkSize, 0);
 
-        _outputSchema.reset(new ArrayDesc(inputSchema.getName(), 
-                                          addEmptyTagAttribute(inputSchema.getAttributes()), 
+        const bool excludeEmptyBitmap = true;
+        Attributes attributes = inputSchema.getAttributes(excludeEmptyBitmap);
+        size_t nAttrsIn = attributes.size();
+        if (_preservePositions) {
+            attributes.push_back(AttributeDesc(
+                            nAttrsIn,
+                            "chunk_pos",
+                            TID_INT64,
+                            0, // flags
+                            0  // defaultCompressionMethod
+                            ));
+            attributes.push_back(AttributeDesc(
+                            nAttrsIn+1,
+                            "cell_pos",
+                            TID_INT64,
+                            0, // flags
+                            0  // defaultCompressionMethod
+                            ));
+        }
+        _outputSchema.reset(new ArrayDesc(inputSchema.getName(),
+                                          addEmptyTagAttribute(attributes),
                                           newDims));
     }
 
 
     /***
-     * Sort works by first tansforming the input array into a series of sorted TupleArrays.
+     * Sort works by first transforming the input array into a series of sorted TupleArrays.
      * Then the TupleArrays are linked under a single MergeSortArray which encodes the merge
      * logic within its iterator classes.  To complete the sort, we materialize the merge
      * Array.
@@ -321,10 +366,10 @@ namespace scidb {
 
         // Init config parameters
         size_t numJobs = inputArray->getSupportedAccess() == Array::RANDOM ?
-	  Config::getInstance()->getOption<int>(CONFIG_PREFETCHED_CHUNKS) : 1;
+	           Config::getInstance()->getOption<int>(CONFIG_RESULT_PREFETCH_QUEUE_SIZE) : 1;
         _memLimit = Config::getInstance()->getOption<int>(CONFIG_MERGE_SORT_BUFFER)*MiB;
         _nStreams = Config::getInstance()->getOption<int>(CONFIG_MERGE_SORT_NSTREAMS);
-        _pipelineLimit = Config::getInstance()->getOption<int>(CONFIG_MERGE_PIPELINE_LIMIT);
+        _pipelineLimit = Config::getInstance()->getOption<int>(CONFIG_MERGE_SORT_PIPELINE_LIMIT);
 
         // Validate config parameters
         if (_pipelineLimit <= 1)
@@ -346,7 +391,7 @@ namespace scidb {
         _tupleComp = tcomp;
         _tupleSize = TupleArray::getTupleFootprint(_outputSchema->getAttributes());
         _nRunningJobs = 0;
-	_runsProduced = 0;
+	    _runsProduced = 0;
         _partitionComplete.resize(numJobs);
         _waitingJobs.resize(numJobs);
         _runningJobs.resize(numJobs);
@@ -477,7 +522,7 @@ namespace scidb {
                                                  query,
                                                  0));
             queue->pushJob(lastJob);
-            lastJob->wait();
+            lastJob->wait(true);
         }
 
         timing.logTiming(logger, "[SortArray] merge sorted chunks complete");
@@ -490,6 +535,7 @@ namespace scidb {
         }
 
         shared_ptr<MemArray> ret = dynamic_pointer_cast<MemArray, Array> (_results.front());
+        _results.clear();
         return ret;
     }
 

@@ -74,7 +74,7 @@ MpiLauncher::MpiLauncher(uint64_t launchId, const boost::shared_ptr<Query>& q)
     _waiting(false),
     _inError(false),
     _MPI_LAUNCHER_KILL_TIMEOUT(scidb::getLivenessTimeout()),
-    _preallocateShm(Config::getInstance()->getOption<bool>(CONFIG_PREALLOCATE_SHM))
+    _preallocateShm(Config::getInstance()->getOption<bool>(CONFIG_PREALLOCATE_SHARED_MEM))
 {
 }
 
@@ -87,7 +87,7 @@ MpiLauncher::MpiLauncher(uint64_t launchId, const boost::shared_ptr<Query>& q, u
     _waiting(false),
     _inError(false),
     _MPI_LAUNCHER_KILL_TIMEOUT(timeout),
-    _preallocateShm(Config::getInstance()->getOption<bool>(CONFIG_PREALLOCATE_SHM))
+    _preallocateShm(Config::getInstance()->getOption<bool>(CONFIG_PREALLOCATE_SHARED_MEM))
 {
 }
 
@@ -999,6 +999,21 @@ MpiLauncherMPICH::getLauncherSSHExecContent(const string& clusterUuid, const str
     return script.str();
 }
 
+// local helper for MpiLauncher::initIpcForWrite() which follows
+std::string formatThrowMsg(const SharedMemoryIpc::SystemErrorException& e){
+    std::stringstream ss;
+    ss << e.what() << " Errcode: " << e.getErrorCode();
+    return ss.str();
+}
+
+// local helper for MpiLauncher::initIpcForWrite() which follows
+std::string formatLog4Msg(const SharedMemoryIpc::SystemErrorException& e){
+    std::stringstream ss;
+    ss << formatThrowMsg(e)
+       << " [originating in file: " << e.getFile() << " at line: " << e.getLine() << "]";
+    return ss.str();
+}
+
 char* MpiLauncher::initIpcForWrite(SharedMemoryIpc* shmIpc, uint64_t shmSize)
 {
     assert(shmIpc);
@@ -1008,15 +1023,23 @@ char* MpiLauncher::initIpcForWrite(SharedMemoryIpc* shmIpc, uint64_t shmSize)
         shmIpc->truncate(shmSize);
         ptr = reinterpret_cast<char*>(shmIpc->get());
     }  catch(scidb::SharedMemoryIpc::NoShmMemoryException& e) {
-        LOG4CXX_ERROR(logger, "Not enough shared memory: " << e.what());
-        throw (SYSTEM_EXCEPTION(SCIDB_SE_NO_MEMORY, SCIDB_LE_MEMORY_ALLOCATION_ERROR) << e.what());
+        LOG4CXX_ERROR(logger, "initIpcForWrite: Not enough shared memory: " << formatLog4Msg(e));
+        throw (SYSTEM_EXCEPTION(SCIDB_SE_NO_MEMORY, SCIDB_LE_MEMORY_ALLOCATION_ERROR) << formatThrowMsg(e)); 
+    }  catch(scidb::SharedMemoryIpc::ShmMapErrorException& e) {
+        LOG4CXX_ERROR(logger, "initIpcForWrite: Cannot map shared memory: " << formatLog4Msg(e));
+        throw (SYSTEM_EXCEPTION(SCIDB_SE_NO_MEMORY, SCIDB_LE_MEMORY_ALLOCATION_ERROR) << formatThrowMsg(e)); 
     } catch(scidb::SharedMemoryIpc::SystemErrorException& e) {
-        LOG4CXX_ERROR(logger, "Cannot map shared memory: " << e.what());
+        LOG4CXX_ERROR(logger, "initIpcForWrite: Cannot map shared memory: " << formatLog4Msg(e));
         throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_OPERATION_FAILED_WITH_ERRNO)
                << "shared_memory_mmap" << e.getErrorCode());
     } catch(scidb::SharedMemoryIpc::InvalidStateException& e) {
-        LOG4CXX_ERROR(logger, "Unexpected error while mapping shared memory: " << e.what());
-        throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_UNKNOWN_ERROR) << e.what());
+        // not a SystemErrorException
+        std::stringstream log4msg;
+        log4msg << " errcode: none"
+                << " [originally in file: " << e.getFile() << " at line: " << e.getLine() << "]";
+        LOG4CXX_ERROR(logger, "initIpcForWrite: Unexpected error while mapping shared memory: " << log4msg);
+        throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_UNKNOWN_ERROR) << e.what()
+               << " errcode: not available");
     }
     assert(ptr);
     return ptr;

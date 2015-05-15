@@ -1,0 +1,26 @@
+--setup
+create array A4516<v:int64 NULL>[i=1:8,3,0,j=1:10,4,0]
+store(build(A4516,i*+j),A4516)
+
+--test
+--start-query-logging
+
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_CHUNK_SIZE_MUST_BE_POSITIVE "aggregate(A4516,sum(v),count(*),j,0)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_CHUNK_SIZE_MUST_BE_POSITIVE "aggregate(A4516,sum(v),count(*),i,-8)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NUM_CHUNKSIZES_NOT_MATCH_NUM_DIMS "aggregate(A4516,sum(v),count(*),j,2,3)"
+--error --code=scidb::SCIDB_SE_QPROC::SCIDB_LE_WRONG_OPERATOR_ARGUMENT2 "aggregate(A4516,sum(v),count(*),0)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NUM_CHUNKSIZES_NOT_MATCH_NUM_DIMS "regrid(A4516,1,2,sum(v),count(*),8, 7, 8)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_NUM_CHUNKSIZES_NOT_MATCH_NUM_DIMS "regrid(A4516,1,2,sum(v),count(*),8)"
+
+show('aggregate(A4516,sum(v),count(*),j,1)', 'afl')
+aggregate(A4516,sum(v),count(*),j,1)
+show('aggregate(A4516,sum(v),count(*),j,i,1,2)', 'afl')
+aggregate(A4516,sum(v),count(*),j,i,1,2)
+
+show('regrid(A4516,1,2,sum(v),count(*),8, 7)', 'afl')
+regrid(A4516,1,2,sum(v),count(*),8, 7)
+
+--stop-query-logging
+
+--cleanup
+remove(A4516)

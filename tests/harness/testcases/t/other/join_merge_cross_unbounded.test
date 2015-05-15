@@ -24,12 +24,12 @@ cross_join(unbounded,unbound_A)
 cross_join(unbound_A,unbounded)
 merge(unbounded,Z)
 merge(Z,unbounded)
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(unbounded,unbound_A)"      
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(subarray(unbounded,0,5),unbound_A)"
+# Fixed by #850:
+join(unbounded,unbound_A)
+# Fixed by #850:
+merge(subarray(unbounded,0,5),unbound_A)
 join(repart(unbounded,unbound_A),unbound_A)
 merge(subarray(unbounded,0,5),repart(unbound_A,unbounded))
-
-
 
 
 --cleanup
@@ -39,5 +39,3 @@ remove(Z)
 
 
 --stop-query-logging
-
-

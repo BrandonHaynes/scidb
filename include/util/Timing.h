@@ -31,6 +31,7 @@
 #define TIMING_H_
 
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/time.h>
 #include <sstream>
 #include <log4cxx/logger.h>
@@ -38,16 +39,21 @@
 namespace scidb
 {
 
+using namespace std;
+
 /**
  * A utility class that returns the #elapsed milliseconds between start() and elapsed() calls.
  */
 class ElapsedMilliSeconds {
 public:
     /**
-     * The Constructor records the start time.
+     * The Constructor records the start time unless told not to do so.
      */
-    ElapsedMilliSeconds() {
-        restart();
+    ElapsedMilliSeconds(bool nostart = false) {
+        if (!nostart)
+        {
+            restart();
+        }
     }
 
     /**
@@ -98,10 +104,16 @@ public:
      * - if pluralAppend="", spaceAfterNumber="", spaceAfterUnit=":", H="", M="", S="", noMSWhatSoEver=true, omitZeroUnits=false:
      *   "1:0:11"
      */
-    static string toString(uint64_t in,
-            string pluralAppend="s", string spaceAfterNumber=" ", string spaceAfterUnit=" ",
-            string H = "hour", string M = "minute", string S = "second", string MS="millisecond",
-            bool noMSWhatSoEver=false, bool omitZeroUnits=true)
+    static std::string toString(uint64_t in,
+                                std::string pluralAppend="s",
+                                std::string spaceAfterNumber=" ",
+                                std::string spaceAfterUnit=" ",
+                                std::string H = "hour",
+                                std::string M = "minute",
+                                std::string S = "second",
+                                std::string MS="millisecond",
+                                bool noMSWhatSoEver=false,
+                                bool omitZeroUnits=true)
     {
         ostringstream os;
         uint64_t h, m, s, ms;

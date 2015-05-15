@@ -226,11 +226,24 @@ namespace scidb {
 			   bool isClone)
     : DelegateChunk(array, iterator, attrID, isClone),
       _firstPosition(0),
-      _lastPosition(0)
+      _lastPosition(0),
+      _unfoldedDimensionUpperBound(0)
   {
-    size_t out_dims = array.getArrayDesc().getDimensions().size();
-    _firstPosition.resize(out_dims);
-    _lastPosition.resize(out_dims);
+    assert(array.getArrayDesc().getDimensions().size() > 1);
+
+    // Get a reference to the unfold array's output dimensions to
+    // use throughout construction.
+    const Dimensions& unfoldDims = array.getArrayDesc().getDimensions();
+
+    // The first and last position have dimensions matching those set
+    // during the "infer schema" step.
+    _firstPosition.resize(unfoldDims.size());
+    _lastPosition.resize(unfoldDims.size());
+
+    // The maximum of the dimension added to hold the attributes is the
+    // coordinate of the last position in that dimension.
+    const DimensionDesc& addedDimension = *(unfoldDims.end()-1);
+    _unfoldedDimensionUpperBound = addedDimension.getEndMax();
   }
 
   Coordinates const&
@@ -255,7 +268,7 @@ namespace scidb {
       iterator.getInputIterator()->getChunk().getLastPosition(withOverlap);
     assert(_lastPosition.size() == pposition.size()+1);
     copyCoordinates(_lastPosition, pposition);
-    *(_lastPosition.end()-1) = *(pposition.end()-1);
+    *(_lastPosition.end()-1) = _unfoldedDimensionUpperBound;
     return _lastPosition;
   }
 
@@ -358,8 +371,6 @@ namespace scidb {
     // according to the first N-1 coordinates.  The last coordinate is
     // the attribute index which must be set independently.
     Coordinates mapped(pos.begin(), pos.end()-1);
-    _visitingAttribute = *(pos.end()-1);
-
     bool success = true;
     for (std::vector<boost::shared_ptr<ConstChunkIterator> >::const_iterator citer =
 	   _inputChunkIterators.begin();
@@ -367,7 +378,14 @@ namespace scidb {
 	 ++citer) {
       success = success && (*citer)->setPosition(mapped);
     }
-    return success;
+
+    AttributeID visitingAttr = *(pos.end()-1);
+    if (success && visitingAttr < _inputChunkIterators.size()) {
+        _visitingAttribute = visitingAttr;
+        return true;
+    }
+    _visitingAttribute = 0;
+    return false;
   }
 
   void
@@ -382,18 +400,6 @@ namespace scidb {
       (*citer)->reset();
     }
     _visitingAttribute = 0;
-  }
-
-  bool
-  UnfoldChunkIter::supportsVectorMode() const
-  {
-    return false;
-  }
-
-  void
-  UnfoldChunkIter::setVectorMode(bool enabled)
-  {
-    ASSERT_EXCEPTION(!enabled, "UnfoldChunkIter::setVectorMode: vector mode is deprecated");
   }
 
   UnfoldBitmapChunkIter::UnfoldBitmapChunkIter(const DelegateChunk* chunk,
@@ -452,9 +458,14 @@ namespace scidb {
     // according to the first N-1 coordinates.  The last coordinate is
     // the attribute index which must be set independently.
     Coordinates mapped(pos.begin(), pos.end()-1);
-    _visitingAttribute = *(pos.end()-1);
-
-    return inputIterator->setPosition(mapped);
+    AttributeID visitingAttr = *(pos.end()-1);
+    if (visitingAttr < _nAttrs && 
+        inputIterator->setPosition(mapped)) {
+        _visitingAttribute = visitingAttr;
+        return true;
+    }
+    _visitingAttribute = 0;
+    return false;
   }
 
   void

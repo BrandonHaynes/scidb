@@ -29,7 +29,7 @@ namespace scidb { namespace arena {
 /****************************************************************************/
 
 /**
- *  Return the number of array elements in the allocation.
+ *  Return the number of vector elements in the allocation.
  */
 size_t Header::getElementCount() const
 {
@@ -120,6 +120,7 @@ bool Header::consistent() const
     }
 
     assert(has(finalizer) == (getFinalizer()!=0));       // Check finalizer()
+    assert(aligned(getPayload()));                       // Check it's aligned
 
     return true;                                         // Appears to be good
 }

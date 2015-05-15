@@ -6,7 +6,7 @@ load_library('more_math')
 --test
 --set-format csv
 sort(filter(list('operators'),library='scidb'),name)
-sort(filter(list('functions'),library='scidb'),name)
+sort(filter(list('functions'),library='scidb'),name, profile)
 --igdata "store(list('queries'),query_array)"
 attributes(query_array)
 list('aggregates')
@@ -22,7 +22,24 @@ sort(filter(list('libraries'),regex(name,'libmore_math.so|libpoint.so')),name)
 
 --error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LIST_ERROR1 "list('error_test')"
 
+--igdata "store(list('chunk map'),chunk_map_array)"
+attributes(chunk_map_array)
+
+--igdata "store(list('chunk descriptors'),chunk_desc_array)"
+attributes(chunk_desc_array)
+
+--igdata "store(list('datastores'),ds_array)"
+attributes(ds_array)
+
+--igdata "store(list('macros'),macro_array)"
+attributes(macro_array)
+
 --cleanup
+
 remove(query_array)
+remove(chunk_map_array)
+remove(chunk_desc_array)
+remove(ds_array)
+remove(macro_array)
 
 --stop-query-logging

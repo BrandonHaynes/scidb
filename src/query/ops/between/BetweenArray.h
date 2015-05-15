@@ -158,6 +158,12 @@ public:
  *   - A "combined" iterator alternates in asking inputArray for the next chunk and computing the next chunkPos from the
  *     between ranges, and use whichever gets there first.
  *
+ * Also, this class uses a SpatialRangesChunkIterator to iterate over the chunkPos in the logical space.
+ * Per THE REQUEST TO JUSTIFY LOGICAL-SPACE ITERATION (see RegionCoordinatesIterator.h),
+ * here is why this is ok.
+ * The above described "combined" iterator will not forever iterate over the logical space (until a valid chunkPos is found).
+ * Each iteration step is accompanied with a probing, of whether the next existing chunk intersects the query range.
+ *
  * ====== BELOW ARE Alex P.'s ORIGINAL NOTE DESCRIBING THE TWO-ITERATOR APPROACH ============
  *
  * Between Array has two ArrayIterator types:

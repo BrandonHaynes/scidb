@@ -43,7 +43,7 @@
 
 namespace scidb
 {
-
+class LogicalExpression;
 struct BindInfo
 {
     enum {
@@ -118,7 +118,7 @@ class Expression
 {
 friend class ExpressionContext;
 public:
-    Expression(): _supportsVectorMode(false), _compiled(false), _tileMode(false),
+    Expression(): _compiled(false), _tileMode(false),
         _tempValuesNumber(0), _eargs(1), _props(1)
     {
     }
@@ -196,10 +196,6 @@ public:
         return _resultType;
     }
 
-    bool supportsVectorMode() const {
-        return _supportsVectorMode;
-    }
-
     bool supportsTileMode() const {
         return _tileMode;
     }
@@ -225,7 +221,6 @@ private:
     std::vector<BindInfo> _bindings;
     std::vector<VarInfo> _variables;
     std::vector<std::vector<size_t> > _contextNo; /**< A vector of vectors with resultIndex's where context variables should go */
-    bool _supportsVectorMode;
     bool _compiled;
     bool _nullable;
     bool _constant; // doesn't depend on input data
@@ -368,7 +363,6 @@ public:
         ar & _props;
         ar & _eargs;
         ar & _functions;
-        ar & _supportsVectorMode;
         ar & _compiled;
         ar & _tileMode;
         ar & _tempValuesNumber;

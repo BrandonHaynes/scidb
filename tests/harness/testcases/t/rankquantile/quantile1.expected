@@ -89,8 +89,8 @@ SCIDB QUERY : <sort(reverse(filter(A, x<> 14 and x<>16)),2)>
 
 SCIDB QUERY : <sort(B,s)>
 {n} r,s
-{0} '321',null
-{1} '261',null
+{0} '261',null
+{1} '321',null
 {2} '201',10
 {3} '221',11
 {4} '241',12

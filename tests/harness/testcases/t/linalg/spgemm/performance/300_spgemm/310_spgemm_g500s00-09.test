@@ -1,0 +1,44 @@
+# not a correctness test
+--shell --command "echo 'Not intended as a test of correctness.  This test produces timing results'"
+
+--setup 
+
+# the first one is missing its data file at the moment
+#--shell --command "I=4 S=0 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=1 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=2 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=3 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=4 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=5 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=6 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=7 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=8 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=9 SECTION="SETUP" ${TESTDIR}/310_spgemm_g500.sh"
+
+--test
+
+# the first one is missing its data file at the moment
+#--shell --command "I=4 S=0 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=1 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=2 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=3 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=4 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=5 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=6 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=7 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=8 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=9 SECTION="TEST" ${TESTDIR}/310_spgemm_g500.sh"
+
+--cleanup
+
+# the first one is missing its data file at the moment
+#--shell --command "I=4 S=0 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=1 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=2 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=3 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=4 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=5 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=6 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=7 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=8 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"
+--shell --command "I=4 S=9 SECTION="CLEANUP" ${TESTDIR}/310_spgemm_g500.sh"

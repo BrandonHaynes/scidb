@@ -1,4 +1,4 @@
 update-alternatives --install /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra.so \
-  dense_linear_algebra /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra-scidb.so 10
+  dense_linear_algebra.VERSION_MAJOR.VERSION_MINOR /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra-scidb.so 10
 update-alternatives --install /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra.so \
-  linear_algebra /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra-scidb.so 10
+  linear_algebra.VERSION_MAJOR.VERSION_MINOR /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra-scidb.so 10

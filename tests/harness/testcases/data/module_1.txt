@@ -50,11 +50,11 @@ chunk_skew() =
       ) as A,
 
       redimension(
-       apply( list('arrays', true), aid, int64(id)),
+       apply( list('arrays', true), a_id, int64(aid)),
        <name: string null>
-       [aid = 0:*,1000,0]
+       [a_id = 0:*,1000,0]
       ) as B,
-      A.aid, B.aid
+      A.aid, B.a_id
      ),
      name, nchunks, min_ccnt, avg_ccnt, max_ccnt, total_cnt
     );

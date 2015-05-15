@@ -98,8 +98,8 @@ public:
             attributes.push_back(AttributeDesc((AttributeID)1, "new",  TID_STRING, 0, 0));
         }
         vector<DimensionDesc> dimensions(1);
-        size_t nInstances = query->getInstancesCount();
-        size_t end = nInstances>0 ? nInstances-1 : 0;
+        const size_t nInstances = query->getInstancesCount();
+        const size_t end = nInstances>0 ? nInstances-1 : 0;
         dimensions[0] = DimensionDesc("No", 0, 0, end, end, 1, 0);
         return ArrayDesc("Option", attributes, dimensions);
 	}

@@ -1,0 +1,112 @@
+--setup
+--start-query-logging
+
+#data out-of-order test
+
+create array teeth <val:int64 null> [x=0:*,2,0,y=0:*,2,0]
+
+## no integrity checks
+
+# notice that the input() behaves differently based on its third argument (-1=all inatances, -2=coordinator)
+# in case of -2, an sg() is inserted right after input()
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt')) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt'),1) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt'),teeth) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt'),teeth)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+
+# make sure the binary & opaque are ok
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "save(teeth, '/tmp/$HPID_teeth_di_ooo.binary',-2,'(int64 null)') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.binary',-2,'(int64 null)') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.binary',-2,'(int64 null)',0,true) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.binary',-2,'(int64 null)',0,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --command "rm -f /tmp/$HPID/teeth_di_ooo.binary"
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "save(teeth, '/tmp/$HPID_teeth_di_ooo.opaque',-2,'opaque') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.opaque',-2,'opaque') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.opaque',-2,'opaque',0,true) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.opaque',-2,'opaque',0,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --command "rm -f /tmp/$HPID/teeth_di_ooo.opaque"
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+
+#--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),1, -1,,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),teeth,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),teeth,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),teeth, false)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),teeth, false)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0, false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0, false)" 2>&1 | grep 'Error id:' > /dev/null"
+--justrun "remove(teeth_shadow)"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0, teeth_shadow, false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+remove(teeth_shadow)
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0, teeth_shadow, false)" 2>&1 | grep 'Error id:' > /dev/null"
+--error "remove(teeth_shadow)"
+
+## integrity checks on input(), which should catch all the problems which can be identified locally
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true)" 2>&1 | grep 'Error id:'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true)" 2>&1 | grep 'Error id:'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true))" 2>&1 | grep 'Error id:'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true))" 2>&1 | grep 'Error id:'"
+
+## integrity checks on sg(input())
+
+--justrun "remove(TEETH)"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),1, -1,TEETH,false)" 2>&1 | grep 'Error id:'"
+--error "remove(TEETH)"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),1, -1,TEETH,false)" 2>&1 | grep 'Error id:' > /dev/null"
+--error "remove(TEETH)"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),1, -1,TEETH,true) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+remove(TEETH)
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),1, -1,TEETH,true)" 2>&1 | grep 'Error id:' > /dev/null"
+--error "remove(TEETH)"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),1, -1,TEETH,true)" 2>&1 | grep 'Error id:'"
+--error "remove(TEETH)"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),1, -1,TEETH,true)" 2>&1 | grep 'Error id:' > /dev/null"
+--error "remove(TEETH)"
+
+## integrity checks on redimension(input())
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),teeth,false)" 2>&1 | grep 'Error id:'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),teeth,false)" 2>&1 | grep 'Error id:'"
+
+# the automatically inserted sg() will just "merge", redimension() will not see anything wrong
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),teeth,true) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),teeth,true)" 2>&1 | grep 'Error id:'"
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),teeth,true)" 2>&1 | grep 'Error id:'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),teeth,true)" 2>&1 | grep 'Error id:'"
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),teeth, false))" 2>&1 | grep 'Error id:'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),teeth, false))" 2>&1 | grep 'Error id:'"
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),teeth, true)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),teeth, true))" 2>&1 | grep 'Error id:'"
+
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),teeth, true))" 2>&1 | grep 'Error id:'"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),teeth, true))" 2>&1 | grep 'Error id:'"
+
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0, true)" 2>&1 | grep 'Error id:' > /dev/null"
+scan(teeth)
+
+--justrun "remove(teeth_shadow)"
+--shell --store-all --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0, teeth_shadow, true)" 2>&1 | grep 'Error id:' > /dev/null"
+scan(teeth)
+--error "remove(teeth_shadow)"
+
+--test
+--cleanup
+remove(teeth)
+--justrun "remove(TEETH)"
+--justrun "remove(teeth_shadow)"
+
+--stop-query-logging

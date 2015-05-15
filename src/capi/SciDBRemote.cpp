@@ -408,8 +408,6 @@ ConstChunk const* ClientArray::nextChunk(AttributeID attId, MemChunk& chunk)
         }
 
         chunk.initialize(this, &desc, firstElem, compMethod);
-        chunk.setSparse(chunkMsg->sparse());
-        chunk.setRLE(chunkMsg->rle());
         boost::shared_ptr<CompressedBuffer> compressedBuffer = dynamic_pointer_cast<CompressedBuffer>(chunkDesc->getBinary());
         compressedBuffer->setCompressionMethod(compMethod);
         compressedBuffer->setDecompressedSize(decompressedSize);

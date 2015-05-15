@@ -91,23 +91,12 @@ public:
            
             signaled = false;
             do {
-#ifdef __APPLE__
-                struct timeval tv;
-                struct timespec ts;
-                if (gettimeofday(&tv, NULL) == -1) { 
-                    assert(false);
-                    throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_GET_SYSTEM_TIME);
-                }
-                ts.tv_sec = tv.tv_sec + 10;
-                ts.tv_nsec = tv.tv_usec*1000;
-#else
                 struct timespec ts;
                 if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
                     assert(false);
                     throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_GET_SYSTEM_TIME);
                 }
                 ts.tv_sec = ts.tv_sec + 10;
-#endif
                 const int e = pthread_cond_timedwait(&_cond, &cs._mutex, &ts);
                 if (e == 0) {
                     return true;

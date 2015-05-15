@@ -33,11 +33,16 @@ fits.fits_input
 # 2 suites of performance tests, too slow for running as 4 instances
 linalg/spgemm/64instance
 linalg/spgemm/performance
-# 
+#
 # NEED COMMENT
 perf.repart
 # 40_svd_tickets @ 18min is too slow to leave enabled during functional freeze
 scalapack.40_svd_tickets
+# 14_gemm_ticket4339 is too slow to be on during functional freeze testing
+scalapack.14_gemm_ticket4339
+# 15_gemm_ticket4346 is too large for 4GB machines like the CDash VMs
+# It must be run by hand on a 1 instance machine in order to repro the symptom of 4346
+scalapack.15_gemm_ticket4346
 # DIR scalapack.64instance are needed for scale-up testing on salty, but take too long to run anywhere else
 scalapack.64instance
 # DIR used for development and other non-production purposes
@@ -46,8 +51,6 @@ scalapack.disabled
 scalapack.perf
 # DIR may come back into service sometime
 scalapack.smallest_sizes
-# DIR: backup script tests (take a long time)
-backup
 
 #
 # PART II
@@ -70,9 +73,6 @@ scalapack.gesvd_01
 #re-enable after solving ticket 2232
 docscript.allversions
 
-#re-enable after solving ticket 4273
-other.parse_int64
-
 #re-enable after solving ticket 1849
 other.random_check
 
@@ -84,6 +84,9 @@ docscript.load
 
 # Valgrind
 @CONFIGURE_DISABLE_TESTS_VALGRIND@
+
+# Single Instance
+@CONFIGURE_DISABLE_TESTS_SINGLE_INSTANCE@
 
 #*****************************************************************************
 # PART III

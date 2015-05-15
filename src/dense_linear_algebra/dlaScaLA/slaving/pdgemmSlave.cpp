@@ -112,26 +112,34 @@ slpp::int_t pdgemmSlave(void* bufs[], size_t sizes[], unsigned count)
     SLAVE_ASSERT_ALWAYS( sizes[BUF_ARGS] >= sizeof(PdgemmArgs));
 
     // size check A,B,C -- debugs first
-    slpp::int_t SIZE_A = args.A.DESC.LLD * LTD_A ;
-    slpp::int_t SIZE_B = args.B.DESC.LLD * LTD_B ;
-    slpp::int_t SIZE_C = args.C.DESC.LLD * LTD_C ;
+    // to include a 1000 * (2^31/1000+1) test case
+    ssize_t SIZE_A = ssize_t(args.A.DESC.LLD) * LTD_A ;
+    ssize_t SIZE_B = ssize_t(args.B.DESC.LLD) * LTD_B ;
+    ssize_t SIZE_C = ssize_t(args.C.DESC.LLD) * LTD_C ;
     if(DBG) {
         if(sizes[BUF_A] != SIZE_A *sizeof(double)) {
-            std::cerr << "sizes[BUF_A]:" << sizes[BUF_A]
-                      << " != args.A.DESC.LLD:" << args.A.DESC.LLD
-                      << "* LTD_A" << LTD_A << "*" << sizeof(double) << std::endl;
+            std::cerr << "sizes[BUF_A]: " << sizes[BUF_A]
+                      << " != SIZE_A: " << SIZE_A
+                      << " * sizeof(DOUBLE): " << sizeof(double)
+                      << " note: args.A.DESC.LLD: " << args.A.DESC.LLD
+                      << " LTD_A: " << LTD_A << std::endl;
         }
         if(sizes[BUF_B] != SIZE_B *sizeof(double)) {
-            std::cerr << "sizes[BUF_B]:" << sizes[BUF_B]
-                      << " != args.B.DESC.LLD:" << args.B.DESC.LLD
-                      << "* LTD_B" << LTD_B << "*" << sizeof(double) << std::endl;
+            std::cerr << "sizes[BUF_B]: " << sizes[BUF_B]
+                      << " != SIZE_B: " << SIZE_B
+                      << " * sizeof(DOUBLE): " << sizeof(double)
+                      << " note: args.A.DESC.LLD: " << args.A.DESC.LLD
+                      << " LTD_B: " << LTD_B << std::endl;
         }
         if(sizes[BUF_C] != SIZE_C *sizeof(double)) {
-            std::cerr << "sizes[BUF_C]:" << sizes[BUF_C]
-                      << " != args.C.DESC.LLD:" << args.C.DESC.LLD
-                      << "* LTD_C" << LTD_C << "*" << sizeof(double) << std::endl;
+            std::cerr << "sizes[BUF_C]: " << sizes[BUF_C]
+                      << " != SIZE_C: " << SIZE_C
+                      << " * sizeof(DOUBLE): " << sizeof(double)
+                      << " note: args.A.DESC.LLD: " << args.A.DESC.LLD
+                      << " LTD_C: " << LTD_C << std::endl;
         }
     }
+    // to include a 1000 * (2^31/1000+1) test case
     SLAVE_ASSERT_ALWAYS(sizes[BUF_A] >= SIZE_A * sizeof(double));
     SLAVE_ASSERT_ALWAYS(sizes[BUF_B] >= SIZE_B * sizeof(double));
     SLAVE_ASSERT_ALWAYS(sizes[BUF_C] >= SIZE_C * sizeof(double));

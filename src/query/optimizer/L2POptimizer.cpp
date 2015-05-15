@@ -148,8 +148,7 @@ boost::shared_ptr<PhysicalQueryPlanNode> L2POptimizer::traverse(const boost::sha
     BOOST_FOREACH(boost::shared_ptr<LogicalQueryPlanNode> node_child, node->getChildren())
     {
        boost::shared_ptr <PhysicalQueryPlanNode> pChild = traverse(query, node_child);
-        pChild->setParent(result);
-        result->addChild(pChild);
+       result->addChild(pChild);
     }
 
     /*
@@ -187,17 +186,12 @@ boost::shared_ptr<PhysicalQueryPlanNode> L2POptimizer::traverse(const boost::sha
 
             boost::shared_ptr<PhysicalQueryPlanNode> sgNode(new PhysicalQueryPlanNode(sgOp, false, false, false));
 
-            globalNode->setParent(sgNode);
             sgNode->addChild(globalNode);
-
-            result->setParent(globalNode);
             globalNode->addChild(result);
 
             result = sgNode;
         } else {
-            result->setParent(globalNode);
             globalNode->addChild(result);
-
             result = globalNode;
         }
     }
@@ -228,7 +222,6 @@ boost::shared_ptr<PhysicalQueryPlanNode> L2POptimizer::traverse(const boost::sha
                                                                                   false,
                                                                                   false));
         sgNode->addChild(result);
-        result->setParent(sgNode);
         result = sgNode;
     }
 

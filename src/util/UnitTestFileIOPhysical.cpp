@@ -57,7 +57,7 @@ public:
            back and verify.
          */
         string                       basepath = 
-            getDir(Config::getInstance()->getOption<string>(CONFIG_STORAGE_URL));
+            getDir(Config::getInstance()->getOption<string>(CONFIG_STORAGE));
 
         uint32_t                     nfileobjs;
         uint32_t                     i;

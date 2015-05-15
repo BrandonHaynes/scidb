@@ -62,7 +62,7 @@ class Executor
 
 		virtual long getTotalCaseExecutionTime (void) = 0;
 		virtual int validateParameters (void) = 0;
-		virtual int execute (const InfoForExecutor &ie) = 0;
+		virtual int execute (InfoForExecutor &ie) = 0;
 
 	protected :
 		struct CaseExecutionTime

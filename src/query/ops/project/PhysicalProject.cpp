@@ -27,41 +27,15 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/DelegateArray.h"
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/ProjectArray.h>
 
 
 namespace scidb {
 
 using namespace boost;
 using namespace std;
-
-class ProjectArray : public DelegateArray
-{
-private:
-    vector<AttributeID> projection;
-
-public:
-    virtual DelegateArrayIterator* createArrayIterator(AttributeID id) const
-    {
-        return new DelegateArrayIterator(*this, id, inputArray->getConstIterator(projection[id]));
-    }
-
-    ProjectArray(ArrayDesc const& desc, boost::shared_ptr<Array> const& array, const LogicalOperator::Parameters& parameters)
-    : DelegateArray(desc, array, true),
-      projection(desc.getAttributes().size())
-    {
-        size_t n = parameters.size();
-        for (size_t i = 0; i < n; i++)
-        {
-        	projection[i] = ((shared_ptr<OperatorParamReference>&)parameters[i])->getObjectNo();
-        }
-        if (projection.size() > n) { 
-            projection[n] = array->getArrayDesc().getEmptyBitmapAttribute()->getId();
-        }
-    } 
-};
 
 class PhysicalProject: public  PhysicalOperator
 {
@@ -84,7 +58,18 @@ public:
 	boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
 		assert(inputArrays.size() == 1);
-		return boost::shared_ptr<Array>(new ProjectArray(_schema, inputArrays[0], _parameters));
+
+		vector<AttributeID> projection(_schema.getAttributes().size());
+        const size_t n = _parameters.size();
+        for (size_t i = 0; i < n; i++)
+        {
+            projection[i] = ((shared_ptr<OperatorParamReference>&)_parameters[i])->getObjectNo();
+        }
+        if (projection.size() > n) {
+            projection[n] = inputArrays[0]->getArrayDesc().getEmptyBitmapAttribute()->getId();
+        }
+
+		return boost::shared_ptr<Array>(new ProjectArray(_schema, inputArrays[0], projection));
 	 }
 };
     

@@ -39,14 +39,14 @@ namespace scidb
     using namespace std;
 
     class TemplateScanner
-    {        
+    {
         string format;
         string ident;
         size_t pos;
         int    num;
 
       public:
-        enum Token { 
+        enum Token {
             TKN_EOF,
             TKN_IDENT,
             TKN_LPAR,
@@ -54,13 +54,13 @@ namespace scidb
             TKN_COMMA,
             TKN_NUMBER
         };
-        
+
         string const& getIdent() const
         {
             return ident;
         }
 
-        int getNumber() const { 
+        int getNumber() const {
             return num;
         }
 
@@ -68,14 +68,14 @@ namespace scidb
         {
             return pos;
         }
-        
+
         TemplateScanner(string const& fmt) : format(fmt), pos(0) {}
 
         Token get()
         {
             int ch = 0;
 
-            while (pos < format.size() && isspace(ch = format[pos])) { 
+            while (pos < format.size() && isspace(ch = format[pos])) {
                 pos += 1; // ignore whitespaces
             }
             if (pos == format.size()) {
@@ -93,21 +93,21 @@ namespace scidb
                 pos += 1;
                 return TKN_COMMA;
               default:
-                if (isdigit(ch)) { 
+                if (isdigit(ch)) {
                     num = 0;
-                    do { 
+                    do {
                         pos += 1;
                         num = num*10 + ch - '0';
                     } while (pos < format.size() && isdigit(ch = format[pos]));
                     return TKN_NUMBER;
-                } else if (isalpha(ch)) { 
+                } else if (isalpha(ch)) {
                     ident.clear();
                     do {
                         pos += 1;
                         ident += (char)ch;
                     } while (pos < format.size() && (isalnum(ch = format[pos]) || ch == '_'));
                     return TKN_IDENT;
-                } else { 
+                } else {
                     throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_TEMPLATE_PARSE_ERROR) << pos;
                 }
             }
@@ -116,7 +116,7 @@ namespace scidb
 
     struct ExchangeTemplate
     {
-        struct Column { 
+        struct Column {
             bool skip;
             bool nullable;
             Type internalType;
@@ -127,7 +127,7 @@ namespace scidb
         vector<Column> columns;
         bool opaque;
     };
-    
+
     class TemplateParser
     {
       public:
@@ -172,17 +172,25 @@ namespace scidb
         int8_t   compressionMethod;
         uint8_t  flags;
         uint8_t  nDims;
-        
+
+        OpaqueChunkHeader()
+        : magic(0),
+        version(0),
+        size(0),
+        signature(0),
+        attrId(0),
+        compressionMethod(0),
+        flags(0),
+        nDims(0) {}
+
         static uint32_t calculateSignature(ArrayDesc const& desc);
 
-        enum Flags { 
-            SPARSE_CHUNK = 1,
+        enum Flags {
             RLE_FORMAT = 2,
-            COORDINATE_MAPPING = 4, //TODO-3667: remove this in next release (right now used to throw exn)
             ARRAY_METADATA = 8
         };
     };
 }
-    
+
 #endif
 

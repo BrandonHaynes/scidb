@@ -64,7 +64,8 @@ class JoinArrayIterator : public DelegateArrayIterator
         return hasCurrent = inputIterator->setPosition(pos) && joinIterator->setPosition(pos);
     }
 
-        virtual void reset() {
+    virtual void reset()
+    {
         inputIterator->reset();
         while (!inputIterator->end()) {
             if (joinIterator->setPosition(inputIterator->getPosition())) {
@@ -95,8 +96,12 @@ public:
     virtual DelegateArrayIterator* createArrayIterator(AttributeID id) const
     {
         return new JoinArrayIterator(*this, id,
-                                     id < nLeftAttributes ? leftArray->getConstIterator(id) : rightArray->getConstIterator(id - nLeftAttributes),
-                                     id < nLeftAttributes ? rightArray->getConstIterator(0) : leftArray->getConstIterator(0));
+                                     id < nLeftAttributes
+                                         ? leftArray->getConstIterator(id)
+                                         : rightArray->getConstIterator(id - nLeftAttributes),
+                                     id < nLeftAttributes
+                                         ? rightArray->getConstIterator(0)
+                                         : leftArray->getConstIterator(0));
     }
 
     JoinArray(ArrayDesc const& desc, boost::shared_ptr<Array> left, boost::shared_ptr<Array> right)
@@ -116,8 +121,11 @@ public:
 class PhysicalJoin: public PhysicalOperator
 {
 public:
-    PhysicalJoin(const string& logicalName, const string& physicalName, const Parameters& parameters, const ArrayDesc& schema):
-        PhysicalOperator(logicalName, physicalName, parameters, schema)
+    PhysicalJoin(const string& logicalName,
+                 const string& physicalName,
+                 const Parameters& parameters,
+                 const ArrayDesc& schema)
+        : PhysicalOperator(logicalName, physicalName, parameters, schema)
     {}
 
     virtual DistributionRequirement getDistributionRequirement (const std::vector< ArrayDesc> & inputSchemas) const
@@ -133,6 +141,15 @@ public:
             return PhysicalBoundaries::createEmpty(_schema.getDimensions().size());
         }
         return inputBoundaries[0].intersectWith(inputBoundaries[1]);
+    }
+
+    /**
+     * Ensure input array chunk sizes and overlaps match.
+     */
+    virtual void requiresRepart(vector<ArrayDesc> const& inputSchemas,
+                                vector<ArrayDesc const*>& repartPtrs) const
+    {
+        repartByLeftmost(inputSchemas, repartPtrs);
     }
 
     /***

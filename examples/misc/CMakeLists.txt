@@ -30,8 +30,12 @@ set (misc_src
     ../../src/array/UnitTestSortArrayPhysical.cpp
     ../../src/util/UnitTestFileIOLogical.cpp
     ../../src/util/UnitTestFileIOPhysical.cpp
-    ../../src/smgr/io/UnitTestDataStoreLogical.cpp
-    ../../src/smgr/io/UnitTestDataStorePhysical.cpp
+    ../../src/util/UnitTestDataStoreLogical.cpp
+    ../../src/util/UnitTestDataStorePhysical.cpp
+    ../../src/array/UnitTestChunkLimitLogical.cpp
+    ../../src/array/UnitTestChunkLimitPhysical.cpp
+    ../../src/array/UnitTestMemArrayLogical.cpp
+    ../../src/array/UnitTestMemArrayPhysical.cpp
 )
 
 file(GLOB misc_include "*.h")
@@ -39,6 +43,3 @@ file(GLOB misc_include "*.h")
 add_library(misc SHARED ${misc_src} ${misc_include})
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libmisc${CMAKE_SHARED_LIBRARY_SUFFIX}" misc)
 set_target_properties(misc PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
-if (APPLE)
-  set_target_properties(misc PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif (APPLE)

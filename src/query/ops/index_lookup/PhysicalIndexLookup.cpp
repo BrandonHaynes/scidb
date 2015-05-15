@@ -22,11 +22,12 @@
 
 #include "IndexLookupSettings.h"
 #include <query/Operator.h>
-#include <query/Network.h>
+#include <util/Network.h>
 #include <array/DelegateArray.h>
 #include <array/SortArray.h>
 #include <util/arena/Vector.h>
 #include <util/Arena.h>
+#include <query/AttributeComparator.h>
 
 namespace scidb
 {
@@ -648,17 +649,27 @@ private:
 
     shared_ptr<Array> prepareIndexArray(shared_ptr<Array> & inputIndex, shared_ptr<Query>& query, bool const indexPreSorted)
     {
-        shared_ptr<Array> replicated = redistribute(inputIndex, query, psReplication);
+        // XXX TODO: SortArray can be fixed to use multiple threads even on a SINGLE_PASS array
+        // Once that is done, we can feed the result of pullRedistribute() into SortArray.
+        shared_ptr<Array> replicated = redistributeToRandomAccess(inputIndex, query, psReplication,
+                                                                  ALL_INSTANCE_MASK,
+                                                                  shared_ptr<DistributionMapper>(),
+                                                                  0,
+                                                                  shared_ptr<PartitioningSchemaData>());
         if(indexPreSorted)
         {
             return replicated;
         }
         shared_ptr<Array> dimApplied (new AddDimensionArray(replicated));
-        vector<Key> sortKeys(1);
-        sortKeys[0].columnNo = 0;
-        sortKeys[0].ascent = true;
-        SortArray sorter(dimApplied->getArrayDesc(), dimApplied->getArrayDesc().getDimensions()[0].getChunkInterval());
-        shared_ptr<TupleComparator> tcomp(new TupleComparator(sortKeys, dimApplied->getArrayDesc()));
+        SortingAttributeInfos sortingAttributeInfos(1);
+        sortingAttributeInfos[0].columnNo = 0;
+        sortingAttributeInfos[0].ascent = true;
+        const bool preservePositions = false;
+        SortArray sorter(dimApplied->getArrayDesc(),
+                         _arena,
+                         preservePositions,
+                         dimApplied->getArrayDesc().getDimensions()[0].getChunkInterval());
+        shared_ptr<TupleComparator> tcomp(boost::make_shared<TupleComparator>(sortingAttributeInfos, dimApplied->getArrayDesc()));
         return sorter.getSortedArray(dimApplied, query, tcomp);
     }
 

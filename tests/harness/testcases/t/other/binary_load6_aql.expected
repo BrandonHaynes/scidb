@@ -66,7 +66,7 @@ SCIDB QUERY : <select * from Z>
 
 SCIDB QUERY : <select * from show(Z)>
 {i} schema
-{0} 'Z<num:double,num_2:double> [x=1:100000,100000,0,y=1:100000,100000,0,z=1:100000,100000,0]'
+{0} 'Z<num:double,num_2:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]'
 
 SCIDB QUERY : <save Z into current instance 'Zsparse1.bcp' as '(double,double)'>
 {x,y,z} num,num_2
@@ -88,7 +88,7 @@ SCIDB QUERY : <select * from ZxZ>
 
 SCIDB QUERY : <select * from show(ZxZ)>
 {i} schema
-{0} 'ZxZ<num:double,num_2:double,num_3:double,num_2_2:double> [x=1:100000,100000,0,y=1:100000,100000,0,z=1:100000,100000,0]'
+{0} 'ZxZ<num:double,num_2:double,num_3:double,num_2_2:double> [x=1:100000000,100000,0,y=1:500000,100000,0,z=1:*,100000,0]'
 
 SCIDB QUERY : <save ZxZ into current instance 'ZxZsparse1.bcp' as '(double,double,double,double)'>
 {x,y,z} num,num_2,num_3,num_2_2

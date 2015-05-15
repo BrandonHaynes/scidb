@@ -35,11 +35,77 @@
 #include <array/Metadata.h>
 #include <array/StreamArray.h>
 #include <network/BaseConnection.h>
+#include <query/Query.h>
+#include <util/Mutex.h>
 
 namespace scidb
 {
 
 class Statistics;
+
+/**
+ * A sub-class of OperatorContext, to share data using RemoteArray among instances.
+ * Even though multiple threads access the RemoteArrayContext, no synchronization is needed, for the following reasons.
+ * There are two types of threads:
+ *   - A "writer" thread which creates this context, and calls query->setOperatorContext/unsetOperatorContext;
+ *   - and multiple "reader" threads on either side of the channel of RemoteArray:
+ *     * A pullee responds to a mtFetch message, by returning a chunk from _outboundArrays.
+ *     * A puller responds to a mtRemoteChunk message, by adding the received chunk to an array referenced in _inboundArrays.
+ * The synchronization of the writer thread and the reader threads should be protected using syncBarrier in the writer thread itself as:
+ *   1. syncBarrier(0)
+ *   2. prepare a shared_ptr<RemoteArrayContext>
+ *   3. query->setOperatorContext()
+ *   4. NOW mtFetch/mtRemoteChunk MESSAGES MAY BE EXCHANGED.
+ *   5. syncBarrier(1)
+ *   6. query->unsetOperatorContext()
+ */
+class RemoteArrayContext: public Query::OperatorContext
+{
+public:
+    /**
+     * @param numInstances  the number of SciDB instances.
+     */
+    RemoteArrayContext(size_t numInstances);
+
+    /**
+     * Given a source instance, get the remote array to pull data from the instance.
+     * @param logicalSrcInstanceID  the logical source instance ID.
+     * @return a RemoteArray to pull data from.
+     */
+    boost::shared_ptr<RemoteArray> getInboundArray(InstanceID logicalSrcInstanceID) const;
+
+    /**
+     * Given a source instance, and an array, take a note that the array is meant to pull data from that instance.
+     * @param logicalSrcInstanceID  the logical source instance ID.
+     * @param array          a RemoteArray to pull data from.
+     */
+    void setInboundArray(InstanceID logicalSrcInstanceID, const boost::shared_ptr<RemoteArray>& array);
+
+    /**
+     * Given a destination instance, get the outbound array to be sent to the instance.
+     * @param logicalDestInstanceID  the logical destination instance ID.
+     * @return an outbound array prepared for the instance.
+     */
+    boost::shared_ptr<Array> getOutboundArray(const InstanceID& logicalDestInstanceID) const;
+
+    /**
+     * Given a destination instance, and an array, take a note that the array is meant to be sent to the instance.
+     * @param logicalDestInstanceID  the logical destination instance ID.
+     * @param array           an SciDB array to be sent to the instance.
+     */
+    void setOutboundArray(const InstanceID& logicalDestInstanceID, const boost::shared_ptr<Array>& array);
+
+private:
+    /**
+     * A vector of RemoteArrays, to pull data from each remote instance.
+     */
+    std::vector<boost::shared_ptr<RemoteArray> > _inboundArrays;
+
+    /**
+     * A vector of outbound arrays, to send data to each remote instance.
+     */
+    std::vector<boost::shared_ptr<Array> > _outboundArrays;
+};
 
 /**
  * Class implement fetching chunks from current result array of remote instance.
@@ -52,13 +118,28 @@ public:
 
     void handleChunkMsg(boost::shared_ptr< MessageDesc>& chunkDesc);
 
-    static boost::shared_ptr<RemoteArray> create(const ArrayDesc& arrayDesc, QueryID queryId, InstanceID instanceID);
+    /**
+     * Create a RemoteArray object, store it in remoteArrayContext, and return it.
+     * @param[inout] remoteArrayContext   an RemoteArrayContext object, whose _inboundArrays[logicalSrcInstanceID] will be set.
+     * @param[in]    arrayDesc            the schema of the RemoteArray.
+     * @param[in]    queryId              the ID of the query context.
+     * @param[in]    logicalSrcInstanceId the logical ID of the instance to pull data from.
+     * @return a shared_ptr to the RemoteArray object (which is already stored in the RemoteArrayContext).
+     */
+    static boost::shared_ptr<RemoteArray> create(
+            boost::shared_ptr<RemoteArrayContext>& remoteArrayContext,
+            const ArrayDesc& arrayDesc, QueryID queryId, InstanceID instanceID);
+
+    static boost::shared_ptr<RemoteArrayContext> getContext(boost::shared_ptr<Query>&);
 
 private:
     bool proceedChunkMsg(AttributeID attId, MemChunk& chunk);
     void requestNextChunk(AttributeID attId);
 
-    RemoteArray(const ArrayDesc& arrayDesc, QueryID queryId, InstanceID instanceID);
+    /**
+     * This is private because the caller is supposed to call RemoteArray::create to create a RemoteArray object.
+     */
+    RemoteArray(const ArrayDesc& arrayDesc, QueryID queryId, InstanceID logicalSrcInstanceID);
 
     QueryID _queryId;
     InstanceID _instanceID;

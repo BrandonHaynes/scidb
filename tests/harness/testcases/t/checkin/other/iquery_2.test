@@ -12,11 +12,9 @@ store(redimension( RawDataForDorfs, Dorfs ), Dorfs )
 
 --test
  
-echo ('iquery  -o lcsv+ -aq \'scan ( Dorfs )\'')
---shell --command " iquery  -o lcsv+ -aq 'scan ( Dorfs )' " --store
+--shell --store --command " iquery  -o lcsv+ -aq 'scan ( Dorfs )' "
 
-echo ('iquery  -o lsparse -aq \'scan ( Dorfs )\'')
---shell --command " iquery  -o lsparse -aq 'scan ( Dorfs )' " --store
+--shell --store --command " iquery  -o lsparse -aq 'scan ( Dorfs )' "
 
 
 --cleanup

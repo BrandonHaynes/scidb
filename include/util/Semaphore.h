@@ -35,13 +35,7 @@
 #include <boost/function.hpp>
 #include <string>
 
-// TODO: Implement auto detection of this directive
-#ifndef __APPLE__
 #define POSIX_SEMAPHORES
-#endif
-
-
-#ifdef POSIX_SEMAPHORES
 
 #include <semaphore.h>
 #include <time.h>
@@ -101,42 +95,6 @@ public:
 
     bool tryEnter();
 };
-
-#else
-
-#include "Mutex.h"
-#include "Event.h"
-
-namespace scidb
-{
-
-class Semaphore
-{
-private:
-    Event _cond;
-    Mutex _cs;
-    int _count;
-
-public:
-     /**
-      * @throws a scidb::Exception if necessary
-      */
-    typedef boost::function<bool()> ErrorChecker;
-    Semaphore();
-    ~Semaphore();
-
-    bool enter(ErrorChecker& errorChecker) { 
-       return enter(1, errorChecker);
-    }
-
-    void enter(int count = 1);
-    bool enter(int count, ErrorChecker& errorChecker);
-
-    void release(int n = 1);
-    bool tryEnter();
-};
-
-#endif
 
 class ReleaseOnExit
 {

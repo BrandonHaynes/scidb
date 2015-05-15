@@ -20,10 +20,11 @@
 * END_COPYRIGHT
 */
 
+#include <query/Operator.h>
+#include <util/Network.h>
+#include <util/arena/Map.h>
+
 #include "UniqSettings.h"
-#include "query/Operator.h"
-#include "query/Network.h"
-#include "util/arena/Map.h"
 
 namespace scidb
 {
@@ -373,8 +374,7 @@ private:
              * Such a converter may or may not exist. If it doesn't, this call to findConverter will return NULL.
              */
             FunctionLibrary *flib = FunctionLibrary::getInstance();
-            bool needVectorMode = false; //advanced/deprecated topic
-            FunctionPointer converter = flib->findConverter(dataType, TID_STRING, needVectorMode, false, false);
+            FunctionPointer converter = flib->findConverter(dataType, TID_STRING, false, false, NULL);
             for(const_iterator iter = begin(), fin = end(); iter!= fin; ++iter)
             {
                 Coordinate coord = iter->first;

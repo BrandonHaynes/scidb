@@ -89,7 +89,7 @@ void runSciDB()
    assert(cfg);
 
    // Configuring loggers
-   const std::string& log4cxxProperties = cfg->getOption<string>(CONFIG_LOG4CXX_PROPERTIES);
+   const std::string& log4cxxProperties = cfg->getOption<string>(CONFIG_LOGCONF);
    if (log4cxxProperties.empty()) {
       log4cxx::BasicConfigurator::configure();
       const std::string& log_level = cfg->getOption<string>(CONFIG_LOG_LEVEL);
@@ -130,7 +130,8 @@ void runSciDB()
        struct rlimit rlim;
        if (getrlimit(RLIMIT_AS, &rlim) != 0)
        {
-           LOG4CXX_DEBUG(logger, ">getrlimit call failed with errno "<<errno<<"; memory cap not set.");
+           LOG4CXX_DEBUG(logger, ">getrlimit call failed: " << ::strerror(errno)
+                         << " (" << errno << "); memory cap not set.");
        }
        else
        {
@@ -139,7 +140,8 @@ void runSciDB()
                rlim.rlim_cur = maxMem;
                if (setrlimit(RLIMIT_AS, &rlim) != 0)
                {
-                   LOG4CXX_DEBUG(logger, ">setrlimit call failed with errno "<<errno<<"; memory cap not set.");
+                   LOG4CXX_DEBUG(logger, ">setrlimit call failed: " << ::strerror(errno)
+                                 << " (" << errno << "); memory cap not set.");
                }
                else
                {
@@ -153,7 +155,7 @@ void runSciDB()
        }
    }
 
-   std::string tmpDir = Config::getInstance()->getOption<std::string>(CONFIG_TMP_PATH);
+   std::string tmpDir = FileManager::getInstance()->getTempDir();
    // If the tmp directory does not exist, create it.
    // Note that multiple levels of directories may need to be created.
    if (tmpDir.length() == 0 || tmpDir[tmpDir.length()-1] != '/') {
@@ -170,8 +172,11 @@ void runSciDB()
                string subdir = tmpDir.substr(0, end);
                if (access(subdir.c_str(),0) != 0) {
                    if (mkdir(subdir.c_str(), 0755) != 0) {
-                       LOG4CXX_DEBUG(logger, "Could not create temp directory "<<subdir<<" errno "<<errno);
-                       throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_OPEN_FILE) << subdir.c_str() << errno;
+                       LOG4CXX_DEBUG(logger, "Could not create temp directory "
+                                     << subdir << ": " << ::strerror(errno)
+                                     << " (" << errno << ')');
+                       throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_OPEN_FILE)
+                           << subdir.c_str() << ::strerror(errno) << errno;
                    }
                    LOG4CXX_DEBUG(logger, "Created temp directory "<<subdir);
                }
@@ -179,11 +184,9 @@ void runSciDB()
        } while (end<tmpDir.length());
    }
 
-#ifndef __APPLE__
    const size_t memThreshold = Config::getInstance()->getOption<size_t>(CONFIG_MEM_ARRAY_THRESHOLD);
-   std::string memArrayBasePath = cfg->getOption<string>(CONFIG_TMP_PATH);
+   std::string memArrayBasePath = tmpDir + "/memarray";
 
-   memArrayBasePath += "/memarray";
    SharedMemCache::getInstance().initSharedMemCache(memThreshold * MiB,
                                                     memArrayBasePath.c_str());
 
@@ -198,12 +201,12 @@ void runSciDB()
 
        LOG4CXX_WARN(logger, "Failed to set small-memalloc-size");
    }
-#endif
+
    boost::shared_ptr<JobQueue> messagesJobQueue = boost::make_shared<JobQueue>();
 
    // Here we can play with thread number
    // TODO: For SG operations probably we should have separate thread pool
-   const uint32_t nJobs = std::max(cfg->getOption<int>(CONFIG_MAX_JOBS),2);
+   const uint32_t nJobs = std::max(cfg->getOption<int>(CONFIG_EXECUTION_THREADS),2);
    messagesThreadPool = make_shared<ThreadPool>(nJobs, messagesJobQueue);
 
    SystemCatalog* catalog = SystemCatalog::getInstance();
@@ -212,7 +215,7 @@ void runSciDB()
    {
        //Disable metadata upgrade in initialize mode
        catalog->connect(
-           Config::getInstance()->getOption<string>(CONFIG_CATALOG_CONNECTION_STRING),
+           Config::getInstance()->getOption<string>(CONFIG_CATALOG),
            !initializeCluster);
    }
    catch (const std::exception &e)
@@ -482,7 +485,7 @@ int main(int argc,char* argv[])
    }
    Config *cfg = Config::getInstance();
 
-   if (cfg->getOption<bool>(CONFIG_DAEMONIZE))
+   if (cfg->getOption<bool>(CONFIG_DAEMON_MODE))
    {
       if (daemon(1, 0) == -1) {
          handleFatalError(errno,"daemon() failed");
@@ -514,3 +517,4 @@ int main(int argc,char* argv[])
    assert(0);
    scidb::exit(1);
 }
+

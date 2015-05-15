@@ -143,7 +143,7 @@ public:
      * @param with  source chunk
      * @param query the query object
      */
-    DeepChunkMerger(MemChunk& dst, MemChunk const& with, boost::shared_ptr<Query>& query);
+    DeepChunkMerger(MemChunk& dst, MemChunk const& with, boost::shared_ptr<Query> const& query);
 
     /**
      * Merge _with into _dst (parameters of the constructor).

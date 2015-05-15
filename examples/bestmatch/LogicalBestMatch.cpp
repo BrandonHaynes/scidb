@@ -27,10 +27,10 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "system/SystemCatalog.h"
-#include "system/Exceptions.h"
-#include "array/Metadata.h"
+#include <query/Operator.h>
+#include <system/SystemCatalog.h>
+#include <system/Exceptions.h>
+#include <array/Metadata.h>
 
 using namespace std;
 
@@ -63,14 +63,20 @@ class LogicalBestMatch: public LogicalOperator
 
         if (catalogDimensions.size() != patternDimensions.size())
         {
-            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_LOGICAL_JOIN_ERROR1);
+            ostringstream left, right;
+            printDimNames(left, patternDimensions);
+            printDimNames(right, catalogDimensions);
+            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_DIMENSION_COUNT_MISMATCH)
+                << "bestmatch" << left.str() << right.str();
         }
         for (size_t i = 0, n = catalogDimensions.size(); i < n; i++) {
-            if (!(catalogDimensions[i].getStart() == patternDimensions[i].getStart()
+            if (!(catalogDimensions[i].getStartMin() == patternDimensions[i].getStartMin()
                   && catalogDimensions[i].getChunkInterval() == patternDimensions[i].getChunkInterval()
                   && catalogDimensions[i].getChunkOverlap() == patternDimensions[i].getChunkOverlap()))
             {
-                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_LOGICAL_JOIN_ERROR2);
+                // XXX To do: implement requiresRepart() method, remove interval/overlap checks
+                // above, use SCIDB_LE_START_INDEX_MISMATCH here.
+                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ARRAYS_NOT_CONFORMANT);
             }
         }
 

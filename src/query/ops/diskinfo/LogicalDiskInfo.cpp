@@ -90,7 +90,7 @@ public:
         attributes[3] = AttributeDesc((AttributeID)3, "nFreeClusters",  TID_UINT64, 0, 0);
         attributes[4] = AttributeDesc((AttributeID)4, "nSegments",  TID_UINT64, 0, 0);
         vector<DimensionDesc> dimensions(1);
-        size_t nInstances = query->getInstancesCount();
+        const size_t nInstances = query->getInstancesCount();
         size_t end        = nInstances>0 ? nInstances-1 : 0;
         dimensions[0]     = DimensionDesc("Instance", 0, 0, end, end, 1, 0);
         return ArrayDesc("DiskInfo", attributes, dimensions);

@@ -28,81 +28,68 @@
 #ifndef MERGE_SORT_ARRAY_H
 #define MERGE_SORT_ARRAY_H
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/MemArray.h"
-#include "array/TupleArray.h"
-#include "util/iqsort.h"
-
 #include <stdio.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <string>
 
+#include <array/MemArray.h>
+#include <array/Metadata.h>
+#include <array/StreamArray.h>
+#include <array/TupleArray.h>
+#include <query/Operator.h>
+#include <util/iqsort.h>
+
 namespace scidb
 {
     using namespace std;
 
     class MergeSortArray;
-    class MergeSortArrayIterator;
 
     const size_t CHUNK_HISTORY_SIZE = 2;
 
-    class MergeSortArrayIterator : public ConstArrayIterator
+    class MergeSortArray : public SinglePassArray
     {
-        friend class MergeSortArray;
-      public:
-        virtual ConstChunk const& getChunk();
-        virtual bool end();
-        virtual void operator ++();
-        virtual Coordinates const& getPosition();
+    protected:
+        /// @see SinglePass::getCurrentRowIndex()
+        virtual size_t getCurrentRowIndex() const { return currChunkIndex; }
+        /// @see SinglePass::moveNext()
+        virtual bool moveNext(size_t rowIndex);
+        /// @see SinglePass::getChunk()
+        virtual ConstChunk const& getChunk(AttributeID attr, size_t rowIndex);
 
-        MergeSortArrayIterator(MergeSortArray& array, AttributeID id);
+    public:
 
-      private:
-        MergeSortArray& array;
-        AttributeID attr;
-        bool hasCurrent;
-        size_t currChunkIndex;
-    };
-
-    class MergeSortArray : public Array
-    {
-      public:
-        virtual Access getSupportedAccess() const
-        {
-            return SINGLE_PASS;
-        }
-        virtual ArrayDesc const& getArrayDesc() const;
-        virtual boost::shared_ptr<ConstArrayIterator> getConstIterator(AttributeID attr) const;
-
-        bool moveNext(size_t chunkIndex);
-        ConstChunk const& getChunk(AttributeID attr, size_t chunkIndex);
-
+        /**
+         * @param query       the query context.
+         * @param desc        the result schema.
+         * @param inputArrays the input arrays to merge.
+         * @param tcom        the tuple comparator.
+         * @param offset      the offset to be added to the coordinate of every output cell.
+         * @param streamSizes the number of elements from each inputArray.
+         */
         MergeSortArray(const boost::shared_ptr<Query>& query,
                        ArrayDesc const& desc,
                        std::vector< boost::shared_ptr<Array> > const& inputArrays,
-                       boost::shared_ptr<TupleComparator> tcomp, 
-                       bool local = false);
+                       boost::shared_ptr<TupleComparator> tcomp,
+                       size_t offset,
+                       boost::shared_ptr<std::vector<size_t> > const& streamSizes);
 
-      private:
-        ArrayDesc desc;
+    private:
         size_t currChunkIndex;
         boost::shared_ptr<TupleComparator> comparator;
         Coordinates chunkPos;
         size_t chunkSize;
-        bool isLocal;
 
         struct MergeStream {
             vector< boost::shared_ptr< ConstArrayIterator > > inputArrayIterators;
             vector< boost::shared_ptr< ConstChunkIterator > > inputChunkIterators;
-            Tuple tuple;
+            vector<Value> tuple;
             size_t size;
             bool endOfStream;
         };
         struct ArrayAttribute {
-            boost::shared_ptr<MergeSortArrayIterator> iterator;
             MemChunk chunks[CHUNK_HISTORY_SIZE];
         };
         std::vector< boost::shared_ptr<Array> > input;
@@ -113,12 +100,13 @@ namespace scidb
         /// Make sure the MergeSortArray chunk have the empty bitmap chunk set.
         /// For all output attribute chunks in the attributes buffer, set the empty bitmap chunk (nAttrs-1)
         void setEmptyBitmap(size_t nAttrs, size_t chunkIndex);
-      public:
-        int binarySearch(Tuple const& tuple);
 
-        int operator()(int i, int j) 
-        { 
-            return -comparator->compare(streams[i].tuple, streams[j].tuple);
+    public:
+        int binarySearch(PointerRange<const Value> tuple);
+
+        int operator()(int i, int j)
+        {
+            return -comparator->compare(&streams[i].tuple.front(), &streams[j].tuple.front());
         }
     };
 

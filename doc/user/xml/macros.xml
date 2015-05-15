@@ -6,9 +6,9 @@
 
   <para><indexterm>
       <primary>macros</primary>
-    </indexterm> <indexterm>
+    </indexterm><indexterm>
       <primary>modules</primary>
-    </indexterm>In this version, SciDB introduces some experimental
+    </indexterm>This version of SciDB includes some experimental
   functionality. We may expand this functionality in future versions.
   Conceptually, this functionality resembles the macro facility offered by the
   C preprocessor, <code>cpp</code>.</para>
@@ -18,17 +18,34 @@
   processor will recognize an application of the macro within a query and
   expand the macro inline.</para>
 
-  <para>This functionality consists of the following two pieces:<itemizedlist>
+  <para>This functionality consists of the following pieces:<itemizedlist>
       <listitem>
         <para><emphasis>macro</emphasis>: an entity that gets expanded before
         query execution. Wherever the name of the macro is found in the query,
-        it is replaced by the body of the macro.</para>
+        it is replaced by the body of the macro. There are two kinds of
+        macros:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>system macro</emphasis>: a macro included in SciDB
+            and automatically loaded whenever you start the SciDB
+            cluster.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis>user-defined macro</emphasis>: a macro available
+            only if it is part of a module explicitly loaded by you or by some
+            other user.</para>
+          </listitem>
+        </itemizedlist>
       </listitem>
 
       <listitem>
-        <para><emphasis>module</emphasis>: a collection of macros. A module is
-        a text file, and only one module can be loaded into SciDB at a
-        time.</para>
+        <para><emphasis>module</emphasis>: a collection of user-defined
+        macros. A module is a text file, and only one module can be loaded
+        into SciDB at a time. If you load two modules, the macros defined in
+        the first module become unavailable as soon as you load the second
+        module.</para>
       </listitem>
     </itemizedlist></para>
 
@@ -36,41 +53,45 @@
   linkend="appendixMacros"/>.</para>
 
   <section>
-    <title>Syntax</title>
+    <title>Macro Syntax</title>
 
-    <para>The current syntax is as follows:<programlisting>macro-definition  ::= macro-name ( macro-parameters ) = macro-body [where \{ macro-definitions \}]</programlisting>where:<itemizedlist>
+    <para>The current syntax is as follows:<programlisting>macro-definition  ::= <emphasis>macro-name</emphasis><emphasis
+          role="bold"> (</emphasis> <emphasis>macro-parameters</emphasis><emphasis
+          role="bold"> ) = </emphasis><emphasis>macro-body</emphasis> 
+                      [<emphasis role="bold"> WHERE { </emphasis><emphasis>macro-definitions </emphasis><emphasis
+          role="bold">}</emphasis> ]</programlisting>where:<itemizedlist>
         <listitem>
-          <para><code>macro-name</code> is an identifier.</para>
+          <para><emphasis>macro-name</emphasis> is an identifier.</para>
         </listitem>
 
         <listitem>
-          <para><code>macro-parameters</code> is a (possibly empty)
+          <para><emphasis>macro-parameters</emphasis> is a (possibly empty)
           comma-separated list of distinct identifiers.</para>
         </listitem>
 
         <listitem>
-          <para><code>macro-body</code> is an AFL query that may refer by name
-          to both the macro's parameters and also any locally bound helper
-          macros defined in the optional <code>where</code> clause. Such
-          nested macros are only visible within the enclosing macro's
+          <para><emphasis>macro-body</emphasis> is an AFL query that may refer
+          by name to both the macro's parameters and also any locally bound
+          helper macros defined in the optional <code>where</code> clause.
+          Such nested macros are visible only within the enclosing macro's
           body.</para>
         </listitem>
 
         <listitem>
-          <para><code>macro-definitions</code> is a (possibly empty)
+          <para><emphasis>macro-definitions</emphasis> is a (possibly empty)
           semicolon-separated list of macro definitions.</para>
         </listitem>
       </itemizedlist></para>
   </section>
 
-  <section>
-    <title>Usage</title>
+  <section id="macroUsage">
+    <title>Macro Usage</title>
 
     <para>You provide macro definitions in a text file (called a
     <emphasis>module</emphasis>) that is accessible to the coordinator
-    instance. The module may include both Postgres style line
-    (<code><code>--</code>)</code> and block (<code><code>/* ...
-    */</code></code>) comments.</para>
+    instance. The module may include comments formatted in any of three ways:
+    Postgres-style line (<code><code>--</code>)</code>, C-style (//), and
+    block (<code><code>/* ... */</code></code>).</para>
 
     <para>You then load the contents of the text file into SciDB using the
     operator <code>load_module()</code>. It takes one argument: the pathname
@@ -94,20 +115,63 @@
 
         <listitem>
           <para>Any subsequent call of <code>load_module </code>invalidates
-          previously loaded macros, even if the particular macro is not
-          defined in the newly loaded file.</para>
-        </listitem>
-
-        <listitem>
-          <para>A macro named <emphasis>m</emphasis> hides any existing
-          identically named applicable entity in the system, including
-          operators, functions, their user defined counterparts (UDO's and
-          UDF's), and other macros.</para>
+          previously loaded user-defined macros, even if the particular macro
+          is not defined in the newly loaded file.</para>
         </listitem>
 
         <listitem>
           <para>Macros are looked up with a case sensitive search—the name
           must match exactly for the macro to be expanded.</para>
+        </listitem>
+
+        <listitem>
+          <para>In any query, inline expansion of macros occurs before the
+          query is evaluated by the SciDB query parser. This means that a
+          macro whose name matches the name of some other entity will
+          effectively hide the other entity, preventing the query processor
+          from ever invoking it. For example, you should not create a macro
+          called <code>filter</code> because such a macro would prevent you
+          from ever invoking the native operator called <code>filter</code>.
+          Any macro name should not match the name of any of the
+          following:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para>Native operators</para>
+            </listitem>
+
+            <listitem>
+              <para>User-defined operators</para>
+            </listitem>
+
+            <listitem>
+              <para>Native functions</para>
+            </listitem>
+
+            <listitem>
+              <para>User-defined functions</para>
+            </listitem>
+
+            <listitem>
+              <para>Native aggregates</para>
+            </listitem>
+
+            <listitem>
+              <para>User-defined aggregates</para>
+            </listitem>
+
+            <listitem>
+              <para>Native datatypes</para>
+            </listitem>
+
+            <listitem>
+              <para>System macros</para>
+            </listitem>
+
+            <listitem>
+              <para>Other user-defined macros</para>
+            </listitem>
+          </itemizedlist>
         </listitem>
       </itemizedlist></para>
 
@@ -126,10 +190,131 @@
           has parameters.</para>
         </listitem>
       </itemizedlist></para>
+
+    <para>You can list the currently available macros with the following AFL
+    syntax:</para>
+
+    <programlisting>list('macros');</programlisting>
+
+    <para>For more information, see <xref linkend="listOperator"/>.</para>
+  </section>
+
+  <section id="systemMacros">
+    <title>System Macros</title>
+
+    <para>SciDB includes some system-defined macros -- macros that are
+    automatically loaded whenever the SciDB cluster starts. They include
+    macros for operators and functions. The system-defined macros for
+    operators are:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><emphasis role="bold">op_count(</emphasis><emphasis> array
+        </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns the number of non-empty cells in
+        <emphasis>array</emphasis>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">op_sum(</emphasis><emphasis> array,
+        attribute </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns the sum of values of <emphasis>attribute</emphasis>
+        within <emphasis>array</emphasis>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">op_avg(</emphasis><emphasis> array,
+        attribute </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns the arithmetic mean of values of
+        <emphasis>attribute</emphasis> within
+        <emphasis>array</emphasis>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">op_stdev(</emphasis><emphasis> array,
+        attribute </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns the standard deviation of values of
+        <emphasis>attribute</emphasis> within
+        <emphasis>array</emphasis>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">op_min(</emphasis><emphasis> array,
+        attribute </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns the minimum value of <emphasis>attribute</emphasis>
+        within <emphasis>array</emphasis>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">op_max(</emphasis><emphasis> array,
+        attribute </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns the maximum value of <emphasis>attribute</emphasis>
+        within <emphasis>array</emphasis>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">op_range(</emphasis><emphasis> array,
+        attribute </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns the smallest value, the largest value, and their
+        difference (maximum - minimum) of <emphasis>attribute</emphasis>
+        within <emphasis>array</emphasis>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">op_distinct_count (</emphasis><emphasis>
+        array, attribute </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns the exact count of distinct values of
+        <emphasis>attribute</emphasis> within
+        <emphasis>array</emphasis>.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">op_now(</emphasis><emphasis>
+        </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns a one-dimensional, one-cell array with the current local
+        data-and-time, with timezone offset.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The system macros for functions are:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><emphasis role="bold">func_max(</emphasis><emphasis> first,
+        second </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns <emphasis>first</emphasis> or
+        <emphasis>second</emphasis>, whichever is larger.</para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis role="bold">func_min(</emphasis><emphasis> first,
+        second </emphasis><emphasis role="bold">)</emphasis></para>
+
+        <para>Returns <emphasis>first</emphasis> or
+        <emphasis>second</emphasis>, whichever is smaller.</para>
+      </listitem>
+    </itemizedlist>
+
+    <note>
+      <para>The current version of SciDB includes some other system macros,
+      which you can detect with the list('macros') AFL operation. These other
+      system macros -- those that do not appear in the preceding list -- are
+      intentionally undocumented and should not be used.</para>
+    </note>
   </section>
 
   <section>
-    <title>Examples</title>
+    <title>Macro Examples</title>
 
     <para>The following example provides a macro that computes the Euclidean
     distance between the points &lt;x1,y1&gt; and

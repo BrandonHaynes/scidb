@@ -35,9 +35,6 @@
 
 namespace scidb {
 
-using namespace boost;
-using namespace std;
-
 class JoinEmptyableArray;
 class JoinEmptyableArrayIterator;
 

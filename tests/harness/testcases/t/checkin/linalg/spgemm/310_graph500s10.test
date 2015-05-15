@@ -19,6 +19,7 @@ create array mat_scale10 <v:double>[i=0:1023,1024,0, j=0:1023,1024,0]
 # a general file (vs one given to the load command)
 #--shell --command "csv2scidb -i data/graph500scale10.csv -o /tmp/graph500scale10.scidb"
 #  then: load(pairs_scale10, '/tmp/graph500scale10.scidb')
+# Note: load() supports direct loading of CSV in 14.12 and later.
 #
 
 # load the list of v0,v1 edges (vertex pairs) (checked into the test/data directory)
@@ -31,7 +32,8 @@ store(redimension(apply(pairs_scale10, v, 1.0), mat_scale10),mat_scale10)
 --test
 
 # calculate spgemm 
-store(spgemm(mat_scale10, mat_scale10), product_scale10)
+store(spgemm(mat_scale10, mat_scale10, 'rightReplicate=true'), product_scale10true)
+store(spgemm(mat_scale10, mat_scale10, 'rightReplicate=false'), product_scale10false)
 
 # calculate it again with the dense operator gemm
 # (only because its so small can we do this)
@@ -39,33 +41,46 @@ store(gemm(mat_scale10, mat_scale10, build(mat_scale10,0)), check_scale10)
 #remove(mat_scale10)
 
 # join, take difference, and count the non-identical elements
-store(join(product_scale10,check_scale10), joined_scale10)
-#remove(product_scale10)
+store(join(product_scale10true,check_scale10), joined_scale10true)
+store(join(product_scale10false,check_scale10), joined_scale10false)
+#remove(product_scale10true)
+#remove(product_scale10false)
 #remove(check_scale10)
 
-store(project(apply(joined_scale10,diff,multiply-gemm),diff), diffs_scale10)
-#remove(joined_scale10)
+store(project(apply(joined_scale10true,diff,multiply-gemm),diff), diffs_scale10true)
+store(project(apply(joined_scale10false,diff,multiply-gemm),diff), diffs_scale10false)
+#remove(joined_scale10true)
+#remove(joined_scale10false)
 
 # the output of this is the test result ... it should be 0
 --stop-igdata
-aggregate(filter(diffs_scale10,diff !=0),count(*))
+aggregate(filter(diffs_scale10true,diff !=0),count(*))
+aggregate(filter(diffs_scale10false,diff !=0),count(*))
 --start-igdata
 
 # count the number of multiplies required for the spgemm above:
-store(spgemm(mat_scale10, mat_scale10, 'count-mults'), num_mult_scale10)
+store(spgemm(mat_scale10, mat_scale10, 'count-mults', 'rightReplicate=true'), num_mult_scale10true)
+store(spgemm(mat_scale10, mat_scale10, 'count-mults', 'rightReplicate=true'), num_mult_scale10false)
 
 # the output of these two are the test result (since the above is too large to print out)
-aggregate(num_mult_scale10,count(*))
-aggregate(num_mult_scale10,sum(multiply))
+aggregate(num_mult_scale10true,count(*))
+aggregate(num_mult_scale10false,count(*))
+
+aggregate(num_mult_scale10true,sum(multiply))
+aggregate(num_mult_scale10false,sum(multiply))
 
 
 --cleanup
 remove(pairs_scale10)
 remove(mat_scale10)
-remove(product_scale10)
+remove(product_scale10true)
+remove(product_scale10false)
 remove(check_scale10)
-remove(joined_scale10)
-remove(diffs_scale10)
-remove(num_mult_scale10)
+remove(joined_scale10true)
+remove(joined_scale10false)
+remove(diffs_scale10true)
+remove(diffs_scale10false)
+remove(num_mult_scale10true)
+remove(num_mult_scale10false)
 
 --stop-query-logging

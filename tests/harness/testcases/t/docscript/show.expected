@@ -40,7 +40,7 @@ SCIDB QUERY : <create array event_index<event:string>[event_id=0:*,5,0]>
 SCIDB QUERY : <store(uniq(sort(project(winnersFlat,event)),'chunk_size=5'),event_index)>
 [Query was executed successfully, ignoring data output by this query.]
 
-SCIDB QUERY : <create_array(champions,<person:string,country:string,time:double> [year=1996:2008,13,0,event_id=0:3,3,0])>
+SCIDB QUERY : <create_array(champions,<person:string,country:string,time:double> [year=1996:2008,13,0,event_id=0:3,3,0],false)>
 [Query was executed successfully, ignoring data output by this query.]
 
 SCIDB QUERY : <store(redimension (project(index_lookup(winnersFlat,event_index, winnersFlat.event, event_id),person,year,country,time,event_id) ,champions),champions)>

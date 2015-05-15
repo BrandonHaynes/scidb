@@ -53,7 +53,7 @@ op_sum ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, sum( _ATTR_ ));
 /**
  * Return the arithmetic mean of values in the _ATTR_ attribute of the
  * _ARRAY_ array. A simple alias for the deprecated avg() aggregate.
- * 
+ *
  *   eg. op_avg ( list('instances'), instance_id );
  */
 op_avg ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, avg( _ATTR_ ));
@@ -61,7 +61,7 @@ op_avg ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, avg( _ATTR_ ));
 /**
  * Return the stdev of values in the _ATTR_ attribute of the
  * _ARRAY_ array. A simple alias for the deprecated stdev() aggregate.
- * 
+ *
  *   eg. op_stdev ( list('instances'), instance_id );
  */
 op_stdev ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, stdev( _ATTR_ ));
@@ -69,7 +69,7 @@ op_stdev ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, stdev( _ATTR_ ));
 /**
  * Return the smallest value in the _ATTR_ attribute of the _ARRAY_ array. A
  * simple alias for the now deprecated min() aggregate.
- * 
+ *
  *   eg. op_min ( list('instances'), name );
  */
 op_min ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, min( _ATTR_ ));
@@ -77,7 +77,7 @@ op_min ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, min( _ATTR_ ));
 /**
  * Return the greatest value in the _ATTR_ attribute of the _ARRAY_ array. A
  * simple alias for the now deprecated max() aggregate.
- * 
+ *
  *   eg. op_max ( list('instances'), name );
  */
 op_max ( _ARRAY_, _ATTR_ ) = aggregate ( _ARRAY_, max( _ATTR_ ));
@@ -109,7 +109,7 @@ op_distinct_count ( _ARRAY_, _ATTR_ ) = op_count (
 
 /**
  *  Returns a 1D array with 1 cell and a single datetime attribute containing
- *  the current, local date time and timezone offset. This macro is 
+ *  the current, local date time and timezone offset. This macro is
  *  useful for timing queries using an interactive tool like iquery.
  *
  *   eg.  op_now();
@@ -118,7 +118,7 @@ op_distinct_count ( _ARRAY_, _ATTR_ ) = op_count (
 op_now() = build(<when : datetimetz>[R=0:0,1,0], tznow());
 
 /**
- *  Macro functions that return the larger, or the smaller, of their two 
+ *  Macro functions that return the larger, or the smaller, of their two
  *  inputs.
  *
  *   eg. project(apply(list('instances'),MX,func_max(port,instance_id)),MX);
@@ -127,10 +127,10 @@ func_max ( _FIRST_, _SECOND_ ) = iif ( _FIRST_ > _SECOND_, _FIRST_, _SECOND_ );
 func_min ( _FIRST_, _SECOND_ ) = iif ( _FIRST_ < _SECOND_, _FIRST_, _SECOND_ );
 
 /**
- *  Macros to set the values of a particular attribute in a named array at 
- *  the specified array coordinates. 
+ *  Macros to set the values of a particular attribute in a named array at
+ *  the specified array coordinates.
  *
- *  NOTE: Undocmented. Included here as an example of what's possible. 
+ *  NOTE: Undocumented. Included here as an example of what's possible.
  */
 op_set_cell_attr_1D( _ARRAY_, _DIM_NAME_, _DIM_COORD_VALUE_, _ATTR_NAME_, _ATTR_VALUE_ ) = insert(
   redimension(
@@ -155,5 +155,92 @@ op_set_cell_attr_2D( _ARRAY_, _DIM_NAME_1_, _DIM_COORD_VALUE_1_, _DIM_NAME_2_, _
   _ARRAY_
 );
 
+/****************************************************************************/
+
+/**
+ *  The following macros are undocumented, and are strictly for use within the
+ *  engine: certain translations emitted by the compiler rely upon them.
+ */
+
+/**
+ *  @see [wiki:Development/components/Client_Tools/ChunkLengthCalculator_NewPythonVersion]
+ */
+sys_create_array_aux(_A_,_E_,_C_) =
+  join(
+    aggregate(
+      apply(_A_,_t_,_E_),
+      approxdc(_t_)),
+    build(<values_per_chunk:uint64>[i=0:0,1,0],_C_));
+
+/**
+ *  Computes summary statistics for a proposed  dimension '_D_' of a new array
+ *  that is to be populated with values taken from a similarly named attribute
+ *  of an existing 'load' array '_L_'.
+ *
+ *  Dimension details specified in the  target schema are flagged in the build
+ *  string '_S_' as being either meaningful (true), or to be inferred (false),  
+ *  where '_S' has the form:
+ *
+ *      [(loBound,hiBound,chunkInterval,chunkOverlap)]
+ *
+ *  and each component is a boolean literal.
+ *
+ *  @see [wiki:Development/components/Client_Tools/ChunkLengthCalculator_NewPythonVersion]
+ */
+sys_create_array_att(_L_,_S_,_D_) =
+  join(
+    build(
+      <lo:int64,
+       hi:int64,
+       ci:int64,
+       co:int64>
+       [No=0:0,1,0],_S_,true),
+    cast(
+      aggregate(
+        _L_,
+        min(_D_),
+        max(_D_),
+        approxdc(_D_)),
+      <min  :int64 null,
+       max  :int64 null,
+       count:int64 null> 
+      [No=0:0,1,0]));
+
+ /**
+ *  Computes summary statistics for a proposed  dimension '_D_' of a new array
+ *  that is to be populated with values taken from a similarly named dimension
+ *  of an existing 'load' array '_L_'.
+ *
+ *  Dimension details specified in the  target schema are flagged in the build
+ *  string '_S_' as being either meaningful (true), or to be inferred (false),  
+ *  where '_S' has the form:
+ *
+ *      [(loBound,hiBound,chunkInterval,chunkOverlap)]
+ *
+ *  and each component is a boolean literal.
+ *
+ *  @see [wiki:Development/components/Client_Tools/ChunkLengthCalculator_NewPythonVersion]
+ */
+sys_create_array_dim(_L_,_S_,_D_) =
+  join(
+    build(
+      <lo:int64,
+       hi:int64,
+       ci:int64,
+       co:int64>
+       [No=0:0,1,0],_S_,true),
+    cast(
+      aggregate(
+        apply(
+          aggregate(_L_,count(*),_D_),
+          _t_,
+          _D_),
+        min(_t_),
+        max(_t_),
+        count(*)),
+      <min  :int64 null,
+       max  :int64 null,
+       count:int64 null> 
+      [No=0:0,1,0]));
 
 /****************************************************************************/

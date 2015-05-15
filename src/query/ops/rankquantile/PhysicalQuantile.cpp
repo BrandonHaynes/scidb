@@ -26,126 +26,25 @@
  *      Author: poliocough@gmail.com
  */
 
-#include <query/Operator.h>
-#include <query/Network.h>
-#include <array/Metadata.h>
+#include <cmath>
 #include <boost/foreach.hpp>
+
+#include <query/Operator.h>
+#include <util/Network.h>
+#include <array/Metadata.h>
 #include <log4cxx/logger.h>
 #include <array/MemArray.h>
-#include "RankCommon.h"
-#include <cmath>
 #include <array/Compressor.h>
 #include <util/RegionCoordinatesIterator.h>
 #include <util/Timing.h>
+
+#include "RankCommon.h"
 
 using namespace std;
 using namespace boost;
 
 namespace scidb
 {
-
-//This is an algorithm to scan an array attribute, sort it, and collect a sorted vector of the entire attribute on every instance.
-//Warning: uses a lot of memory for large arrays.
-//Currently not used.
-boost::shared_ptr<std::vector<Value> > collectSortedMultiVector(shared_ptr<Array> srcArray, AttributeID attrID, boost::shared_ptr<Query> query)
-{
-    ArrayDesc const& srcDesc = srcArray->getArrayDesc();
-    AttributeDesc sourceAttribute = srcDesc.getAttributes()[attrID];
-
-    AttributeMultiSet attrSet(sourceAttribute.getType());
-    {
-        shared_ptr<ConstArrayIterator> arrayIterator = srcArray->getConstIterator(attrID);
-        while (!arrayIterator->end())
-        {
-            {
-                shared_ptr<ConstChunkIterator> chunkIterator = arrayIterator->getChunk().getConstIterator();
-                while (!chunkIterator->end())
-                {
-                    attrSet.add(chunkIterator->getItem());
-                    ++(*chunkIterator);
-                }
-            }
-            ++(*arrayIterator);
-        }
-    }
-
-    shared_ptr<SharedBuffer> buf;
-    const size_t nInstances = query->getInstancesCount();
-    const size_t myInstanceId = query->getInstanceID();
-
-    if (myInstanceId != 0)
-    {
-        BufSend(0, attrSet.sort(true), query);
-        return boost::shared_ptr<std::vector<Value> >();
-    }
-    else
-    {
-        for (size_t instance = 1; instance < nInstances; instance++)
-        {
-            attrSet.add(BufReceive(instance, query));
-        }
-        buf = attrSet.sort(false);
-    }
-
-    void const* data = buf->getData();
-    size_t *nCoordsPtr = (size_t*) ((char*) buf->getData() + buf->getSize() - sizeof(size_t));
-    size_t numValues = *nCoordsPtr;
-    size_t bufSize = buf->getSize() - sizeof(size_t);
-    Type type = TypeLibrary::getType(attrSet.getType());
-
-    boost::shared_ptr<std::vector<Value> > result(new std::vector<Value>(numValues));
-    size_t index = 0;
-    Value value;
-    if (type.typeId() == TID_DOUBLE)
-    {
-        double* src = (double*) data;
-        double* end = src + bufSize / sizeof(double);
-        while (src < end)
-        {
-            double dval = *src++;
-            value.setDouble(dval);
-            (*result)[index] = value;
-            index++;
-        }
-    }
-    else
-    {
-        uint8_t* src = (uint8_t*) data;
-        uint8_t* end = src + bufSize;
-        size_t attrSize = type.byteSize();
-        if (attrSize == 0)
-        {
-            int* offsPtr = (int*) src;
-            uint8_t* base = src + numValues * sizeof(int);
-            for (size_t i = 0; i < numValues; i++)
-            {
-                src = base + offsPtr[i];
-                if (*src == 0)
-                {
-                    attrSize = (src[1] << 24) | (src[2] << 16) | (src[3] << 8) | src[4];
-                    src += 5;
-                }
-                else
-                {
-                    attrSize = *src++;
-                }
-                value.setData(src, attrSize);
-                (*result)[i] = value;
-            }
-        }
-        else
-        {
-            while (src < end)
-            {
-                value.setData(src, attrSize);
-                (*result)[index] = value;
-                index++;
-                src += attrSize;
-            }
-        }
-    }
-    return result;
-}
 
 double getPercentage(Coordinate quantileIndex, DimensionDesc const& quantileDimension)
 {
@@ -414,13 +313,13 @@ public:
         size_t chunkNo = 0;
         for (size_t i = 0, n = _currPos.size(); i < n; i++)
         {
-            if (pos[i] < dims[i].getStart() || pos[i] > dims[i].getEndMax())
+            if (pos[i] < dims[i].getStartMin() || pos[i] > dims[i].getEndMax())
             {
                 return _hasCurrent = false;
             }
 
             chunkNo *= (dims[i].getLength() + dims[i].getChunkInterval() - 1) / dims[i].getChunkInterval();
-            chunkNo += (pos[i] - dims[i].getStart()) / dims[i].getChunkInterval();
+            chunkNo += (pos[i] - dims[i].getStartMin()) / dims[i].getChunkInterval();
         }
         if (_liveChunks->count(chunkNo))
         {
@@ -470,7 +369,7 @@ private:
         {
             size_t chunkInterval = dims[i].getChunkInterval();
             size_t nChunks = (dims[i].getLength() + chunkInterval - 1) / chunkInterval;
-            _currPos[i] = dims[i].getStart() + (chunkNo % nChunks)*chunkInterval;
+            _currPos[i] = dims[i].getStartMin() + (chunkNo % nChunks)*chunkInterval;
             chunkNo /= nChunks;
         }
         _hasCurrent = true;
@@ -525,10 +424,18 @@ class GroupbyQuantileChunk;
  *   attrID = 1: quantile value.
  *
  * @example
- *   When chunk->numQuantiles() == 5,
+ *   When chunk->numQuantilesPlusOne() == 5,
  *   each group has 5 pairs of values:
  *   (0, v1), (0.25, v2), (0.5, v3), (0.75, v4), (1, v5)
  *
+ * @note
+ *   This class uses a RegionCoordinatesIterator to iterate over the cellPos in the logical chunk space.
+ *   Per THE REQUEST TO JUSTIFY LOGICAL-SPACE ITERATION (see RegionCoordinatesIterator.h),
+ *   here is why it is (or was) ok.
+ *   The quantile() operator, in the SciDB 14.12 release and earlier, returned a not-emptyable array.
+ *   So there was no holes in the logical space.
+ *   However, now that not-emptyable arrays were removed from the system, in the future we should change quantile()
+ *   to generate emptyable arrays. At that time, it will NOT be appropriate to use a RegionCoordinatesIterator.
  */
 class GroupbyQuantileChunkIterator : public ConstChunkIterator
 {
@@ -542,7 +449,7 @@ private:
   // A null value.
   Value _nullValue;
 
-  // The iterator that iterates through the groups.
+  // The iterator that iterates over the groups in the chunk.
   RegionCoordinatesIterator _groupIterator;
 
   // The index of the value to output, in the current group.
@@ -555,15 +462,15 @@ private:
   // _tmpPos is a concatenation of _currentGroup and _indexInCurrentGroup.
   Coordinates _tmpPos;
 
-  // numQuantiles
-  size_t _numQuantiles;
+  // numQuantilesPlusOne
+  size_t _numQuantilesPlusOne;
 
 public:
     GroupbyQuantileChunkIterator(
                           GroupbyQuantileChunk const* chunk,
                           AttributeID attr,
                           int mode,
-                          size_t numQuantiles);
+                          size_t numQuantilesPlusOne);
 
     virtual int getMode()
     {
@@ -581,11 +488,11 @@ public:
             throw USER_EXCEPTION(SCIDB_SE_UDO, SCIDB_LE_NO_CURRENT_ELEMENT);
         }
 
-        assert(_indexInCurrentGroup < _numQuantiles);
-        assert(_numQuantiles>1);
+        assert(_indexInCurrentGroup < _numQuantilesPlusOne);
+        assert(_numQuantilesPlusOne>1);
 
         if (_attrID == 0) {  // percent
-            double pctValue = static_cast<double>(_indexInCurrentGroup) / (_numQuantiles-1);
+            double pctValue = static_cast<double>(_indexInCurrentGroup) / (_numQuantilesPlusOne-1);
             _value.setDouble(pctValue);
             return _value;
         } else if (_quantilesInCurrentGroup){ // quantiles exist
@@ -620,9 +527,9 @@ public:
 };
 
 /**
- * GroupQuantileChunk.
  * @note
- *   setPosition() will open the rows of pRowCollectionGroup and get their quantile values.
+ *   GroupbyQuantileChunk::setPosition(), which is called by GroupbyQuantileArrayIterator::getChunk(),
+ *   will open the rows of pRowCollectionGroup and compute their quantile values.
  */
 class GroupbyQuantileChunk : public ConstChunk
 {
@@ -645,13 +552,19 @@ private:
     MapGroupToQuantile _mapGroupToQuantile;
 
     // How many reported quantile values?
-    size_t _numQuantiles;
+    size_t _numQuantilesPlusOne;
 
     // Pointer to RowCollectionGroup. Only valid for the quantile chunks.
     shared_ptr<RowCollectionGroup> _pRowCollectionGroup;
 
 public:
-    GroupbyQuantileChunk(Array const& array, AttributeID attrID, size_t numQuantiles,
+    /**
+     * @param array               a GroupbyQuantileArray object.
+     * @param attrID              which attribute from the source array to compute quantile on.
+     * @param numQuantilesPlusOne the user-provided numQuantiles plus one (this is the number of quantile values to output).
+     * @param pRowCollectionGroup a shared_ptr to a RowCollection object holding records from the input array.
+     */
+    GroupbyQuantileChunk(Array const& array, AttributeID attrID, size_t numQuantilesPlusOne,
             shared_ptr<RowCollectionGroup> pRowCollectionGroup) :
     _array(array),
     _firstPos(array.getArrayDesc().getDimensions().size()),
@@ -659,7 +572,7 @@ public:
     _attrID(attrID),
     _firstGroup(array.getArrayDesc().getDimensions().size()-1),
     _lastGroup(array.getArrayDesc().getDimensions().size()-1),
-    _numQuantiles(numQuantiles),
+    _numQuantilesPlusOne(numQuantilesPlusOne),
     _pRowCollectionGroup(pRowCollectionGroup)
     {
     }
@@ -701,7 +614,7 @@ public:
 
     virtual boost::shared_ptr<ConstChunkIterator> getConstIterator(int iterationMode) const
     {
-        return boost::shared_ptr<ConstChunkIterator>(new GroupbyQuantileChunkIterator(this, _attrID, iterationMode, _numQuantiles));
+        return boost::shared_ptr<ConstChunkIterator>(new GroupbyQuantileChunkIterator(this, _attrID, iterationMode, _numQuantilesPlusOne));
     }
 
     virtual int getCompressionMethod() const
@@ -716,7 +629,7 @@ GroupbyQuantileChunkIterator::GroupbyQuantileChunkIterator(
                       GroupbyQuantileChunk const* chunk,
                       AttributeID attr,
                       int mode,
-                      size_t numQuantiles):
+                      size_t numQuantilesPlusOne):
     _iterationMode(mode),
     _hasCurrent(false),
     _attrID(attr),
@@ -727,9 +640,9 @@ GroupbyQuantileChunkIterator::GroupbyQuantileChunkIterator(
     _indexInCurrentGroup(0),
     _quantilesInCurrentGroup(NULL),
     _tmpPos(chunk->getArrayDesc().getDimensions().size()),
-    _numQuantiles(numQuantiles)
+    _numQuantilesPlusOne(numQuantilesPlusOne)
 {
-    assert(numQuantiles>1);
+    assert(numQuantilesPlusOne>1);
     _nullValue.setNull();
     reset();
 }
@@ -739,7 +652,7 @@ void GroupbyQuantileChunkIterator::operator ++()
     if (!_hasCurrent) {
         throw USER_EXCEPTION(SCIDB_SE_UDO, SCIDB_LE_NO_CURRENT_ELEMENT);
     }
-    if (_indexInCurrentGroup < _numQuantiles-1) {
+    if (_indexInCurrentGroup < _numQuantilesPlusOne-1) {
         ++ _indexInCurrentGroup;
         return;
     }
@@ -815,8 +728,14 @@ ConstChunk const& GroupbyQuantileChunkIterator::getChunk()
 /**
  * GroupbyQuantileArrayIterator.
  * @note
- *   To iterate through the chunks in the local instance, the class uses RegionCoordinatesIterator to iterate through all the
- *   groups in space, and uses
+ *   To iterate over the chunks in the local instance, the class uses RegionCoordinatesIterator to iterate over all the
+ *   chunkPos in space.
+ *
+ * @note
+ *   This class uses a RegionCoordinatesIterator to iterate over the chunkPos in the logical space.
+ *   Per THE REQUEST TO JUSTIFY LOGICAL-SPACE ITERATION (see RegionCoordinatesIterator.h),
+ *   we should tell why it is ok.
+ *   The reason is the same as given in GroupbyQuantileChunkIterator.
  */
 class GroupbyQuantileArrayIterator : public ConstArrayIterator
 {
@@ -829,8 +748,8 @@ private:
     // A temporary position, to be returned in getPosition().
     Coordinates _tmpPos;
 
-    // An iterator that iterates through all the groups, regardless to what instance the group should belong to.
-    RegionCoordinatesIterator _regionCoordinatesIterator;
+    // An iterator that iterates over all the groups, regardless to what instance the group should belong to.
+    scoped_ptr<RegionCoordinatesIterator> _regionCoordinatesIterator;
 
 private:
     // Get the instanceID for a chunk.
@@ -848,51 +767,57 @@ private:
     // @note    increment at least once.
     // @return  whether a new local group is reached.
     bool jumpToNextLocalGroup() {
-        assert(! _regionCoordinatesIterator.end());
+        assert(_regionCoordinatesIterator);
+        assert(! _regionCoordinatesIterator->end());
+
         while (true) {
-            ++ _regionCoordinatesIterator;
-            if (_regionCoordinatesIterator.end()) {
+            ++ (*_regionCoordinatesIterator);
+            if (_regionCoordinatesIterator->end()) {
                 return false;
             }
-            if (isLocal(_regionCoordinatesIterator.getPosition())) {
+            if (isLocal(_regionCoordinatesIterator->getPosition())) {
                 return true;
             }
         }
         return false;   // dummy code to avoid compile warning.
     }
 
-    // Computes parameter for RegionCoordinatesIterator.
-    // The last dimension, i.e. the quantile dimesion, is not used.
-    RegionCoordinatesIteratorParam computeRegionCoordiatesIteratorParam(const Dimensions& dims) {
-        assert(dims.size()>1);
-        size_t nGroupDims = dims.size()-1;
-        RegionCoordinatesIteratorParam param(nGroupDims);
-        for (size_t i=0; i<nGroupDims; ++i) {
-            param._low[i] = dims[i].getStart();
-            param._high[i] = dims[i].getEndMax();
-            assert(param._low[i]<=param._high[i]);
-            param._intervals[i] = dims[i].getChunkInterval();
-        }
-        return param;
-    }
 public:
-    /**
-     * Constructor.
-     */
     GroupbyQuantileArrayIterator(Array const& array,
                           AttributeID attrID,
-                          size_t numQuantiles,
+                          size_t numQuantilesPlusOne,
                           const shared_ptr<RowCollectionGroup>& pRowCollectionGroup,
                           size_t instanceID,
                           size_t numInstances
                           )
-        : _chunk(array, attrID, numQuantiles, pRowCollectionGroup),
+        : _chunk(array, attrID, numQuantilesPlusOne, pRowCollectionGroup),
           _instanceID(instanceID),
           _numInstances(numInstances),
-          _tmpPos(array.getArrayDesc().getDimensions().size()),
-          _regionCoordinatesIterator(computeRegionCoordiatesIteratorParam(array.getArrayDesc().getDimensions()))
+          _tmpPos(array.getArrayDesc().getDimensions().size())
     {
-        assert(numQuantiles>1);
+        assert(numQuantilesPlusOne>1);
+
+        // Computes parameter for RegionCoordinatesIterator.
+        // The last dimension, i.e. the quantile dimesion, is not used.
+        const Dimensions& dims = array.getArrayDesc().getDimensions();
+        bool valid = true;
+        assert(dims.size()>1);
+        size_t nGroupDims = dims.size()-1;
+        RegionCoordinatesIteratorParam param(nGroupDims);
+        for (size_t i=0; i<nGroupDims; ++i) {
+            param._low[i] = dims[i].getStartMin();
+            param._high[i] = dims[i].getEndMax();
+            if (param._low[i] > param._high[i]) {
+                valid = false;
+                break;
+            }
+            param._intervals[i] = dims[i].getChunkInterval();
+        }
+
+        if (valid) {
+            _regionCoordinatesIterator.reset(new RegionCoordinatesIterator(param));
+        }
+
         reset();
     }
 
@@ -907,9 +832,14 @@ public:
 
     virtual void reset()
     {
-        _regionCoordinatesIterator.reset();
-        assert(! _regionCoordinatesIterator.end());
-        if (isLocal(_regionCoordinatesIterator.getPosition())) {
+        if (!_regionCoordinatesIterator) {
+            _hasCurrent = false;
+            return;
+        }
+
+        _regionCoordinatesIterator->reset();
+        assert(! _regionCoordinatesIterator->end());
+        if (isLocal(_regionCoordinatesIterator->getPosition())) {
             _hasCurrent = true;
             return;
         }
@@ -922,6 +852,10 @@ public:
      */
     virtual bool setPosition(Coordinates const& pos)
     {
+        if (!_regionCoordinatesIterator) {
+            return false;
+        }
+
         // Get the chunk position.
         Coordinates chunkPos = pos;
         _chunk._array.getArrayDesc().getChunkPositionFor(chunkPos);
@@ -936,7 +870,7 @@ public:
         if (! isLocal(group)) {
             return false;
         }
-        if (! _regionCoordinatesIterator.setPosition(group)) {
+        if (! _regionCoordinatesIterator->setPosition(group)) {
             return false;
         }
 
@@ -945,9 +879,10 @@ public:
 
     virtual Coordinates const& getPosition()
     {
-        assert(! _regionCoordinatesIterator.end());
+        assert(_regionCoordinatesIterator);
+        assert(! _regionCoordinatesIterator->end());
         assert(_hasCurrent);
-        Coordinates group = _regionCoordinatesIterator.getPosition();
+        Coordinates group = _regionCoordinatesIterator->getPosition();
         std::copy(group.begin(), group.end(), _tmpPos.begin());
         return _tmpPos;
     }
@@ -973,7 +908,7 @@ class GroupbyQuantileArray : public Array
 {
 private:
     ArrayDesc _desc;
-    size_t _numQuantiles;
+    size_t _numQuantilesPlusOne;
     shared_ptr<RowCollectionGroup> _pRowCollectionGroup;
     QueryID _queryID;
 
@@ -982,10 +917,10 @@ public:
     scidb::Mutex _mutexChunkSetPosition;
 
 public:
-    GroupbyQuantileArray(ArrayDesc const& desc, shared_ptr<Query>& query, size_t numQuantiles, shared_ptr<RowCollectionGroup>& pRowCollectionGroup):
-          _desc(desc), _numQuantiles(numQuantiles), _pRowCollectionGroup(pRowCollectionGroup), _queryID(query->getQueryID())
+    GroupbyQuantileArray(ArrayDesc const& desc, shared_ptr<Query>& query, size_t numQuantilesPlusOne, shared_ptr<RowCollectionGroup>& pRowCollectionGroup):
+          _desc(desc), _numQuantilesPlusOne(numQuantilesPlusOne), _pRowCollectionGroup(pRowCollectionGroup), _queryID(query->getQueryID())
     {
-        assert(numQuantiles>1);
+        assert(numQuantilesPlusOne>1);
         _query=query;
     }
 
@@ -994,7 +929,7 @@ public:
         shared_ptr<Query> query(Query::getValidQueryPtr(_query));
 
         return boost::shared_ptr<ConstArrayIterator>(
-                new GroupbyQuantileArrayIterator(*this, attr, _numQuantiles, _pRowCollectionGroup,
+                new GroupbyQuantileArrayIterator(*this, attr, _numQuantilesPlusOne, _pRowCollectionGroup,
                         query->getInstanceID(), query->getInstancesCount()));
     }
 
@@ -1019,6 +954,10 @@ void GroupbyQuantileChunk::setPosition(Coordinates const& pos)
     for (size_t i = 0, n = dims.size(); i < n; i++)
     {
         _lastPos[i] = _firstPos[i] + dims[i].getChunkInterval() - 1;
+
+        // Make sure lastPos does not exceed endMax.
+        // Note that using currEnd here would be a mistake before we make quantile generate an emptyable array.
+        // The reason is that, if we reduce lastPos, quantile() will generate results for the end-of-chunk rows wrong.
         if (_lastPos[i] > dims[i].getEndMax())
         {
             _lastPos[i] = dims[i].getEndMax();
@@ -1042,7 +981,7 @@ void GroupbyQuantileChunk::setPosition(Coordinates const& pos)
     TypeId typeID = _array.getArrayDesc().getAttributes()[_attrID].getType();
     CompareValueVectorsByOneValue compareValueVectors(0, typeID); // In items, 0 is the attribute ID for values.
 
-    vector<Value> quantileOneGroup(_numQuantiles);
+    vector<Value> quantileOneGroup(_numQuantilesPlusOne);
     RegionCoordinatesIterator it(_firstGroup, _lastGroup);
     while (!it.end()) {
         Coordinates group = it.getPosition();
@@ -1050,7 +989,7 @@ void GroupbyQuantileChunk::setPosition(Coordinates const& pos)
             // Get non-NULL items of the row.
             size_t rowID = _pRowCollectionGroup->rowIdFromExistingGroup(group);
             vector<vector<Value> > items;
-            _pRowCollectionGroup->getWholeRow(rowID, items, true, 0, NULL); // true - separate NULL cells; 0 - attribute 0; NULL - disgard the NULL items.
+            _pRowCollectionGroup->getWholeRow(rowID, items, true, 0, NULL); // true - separate NULL cells; 0 - attribute 0; NULL - discard the NULL items.
 
             // If all values are NULL, skip this group.
             if (items.size()==0) {
@@ -1062,8 +1001,8 @@ void GroupbyQuantileChunk::setPosition(Coordinates const& pos)
             iqsort(&items[0], items.size(), compareValueVectors);
 
             // Get the quantile values.
-            for (size_t i=0; i<_numQuantiles; ++i) {
-                size_t index = ceil( i * 1.0 * items.size() / (_numQuantiles - 1) );
+            for (size_t i=0; i<_numQuantilesPlusOne; ++i) {
+                size_t index = ceil( i * 1.0 * items.size() / (_numQuantilesPlusOne - 1) );
                 index = index < 1 ? 1 : index;
 
                 quantileOneGroup[i] = items[index-1][0];
@@ -1115,7 +1054,7 @@ class PhysicalQuantile: public PhysicalOperator
 
         shared_ptr<ConstArrayIterator> rankArrayIterator = rankings->getConstIterator(1);
         shared_ptr<ConstItemIterator> valueItemIterator = rankings->getItemIterator(0);
-        size_t numQuantiles = quantileDimension.getEndMax() - quantileDimension.getStartMin() + 1;
+        size_t numQuantilesPlusOne = quantileDimension.getEndMax() - quantileDimension.getStartMin() + 1;
 
         while(! rankArrayIterator->end() )
         {
@@ -1131,13 +1070,13 @@ class PhysicalQuantile: public PhysicalOperator
                     if (bucket.values.size() == 0)  // have a brand new bucket
                     {
                         size_t count = bucket.indeces[0];
-                        bucket.indeces=vector<double>(numQuantiles);
-                        bucket.maxIndeces=vector<double>(numQuantiles);
-                        bucket.values=vector<Value>(numQuantiles);
+                        bucket.indeces=vector<double>(numQuantilesPlusOne);
+                        bucket.maxIndeces=vector<double>(numQuantilesPlusOne);
+                        bucket.values=vector<Value>(numQuantilesPlusOne);
 
-                        for (size_t i =0; i<numQuantiles; i++)
+                        for (size_t i =0; i<numQuantilesPlusOne; i++)
                         {
-                            double index = ceil( i * 1.0 * count / (numQuantiles - 1) );
+                            double index = ceil( i * 1.0 * count / (numQuantilesPlusOne - 1) );
                             index = index < 1 ? 1 : index;
                             bucket.indeces[i] = index;
                             bucket.maxIndeces[i] = 0;
@@ -1185,7 +1124,7 @@ class PhysicalQuantile: public PhysicalOperator
         const Attributes& inputAttributes = inputSchema.getAttributes();
         const Dimensions& inputDims = inputSchema.getDimensions();
 
-        // _parameters[0] is numQuantiles.
+        // _parameters[0] is numQuantilesPlusOne.
         // _parameters[1], if exists, is the value to compute quantile on.
         // _parameters[2...], if exists, are the groupby dimensions
         string attName = _parameters.size() > 1 ? ((boost::shared_ptr<OperatorParamReference>&)_parameters[1])->getObjectName() :
@@ -1225,8 +1164,8 @@ class PhysicalQuantile: public PhysicalOperator
         }
 
         // For every dimension, determine whether it is a groupby dimension
-        PartitioningSchemaDataGroupby psdGroupby;
-        psdGroupby._arrIsGroupbyDim.reserve(inputDims.size());
+        shared_ptr<PartitioningSchemaDataGroupby> psdGroupby = make_shared<PartitioningSchemaDataGroupby>();
+        psdGroupby->_arrIsGroupbyDim.reserve(inputDims.size());
         for (size_t i=0; i<inputDims.size(); ++i)
         {
             bool isGroupbyDim = false;
@@ -1237,7 +1176,7 @@ class PhysicalQuantile: public PhysicalOperator
                 }
             }
 
-            psdGroupby._arrIsGroupbyDim.push_back(isGroupbyDim);
+            psdGroupby->_arrIsGroupbyDim.push_back(isGroupbyDim);
         }
 
         // If this is not a groupby quantile, use the original code.
@@ -1249,12 +1188,17 @@ class PhysicalQuantile: public PhysicalOperator
             shared_ptr<RankingStats> rStats (new RankingStats());
             shared_ptr<Array> rankArray(buildRankArray(inputArray, rankedAttributeID, groupBy, query, rStats));
 
-            size_t nInstances = query->getInstancesCount();
+            const size_t nInstances = query->getInstancesCount();
             InstanceID myInstance = query->getInstanceID();
 
             if (nInstances > 1)
             {
-                rankArray = redistribute(rankArray,query,psHashPartitioned,"", -1, boost::shared_ptr<DistributionMapper>(), 0);
+                rankArray = redistributeToRandomAccess(rankArray,query,psHashPartitioned,
+                                                       ALL_INSTANCE_MASK,
+                                                       shared_ptr<DistributionMapper>(),
+                                                       0,
+                                                       shared_ptr<PartitioningSchemaData>());
+
             }
             else
             {
@@ -1295,8 +1239,8 @@ class PhysicalQuantile: public PhysicalOperator
                 {
                     chunkCoords.push_back(0);
                 }
-
-                InstanceID instanceForChunk = getInstanceForChunk(query, chunkCoords, _schema, psHashPartitioned, shared_ptr<DistributionMapper> (), 0, 0);
+                boost::shared_ptr<DistributionMapper> distMapper;
+                InstanceID instanceForChunk = getInstanceForChunk(query, chunkCoords, _schema, psHashPartitioned, distMapper, 0, 0);
                 if(instanceForChunk == myInstance)
                 {
                     LOG4CXX_DEBUG(logger, "Initializing bucket with "<<chunkCoords.size()<<" coords; count "<<count);
@@ -1313,7 +1257,11 @@ class PhysicalQuantile: public PhysicalOperator
             fillQuantiles(rankArray, buckets, *grouping);
             for(size_t i =1 ; i < nInstances ; i++)
             {
-                rankArray = redistribute(rankArray,query,psHashPartitioned,"", -1, boost::shared_ptr<DistributionMapper>(), i);
+                rankArray = redistributeToRandomAccess(rankArray,query,psHashPartitioned,
+                                                       ALL_INSTANCE_MASK,
+                                                       shared_ptr<DistributionMapper>(),
+                                                       i,
+                                                       shared_ptr<PartitioningSchemaData>());
                 fillQuantiles(rankArray, buckets, *grouping);
             }
             rankArray.reset();
@@ -1366,8 +1314,12 @@ class PhysicalQuantile: public PhysicalOperator
         shared_ptr<Array> projected(make_shared<SimpleProjectArray>(projectSchema, inputArray, projection));
 
         // Redistribute, s.t. all records in the same group go to the same instance.
-        boost::shared_ptr<Array> redistributed = redistribute(
-                projected, query, psGroupby, "", -1, boost::shared_ptr<DistributionMapper>(), 0, &psdGroupby);
+        boost::shared_ptr<DistributionMapper> distMapper;
+        shared_ptr<Array> redistributed = redistributeToRandomAccess(projected, query, psGroupby,
+                                                                     ALL_INSTANCE_MASK,
+                                                                     distMapper,
+                                                                     0,
+                                                                     psdGroupby);
 
         // timing
         timing.logTiming(logger, "[Quantile] redistribute()");
@@ -1435,9 +1387,9 @@ class PhysicalQuantile: public PhysicalOperator
         // Build a GroupbyQuantileArray.
         size_t qDim = _schema.getDimensions().size() -1;
         DimensionDesc quantileDimension = _schema.getDimensions()[qDim];
-        size_t numQuantiles = quantileDimension.getEndMax() - quantileDimension.getStartMin() + 1;
+        size_t numQuantilesPlusOne = quantileDimension.getChunkInterval();
         shared_ptr<Array> result = shared_ptr<Array>(
-                new GroupbyQuantileArray(_schema, query, numQuantiles, rcGroup) );
+                new GroupbyQuantileArray(_schema, query, numQuantilesPlusOne, rcGroup) );
         return result;
     }
 };

@@ -15,7 +15,7 @@ SCIDB QUERY : <store(build(M8x8_default,'[[{0,0}(1),{1,1}(2),{2,2}(3),{3,3}(4),{
 {6,6} 7
 {7,7} 8
 
-SCIDB QUERY : <gesvd(M8x8_default, 'values')>
+SCIDB QUERY : <gesvd(scan(M8x8_default, true), 'values')>
 {i} sigma
 {0} 8
 {1} 7

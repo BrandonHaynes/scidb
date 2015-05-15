@@ -1,0 +1,21 @@
+--setup
+create array unbounded_empty<v:int64>[i=0:*,2,0, j=0:*,1,0]
+create array bounded_empty<v:int64>[i=0:3,2,0, j=0:0,1,0]
+
+--test
+
+# run with unbounded array
+quantile(unbounded_empty,2,v)
+--error SCIDB_SE_INFER_SCHEMA, SCIDB_LE_QUANTILE_REQUIRES_BOUNDED_ARRAY "quantile(unbounded_empty,2,v,i)"
+
+# ensure unbounded, even if the scan() operator calls trim()
+quantile(redimension(unbounded_empty,unbounded_empty),2,v)
+--error SCIDB_SE_INFER_SCHEMA, SCIDB_LE_QUANTILE_REQUIRES_BOUNDED_ARRAY "quantile(redimension(unbounded_empty,unbounded_empty),2,v,i)"
+
+# bounded empty array
+quantile(bounded_empty,2,v)
+quantile(bounded_empty,2,v,i)
+
+--cleanup
+remove(unbounded_empty)
+remove(bounded_empty)

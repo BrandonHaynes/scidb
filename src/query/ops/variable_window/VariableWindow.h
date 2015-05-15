@@ -192,21 +192,17 @@ public:
 //        iter.flush();
 //RIDICULOUS:
 //        boost::scoped_ptr<RLEPayload>payload(iter.getPayload());
-//        agg->accumulatePayload(state, payload.get());
+//        agg->accumulateIfNeeded(state, payload.get());
 //        payload.reset();
 
 
         for(size_t h =0; h<aggs.size(); h++)
         {
-            bool noNulls = aggs[h]->ignoreNulls();
             Value state(aggs[h]->getStateType());
             aggs[h]->initializeState(state);
             for (size_t i=0; i<windowSize; i++)
             {
-                if(_values[i].isNull() == false || noNulls == false )
-                {
-                    aggs[h]->accumulate(state, _values[i]);
-                }
+                aggs[h]->accumulateIfNeeded(state, _values[i]);
             }
             aggs[h]->finalResult(result->vals[h], state);
         }

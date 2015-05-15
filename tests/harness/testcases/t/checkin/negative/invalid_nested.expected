@@ -22,10 +22,6 @@ Query was executed successfully
 
 [An error expected at this place for the query "regrid(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
 
-[An error expected at this place for the query "adddim(zz.A,c)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
-
-[An error expected at this place for the query "deldim(zz.A)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
-
 [An error expected at this place for the query "xgrid(zz.A,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]
 
 [An error expected at this place for the query "slice(zz.A,x,1)". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_NESTED_ARRAYS_NOT_SUPPORTED.]

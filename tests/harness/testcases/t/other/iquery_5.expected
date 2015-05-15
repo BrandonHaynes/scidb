@@ -34,10 +34,6 @@ SCIDB QUERY : <store(redimension(A,A3),A3)>
 {'b_24',2} 'c_24',12
 {'b_25',2} 'c_25',12
 
-SCIDB QUERY : <echo ('iquery   -o lcsv+ -aq \'scan ( A )\'')>
-{i} text
-{0} 'iquery   -o lcsv+ -aq \'scan ( A )\''
-
 SCIDB QUERY : < iquery   -o lcsv+ -aq 'scan ( A )' >
 x,y,a,b,c
 0,4,10,'b_04','c_04'
@@ -47,16 +43,8 @@ x,y,a,b,c
 1,5,11,'b_15','c_15'
 2,5,12,'b_25','c_25'
 
-SCIDB QUERY : <echo ('iquery   -o lsparse -aq \'scan ( A )\'')>
-{i} text
-{0} 'iquery   -o lsparse -aq \'scan ( A )\''
-
 SCIDB QUERY : < iquery   -o lsparse -aq 'scan ( A )' >
 {0,4}[[{0,4}(10,'b_04','c_04')],[{1,4}(11,'b_14','c_14')],[{2,4}(12,'b_24','c_24')]];{0,5}[[{0,5}(10,'b_05','c_05')],[{1,5}(11,'b_15','c_15')],[{2,5}(12,'b_25','c_25')]]
-
-SCIDB QUERY : <echo ('iquery   -o lcsv+ -aq \'scan ( A2 )\'')>
-{i} text
-{0} 'iquery   -o lcsv+ -aq \'scan ( A2 )\''
 
 SCIDB QUERY : < iquery   -o lcsv+ -aq 'scan ( A2 )' >
 c,a,b
@@ -67,16 +55,8 @@ c,a,b
 'c_24',12,'b_24'
 'c_25',12,'b_25'
 
-SCIDB QUERY : <echo ('iquery   -o lsparse -aq \'scan ( A2 )\'')>
-{i} text
-{0} 'iquery   -o lsparse -aq \'scan ( A2 )\''
-
 SCIDB QUERY : < iquery   -o lsparse -aq 'scan ( A2 )' >
 {'c_04'}[{'c_04'}(10,'b_04'),{'c_05'}(10,'b_05'),{'c_14'}{'c_14'}(11,'b_14'),{'c_15'}(11,'b_15'),{'c_24'}{'c_24'}(12,'b_24'),{'c_25'}(12,'b_25')]
-
-SCIDB QUERY : <echo ('iquery   -o lcsv+ -aq \'scan ( A3 )\'')>
-{i} text
-{0} 'iquery   -o lcsv+ -aq \'scan ( A3 )\''
 
 SCIDB QUERY : < iquery   -o lcsv+ -aq 'scan ( A3 )' >
 b,x,c,a
@@ -86,10 +66,6 @@ b,x,c,a
 'b_15',1,'c_15',11
 'b_24',2,'c_24',12
 'b_25',2,'c_25',12
-
-SCIDB QUERY : <echo ('iquery   -o lsparse -aq \'scan ( A3 )\'')>
-{i} text
-{0} 'iquery   -o lsparse -aq \'scan ( A3 )\''
 
 SCIDB QUERY : < iquery   -o lsparse -aq 'scan ( A3 )' >
 {'b_04',0}[[{'b_04',0}('c_04',10)],[{'b_05',0}('c_05',10),{'b_14',1}{'b_14',1}('c_14',11)],[{'b_15',1}('c_15',11),{'b_24',2}{'b_24',2}('c_24',12)],[{'b_25',2}('c_25',12)]]

@@ -36,15 +36,12 @@ DominanceRelationship calculateDominance(Coordinates const& left, Coordinates co
     assert(left.size() == right.size() && !left.empty());
     bool isDominating = true;
     bool isDominatedBy = true;
-    bool isStrict = false;
     for (size_t i=0, n=left.size(); i<n; ++i) {
         if (left[i] > right[i]) {
             isDominatedBy = false;
-            isStrict = true;
         }
         else if (left[i] < right[i]) {
             isDominating = false;
-            isStrict = true;
         }
     }
     if (isDominating && isDominatedBy) {

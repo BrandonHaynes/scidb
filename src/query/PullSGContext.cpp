@@ -21,7 +21,7 @@
 */
 
 /**
- * @file PullSGCOntext.cpp
+ * @file PullSGContext.cpp
  *
  * @brief Implementation of the pull-based SG context
  */
@@ -52,7 +52,7 @@ PullSGContext::PullSGContext(const shared_ptr<Array>& source,
                              const size_t shift,
                              const InstanceID instanceIdMask,
                              const shared_ptr<PartitioningSchemaData>& psData,
-                             size_t cacheSize)
+                             size_t cacheSizePerAttribute)
   : _inputSGArray(source),
     _resultArray(result),
     _ps(ps),
@@ -63,9 +63,9 @@ PullSGContext::PullSGContext(const shared_ptr<Array>& source,
     _instanceStates(result->getArrayDesc().getAttributes().size(),
                     std::vector<InstanceState>(instNum)),
     _attributeIterators(result->getArrayDesc().getAttributes().size()),
-    _instanceStatesSizes(result->getArrayDesc().getAttributes().size(), 0),
-    _eofs(result->getArrayDesc().getAttributes().size(), false),
-    _instanceStatesMaxSize(64)
+    _attributeStates(result->getArrayDesc().getAttributes().size()),
+    _perAttributeMaxSize(64),
+    _hasDataIntegrityIssue(false)
 {
     assert(source);
     assert(result);
@@ -75,14 +75,14 @@ PullSGContext::PullSGContext(const shared_ptr<Array>& source,
     ASSERT_EXCEPTION((attrNum == descOut.getAttributes().size()), "PullSGContext::PullSGContext");
     _isEmptyable = (descIn.getEmptyBitmapAttribute() != NULL);
     int n = Config::getInstance()->getOption<int>(CONFIG_SG_SEND_QUEUE_SIZE);
-    if (n>0) { _instanceStatesMaxSize = n; }
-    if (cacheSize>0) { _instanceStatesMaxSize = cacheSize; }
+    if (n>0) { _perAttributeMaxSize = n; }
+    if (cacheSizePerAttribute>0) { _perAttributeMaxSize = cacheSizePerAttribute; }
 }
 
 bool
 PullSGContext::hasValues(ConstChunk const& chunk)
 {
-    bool chunkHasVals = (!chunk.isRLE()) || (!_isEmptyable) || (!chunk.isEmpty());
+    bool chunkHasVals = (!_isEmptyable) || (!chunk.isEmpty());
     return (chunkHasVals && (chunk.getSize() > 0));
 }
 
@@ -95,21 +95,9 @@ PullSGContext::getNextChunks(const shared_ptr<Query>& query,
                              const uint64_t fetchId,
                              ChunksWithDestinations& chunksToSend)
 {
-    //XXX TODO: Right now all attributes are serialized
-    // because the assumption is that SG is done one attribute at a time
-    // to maximmally utilize the prefetch chunk cache. In theory,
-    // multiple attributes can be SGed in parallel trading-off the cache size.
-
     static const char* funcName="PullSGContext::getNextChunks: ";
     ASSERT_EXCEPTION((attrId < _attributeIterators.size()), funcName);
     ASSERT_EXCEPTION((pullingInstance < query->getInstancesCount()), funcName);
-
-    // Get array iterator
-    shared_ptr<ConstArrayIterator>& inputArrIter = _attributeIterators[attrId];
-    if (!inputArrIter) {
-        inputArrIter = _inputSGArray->getConstIterator(attrId);
-    }
-    assert(_attributeIterators[attrId]);
 
     InstanceState& state = _instanceStates[attrId][pullingInstance];
 
@@ -118,10 +106,56 @@ PullSGContext::getNextChunks(const shared_ptr<Query>& query,
     state._lastFetchId = fetchId;
     state._requestedNum += prefetchSize;
 
-    if (!_eofs[attrId]) {
+    getNextChunksInternal(query,
+                          pullingInstance,
+                          attrId,
+                          positionOnlyOK,
+                          chunksToSend);
+
+    // Check if there are attributes that previously ran into RetryException from _inputSGArray
+    boost::unordered_set<size_t> unavailable(_unavailableAttributes);
+    for (boost::unordered_set<size_t>::const_iterator iter = unavailable.begin();
+         iter != unavailable.end(); ++iter) {
+        const AttributeID currAttrId = *iter;
+
+        if (currAttrId == attrId) { continue; }
+
+        static const bool positionOnly = false;
+
+        LOG4CXX_TRACE(logger, funcName << "Getting previously unavailbale attID= "<<currAttrId
+                      <<", # chunks sent "<< chunksToSend.size());
+
+        getNextChunksInternal(query,
+                              INVALID_INSTANCE,
+                              currAttrId,
+                              positionOnly,
+                              chunksToSend);
+    }
+}
+
+void
+PullSGContext::getNextChunksInternal(const shared_ptr<Query>& query,
+                                     const InstanceID pullingInstance,
+                                     const AttributeID attrId,
+                                     const bool positionOnlyOK,
+                                     ChunksWithDestinations& chunksToSend)
+{
+    static const char* funcName="PullSGContext::getNextChunksInternal: ";
+    ASSERT_EXCEPTION((attrId < _attributeIterators.size()), funcName);
+    ASSERT_EXCEPTION((pullingInstance < query->getInstancesCount() ||
+                      pullingInstance == INVALID_INSTANCE), funcName);
+
+    // Get array iterator
+    shared_ptr<ConstArrayIterator>& inputArrIter = _attributeIterators[attrId];
+    if (!inputArrIter) {
+        inputArrIter = _inputSGArray->getConstIterator(attrId);
+    }
+    assert(_attributeIterators[attrId]);
+
+    if (!_attributeStates[attrId]._eof) {
         // Try to drain the array. If no more chunks are available,
         // an EOF message will be inserted into the cache for all instances.
-        _eofs[attrId] = drainInputArray(inputArrIter, query, attrId);
+        _attributeStates[attrId]._eof = drainInputArray(inputArrIter, query, attrId);
     }
 
     // Check the cache
@@ -132,9 +166,10 @@ PullSGContext::getNextChunks(const shared_ptr<Query>& query,
                                         positionOnlyOK,
                                         chunksToSend);
 
-    if (positionOnlyOK && !found && !_eofs[attrId] ) {
+    if (positionOnlyOK && !found && !_attributeStates[attrId]._eof ) {
         // Nothing to send to pullingInstance, but we will send the current position.
         // The requests received after we have responded with EOF are ignored.
+        assert(pullingInstance < query->getInstancesCount());
         assert(_attributeIterators[attrId]);
         shared_ptr<ConstArrayIterator>& inputArrIter = _attributeIterators[attrId];
         assert (inputArrIter);
@@ -148,9 +183,20 @@ PullSGContext::getNextChunks(const shared_ptr<Query>& query,
                                                       _shift,
                                                       _instanceIdMask,
                                                       _psData.get());
-        ASSERT_EXCEPTION((destInstance < query->getInstancesCount()), funcName);
+        if (_unavailableAttributes.find(attrId) != _unavailableAttributes.end()) {
+            destInstance = INVALID_INSTANCE;
+        } else {
+            if (destInstance == ALL_INSTANCE_MASK) {
+                destInstance = pullingInstance;
+            }
+            assert(destInstance < query->getInstancesCount());
+        }
+
         shared_ptr<MessageDesc> chunkMsg = getPositionMesg(query->getQueryID(), attrId, destInstance, chunkPosition);
         shared_ptr<scidb_msg::Chunk> chunkRecord = chunkMsg->getRecord<scidb_msg::Chunk>();
+
+        assert(pullingInstance < query->getInstancesCount());
+        InstanceState& state = _instanceStates[attrId][pullingInstance];
         assert(state._lastFetchId>0 && state._lastFetchId<uint64_t(~0));
         chunkRecord->set_fetch_id(state._lastFetchId);
 
@@ -161,7 +207,170 @@ PullSGContext::getNextChunks(const shared_ptr<Query>& query,
         assert(chunkMsg);
         chunksToSend.push_back(make_pair(pullingInstance, chunkMsg));
     }
-    assert(!positionOnlyOK || _eofs[attrId] || !chunksToSend.empty());
+    assert(!positionOnlyOK || _attributeStates[attrId]._eof || !chunksToSend.empty());
+}
+
+
+bool
+PullSGContext::advanceInputIterator(const AttributeID attrId,
+                                    shared_ptr<ConstArrayIterator>& inputArrIter)
+{
+    static const char* funcName="PullSGContext::advanceInputIterator: ";
+    const Coordinates oldChunkPosition = inputArrIter->getPosition();
+    try {
+        ++(*inputArrIter);
+        _unavailableAttributes.erase(attrId);
+    } catch (const StreamArray::RetryException& re) {
+        _unavailableAttributes.insert(attrId);
+        assert(_inputSGArray->getSupportedAccess() == Array::SINGLE_PASS);
+        LOG4CXX_TRACE(logger, funcName
+                      << "Chunk not availbale attID= "<<attrId
+                      << ", size="<< _attributeStates[attrId]._size);
+        return false;
+    }
+    if (!inputArrIter->end()) {
+        const Coordinates& newChunkPosition = inputArrIter->getPosition();
+        CoordinatesLess comp;
+        if ( !comp(oldChunkPosition, newChunkPosition) ) {
+            if (_resultArray->isEnforceDataIntegrity()) {
+                throw USER_EXCEPTION(SCIDB_SE_REDISTRIBUTE, SCIDB_LE_CHUNK_POSITION_OUT_OF_ORDER)
+                << CoordsToStr(newChunkPosition);
+            }
+            // chunks must arrive in row-major order
+            // (or in whatever order(s) we later choose to store arrays)
+            if (!_hasDataIntegrityIssue) {
+                LOG4CXX_WARN(logger, funcName << "Input data chunk at position "
+                             << CoordsToStr(newChunkPosition)
+                             << " for attribute ID = " << attrId
+                             << " is out of (row-major) order"
+                             << ". Add log4j.logger.scidb.qproc.pullsgctx=TRACE to the log4cxx config file for more");
+                _hasDataIntegrityIssue=true;
+            } else {
+                LOG4CXX_TRACE(logger, funcName << "Input data chunk at position "
+                              << CoordsToStr(newChunkPosition)
+                              << " for attribute ID = " << attrId
+                              << " is out of (row-major) order");
+            }
+        }
+    }
+    return true;
+}
+
+bool
+PullSGContext::drainInputArray(shared_ptr<ConstArrayIterator>& inputArrIter,
+                               const shared_ptr<Query>& query,
+                               const AttributeID attrId)
+
+{
+    static const char* funcName="PullSGContext::drainInputArray: ";
+
+    while(true) {
+
+        if (_unavailableAttributes.find(attrId) != _unavailableAttributes.end() &&
+            !advanceInputIterator(attrId, inputArrIter)) {
+            break; // loop end
+        }
+
+        if (inputArrIter->end()) {
+            insertEOFChunks(query->getQueryID(), attrId);
+            return true;
+        }
+
+        const ConstChunk& chunk = inputArrIter->getChunk();
+
+        if (!hasValues(chunk)) {
+            // skip empty chunk
+            if (!advanceInputIterator(attrId, inputArrIter)) {
+                break; // loop end
+            }
+            continue;
+        }
+
+        if (_attributeStates[attrId]._size >= _perAttributeMaxSize ) {
+            LOG4CXX_TRACE(logger, funcName
+                          << "Cache size exceeded, attID= "<<attrId
+                          << ", size="<< _attributeStates[attrId]._size);
+            break; // loop end
+        }
+
+        const Coordinates& chunkPosition = inputArrIter->getPosition();
+        InstanceID destInstance = getInstanceForChunk(query,
+                                                      chunkPosition,
+                                                      _inputSGArray->getArrayDesc(),
+                                                      _ps,
+                                                      _distMapper,
+                                                      _shift,
+                                                      _instanceIdMask,
+                                                      _psData.get());
+        InstanceID maxDest = destInstance+1;
+        if (destInstance==ALL_INSTANCE_MASK) {
+            // chunk goes to all instances
+            maxDest = query->getInstancesCount();
+            destInstance = 0;
+            _attributeStates[attrId]._shallowSize += (maxDest-1);
+        }
+        shared_ptr<CompressedBuffer> buffer;
+        for (; destInstance < maxDest; ++destInstance) {
+            // Cache the next chunk
+            shared_ptr<MessageDesc> chunkMsg = getChunkMesg(query->getQueryID(),
+                                                            attrId, destInstance,
+                                                            chunk, chunkPosition,
+                                                            buffer);
+            assert(buffer);
+            assert(buffer->getData());
+            InstanceState& destState = _instanceStates[attrId][destInstance];
+            destState._chunks.push_back(chunkMsg);
+        }
+        ++_attributeStates[attrId]._size;
+        if (!advanceInputIterator(attrId, inputArrIter)) {
+            break; // loop end
+        }
+        LOG4CXX_TRACE(logger, funcName
+                      << "Advancing iterator  attID= "<<attrId
+                      << ", size="<< _attributeStates[attrId]._size);
+    }
+    return false;
+}
+
+
+void
+PullSGContext::setNextPosition(shared_ptr<MessageDesc>& chunkMsg,
+                               const InstanceID destInstance,
+                               shared_ptr<ConstArrayIterator>& inputArrIter,
+                               const shared_ptr<Query>& query)
+{
+    static const char* funcName="PullSGContext::setNextPosition: ";
+    shared_ptr<scidb_msg::Chunk> chunkRecord = chunkMsg->getRecord<scidb_msg::Chunk>();
+    if (chunkRecord->eof()) {
+        assert(!chunkRecord->has_next());
+        return;
+    }
+
+    assert(!inputArrIter->end());
+    assert(chunkRecord->has_attribute_id());
+
+    if (_unavailableAttributes.find(chunkRecord->attribute_id()) != _unavailableAttributes.end()) {
+        // not adding position (because we dont know it yet
+        LOG4CXX_TRACE(logger, funcName
+                      << "Not adding new position attID= "<< chunkRecord->attribute_id()
+                      << ", destInstance="<< destInstance);
+        return;
+    }
+
+    const Coordinates& nextChunkPosition = inputArrIter->getPosition();
+    InstanceID nextDestInstance = getInstanceForChunk(query,
+                                                      nextChunkPosition,
+                                                      _inputSGArray->getArrayDesc(),
+                                                      _ps,
+                                                      _distMapper,
+                                                      _shift,
+                                                      _instanceIdMask,
+                                                      _psData.get());
+    if (nextDestInstance == ALL_INSTANCE_MASK) {
+        nextDestInstance = destInstance;
+    }
+    assert(nextDestInstance < query->getInstancesCount());
+    setNextPosition(chunkMsg, nextDestInstance, nextChunkPosition);
 }
 
 bool
@@ -231,7 +440,7 @@ PullSGContext::findCachedChunksToSend(shared_ptr<ConstArrayIterator>& inputArrIt
                     coords.push_back(chunkRecord->coordinates(i));
                 }
                 Coordinates nextCoords;
-                InstanceID nextDest = ~0;
+                InstanceID nextDest = INVALID_INSTANCE;
                 if (chunkRecord->has_next()) {
                     ASSERT_EXCEPTION ((n == size_t(chunkRecord->next_coordinates_size())), funcName);
                     nextCoords.reserve(n);
@@ -259,64 +468,6 @@ PullSGContext::findCachedChunksToSend(shared_ptr<ConstArrayIterator>& inputArrIt
     return found;
 }
 
-bool
-PullSGContext::drainInputArray(shared_ptr<ConstArrayIterator>& inputArrIter,
-                               const shared_ptr<Query>& query,
-                               const AttributeID attrId)
-
-{
-    static const char* funcName="PullSGContext::drainInputArray: ";
-
-    while(true) {
-
-        if (inputArrIter->end()) {
-            insertEOFChunks(query->getQueryID(), attrId);
-            return true;
-        }
-
-        const ConstChunk& chunk = inputArrIter->getChunk();
-
-        if (!hasValues(chunk)) {
-            // skip empty chunk
-            ++(*inputArrIter);
-            continue;
-        }
-
-        const Coordinates& chunkPosition = inputArrIter->getPosition();
-        InstanceID destInstance = getInstanceForChunk(query,
-                                                      chunkPosition,
-                                                      _inputSGArray->getArrayDesc(),
-                                                      _ps,
-                                                      _distMapper,
-                                                      _shift,
-                                                      _instanceIdMask,
-                                                      _psData.get());
-
-        ASSERT_EXCEPTION((destInstance < query->getInstancesCount()), funcName);
-
-        if (_instanceStatesSizes[attrId] >= _instanceStatesMaxSize ) {
-            LOG4CXX_TRACE(logger, funcName
-                          << "Cache size execeeded, attID= "<<attrId
-                          << ", size="<< _instanceStatesSizes[attrId]);
-            break; // loop end
-        }
-
-        // Cache the next chunk
-        shared_ptr<MessageDesc> chunkMsg = getChunkMesg(query->getQueryID(),
-                                                        attrId, destInstance,
-                                                        chunk, chunkPosition);
-
-        InstanceState& destState = _instanceStates[attrId][destInstance];
-        destState._chunks.push_back(chunkMsg);
-        ++_instanceStatesSizes[attrId];
-        ++(*inputArrIter);
-        LOG4CXX_TRACE(logger, funcName
-                      << "Advancing iterator  attID= "<<attrId
-                      << ", size="<< _instanceStatesSizes[attrId]);
-    }
-    return false;
-}
-
 void
 PullSGContext::insertEOFChunks(const QueryID queryId,
                                const AttributeID attrId)
@@ -324,40 +475,15 @@ PullSGContext::insertEOFChunks(const QueryID queryId,
     static const char* funcName="PullSGContext::InsertEOFChunks: ";
     LOG4CXX_DEBUG(logger, funcName
                       << "Inserting EOFs into cache for  attID= "<<attrId
-                      << ", cache size="<< _instanceStatesSizes[attrId]);
-    vector< InstanceState>& destStatePerInstance = _instanceStates[attrId];
-    for (InstanceID i = 0; i < destStatePerInstance.size(); ++i) {
-        InstanceState& destState = destStatePerInstance[i];
+                      << ", cache size="<< _attributeStates[attrId]._size);
+    vector< InstanceState>& instanceStatesPerAttribute = _instanceStates[attrId];
+    size_t destInstanceNum = instanceStatesPerAttribute.size();
+    for (InstanceID i = 0;  i < destInstanceNum; ++i) {
+        InstanceState& destInstanceState = instanceStatesPerAttribute[i];
         shared_ptr<MessageDesc> chunkMsg = getEOFChunkMesg(queryId, attrId);
-        destState._chunks.push_back(chunkMsg);
+        destInstanceState._chunks.push_back(chunkMsg);
     }
-}
-
-void
-PullSGContext::setNextPosition(shared_ptr<MessageDesc>& chunkMsg,
-                               const InstanceID pullingInstance,
-                               shared_ptr<ConstArrayIterator>& inputArrIter,
-                               const shared_ptr<Query>& query)
-{
-    static const char* funcName = "PullSGContext::setNextPosition: ";
-    shared_ptr<scidb_msg::Chunk> chunkRecord = chunkMsg->getRecord<scidb_msg::Chunk>();
-    if (chunkRecord->eof()) {
-        assert(!chunkRecord->has_next());
-        return;
-    }
-    assert(!inputArrIter->end());
-
-    const Coordinates& nextChunkPosition = inputArrIter->getPosition();
-    InstanceID nextDestInstance = getInstanceForChunk(query,
-                                                      nextChunkPosition,
-                                                      _inputSGArray->getArrayDesc(),
-                                                      _ps,
-                                                      _distMapper,
-                                                      _shift,
-                                                      _instanceIdMask,
-                                                      _psData.get());
-    ASSERT_EXCEPTION((nextDestInstance < query->getInstancesCount()), funcName);
-    setNextPosition(chunkMsg, nextDestInstance, nextChunkPosition);
+    _attributeStates[attrId]._shallowSize += destInstanceNum;
 }
 
 void
@@ -473,29 +599,30 @@ PullSGContext::getChunkMesg(const QueryID queryId,
                             const AttributeID attributeId,
                             const InstanceID destSGInstance,
                             const ConstChunk& chunk,
-                            const Coordinates& chunkPosition)
+                            const Coordinates& chunkPosition,
+                            shared_ptr<CompressedBuffer>& buffer)
 {
-    shared_ptr<CompressedBuffer> buffer = boost::make_shared<CompressedBuffer>();
-    shared_ptr<ConstRLEEmptyBitmap> emptyBitmap;
-    assert(chunk.isRLE());
+    if (!buffer) {
+        buffer = boost::make_shared<CompressedBuffer>();
+        shared_ptr<ConstRLEEmptyBitmap> emptyBitmap;
 
-    if (chunk.isRLE() &&
-        _inputSGArray->getArrayDesc().getEmptyBitmapAttribute() != NULL &&
-        !chunk.getAttributeDesc().isEmptyIndicator()) {
-        emptyBitmap = chunk.getEmptyBitmap();
+        if (_inputSGArray->getArrayDesc().getEmptyBitmapAttribute() != NULL &&
+            !chunk.getAttributeDesc().isEmptyIndicator()) {
+            emptyBitmap = chunk.getEmptyBitmap();
+            if (isDebug() && _isEmptyable) {
+                verifyPositions(chunk, emptyBitmap);
+            }
+        }
+        chunk.compress(*buffer, emptyBitmap); //XXX TODO: avoid data copy
+        emptyBitmap.reset(); // the bitmask must be cleared before the iterator is advanced (bug?)
     }
-    chunk.compress(*buffer, emptyBitmap);
-    emptyBitmap.reset(); // the bitmask must be cleared before the iterator is advanced (bug?)
-
     shared_ptr<MessageDesc> chunkMsg = boost::make_shared<MessageDesc>(mtRemoteChunk, buffer);
     shared_ptr<scidb_msg::Chunk> chunkRecord = chunkMsg->getRecord<scidb_msg::Chunk>();
-    chunkRecord->set_sparse(chunk.isSparse());
-    chunkRecord->set_rle(chunk.isRLE());
     chunkRecord->set_compression_method(buffer->getCompressionMethod());
     chunkRecord->set_decompressed_size(buffer->getDecompressedSize());
     chunkRecord->set_count(chunk.isCountKnown() ? chunk.count() : 0);
     const Coordinates& coordinates = chunk.getFirstPosition(false);
-    for (size_t i = 0; i < coordinates.size(); i++) {
+    for (size_t i = 0, n = coordinates.size(); i< n; ++i) {
         chunkRecord->add_coordinates(coordinates[i]);
     }
     chunkMsg->setQueryID(queryId);
@@ -508,9 +635,29 @@ PullSGContext::getChunkMesg(const QueryID queryId,
     return chunkMsg;
 }
 
+void PullSGContext::verifyPositions(ConstChunk const& chunk,
+                                    shared_ptr<ConstRLEEmptyBitmap>& emptyBitmap)
+{
+    assert(!chunk.isEmpty());
+    assert(emptyBitmap->count()>0);
+
+    shared_ptr<ConstChunkIterator> chunkIter =
+       chunk.materialize()->getConstIterator(ConstChunkIterator::IGNORE_EMPTY_CELLS);
+    ConstRLEEmptyBitmap::iterator ebmIter = emptyBitmap->getIterator();
+    while(!chunkIter->end()) {
+        assert(!ebmIter.end());
+        position_t chunkPos = chunkIter->getLogicalPosition();
+        position_t ebmPos   = ebmIter.getLPos();
+        SCIDB_ASSERT(chunkPos==ebmPos);
+        ++(*chunkIter);
+        ++(ebmIter);
+    }
+    assert(ebmIter.end());
+}
+
 shared_ptr<MessageDesc>
 PullSGContext::reapChunkMsg(const QueryID queryId,
-                            const AttributeID attributeId,
+                            const AttributeID attrId,
                             InstanceState& destState,
                             const InstanceID destInstance,
                             const bool positionOnly)
@@ -531,8 +678,16 @@ PullSGContext::reapChunkMsg(const QueryID queryId,
         assert(destState._requestedNum==0);
     } else {
         destState._chunks.pop_front();
+        assert(destState._requestedNum>0);
         --destState._requestedNum;
-        --_instanceStatesSizes[attributeId];
+        assert(_attributeStates[attrId]._size <= _perAttributeMaxSize);
+
+        if (_attributeStates[attrId]._shallowSize > 0) {
+            --_attributeStates[attrId]._shallowSize;
+        } else {
+            assert(_attributeStates[attrId]._size>0);
+            --_attributeStates[attrId]._size;
+        }
     }
     shared_ptr<scidb_msg::Chunk> headRecord = headMsg->getRecord<scidb_msg::Chunk>();
     assert(destState._lastFetchId>0 && destState._lastFetchId<uint64_t(~0));

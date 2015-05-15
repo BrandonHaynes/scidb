@@ -43,6 +43,7 @@
 #include "array/Metadata.h"
 #include "util/StringUtil.h"
 #include "util/PluginObjects.h"
+#include <util/Singleton.h>
 
 namespace scidb
 {
@@ -57,7 +58,7 @@ class AttributeReference;
  * state is allocated by Expression and will free automatically.
  */
 //
-// PGB: Moved all of this to the FunctionDescription class. 
+// PGB: Moved all of this to the FunctionDescription class.
 // typedef int32_t FunctionResult;
 // typedef FunctionResult (*FunctionPointer)(const  Value* args,  Value& res);
 
@@ -75,7 +76,6 @@ private:
     struct Converter {
         FunctionPointer func;
         ConversionCost  cost;
-        bool supportsVectorMode;
     };
 
     PluginObjects _functionLibraries;
@@ -104,7 +104,6 @@ private:
                        const std::vector< TypeId>& inputArgTypes,
                        FunctionDescription& functDescription,
                        std::vector< FunctionPointer>& converters,
-                       bool& supportsVectorMode,
                        bool tile,
                        ConversionCost& cost,
                        bool& swapInputs);
@@ -116,58 +115,6 @@ private:
      * @param functionDesc
      */
     void functionCheck(const FunctionDescription& functionDesc);
-
-public:
-    FunctionLibrary();
-
-    void registerBuiltInFunctions();
-
-    bool findFunction(const std::string& name,
-                       const std::vector< TypeId>& inputArgTypes,
-                       FunctionDescription& functDescription,
-                       std::vector< FunctionPointer>& converters,
-                       bool& supportsVectorMode,
-                       bool tile,
-                       bool& swapInputs)
-    {
-        ConversionCost cost;
-        return _findFunction(name, inputArgTypes, functDescription, converters, supportsVectorMode, tile, cost, swapInputs);
-    }
-
-    bool findFunction(const std::string& name,
-                      const std::vector< TypeId>& inputArgTypes,
-                       FunctionDescription& functDescription,
-                      std::vector< FunctionPointer>& converters,
-                      bool& supportsVectorMode,
-                      bool tile)
-    {
-        ConversionCost cost;
-        bool swapInputs = false;
-        const bool found = _findFunction(name, inputArgTypes, functDescription, converters, supportsVectorMode, tile, cost, swapInputs);
-        assert(swapInputs == false); // if this assertion failure you need to replace this function call by full version and handle swapInputs correctly
-        return found;
-    }
-
-    bool findFunction(const std::string& name,
-                      const std::vector< TypeId>& inputArgTypes,
-                       FunctionDescription& functDescription,
-                      std::vector< FunctionPointer>& converters,
-                      bool tile)
-    {
-        bool supportsVectorMode = false;
-        ConversionCost cost;
-        bool swapInputs = false;
-        const bool found = _findFunction(name, inputArgTypes, functDescription, converters, supportsVectorMode, tile, cost, swapInputs);
-        assert(swapInputs == false); // if this assertion failure you need to replace this function call by full version and handle swapInputs correctly
-        return found;
-    }
-
-    /**
-     * Check if function with given name is in function library.
-     * Mostly to decide in parser what we have encountered: function or 
-	 * operator.
-     */
-    bool findFunction(std::string name, bool tile);
 
     /**
      * Finds a converter from one type to another.
@@ -182,28 +129,69 @@ public:
      * @return a pointer to converter. If converter was no function found
      * return NULL or throw exception depends on raiseException param.
      */
-     FunctionPointer findConverter( TypeId const& srcType, 
-                                    TypeId const& destType,
-                                    bool& supportsVectorMode,
-                                    bool tile,
-                                    bool raiseException = true, 
-                                    ConversionCost* cost = NULL);
+    FunctionPointer _findConverter(TypeId const& srcType,
+                                   TypeId const& destType,
+                                   bool tile,
+                                   bool raiseException = true,
+                                   ConversionCost* cost = NULL);
 
-    FunctionPointer findConverter(TypeId const& srcType, 
-                                  TypeId const& destType,
-                                  bool tile = false)
+public:
+    FunctionLibrary();
+
+    void registerBuiltInFunctions();
+
+    bool findFunction(const std::string& name,
+                      const std::vector< TypeId>& inputArgTypes,
+                      FunctionDescription& functDescription,
+                      std::vector< FunctionPointer>& converters,
+                      bool tile,
+                      bool& swapInputs)
     {
-        bool supportsVectorMode = false;
-        return findConverter(srcType, destType, supportsVectorMode, tile);
+        ConversionCost cost;
+        return _findFunction(name, inputArgTypes, functDescription, converters, tile, cost, swapInputs);
     }
 
-    bool findConverter(const Type& srcType,
-                       const Type& destType,
-                       FunctionDescription& functDescription,
-                       bool tile,
-                       bool raiseException = true,
-                       ConversionCost* cost = NULL);
-    
+    bool findFunction(const std::string& name,
+                      const std::vector< TypeId>& inputArgTypes,
+                      FunctionDescription& functDescription,
+                      std::vector< FunctionPointer>& converters,
+                      bool tile)
+    {
+        ConversionCost cost;
+        bool swapInputs = false;
+        const bool found = _findFunction(name, inputArgTypes, functDescription, converters, tile, cost, swapInputs);
+        assert(swapInputs == false); // if this assertion failure you need to replace this function call by full version and handle swapInputs correctly
+        return found;
+    }
+
+    /**
+     * Check if function with given name is in function library.
+     * Mostly to decide in parser what we have encountered: function or
+     * operator.
+     */
+    bool hasFunction(std::string name, bool tile);
+
+    FunctionPointer findConverter(TypeId const& srcType,
+                                  TypeId const& destType,
+                                  bool tile,
+                                  bool raiseException,
+                                  ConversionCost* cost) {
+        return _findConverter(srcType, destType, tile, raiseException, cost);
+    }
+
+    FunctionPointer findConverter(TypeId const& srcType,
+                                  TypeId const& destType,
+                                  bool tile)
+    {
+        return _findConverter(srcType, destType, tile);
+    }
+
+    FunctionPointer findConverter(TypeId const& srcType,
+                                  TypeId const& destType)
+    {
+        return _findConverter(srcType, destType, false);
+    }
+
     /**
      * Adds new function into the library.
      */
@@ -215,15 +203,15 @@ public:
     void addVFunction(const FunctionDescription& functionDesc);
 
     /*
-	** Get a handle to the map of function names -> { argtypes } -> 
+	** Get a handle to the map of function names -> { argtypes } ->
 	** FunctionDescriptions
 	*/
     funcDescNamesMap &getFunctions(bool tile = false) { return getFunctionMap(tile); }
 
     /**
-     * The map with known functions. The key is function name. The value is a 
+     * The map with known functions. The key is function name. The value is a
 	 * map with known function types.
-     * The key is a vector of types. The value is a pair of function 
+     * The key is a vector of types. The value is a pair of function
 	 * pointer and result type.
      */
     std::map<std::string, std::map<std::vector<TypeId>,  FunctionDescription>, __lesscasecmp> _sFunctionMap;
@@ -235,7 +223,7 @@ public:
     }
 
     /**
-     * The map of known converters of one type to another. 
+     * The map of known converters of one type to another.
 	 * map[srcType][DestType]
      */
     std::map< TypeId, std::map< TypeId, Converter, __lesscasecmp>, __lesscasecmp> _sConverterMap;
@@ -249,9 +237,16 @@ public:
     /**
      * Adds new converter into the library.
      */
-    void addConverter( TypeId srcType,  TypeId destType,
-                       FunctionPointer converter,  ConversionCost cost, 
-                      bool supportsVectorMode = false);
+    void addConverter(TypeId srcType,
+                      TypeId destType,
+                      FunctionPointer converter,
+                      ConversionCost cost)
+    {
+        // TODO: implement the check of ability to add converter
+        Converter& cnv = _sConverterMap[srcType][destType];
+        cnv.func = converter;
+        cnv.cost = _registeringBuiltInObjects ? cost : EXPLICIT_CONVERSION_COST;
+    }
 
     /**
      * Adds new vector converter into the library.

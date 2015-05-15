@@ -2,9 +2,11 @@ LName	FName	Dept	Course	GPA	Remarks
 Squarepants	Spongebob	CS	101	0.5	Dolt.
 Starfish	Patrick	CS	101	2.5	
 Leela	Turanga	CS	101	3.8	Note empty field at EOL on prev line.
-Wong	Amy	CS	101		No GPA here.
+Wong	Amy	CS	101	\N	Null GPA here.
 Zoidberg	John	?42	101	2.75	Missing dept, code 42.
 Brannigan	Zapp	CS	101	1.1	Near dolt.
 Rodriguez	Bender	null	101	3	Null dept and integer GPA.
 Fry	Philip	'null'	101	2.7	Quoted 'null' dept.
 Crumb	Robert 'Mr. Natural'	CS	101	2.5	Single quotes in FName.
+Farnsworth	Hubert		412	4	Empty department string.
+Kroker	Kif	CS	101		Empty GPA here.

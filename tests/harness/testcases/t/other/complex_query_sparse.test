@@ -12,8 +12,9 @@ scan(m5x5_sparse)
 apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x)
 aggregate(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),count(*))
 aggregate(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),count(*))
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),m5x5_sparse)"
-# The above case is achieved using the repart operator
+# Fixed by #850:
+join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),m5x5_sparse)
+# The above case is achieved (manually) using the repart operator
 join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0]))
 aggregate(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),count(*))
 between(join(apply(subarray(xgrid(m5x5_sparse,2,2),0,1,9,8),z,x),repart(m5x5_sparse,<val:double>[x=0:4,10,0,y=0:4,10,0])),0,0,3,3)

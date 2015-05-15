@@ -103,7 +103,7 @@ void Resources::fileExists(const string &path, map<InstanceID, bool> &instancesM
     msg->setQueryID(0);
     request->set_resource_request_id(id);
     request->set_file_path(path);
-    networkManager->broadcast(msg);
+    networkManager->broadcastPhysical(msg);
 
     LOG4CXX_TRACE(logger, "Resources::fileExists. Waiting while instances return result for collector " << id);
 
@@ -161,7 +161,7 @@ bool Resources::fileExists(const string &path, InstanceID instanceId, const shar
         msg->setQueryID(0);
         request->set_resource_request_id(id);
         request->set_file_path(path);
-        networkManager->sendMessage(instanceId, msg);
+        networkManager->sendPhysical(instanceId, msg);
 
         LOG4CXX_TRACE(logger, "Resources::fileExists. Waiting while instance return result for collector " << id);
 
@@ -215,7 +215,7 @@ void Resources::handleFileExists(const shared_ptr<MessageDesc>& messageDesc)
         outMsgRecord->set_resource_request_id(inMsgRecord->resource_request_id());
         outMsgRecord->set_exits_flag(Resources::getInstance()->checkFileExists(file));
 
-        networkManager->sendMessage(messageDesc->getSourceInstanceID(), msg);
+        networkManager->sendPhysical(messageDesc->getSourceInstanceID(), msg);
     }
     // mtResourcesFileExistsResponse
     else

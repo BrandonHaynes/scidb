@@ -45,7 +45,7 @@ class PhysicalAggregate: public AggregatePartitioningOperator
         : AggregatePartitioningOperator(logicalName, physicalName, parameters, schema)
     { }
 
-    void initializeOperator(ArrayDesc const& inputSchema)
+    virtual void initializeOperator(ArrayDesc const& inputSchema)
     {
         AggregatePartitioningOperator::initializeOperator(inputSchema);
         Dimensions const& inputDims = inputSchema.getDimensions();
@@ -70,16 +70,16 @@ class PhysicalAggregate: public AggregatePartitioningOperator
         _grouping = DimensionGrouping(inputSchema.getDimensions(), groupBy);
     }
 
-    virtual void transformCoordinates(Coordinates const & inPos, Coordinates & outPos)
+    virtual void transformCoordinates(CoordinateCRange inPos,CoordinateRange outPos)
     {
         // Now that #3709 is fixed, we can safely assert that...
         assert(!outPos.empty());
         assert(outPos.size() <= inPos.size());
 
-        _grouping.reduceToGroup(inPos, outPos);
+        _grouping.reduceToGroup(inPos,outPos);
     }
 };
-    
+
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalAggregate, "aggregate", "physical_aggregate")
 
 }  // namespace scidb

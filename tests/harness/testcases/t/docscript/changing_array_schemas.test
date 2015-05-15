@@ -115,7 +115,7 @@ show(Dsp)
 show(Dsp_slice_2)
 --aql SELECT * INTO Dsp_1d FROM concat(Dsp_slice_0, Dsp_slice_2)  
 show(Dsp_1d)
---aql SELECT * into Dsp_new FROM concat(adddim(Dsp_slice_0, d), adddim(Dsp_slice_2, d))  
+store( concat( redimension( apply(Dsp_slice_0, d, 0), <val:double> [d=0:0,1,0,probe_id=0:4,5,0]), redimension( apply(Dsp_slice_2, d, 0), <val:double> [d=0:0,1,0,probe_id=0:4,5,0]) ), Dsp_new)
 show(Dsp_new)
 
 --stop-query-logging

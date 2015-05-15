@@ -40,10 +40,14 @@
 namespace scidb
 {
 /**
- * An iterator that iterates through the positions of all the chunks that should store an item.
+ * An iterator that iterates over the positions of all the chunks that should store an item.
  * Normally, an item is stored in a single chunk.
  * However, with overlaps, an item may also need to be stored in adjacent chunks.
  * All we need to do is construct a RegionCoordinatesIterator with proper arguments, it does the rest (quite well).
+ *
+ * @note Use with caution! This class iterates over the logical space.
+ * @see THE REQUEST TO JUSTIFY LOGICAL-SPACE ITERATION in RegionCoordinatesIterator.h.
+ *
  */
 class OverlappingChunksIterator : public RegionCoordinatesIterator
 {
@@ -56,7 +60,7 @@ private:
         for (size_t i= 0; i<nDims; ++i)
         {
             low[i] =  max<int64_t> (itemPos[i] - dims[i].getChunkOverlap(), dims[i].getStartMin());
-            low[i] -= (low[i] - dims[i].getStart()) % dims[i].getChunkInterval();
+            low[i] -= (low[i] - dims[i].getStartMin()) % dims[i].getChunkInterval();
         }
         return low;
     }

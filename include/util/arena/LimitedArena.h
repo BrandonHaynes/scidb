@@ -31,7 +31,7 @@
 namespace scidb { namespace arena {
 /****************************************************************************/
 /**
- *  @brief      Limits the memory that can be allocated from another Arena.
+ *  @brief      Limits the memory that can be allocated from another %arena.
  *
  *  @details    Class LimitedArena constrains the amount of memory that can be
  *              requested of its parent by maintaining a count of the bytes it
@@ -43,15 +43,15 @@ namespace scidb { namespace arena {
  *  @code
  *                  b = newArena(Options("B").limit(1*GB).parent(a));
  *  @endcode
- *              creates a new Arena 'b' that is permitted to allocate as much
- *              as a gibibyte of memory from the Arena 'a' before throwing an
- *              arena::Exhausted exception. Clients can track the memory that
- *              is still available by calling available(), and can also catch
+ *              creates a new %arena 'b' that is permitted to allocate as much
+ *              as a gibibyte of memory from the %arena 'a' before throwing an
+ *              arena::Exhausted exception.  Clients can track the memory that
+ *              is still available by calling available(),  and can also catch
  *              the exception if they attempt to allocate beyond this limit.
  *
  *              Bear in mind that other arenas may also be allocating from the
  *              the same parent too:  the limit affects only those allocations
- *              made through *this* Arena,  while others,  perhaps with larger
+ *              made through *this* %arena, while others,  perhaps with larger
  *              internal limits, may satisfy requests where this one fails to.
  *              The parent, of course, may also carry a limit of its own too.
  *
@@ -74,16 +74,16 @@ class LimitedArena : public Arena
     virtual ArenaPtr          parent()             const {return _parent;}
     virtual size_t            available()          const {return _available;}
     virtual size_t            allocated()          const {return _allocated;}
-    virtual size_t            peakUsage()          const {return _peakUsage;}
+    virtual size_t            peakusage()          const {return _peakusage;}
     virtual size_t            allocations()        const {return _allocations;}
-    virtual bool              supports(features_t) const;
+    virtual features_t        features()           const;
 
  public:                   // Operations
     virtual void              reset();
 
  public:                   // Implementation
     virtual void*             doMalloc(size_t);
-    virtual size_t            doFree  (void*,size_t);
+    virtual void              doFree  (void*,size_t);
 
  protected:                // Implementation
             bool              consistent()         const;
@@ -94,7 +94,7 @@ class LimitedArena : public Arena
             ArenaPtr    const _parent;                   // The parent arena
             size_t            _available;                // Bytes available
             size_t            _allocated;                // Bytes allocated
-            size_t            _peakUsage;                // High water mark
+            size_t            _peakusage;                // High water mark
             size_t            _allocations;              // Total allocations
 };
 

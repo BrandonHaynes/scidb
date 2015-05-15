@@ -87,11 +87,14 @@ Node* Driver::process(syntax syntax)
 
     LOG4CXX_DEBUG(log,"Driver::process(1)\n" << tree);
 
-//  desugar (_fact,*this,tree);
+    desugar (_fact,*this,tree);
+
+    LOG4CXX_DEBUG(log,"Driver::process(2)\n" << tree);
+
 //  stratify(_fact,*this,tree);
     inliner (_fact,*this,tree);
 
-    LOG4CXX_DEBUG(log,"Driver::process(2)\n" << tree);
+    LOG4CXX_DEBUG(log,"Driver::process(3)\n" << tree);
 
     return tree;
 }
@@ -115,9 +118,19 @@ void Driver::fail(const UserException& what)
 
 void Driver::fail(error e,const Node& n,const char* s)
 {
-    if (n.is(cstring))
-        s = n.getString();
-    this->fail(e,n.getWhere(),s);
+    const Node* p = &n;                                  // The location node
+
+    if (p->is(variable))                                 // Is it a variable?
+    {
+        p = p->get(variableArgName);                     // ...then use name
+    }
+
+    if (p->is(cstring))                                  // Is a string node?
+    {
+        s = p->getString();                              // ...then use chars
+    }
+
+    this->fail(e,p->getWhere(),s);                       // Reformat and throw
 }
 
 void Driver::fail(error e,const location& w,const char* s)

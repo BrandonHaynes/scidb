@@ -45,32 +45,43 @@ namespace scidb
       public:
         enum { DEFAULT_PRECISION = 6 };
 
+        /// Values for #save method 'flags' parameter.
+        enum Flags {
+            F_APPEND = 0x01,    ///< Open file in append mode
+            F_PARALLEL = 0x02   ///< This is a parallel save
+        };
+
         /**
          * Save data from in text format in specified file
          * @param arrayName name of the array which data will be saved
          * @param file path to the exported data file
-         * @param format output format: csv, csv+, tsv, tsv+, sparse, auto, etc.
          * @param query doing the save
+         * @param format output format: csv, csv+, tsv, tsv+, sparse, auto, etc.
+         * @param flags see ArrayWriter::Flags
          * @return number of saved tuples
          */
        static uint64_t save(std::string const& arrayName,
                             std::string const& file,
                             const boost::shared_ptr<Query>& query,
                             std::string const& format = "auto",
-                            bool append = false);
+                            unsigned flags = 0);
+
 
         /**
          * Save data from in text format in specified file
          * @param array array to be saved
          * @param file path to the exported data file
+         * @param query doing the save
          * @param format output format: csv, csv+, tsv, tsv+, sparse, auto, etc.
+         * @param flags see ArrayWriter::Flags
          * @return number of saved tuples
          */
         static uint64_t save(Array const& array,
                              std::string const& file,
                              const boost::shared_ptr<Query>& query,
                              std::string const& format = "auto",
-                             bool append = false);
+                             unsigned flags = 0);
+
 
         /**
          * Return the number of digits' precision used to format output.

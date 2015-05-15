@@ -66,7 +66,19 @@ namespace scidb
  *   <br> ]
  *
  * @par Examples:
- *   n/a
+ *   - Given array A <v:int64> [i=0:5,3,0] =
+ *     <br> i,  v
+ *     <br> 0,  0
+ *     <br> 1,  1
+ *     <br> 2,  2
+ *     <br> 3,  3
+ *     <br> 4,  4
+ *     <br> 5,  5
+ *   - quantile(A, 2) <percentage, v_quantile>[quantile=0:2,3,0] =
+ *     <br> {quantile} percentage, v_quantile
+ *     <br> {0}           0,         0
+ *     <br> {1}           0.5,       2
+ *     <br> {2}           1,         5
  *
  * @par Errors:
  *   n/a
@@ -107,9 +119,9 @@ public:
 
         assert(schemas.size() == 1);
 
-        uint32_t bucketCount = evaluate(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[0])->getExpression(), query, TID_UINT32).getUint32();
-        bucketCount++;
-        if (bucketCount < 2) {
+        uint32_t numQuantilesPlusOne = 1 +
+                evaluate(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[0])->getExpression(), query, TID_UINT32).getUint32();
+        if (numQuantilesPlusOne < 2) {
             throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_DLA_ERROR17,
                 _parameters[0]->getParsingContext());
         }
@@ -148,6 +160,10 @@ public:
                     DimensionDesc const& dim = input.getDimensions()[j];
                     if (dim.hasNameAndAlias(dimName, dimAlias))
                     {
+                        if (dim.getEndMax() == MAX_COORDINATE) {
+                            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_QUANTILE_REQUIRES_BOUNDED_ARRAY);
+                        }
+
                         //no overlap
                         outputDims.push_back(DimensionDesc( dim.getBaseName(),
                                                             dim.getNamesAndAliases(),
@@ -166,7 +182,14 @@ public:
             }
         }
 
-        DimensionDesc quantileDim("quantile", 0, bucketCount-1, bucketCount, 0);
+        DimensionDesc quantileDim(
+                "quantile",
+                0,                     // startMin
+                0,                     // currStart
+                numQuantilesPlusOne-1, // currEnd
+                numQuantilesPlusOne-1, // endMax
+                numQuantilesPlusOne,   // chunkInterval
+                0);                    // chunkOverlap
         outputDims.push_back(quantileDim);
 
         return ArrayDesc(input.getName()+"_quantile", outputAttrs, outputDims);
@@ -174,6 +197,5 @@ public:
 };
 
 DECLARE_LOGICAL_OPERATOR_FACTORY(LogicalQuantile, "quantile")
-
 
 }

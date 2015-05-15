@@ -36,7 +36,3 @@ add_library(fits SHARED ${fits_src} ${fits_include})
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libfits${CMAKE_SHARED_LIBRARY_SUFFIX}" fits)
 set_target_properties(fits PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
 
-if (APPLE)
-  set_target_properties(fits PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif (APPLE)
-

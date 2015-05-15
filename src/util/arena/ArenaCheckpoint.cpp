@@ -29,9 +29,10 @@ namespace scidb { namespace arena {
 /****************************************************************************/
 
 /**
- *  Update the monitor with a snapshot of the given Arena's statistics and tag
+ *  Update the monitor with a snapshot of the given arena's statistics and tag
  *  the snapshot with the given label. Furthermore, save the arguments so that
- *  a similar snapshot can also be taken when the Checkpoint goes out of scope.
+ *  a similar snapshot can also be taken when the Checkpoint later goes out of
+ *  scope and its destructor is called.
  */
     Checkpoint::Checkpoint(const Arena& arena,name_t label)
               : _arena(arena),
@@ -43,7 +44,7 @@ namespace scidb { namespace arena {
 }
 
 /**
- *  Update the monitor with a snapshot of the given Arena's statistics and tag
+ *  Update the monitor with a snapshot of the given arena's statistics and tag
  *  the snapshot with the given label.
  */
     Checkpoint::~Checkpoint()

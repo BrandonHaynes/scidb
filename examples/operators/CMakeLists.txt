@@ -29,7 +29,3 @@ set (operators_src
 add_library(operators SHARED ${operators_src})
 set_target_properties(operators PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
 
-if (APPLE)
-  set_target_properties(operators PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif (APPLE)
-

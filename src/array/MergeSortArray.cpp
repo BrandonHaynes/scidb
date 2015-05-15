@@ -25,102 +25,44 @@
  *
  *  Created on: Sep 23, 2010
  */
-#include "array/MergeSortArray.h"
-#include "system/SystemCatalog.h"
-#include "network/NetworkManager.h"
+#include <array/MergeSortArray.h>
+#include <system/SystemCatalog.h>
+#include <network/NetworkManager.h>
 
 namespace scidb
 {
     using namespace std;
 
-inline size_t getArrayLength(DimensionDesc const& dim, size_t instanceId, size_t nInstances)
-    {
-        if (dim.getLength() == 0) {
-            return 0;
-        }
-        uint64_t length = dim.getLength() / (dim.getChunkInterval()*nInstances) * dim.getChunkInterval();
-        uint64_t rest = dim.getLength() % (dim.getChunkInterval()*nInstances);
-        if (rest >= dim.getChunkInterval() * instanceId) {
-            rest -= dim.getChunkInterval() * instanceId;
-            if (static_cast<int64_t>(rest) > dim.getChunkInterval()) {
-                rest = dim.getChunkInterval();
-            }
-            length += rest;
-        }
-        return (size_t)length;
-    }
-
-    ConstChunk const& MergeSortArrayIterator::getChunk()
-    {
-        return array.getChunk(attr, currChunkIndex);
-    }
-
-    bool MergeSortArrayIterator::end()
-    {
-        if (!hasCurrent) {
-            hasCurrent = array.moveNext(currChunkIndex);
-        }
-        return !hasCurrent;
-    }
-
-    void MergeSortArrayIterator::operator ++()
-    {
-        if (end()) {
-            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_CURRENT_ELEMENT);
-        }
-        hasCurrent = false;
-        currChunkIndex += 1;
-    }
-
-    Coordinates const& MergeSortArrayIterator::getPosition()
-    {
-        return getChunk().getFirstPosition(false);
-    }
-
-    MergeSortArrayIterator::MergeSortArrayIterator(MergeSortArray& arr, AttributeID id)
-    : array(arr), attr(id), hasCurrent(false), currChunkIndex(1)
-    {
-    }
-
-    ArrayDesc const& MergeSortArray::getArrayDesc() const
-    {
-        return desc;
-    }
-
-    boost::shared_ptr<ConstArrayIterator> MergeSortArray::getConstIterator(AttributeID attr) const
-    {
-        return attributes[attr].iterator;
-    }
-
     MergeSortArray::MergeSortArray(const boost::shared_ptr<Query>& query,
                                    ArrayDesc const& array,
                                    std::vector< boost::shared_ptr<Array> > const& inputArrays,
-                                   boost::shared_ptr<TupleComparator> tcomp, 
-                                   bool local)
-    : desc(array),
+                                   boost::shared_ptr<TupleComparator> tcomp,
+                                   size_t offset,
+                                   shared_ptr<vector<size_t> > const& streamSizes)
+    : SinglePassArray(array),
       currChunkIndex(0),
       comparator(tcomp),
       chunkPos(1),
       chunkSize(array.getDimensions()[0].getChunkInterval()),
-      isLocal(local),
       input(inputArrays),
       streams(inputArrays.size()),
       attributes(array.getAttributes().size())
     {
+        assert(tcomp);
+        assert(streamSizes);
+        assert(streamSizes->size() == streams.size());
         assert(query);
         _query=query;
-        chunkPos[0] = array.getDimensions()[0].getStart();
+        chunkPos[0] = array.getDimensions()[0].getStartMin() + offset;
         size_t nAttrs = attributes.size();
-        for (size_t i = 0; i < nAttrs; i++) {
-           attributes[i].iterator = boost::shared_ptr<MergeSortArrayIterator>(new MergeSortArrayIterator(*this, i));
-        }
-        size_t nInstances = query->getInstancesCount();
+
         for (size_t i = 0, n = streams.size(); i < n; i++) {
             streams[i].inputArrayIterators.resize(nAttrs);
             streams[i].inputChunkIterators.resize(nAttrs);
             streams[i].tuple.resize(nAttrs);
             streams[i].endOfStream = true;
-            streams[i].size = isLocal ? (size_t)-1 : getArrayLength(array.getDimensions()[0], i, nInstances);
+            streams[i].size = (*streamSizes)[i];
+
             if (streams[i].size > 0) {
                 for (size_t j = 0; j < nAttrs; j++) {
                     streams[i].inputArrayIterators[j] = inputArrays[i]->getConstIterator(j);
@@ -142,11 +84,11 @@ inline size_t getArrayLength(DimensionDesc const& dim, size_t instanceId, size_t
         iqsort(&permutation[0], permutation.size(), *this);
     }
 
-    int MergeSortArray::binarySearch(Tuple const& tuple) {
+    int MergeSortArray::binarySearch(PointerRange<const Value> tuple) {
         int l = 0, r = permutation.size();
         while (l < r) {
             int m = (l + r) >> 1;
-            if (comparator->compare(streams[permutation[m]].tuple, tuple) > 0) {
+            if (comparator->compare(&streams[permutation[m]].tuple[0], &tuple[0]) > 0) {
                 l = m + 1;
             } else {
                 r = m;
@@ -172,8 +114,12 @@ inline size_t getArrayLength(DimensionDesc const& dim, size_t instanceId, size_t
                 for (size_t i = 0; i < nAttrs; i++) {
                     Address addr(i, chunkPos);
                     MemChunk& chunk = attributes[i].chunks[chunkIndex % CHUNK_HISTORY_SIZE];
-                    chunk.initialize(this, &desc, addr, desc.getAttributes()[i].getDefaultCompressionMethod());
-                    chunkIterators[i] = chunk.getIterator(query, ChunkIterator::SEQUENTIAL_WRITE|ChunkIterator::NO_EMPTY_CHECK);
+                    chunk.initialize(this, &desc, addr,
+                                     desc.getAttributes()[i].getDefaultCompressionMethod());
+                    chunkIterators[i] =
+                        chunk.getIterator(query,
+                                          ChunkIterator::SEQUENTIAL_WRITE |
+                                          ChunkIterator::NO_EMPTY_CHECK);
                 }
                 chunkPos[0] += chunkSize;
                 currChunkIndex += 1;

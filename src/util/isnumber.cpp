@@ -27,9 +27,8 @@
  * @brief Recognize integers, floating point numbers, and nan in strings.
  */
 
-#include <util/Utility.h>
-
 #include <regex.h>
+#include <string.h>
 #include <sstream>
 #include <stdexcept>
 

@@ -55,6 +55,14 @@ case `./os_detect.sh` in
 	chmod g+wxr -R /var/www/cdash_logs
 	chown www-data:www-data -R /var/www/cdash_logs
 	;;
+    "Ubuntu 14.04")
+	apt-get update
+	apt-get install -y apache2
+	usermod -G www-data -a ${username}
+	mkdir -p /var/www/cdash_logs
+	chmod g+wxr -R /var/www/cdash_logs
+	chown www-data:www-data -R /var/www/cdash_logs
+	;;
     *)
 	echo "Not supported OS"
 	exit 1

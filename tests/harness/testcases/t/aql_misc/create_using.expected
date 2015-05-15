@@ -1,0 +1,85 @@
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+{i} schema
+{0} 'ca_as_d1_1<v:bool> [d1=0:*,128,0]'
+
+{i} schema
+{0} 'ca_as_d1_2<v:bool> [d1=0:*,128,0]'
+
+{i} schema
+{0} 'ca_as_d1_3<v:bool> [d2=0:*,1024,0]'
+
+{i} schema
+{0} 'ca_as_d1_4<v:bool> [d3=0:*,1048576,0]'
+
+{i} schema
+{0} 'ca_as_d2_1<v:bool> [d1=0:*,128,0,d2=0:*,1024,0]'
+
+{i} schema
+{0} 'ca_as_d2_2<v:bool> [d1=0:*,10,0,d2=0:*,1024,0]'
+
+{i} schema
+{0} 'ca_as_d2_3<v:bool> [d2=0:*,1024,0,d3=0:*,1048576,0]'
+
+{i} schema
+{0} 'ca_as_d3_1<v:bool> [d1=0:*,128,0,d2=0:*,1024,0,d3=0:*,1048576,0]'
+
+{i} schema
+{0} 'ca_as_d3_2<v:bool> [d3=0:*,1048576,0,d2=0:*,1024,0,d1=0:*,128,0]'
+
+[An error expected at this place for the query "create array A<v:bool>[i=1:0,?,?]  using M". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_HIGH_SHOULDNT_BE_LESS_LOW. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_HIGH_SHOULDNT_BE_LESS_LOW.]
+
+[An error expected at this place for the query "create array A<v:bool>[i=?:?,0,?]  using M". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_CHUNK_SIZE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_CHUNK_SIZE.]
+
+[An error expected at this place for the query "create array A<v:bool>[i=?:?,?,-1] using M". And it failed with error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_OVERLAP_SIZE. Expected error code = scidb::SCIDB_SE_SYNTAX::SCIDB_LE_INCORRECT_OVERLAP_SIZE.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

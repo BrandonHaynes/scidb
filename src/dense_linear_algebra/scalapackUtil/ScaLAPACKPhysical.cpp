@@ -54,10 +54,8 @@
 #include <dlaScaLA/slaving/pdgesvdSlave.hpp>
 #include <scalapackUtil/reformat.hpp>
 
-
 #include <scalapackUtil/ScaLAPACKPhysical.hpp>
 #include <system/Cluster.h>
-
 
 namespace scidb {
 static const bool DBG = false;
@@ -73,7 +71,7 @@ void checkBlacsInfo(shared_ptr<Query>& query, slpp::int_t ICTXT,
                     slpp::int_t NPROW, slpp::int_t NPCOL, slpp::int_t MYPROW, slpp::int_t MYPCOL,
                     const std::string& callerLabel)
 {
-    size_t nInstances = query->getInstancesCount();
+    const size_t nInstances = query->getInstancesCount();
     slpp::int_t instanceID = query->getInstanceID();
 
     LOG4CXX_DEBUG(logger, "ScaLAPACKPhysical::checkBlacsInfo()"
@@ -182,7 +180,7 @@ void extractArrayToScaLAPACK(boost::shared_ptr<Array>& array, double* dst, slpp:
 {
     // use extractDataToOp() and the reformatToScalapack() operator
     // to reformat the data according to ScaLAPACK requirements.
-    Coordinates coordFirst = getStart(array.get());
+    Coordinates coordFirst = getStartMin(array.get());
     Coordinates coordLast = getEndMax(array.get());
     scidb::ReformatToScalapack pdelsetOp(dst, desc, coordFirst[0], coordFirst[1], nPRow, nPCol, myPRow, myPCol);
 
@@ -250,7 +248,11 @@ shared_ptr<Array> ScaLAPACKPhysical::redistributeOutputArrayForTiming(shared_ptr
     // is filter(val > 1e200), which is my workaround for not having "consume"
 
     // redistribute back to psHashPartitioned
-    shared_ptr<Array>redistOutput= redistribute(outputArray, query, psHashPartitioned);
+    shared_ptr<Array>redistOutput = redistributeToRandomAccess(outputArray, query, psHashPartitioned,
+                                                               ALL_INSTANCE_MASK,
+                                                               shared_ptr<DistributionMapper>(),
+                                                               0,
+                                                               shared_ptr<PartitioningSchemaData>());
     return redistOutput;
 }
 
@@ -312,7 +314,7 @@ shared_ptr<Array> ScaLAPACKPhysical::redistributeInputArray(shared_ptr<Array>& i
 
     shared_ptr<Array> result = inputArray ; // in case no processing needed, the output is the input
 
-    size_t nInstances = query->getInstancesCount();
+    const size_t nInstances = query->getInstancesCount();
     bool requiresRedistribute = true ;  // TODO: when bringup is done, can set this false, but
                                         //       its possible the 1-instance optimization below is already
                                         //       contained inside redistribute, and can be removed from here.
@@ -333,7 +335,7 @@ shared_ptr<Array> ScaLAPACKPhysical::redistributeInputArray(shared_ptr<Array>& i
                 Timing redistTime;
 
                 // do the redistribute
-                result=pullRedistribute(inputArray, query, psScaLAPACK, ALL_INSTANCES_MASK,
+                result=pullRedistribute(inputArray, query, psScaLAPACK, ALL_INSTANCE_MASK,
                                                boost::shared_ptr<DistributionMapper>(), /*shift*/0, schemeData);
                 LOG4CXX_DEBUG(logger, "ScaLAPACKPhysical::redistributeInputArray: redistribute() took " << redistTime.stop() << " via " << callerLabel);
                 LOG4CXX_DEBUG(logger, "ScaLAPACKPhysical::redistributeInputArray:"
@@ -405,7 +407,7 @@ bool ScaLAPACKPhysical::doBlacsInit(std::vector< shared_ptr<Array> >& redistInpu
         // As long as the coordinator=0, the condition should be true.
         // XXX TODO: fix it for any coordinator,
         // BUT we are not using OPENMPI (now anyway) !
-        // assert(query->getCoordinatorID() != COORDINATOR_INSTANCE);
+        // assert(!query->isCoordinator());
         LOG4CXX_DEBUG(logger, "ScaLAPACKPhysical::doBlacsInit():"
                                    << " via " << callerLabel
                                    << " instID " << instanceID << "not in grid, returning false, fake BLACS not initialized.");

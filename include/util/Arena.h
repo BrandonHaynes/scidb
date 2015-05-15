@@ -31,7 +31,6 @@
 #include <boost/make_shared.hpp>                         // For shared_ptr
 #include <boost/type_traits.hpp>                         // For has_trivial...
 #include <util/Utility.h>                                // For stackonly
-#include <util/Platform.h>                               // For SCIDB_NORETURN
 
 /****************************************************************************/
 namespace scidb { namespace arena {
@@ -54,15 +53,32 @@ class Checkpoint;                                        // An arena checkpoint
 
 typedef char const*           name_t;                    // An arena name
 typedef char                  byte_t;                    // A byte of memory
-typedef size_t                count_t;                   // A 1d array length
+typedef size_t                count_t;                   // A 1D array length
 typedef unsigned              features_t;                // A feature bitfield
+typedef double                alignment_t;               // Aligned for doubles
 typedef void                (*finalizer_t)(void*);       // A finalizer callback
 typedef shared_ptr<Arena>     ArenaPtr;                  // A tracking pointer
 
 /****************************************************************************/
 
+enum finalization
+{
+    automatic,           ///< Register a finalizer for the arena to call later
+    manual               ///< Omit registration; caller will finalize manually
+};
+
+enum
+{
+    finalizing = 1,      ///< Supports automatic invocation of finalizers
+    recycling  = 2,      ///< Supports eager recycling of memory allocations
+    resetting  = 4,      ///< Supports deferred recycling of memory allocations
+    debugging  = 8,      ///< Pads allocations with guards and checks for leaks
+    threading  = 16      ///< Synchronizes access from across multiple threads
+};
+
+/****************************************************************************/
+
 const size_t                  unlimited = ~0 >> 4;       // Maximum allocation
-const size_t                  alignment = sizeof(double);// Payload alignment
 const finalizer_t             allocated = finalizer_t(1);// Special finalizer
 
 /****************************************************************************/
@@ -74,9 +90,10 @@ ArenaPtr                      newArena(Options);         // Adds a new branch
 
 template<class t> finalizer_t finalizer();               // Gives &finalize<t>
 template<class t> void        finalize (void*);          // Calls t::~t()
-template<class t> t*          newScalar(Arena&/*...*/);  // Creates a scalar
-template<class t> t*          newVector(Arena&,count_t); // Creates a vector
-template<class t> void        destroy  (Arena&,const t*,count_t = unlimited);
+template<class t> t*          newScalar(Arena& /*...*/,finalization = automatic);
+template<class t> t*          newVector(Arena&,count_t,finalization = automatic);
+template<class t> void        destroy  (Arena&,const t*);// Destroy (automatic)
+template<class t> void        destroy  (Arena&,const t*,count_t);// (manual)
 
 /****************************************************************************/
 
@@ -86,17 +103,6 @@ std::ostream&                 operator<<(std::ostream&,const Allocated&);
 std::ostream&                 operator<<(std::ostream&,const Exhausted&);
 
 /****************************************************************************/
-
-enum
-{
-    finalizing = 1,      ///< Supports automatic invocation of finalizers.
-    recycling  = 2,      ///< Supports eager recycling of memory allocations.
-    resetting  = 4,      ///< Supports deferred recycling of memory allocations.
-    debugging  = 8,      ///< Pads allocations with guards and checks for leaks.
-    locking    = 16      ///< Synchronizes access from across multiple threads.
-};
-
-/****************************************************************************/
 /**
  *  @brief      Represents an abstract memory allocator.
  *
@@ -104,7 +110,7 @@ enum
  *              allocators.  The interface is designed to support the needs of
  *              both operator new() and the standard library containers, while
  *              still allowing for  a variety of interesting memory allocation
- *              strategies to  be implemented by subclasses that can be chosen
+ *              strategies to be implemented via subclasses that can be chosen
  *              from amongst at runtime, and that include support for:
  *
  *              - memory limiting
@@ -114,46 +120,46 @@ enum
  *              - debugging support, with leak detection and memory painting
  *
  *              Arenas come in a number of 'flavours' according to the various
- *              features they choose to support:
+ *              combinations of features they choose to support:
  *
  *              - @b finalizing:  the caller can register a finalizer with the
  *              allocation - that is, a (pointer to a) function (usually a C++
- *              destructor, though it does not have to be) that the Arena will
+ *              destructor, though it doesn't have to be) that the %arena will
  *              automatically apply to the allocation when it's later returned
- *              with a call to destroy(), or when the Arena is later reset:
+ *              with a call to destroy(), or when the %arena is later reset:
  *  @code
  *                  p = new(arena,finalizer<X>()) X(...);// Register finalizer
  *                  ...
  *                  destroy(arena,p);                    // Also finalizes 'p'
  *  @endcode
- *              - @b recycling: the Arena implements the recycle() / destroy()
+ *              - @b recycling: the %arena implements the recycle() / destroy()
  *              member functions to eagerly recover the storage being returned
  *              and make it available for reuse in subsequent allocations. All
  *              finalizing arenas implement destroy() to invoke the registered
  *              finalizer, of course, but non-recycling arenas stop there, and
- *              instead defer the recycling of memory until the Arena is later
+ *              instead defer the recycling of memory until the arena is later
  *              reset.
  *
- *              - @b resetting:  the Arena puts allocations on a list and then
+ *              - @b resetting: the %arena puts allocations on a list and then
  *              recycles them en masse when reset() is called. This represents
  *              a simple minded form of garbage collection, and, in conjuction
  *              with using the stack to control the lifetime of arenas, yields
  *              a form of region-based memory allocation that can usually out-
  *              perform the default system allocator.
  *
- *              - @b limiting: the Arena is constructed with an upper limit on
+ *              - @b limited: the %arena is constructed with an upper limit on
  *              the total memory it can allocate before throwing an exception,
  *              and can report at any time on how much memory it has allocated
  *              and how much remains available for allocation.
  *
- *              - @b locking:  the Arena can synchronize access from more than
- *              one thread at the same time, perhaps because it embeds a mutex,
- *              for example.
- *
- *              - @b debugging:  the Arena adds guard areas to each allocation
- *              it performs,  validates their integrity when the allocation is
+ *              - @b debugging: the %arena adds guard areas to each allocation
+ *              it hands out, validates their integrity when the allocation is
  *              later returned, and maintains a list of live allocations which
  *              it uses to track and dump memory leaks.
+ *
+ *              - @b threading: the %arena synchronizes concurrent access from
+ *              across multiple threads, perhaps by incorporating a mutex, for
+ *              example.
  *
  *              Arenas must support either recycling or resetting - to support
  *              neither would be to leak memory; supporting both is also quite
@@ -166,15 +172,14 @@ enum
  *  @see        Class Exhausted for more on recovering from an out-of-memory
  *              exception.
  *
- *  @see        Class Options and function newArena() for more on how to create
- *              an Arena.
+ *  @see        Class Options and function newArena() for more on creating an
+ *              %arena.
  *
- *  @see        Namespace managed for specializations  of many of the standard
- *              library containers that allocate their internal memory from an
- *              abstract Arena.
+ *  @see        The managed namespace for specialized versions of the standard
+ *              library containers that work well with arenas.
  *
  *  @see        http://trac.scidb.net/wiki/Development/OperatorMemoryManagement
- *              for more on the design and use of the SciDB arena library.
+ *              for more on the design and use of the %SciDB %arena library.
  *
  *  @author     jbell@paradigm4.com.
  */
@@ -185,11 +190,14 @@ class Arena : noncopyable
     virtual ArenaPtr          parent()                   const;
     virtual size_t            available()                const;
     virtual size_t            allocated()                const;
-    virtual size_t            peakUsage()                const;
+    virtual size_t            peakusage()                const;
     virtual size_t            allocations()              const;
-    virtual bool              supports(features_t)       const;
+    virtual features_t        features()                 const;
     virtual void              checkpoint(name_t = "")    const;
     virtual void              insert(std::ostream&)      const;
+
+ public:                   // Utilities
+            bool              supports(features_t)       const;
 
  public:                   // Operations
     virtual void*             allocate(size_t);
@@ -210,7 +218,7 @@ class Arena : noncopyable
 
  public:                   // Implementation
     virtual void*             doMalloc(size_t)           = 0;
-    virtual size_t            doFree  (void*,size_t)     = 0;
+    virtual void              doFree  (void*,size_t)     = 0;
 
  protected:                // Implementation
             void              overflowed()               const SCIDB_NORETURN;
@@ -219,12 +227,12 @@ class Arena : noncopyable
 };
 
 /**
- *  @brief      Adapts an Arena to support the standard allocator interface.
+ *  @brief      Adapts an %arena to support the standard allocator interface.
  *
  *  @details    Class Allocator<t>  models the concept of a standard allocator
- *              by delegating to an abstract Arena,  enabling standard library
+ *              by delegating to an abstract %arena, enabling standard library
  *              containers such as std::vector, std::list, std::string, and so
- *              on, to allocate their internal storage from off the Arena.
+ *              on, to allocate their internal storage from off the %arena.
  *
  *  @see        http://www.cplusplus.com/reference/memory/allocator for more
  *              on the standard allocator interface.
@@ -306,15 +314,15 @@ struct Allocator<void>
  *
  *  @details    Class Allocated provides a common base class for those classes
  *              with non-trivial destructors that are to be allocated from off
- *              an Arena. Its virtual destructor is an example of  a finalizer
+ *              an %arena. Its virtual destructor is an example of a finalizer
  *              function for Allocated objects,  but is 'special' in the sense
- *              that its address is *known* to the arena library and so can be
+ *              that its address is 'known' to the implementation, thus can be
  *              represented particularly efficiently; by comparison, a 'custom
  *              finalizer'- i.e. an arbitrary function of type void(*)(void) -
  *              requires an additional pointer to be saved within an allocated
  *              block.
  *
- *              The class overloads the new operator to make arena allocations
+ *              The class overloads the new operator to make %arena allocation
  *              more convenient:
  *  @code
  *                  struct Foo : arena::Allocated { ... };
@@ -325,11 +333,11 @@ struct Allocator<void>
  *              pointer 'p' cannot and must not be deleted, or Bad Things Will
  *              Happen. Instead, we call the destroy() function:
  *  @code
- *               // delete p;                       // wrong!
- *                  destroy(arena,p);               // right
+ *               // delete p;                       // Wrong!
+ *                  destroy(arena,p);               // Right
  *  @endcode
  *              Do not let the overloaded 'operator delete(void*,Arena&)' fool
- *              you:  the language simply provides no mechanism whatsoever for
+ *              you:  the language provides simply no mechanism whatsoever for
  *              this to be invoked with a delete expression; rather, it exists
  *              to free memory in the event that the object under construction
  *              throws an exception from out of its constructor.
@@ -339,16 +347,16 @@ struct Allocator<void>
  *              operator (see article below for the gory details). Instead, we
  *              have the function newVector() for this purpose:
  *  @code
- *                  Foo* p = newVector(arena,78);   // allocate off arena
+ *                  Foo* p = newVector(arena,78);   // Allocate from arena
  *                      ...
- *                  destroy(arena,p);               // return to the arena
+ *                  destroy(arena,p);               // Return to the arena
  *  @endcode
  *              and, as always, we call destroy() to dispose of the result.
  *
  *              The remaining overloads exist merely to enable class Allocated
  *              and its descendants to still work with the global operator new
  *              as before: in other words, Allocated objects do not Have to be
- *              allocated off an Arena, they merely make doing so convenient.
+ *              allocated off an %arena, they merely make doing so convenient.
  *
  *  @see        http://www.gotw.ca/publications/mill16.htm more on overloading
  *              the new and delete operators.
@@ -381,18 +389,18 @@ class Allocated
 };
 
 /**
- *  @brief      A union of the various possible Arena construction arguments.
+ *  @brief      A union of the various possible %arena construction arguments.
  *
  *  @details    Class Options provides a sort of union of the many options and
- *              arguments with which an Arena can be constructed.  It uses the
+ *              arguments with which an %arena can be constructed. It uses the
  *              'named parameter idiom' to enable these options to be supplied
  *              by name in any convenient order. For example:
  *  @code
- *                  newArena(Options("A1").locking(true));
+ *                  newArena(Options("A").threading(true));
  *  @endcode
- *              creates an Arena named "A1" that also supports synchronization
+ *              creates an %arena named "A" that also supports synchronization
  *              across multiple threads. In addition, collecting these options
- *              up into a structure allows the Arena factory functions such as
+ *              up into a structure allows the arena factory functions such as
  *              newArena() to thread them down through the decorator chain and
  *              inheritance graph.
  *
@@ -407,27 +415,27 @@ class Options
                               Options(name_t n = "");
 
  public:                   // Attributes
-            name_t            name()               const                       {return _name;}       ///< The name of the Arena as it appears in a resource monitor report.
-            size_t            limit()              const                       {return _limit;}      ///< An upper limit on the memory this Arena can allocate before throwing an Exhausted exception.
+            name_t            name()               const                       {return _name;}       ///< The name of the %arena as it appears in a resource monitor report.
+            size_t            limit()              const                       {return _limit;}      ///< An upper limit on the memory this %arena can allocate before throwing an Exhausted exception.
             size_t            pagesize()           const                       {return _psize;}      ///< The size of a memory page, for those arenas that allocate memory one fixed size page at a time.
-            ArenaPtr          parent()             const                       {return _parent;}     ///< Specifies the next Arena in the parent chain.
+            ArenaPtr          parent()             const                       {return _parent;}     ///< Specifies the next %arena in the parent chain.
             bool              finalizing()         const                       {return _finalizing;} ///< Request support for automatic invocation of finalizers.
             bool              recycling()          const                       {return _recycling;}  ///< Request support for eager recycling of allocations.
             bool              resetting()          const                       {return _resetting;}  ///< Request support for deferred recycling of allocations.
             bool              debugging()          const                       {return _debugging;}  ///< Request surrounding allocations with guards and checking for leaks.
-            bool              locking()            const                       {return _locking;}    ///< Request support for concurrent access from multiple threads.
-            features_t        features()           const                       {return _finalizing|_recycling|_resetting|_debugging|_locking;}
+            bool              threading()          const                       {return _threading;}  ///< Request support for concurrent access from multiple threads.
+            features_t        features()           const                       {return _finalizing | _recycling | _resetting | _debugging | _threading;}
 
  public:                   // Operations
             Options&          name      (name_t n)                             {_name       = n;assert(consistent());return *this;}
             Options&          limit     (size_t l)                             {_limit      = l;assert(consistent());return *this;}
             Options&          pagesize  (size_t s)                             {_psize      = s;assert(consistent());return *this;}
             Options&          parent    (ArenaPtr p)                           {_parent     = p;assert(consistent());return *this;}
-            Options&          finalizing(bool f)                               {_finalizing = f;assert(consistent());return *this;}
-            Options&          recycling (bool r)                               {_recycling  = r;assert(consistent());return *this;}
-            Options&          resetting (bool r)                               {_resetting  = r;assert(consistent());return *this;}
-            Options&          debugging (bool d)                               {_debugging  = d;assert(consistent());return *this;}
-            Options&          locking   (bool l)                               {_locking    = l;assert(consistent());return *this;}
+            Options&          finalizing(bool b)                               {_finalizing = b;assert(consistent());return *this;}
+            Options&          recycling (bool b)                               {_recycling  = b;assert(consistent());return *this;}
+            Options&          resetting (bool b)                               {_resetting  = b;assert(consistent());return *this;}
+            Options&          debugging (bool b)                               {_debugging  = b;assert(consistent());return *this;}
+            Options&          threading (bool b)                               {_threading  = b;assert(consistent());return *this;}
 
  private:                  // Implementation
             bool              consistent()         const;
@@ -441,18 +449,18 @@ class Options
             unsigned          _recycling  : 1;           // Supports recycling
             unsigned          _resetting  : 1;           // Supports resetting
             unsigned          _debugging  : 1;           // Supports debugging
-            unsigned          _locking    : 1;           // Supports locking
+            unsigned          _threading  : 1;           // Supports threading
 };
 
 /**
- *  @brief      Thrown in the event that an Arena's memory limit is exhausted.
+ *  @brief      Thrown in the event that an arena's memory limit is exhausted.
  *
  *  @details    Class arena::Exhausted specializes the familiar std::bad_alloc
  *              exception to indicate that a request to allocate memory off an
- *              Arena would exceed the Arena's maximum allocation limit and so
+ *              %arena would exceed the arena's maximum allocation limit, thus
  *              has been denied. The exception is potentially recoverable - it
  *              does not indicate that the entire system is out of memory, but
- *              only that the resources managed by This Arena are insufficient
+ *              only that the resources managed by This arena are insufficient
  *              to satisfy the current request.
  *
  *              For example:
@@ -471,10 +479,10 @@ class Exhausted : public std::bad_alloc
 {};
 
 /**
- *  @brief      Checkpoints an Arena with the system resource monitor.
+ *  @brief      Checkpoints an %arena with the system resource monitor.
  *
  *  @details    Class Checkpoint uses the RIIA idiom to ensure that the system
- *              resource monitor is updated with a snapshot of a given Arena's
+ *              resource monitor is updated with a snapshot of a given arena's
  *              allocation statistics both on entry to and exit from the scope
  *              in which the checkpoint was initialized.
  *
@@ -526,9 +534,11 @@ inline void finalize(void* p)
  *
  *  For example:
  *  @code
- *      new(a,finalizer<string>()) string("delete me");  // Allocate a string
+ *      new(a,finalizer<string>()) string("destroy me"); // Allocate a string
  *  @endcode
- *  is the correct way to allocate a value requiring destruction off an Arena.
+ *  is the correct way to allocate a value requiring destruction off an arena.
+ *
+ *  Notice that the utility function newScalar() does precisely this.
  */
 template<class type>
 inline finalizer_t finalizer()
@@ -547,53 +557,66 @@ inline finalizer_t finalizer()
 }
 
 /**
- *  Allocate an object of the given type from off the Arena 'a'.
+ *  Allocate a scalar of the given type from off the %arena 'a'.
+ *
+ *  The scalar should eventually be returned to the %arena 'a'- and *only* the
+ *  %arena 'a'- for destruction by calling 'destroy(a,p)'. For example:
+ *  @code
+ *      string* p = newScalar<string>(a,"destroy me");   // Allocate a string
+ *          ...
+ *      destroy(a,p);                                    // Destroy the string
+ *  @endcode
+ *  allocates and initializes a string object,  then later returns this string
+ *  to the same %arena 'a' to be destroyed and the underlying memory recycled.
  *
  *  The function is available at all arities - well, 8, at any rate - with any
  *  additional arguments being passed on to the constructor for class 'type'.
  *
  *  @param x1,...,xn    Optional arguments to the constructor for class 'type'
  *  (not shown in the synopsis above).
+ *
+ *  @param m            An optional flag to indicate that the normal finalizer
+ *  function should not be registered with the arena, and that the caller will
+ *  instead finalize the allocation manually. This can occasionally save space
+ *  by reducing the per allocation overhead required to keep track of a custom
+ *  finalizer.
  */
 template<class type>
-inline type* newScalar(Arena& a)
+inline type* newScalar(Arena& a,finalization m)
 {
-    return new(a,finalizer<type>()) type();              // Allocate off arena
+    return new(a,m==manual ? 0:finalizer<type>()) type();// Allocate off arena
 }
-
-/** @cond ********************************************************************
- * In the absence of proper compiler support for variadic templates, we create
- * the additional overloads with the help of the preprocessor...*/
-#define SCIDB_NEW_SCALAR(_,i,__)                                               \
-                                                                               \
-template<class type,BOOST_PP_ENUM_PARAMS(i,class X)>                           \
-inline type* newScalar(Arena& a,BOOST_PP_ENUM_BINARY_PARAMS(i,X,const& x))     \
-{                                                                              \
-    return new(a,finalizer<type>()) type(BOOST_PP_ENUM_PARAMS(i,x));           \
-}
-
-BOOST_PP_REPEAT_FROM_TO(1,8,SCIDB_NEW_SCALAR,"")         // Emit the overloads
-#undef SCIDB_NEW_SCALAR                                  // And clean up after
-/** @endcond ****************************************************************/
 
 /**
- *  Allocate an array of 'c' elements of the given type from the Arena 'a' and
+ *  Allocate a vector of 'c' elements of the given type off the %arena 'a' and
  *  default construct each element, guarding against a possible exception that
- *  the constructor might throw. The array should be returned to the Arena 'a'
- *  - and *only* the Arena 'a'- for destruction by calling 'destroy(a,p)'. For
- *  example:
+ *  the constructor might throw.
+ *
+ *  The vector should eventually be returned to the %arena 'a'- and *only* the
+ *  %arena 'a'- for destruction by calling 'destroy(a,p)'. For example:
  *  @code
- *      double* p = newVector<string>(arena,13);         // Allocate a vector
+ *      double* p = newVector<string>(a,7);              // Allocate a vector
  *          ...
- *      destroy(arena,p);                                // Destroy the array
+ *      destroy(a,p);                                    // Destroy the vector
  *  @endcode
- *  allocates and initializes an array of 13 string objects, then returns this
- *  array to the Arena to be destroyed and the underlying memory recycled.
+ *  allocates and initializes a vector of 7 string objects, then later returns
+ *  it to the same %arena to be destroyed and the underlying memory recycled.
+ *
+ *  Optionally one can omit the normal registration of a finalizer function by
+ *  instead taking on the responsibilty of finalization manually:
+ *  @code
+ *      double* p = newVector<string>(a,7,manual);       // Allocate a vector
+ *          ...
+ *      destroy(a,p,7);                                  // Destroy the vector
+ *  @endcode
+ *  This can occasionally save memory by  reducing the per allocation overhead
+ *  required to keep track of a custom finalizer, but requires that the caller
+ *  track the length of the vector, which may not always be convenient to do.
  */
 template<class type>
-type* newVector(Arena& a,count_t c)
+type* newVector(Arena& a,count_t c,finalization m)
 {
-    finalizer_t f = finalizer<type>();                   // Find the finalizer
+    finalizer_t f = m==manual ? 0 : finalizer<type>();   // Find the finalizer
     void* const v = a.allocate(sizeof(type),f,c);        // Allocate the array
     type* const p = static_cast<type*>(v);               // Recast the pointer
 
@@ -616,7 +639,15 @@ type* newVector(Arena& a,count_t c)
         }
         catch (...)                                      // ...the ctor threw
         {
-            destroy(a,p,i);                              // ....undo first i
+            if (f == 0)                                  // ....no finalizer?
+            {
+                a.recycle(p);                            // .....just recycle
+            }
+            else                                         // ....has finalizer
+            {
+                a.destroy(p,i);                          // .....so invoke it
+            }
+
             throw;                                       // ....then rethrow
         }
     }
@@ -625,70 +656,61 @@ type* newVector(Arena& a,count_t c)
 }
 
 /**
- *  Destroy the 'c' element array 'p' that was allocated from the Arena 'a' by
- *  invoking the destructor of each element in order (from last to first), and
- *  then returning the underlying allocation to the Arena for recycling.
+ *  Destroy the object 'p' that was  allocated from the %arena 'a' by invoking
+ *  its registered finalizer function and then returning the underlying memory
+ *  to the %arena for recycling.
  *
- *  The count_t 'c' is only really needed when some, but not all, of the array
- *  elements require finalizing, as might be the case if a constructor were to
- *  throw an exception part-way through initializing the array; in other cases
- *  the default value of 'unlimited' is fine.
- *
- *  This is the preferred way to return an allocation to an Arena, rather than
+ *  This is the preferred way to return an allocation to an arena, rather than
  *  calling recycle() or destroy() directly. The latter *might* work, but some
  *  arenas optimize allocations of simple objects by omitting the block header
  *  and the virtual function Arena::destroy() needs this header to be there in
- *  order to recover the allocation's finalizer.
+ *  order to recover the allocation's finalizer function.
  */
 template<class type>
-inline void destroy(Arena& a,const type* p,count_t c)
+inline void destroy(Arena& a,const type* p)
 {
-    if (type* q = const_cast<type*>(p))                  // Is valid object?
+    if (p != 0)                                          // Is a valid object?
     {
         if (boost::has_trivial_destructor<type>())       // ...no finalizer?
         {
-            a.recycle(q);                                // ....just recycle
+            a.recycle(const_cast<type*>(p));             // ....just recycle
         }
         else                                             // ...has finalizer
         {
-            a.destroy(q,c);                              // ....so invoke it
+            a.destroy(const_cast<type*>(p));             // ....so invoke it
         }
     }
 }
 
 /**
- *  Insert a formatted representation of the Arena 'a' onto the ostream 'o'.
+ *  Destroy the 'c' element vector 'p' that was allocated in the %arena 'a' by
+ *  invoking the destructor of each element in order (from last to first), and
+ *  then returning the underlying allocation to the %arena 'a' for recycling.
+ *
+ *  This utility function assumes the vector 'p' was originally allocated with
+ *  the 'manual' flag specified.
  */
-inline std::ostream& operator<<(std::ostream& o,const Arena& a)
+template<class type>
+inline void destroy(Arena& a,const type* p,count_t c)
 {
-    return o << '{', a.insert(o), o << '}';              // Insert and return
-}
+    if (p != 0)                                          // Is a valid vector?
+    {
+        for (const type* q=p+c-1; q>=p; --q)             // ...for each item
+        {
+            q->~type();                                  // ....call its dtor
+        }
 
-/**
- *  Insert a formatted representation of the Arena allocated object 'a' onto
- *  the ostream 'o'.
- */
-inline std::ostream& operator<<(std::ostream& o,const Allocated& a)
-{
-    return o << '{', a.insert(o), o << '}';              // Insert and return
-}
-
-/**
- *  Insert a formatted representation of the Exhausted exception 'e' onto the
- *  ostream 'o'.
- */
-inline std::ostream& operator<<(std::ostream& o,const Exhausted& e)
-{
-    return o << e.what();                                // Insert and return
+        a.recycle(const_cast<type*>(p));                 // ...and recycle it
+    }
 }
 
 /**
  *  Construct an object of the given type within memory that is allocated from
- *  the Arena 'a', and wrap this new object with a shared_ptr.
+ *  the %arena 'a', and wrap this new object with a shared_ptr.
  *
  *  This function overloads the boost function of the same name so as to allow
- *  it to be called directly with a reference to an Arena,  without the caller
- *  being required to first explicitly wrap the Arena in an Allocator.
+ *  it to be called directly with a reference to an %arena, without the caller
+ *  being required to first explicitly wrap the %arena with an Allocator.
  *
  *  The function is available at all arities - well, 8, at any rate - with any
  *  additional arguments being passed on to the constructor for class 'type'.
@@ -697,6 +719,7 @@ inline std::ostream& operator<<(std::ostream& o,const Exhausted& e)
  *  (not shown in the synopsis above).
  *
  *  @see http://en.cppreference.com/w/cpp/memory/shared_ptr/allocate_shared
+ *
  *  @see http://www.boost.org/doc/libs/1_54_0/libs/smart_ptr/make_shared.html
  */
 template<class type>
@@ -705,36 +728,15 @@ inline shared_ptr<type> allocate_shared(Arena& a)
     return boost::allocate_shared<type>(Allocator<type>(&a));
 }
 
-/** @cond ********************************************************************
- * In the absence of proper compiler support for variadic templates, we create
- * the additional overloads with the help of the preprocessor...*/
-#define SCIDB_ALLOCATE_SHARED(_,i,__)                                          \
-                                                                               \
-template<class type,BOOST_PP_ENUM_PARAMS(i,class X)>                           \
-inline shared_ptr<type>                                                        \
-allocate_shared(Arena& a,BOOST_PP_ENUM_BINARY_PARAMS(i,X,const& x))            \
-{                                                                              \
-    return boost::allocate_shared<type>(Allocator<type>(&a),                   \
-                                        BOOST_PP_ENUM_PARAMS(i,x));            \
-}
-
-BOOST_PP_REPEAT_FROM_TO(1,8,SCIDB_ALLOCATE_SHARED,"")    // Emit the overloads
-#undef SCIDB_ALLOCATE_SHARED                             // And clean up after
-/** @endcond ****************************************************************/
-
-
 /****************************************************************************/
 namespace detail {                                       // For implementation
 /****************************************************************************/
 
-class arena_deleter : private ArenaPtr
+struct deleter : private Allocator<char>
 {
- public:                   // Construction
-                              arena_deleter(const ArenaPtr& a)
-                               : ArenaPtr(a)             {}
-
- public:                   // Operations
-    template<class type>void  operator()(type* p)  const {destroy(*get(),p);}
+                              deleter(Arena* a)
+                               : Allocator<char>(a)      {}
+    template<class t> void    operator()(t* p)     const {destroy(*arena(),p);}
 };
 
 /****************************************************************************/
@@ -744,21 +746,48 @@ class arena_deleter : private ArenaPtr
 /**
  *  Attach a shared_ptr wrapper to the native pointer 'p',  which points at an
  *  object - or graph of objects - that were originally allocated from off the
- *  Arena 'a'.  The resulting shared_ptr drags a strong reference to 'a' along
- *  with it and will return 'p' to this Arena when the reference count finally
- *  falls to zero.
+ *  %arena 'a'. The resulting shared_ptr carries a weak reference to 'a' along
+ *  with it and will return 'p' to the %arena when the reference count finally
+ *  falls to zero.  We assume however that the %arena 'a' outlives the pointer
+ *  'p'.
  *
  *  Useful for adding sharing semantics to a graph of objects after the fact.
  *
  *  Notice the third argument to the shared_ptr constructor, which serves only
  *  to ensure that the header block used to store the reference counting stuff
- *  is also allocated within the Arena 'a'.
+ *  is also allocated within the %arena 'a'.
  */
 template<class type>
-shared_ptr<type> attach_shared(type* p,const ArenaPtr& a)
+shared_ptr<type> attach_shared(Arena& a,type* p)
 {
-    return shared_ptr<type>(p,detail::arena_deleter(a),Allocator<int>(a));
+    return shared_ptr<type>(p,detail::deleter(&a),Allocator<char>(a));
 }
+
+/** @cond ********************************************************************
+ * In the absence of proper compiler support for variadic templates, we create
+ * the additional overloads of the above functions with a little help from the
+ * preprocessor...*/
+
+#define SCIDB_ARENA_OVERLOADS(_,i,__)                                                              \
+                                                                                                   \
+template<class type,BOOST_PP_ENUM_PARAMS(i,class X)>                                               \
+inline type* newScalar(Arena& a,BOOST_PP_ENUM_BINARY_PARAMS(i,X,const& x),finalization m=automatic)\
+{                                                                                                  \
+    return new(a,m==manual ? 0 : finalizer<type>()) type(BOOST_PP_ENUM_PARAMS(i,x));               \
+}                                                                                                  \
+                                                                                                   \
+template<class type,BOOST_PP_ENUM_PARAMS(i,class X)>                                               \
+inline shared_ptr<type>                                                                            \
+allocate_shared(Arena& a,BOOST_PP_ENUM_BINARY_PARAMS(i,X,const& x))                                \
+{                                                                                                  \
+    return boost::allocate_shared<type>(Allocator<type>(&a),                                       \
+                                        BOOST_PP_ENUM_PARAMS(i,x));                                \
+}
+
+BOOST_PP_REPEAT_FROM_TO(1,8,SCIDB_ARENA_OVERLOADS,"")    // Emit the overloads
+#undef SCIDB_ARENA_OVERLOADS                             // And clean up after
+
+/** @endcond ****************************************************************/
 
 /****************************************************************************/
 }}

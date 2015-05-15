@@ -139,8 +139,8 @@ namespace scidb
 
     bool BetweenChunkIterator::setPosition(Coordinates const& pos)
     {
-        if ( _ignoreEmptyCells ) {
-            if ( array._spatialRangesPtr->findOneThatContains(pos, _hintForSpatialRanges) ) {
+        if (_ignoreEmptyCells) {
+            if (array._spatialRangesPtr->findOneThatContains(pos, _hintForSpatialRanges)) {
                 currPos = pos;
                 hasCurrent = true;
                 return true;
@@ -224,7 +224,6 @@ namespace scidb
     : BetweenChunkIterator(chunk, iterationMode),
       _value(TypeLibrary::getType(TID_BOOL))
     {
-        ((DelegateChunk&)chunk).overrideSparse();
     }
 
     //
@@ -258,10 +257,10 @@ namespace scidb
         _spatialRangesChunkPosIteratorPtr = shared_ptr<SpatialRangesChunkPosIterator>(
                 new SpatialRangesChunkPosIterator(array._spatialRangesPtr, array.getArrayDesc()));
         reset();
-	}
+    }
 
-	bool BetweenArrayIterator::end()
-	{
+    bool BetweenArrayIterator::end()
+    {
         return !hasCurrent;
     }
 
@@ -272,30 +271,31 @@ namespace scidb
         return pos;
     }
 
-	bool BetweenArrayIterator::setPosition(Coordinates const& newPos)
-	{
-        assert(array.getArrayDesc().isAChunkPosition(newPos));
+    bool BetweenArrayIterator::setPosition(Coordinates const& newPos)
+    {
+        Coordinates newChunkPos = newPos;
+        array.getArrayDesc().getChunkPositionFor(newChunkPos);
 
-	    if (pos == newPos) {
-	        return hasCurrent;
-	    }
+        if (hasCurrent && pos == newChunkPos) {
+            return true;
+        }
 
         // If cannot set position in the inputIterator, fail.
-        if (! inputIterator->setPosition(newPos)) {
+        if (! inputIterator->setPosition(newChunkPos)) {
             hasCurrent = false;
             return false;
         }
 
         // If the position does not correspond to a chunk intersecting some query range, fail.
-	    if (!array._extendedSpatialRangesPtr->findOneThatContains(newPos, _hintForSpatialRanges)) {
-	        hasCurrent = false;
-	        return false;
-	    }
+        if (!array._extendedSpatialRangesPtr->findOneThatContains(newChunkPos, _hintForSpatialRanges)) {
+            hasCurrent = false;
+            return false;
+        }
 
-	    // Set position there.
-	    hasCurrent = true;
+        // Set position there.
+        hasCurrent = true;
         chunkInitialized = false;
-        pos = newPos;
+        pos = newChunkPos;
         if (_spatialRangesChunkPosIteratorPtr->end() || _spatialRangesChunkPosIteratorPtr->getPosition() > pos) {
             _spatialRangesChunkPosIteratorPtr->reset();
         }
@@ -303,10 +303,10 @@ namespace scidb
         assert(_spatialRangesChunkPosIteratorPtr->getPosition() == pos);
 
         return true;
-	}
+    }
 
-	void BetweenArrayIterator::advanceToNextChunkInRange()
-	{
+    void BetweenArrayIterator::advanceToNextChunkInRange()
+    {
         assert(!inputIterator->end() && !_spatialRangesChunkPosIteratorPtr->end());
 
         hasCurrent = false;
@@ -367,9 +367,9 @@ namespace scidb
                 SCIDB_ASSERT(restored);
             }
         }
-	}
+    }
 
-	void BetweenArrayIterator::operator ++()
+    void BetweenArrayIterator::operator ++()
     {
         assert(!end());
         assert(!inputIterator->end() && hasCurrent && !_spatialRangesChunkPosIteratorPtr->end());
@@ -428,7 +428,7 @@ namespace scidb
     BetweenArray::BetweenArray(ArrayDesc const& array, SpatialRangesPtr const& spatialRangesPtr, boost::shared_ptr<Array> const& input)
     : DelegateArray(array, input), 
       _spatialRangesPtr(spatialRangesPtr)
-	{
+    {
         // Copy _spatialRangesPtr to extendedSpatialRangesPtr, but reducing low by (interval-1) to cover chunkPos.
         _extendedSpatialRangesPtr = make_shared<SpatialRanges>(_spatialRangesPtr->_numDims);
         _extendedSpatialRangesPtr->_ranges.reserve(_spatialRangesPtr->_ranges.size());

@@ -20,8 +20,6 @@
 # END_COPYRIGHT
 #
 #
-# Merge harness report with runN.py report
-
 report_1 = "checkin/Report_1.xml"
 report_2 = "testcases/Report_2.xml"
 merged_report = "testcases/Merged_report.xml"

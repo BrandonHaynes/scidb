@@ -1,0 +1,903 @@
+diff -ruN a/debian/changelog c/debian/changelog
+--- a/debian/changelog	2013-03-29 04:48:19.466506331 -0400
++++ c/debian/changelog	2013-03-30 02:01:33.190504314 -0400
+@@ -1,3 +1,10 @@
++scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2 (1.2.1.1-4) unstable; urgency=low
++
++  * Renamed packages - added prefix scidb-SCIDB_VERSION_MAJOR.VERSION_MINOR
++  * Changed installation path - to /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2
++
++ -- Oleg Tsarev <oleg@oleg.sh>  Fri, 29 Mar 2013 12:43:08 +0900
++
+ mpich2 (1.2.1.1-4) unstable; urgency=low
+ 
+   * Ported from Ubuntu 10.04 to Ubuntu 12.04
+diff -ruN a/debian/control c/debian/control
+--- a/debian/control	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/control	2013-03-30 02:02:11.614505687 -0400
+@@ -1,4 +1,4 @@
+-Source: mpich2
++Source: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2
+ Section: devel
+ Priority: extra
+ Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
+@@ -9,11 +9,10 @@
+ Vcs-Browser: http://git.debian.org/?p=debian-science/packages/mpich2.git;a=summary
+ Vcs-Git: git://git.debian.org/debian-science/packages/mpich2.git
+ 
+-Package: mpich2
++Package: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2
+ Architecture: any
+-Depends: libmpich2-1.2 (= ${binary:Version}), ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}
+-Recommends: libmpich2-dev (= ${binary:Version})
+-Suggests: mpich2-doc (= ${source:Version})
++Depends: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-1.2 (= ${binary:Version}), ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}
++Recommends: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev (= ${binary:Version})
+ Conflicts: mpd
+ Description: Implementation of the MPI Message Passing Interface standard
+  MPICH2 is a high-performance and widely portable implementation of the
+@@ -24,21 +23,7 @@
+  .
+  This package includes the program binaries necessary to run MPICH2 programs.
+ 
+-Package: mpich2-doc
+-Architecture: all
+-Section: doc
+-Depends: ${misc:Depends}
+-Conflicts: lam-mpidoc, lam4-dev, mpi-doc, openmpi-mpidoc, openmpi-doc
+-Description: Documentation for MPICH2
+- MPICH2 is a high-performance and widely portable implementation of the
+- Message Passing Interface (MPI) standard (both MPI-1 and MPI-2). It
+- efficiently supports different computation and communication platforms
+- including commodity clusters, SMPs, massively parallel systems, and
+- high-speed networks.
+- .
+- This package includes the MPICH2 documentation.
+-
+-Package: libmpich2-1.2
++Package: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-1.2
+ Architecture: any
+ Section: libs
+ Depends: ${shlibs:Depends}, ${misc:Depends}
+@@ -51,11 +36,11 @@
+  .
+  This package includes the MPICH2 shared libraries.
+ 
+-Package: libmpich2-dev
++Package: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev
+ Architecture: any
+ Section: libdevel
+-Depends: libmpich2-1.2 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+-Recommends: mpich2 (= ${binary:Version})
++Depends: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-1.2 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
++Recommends: scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2 (= ${binary:Version})
+ Description: Development files for MPICH2
+  MPICH2 is a high-performance and widely portable implementation of the
+  Message Passing Interface (MPI) standard (both MPI-1 and MPI-2). It
+diff -ruN a/debian/libmpe-mpich2-dev.docs c/debian/libmpe-mpich2-dev.docs
+--- a/debian/libmpe-mpich2-dev.docs	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/libmpe-mpich2-dev.docs	1969-12-31 19:00:00.000000000 -0500
+@@ -1,2 +0,0 @@
+-debian/tmp/usr/share/doc/jumpshot-4/usersguide.pdf
+-debian/tmp/usr/share/doc/jumpshot-4/html
+diff -ruN a/debian/libmpe-mpich2-dev.install c/debian/libmpe-mpich2-dev.install
+--- a/debian/libmpe-mpich2-dev.install	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/libmpe-mpich2-dev.install	1969-12-31 19:00:00.000000000 -0500
+@@ -1,17 +0,0 @@
+-etc/mpich2/mpe*
+-usr/include/mpich2/mpe*
+-usr/include/mpich2/clog*
+-usr/share/man/man4
+-usr/lib/*mpe*
+-usr/lib/clog*
+-usr/lib/slog*
+-usr/lib/log*
+-usr/lib/jumpshot*
+-usr/lib/trace*
+-usr/sbin/mpe*
+-usr/bin/slog*
+-usr/bin/mpe*
+-usr/bin/jumpshot
+-usr/bin/log*
+-usr/bin/clog*
+-usr/bin/check_callstack
+diff -ruN a/debian/libmpich2-1.2.install c/debian/libmpich2-1.2.install
+--- a/debian/libmpich2-1.2.install	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/libmpich2-1.2.install	1969-12-31 19:00:00.000000000 -0500
+@@ -1,4 +0,0 @@
+-usr/lib/libmpich.so.1.2
+-usr/lib/libfmpich.so.1.2
+-usr/lib/libmpichcxx.so.1.2
+-usr/lib/libmpichf90.so.1.2
+diff -ruN a/debian/libmpich2-dev.install c/debian/libmpich2-dev.install
+--- a/debian/libmpich2-dev.install	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/libmpich2-dev.install	1969-12-31 19:00:00.000000000 -0500
+@@ -1,14 +0,0 @@
+-etc/mpich2/mpi*.conf
+-usr/bin/mpic++
+-usr/bin/mpicc
+-usr/bin/mpich2version
+-usr/bin/mpicxx
+-usr/bin/mpif77
+-usr/bin/mpif90
+-usr/lib/lib*mpich*.a
+-usr/lib/lib*mpich*.so
+-usr/lib/lib*opa*
+-usr/lib/pkgconfig/mpich2-ch3.pc
+-usr/include/mpich2/opa*
+-usr/include/mpich2/mpi*
+-usr/include/mpich2/primitives/
+diff -ruN a/debian/libmpich2-dev.links c/debian/libmpich2-dev.links
+--- a/debian/libmpich2-dev.links	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/libmpich2-dev.links	1969-12-31 19:00:00.000000000 -0500
+@@ -1,3 +0,0 @@
+-usr/lib/libmpich.so.1.2 usr/lib/libmpich.so
+-usr/lib/libfmpich.so.1.2 usr/lib/libfmpich.so
+-usr/share/man/man1/mpicxx.1.gz /usr/share/man/man1/mpic++.1.gz
+diff -ruN a/debian/libmpich2-dev.manpages c/debian/libmpich2-dev.manpages
+--- a/debian/libmpich2-dev.manpages	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/libmpich2-dev.manpages	1969-12-31 19:00:00.000000000 -0500
+@@ -1,4 +0,0 @@
+-debian/tmp/usr/share/man/man1/mpicc.1
+-debian/tmp/usr/share/man/man1/mpicxx.1
+-debian/tmp/usr/share/man/man1/mpif77.1
+-debian/tmp/usr/share/man/man1/mpif90.1
+diff -ruN a/debian/libmpich2-dev.postinst c/debian/libmpich2-dev.postinst
+--- a/debian/libmpich2-dev.postinst	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/libmpich2-dev.postinst	1969-12-31 19:00:00.000000000 -0500
+@@ -1,37 +0,0 @@
+-#!/bin/sh
+-
+-set -e
+-
+-case "$1" in
+-   configure)
+-      # Continue below
+-      ;;
+-   abort-upgrade|abort-remove|abort-deconfigure)
+-      exit 0;
+-      ;;
+-   *)
+-      echo "postinst called with unknown argument \`$1'" >&2
+-      exit 0;
+-      ;;
+-esac
+-
+-update-alternatives \
+-	--install /usr/include/mpi mpi /usr/include/mpich2 40 \
+-	--slave /usr/lib/libmpi.so libmpi.so /usr/lib/libmpich.so \
+-	--slave /usr/lib/libmpi++.so libmpi++.so /usr/lib/libmpichcxx.so \
+-	--slave /usr/lib/libmpif77.so libmpif77.so /usr/lib/libfmpich.so \
+-	--slave /usr/lib/libmpif90.so libmpif90.so /usr/lib/libmpichf90.so \
+-	--slave /usr/bin/mpicc mpicc /usr/bin/mpicc.mpich2 \
+-	--slave /usr/bin/mpic++ mpic++ /usr/bin/mpic++.mpich2 \
+-	--slave /usr/bin/mpicxx mpicxx /usr/bin/mpicxx.mpich2 \
+-	--slave /usr/bin/mpif77 mpif77 /usr/bin/mpif77.mpich2 \
+-	--slave /usr/bin/mpif90 mpif90 /usr/bin/mpif90.mpich2 \
+-	--slave /usr/share/man/man1/mpicc.1.gz mpicc.1.gz /usr/share/man/man1/mpicc.mpich2.1.gz \
+-	--slave /usr/share/man/man1/mpic++.1.gz mpic++.1.gz /usr/share/man/man1/mpic++.mpich2.1.gz \
+-	--slave /usr/share/man/man1/mpicxx.1.gz mpicxx.1.gz /usr/share/man/man1/mpicxx.mpich2.1.gz \
+-	--slave /usr/share/man/man1/mpif77.1.gz mpif77.1.gz /usr/share/man/man1/mpif77.mpich2.1.gz \
+-	--slave /usr/share/man/man1/mpif90.1.gz mpif90.1.gz /usr/share/man/man1/mpif90.mpich2.1.gz
+-
+-#DEBHELPER#
+-
+-exit 0
+diff -ruN a/debian/libmpich2-dev.prerm c/debian/libmpich2-dev.prerm
+--- a/debian/libmpich2-dev.prerm	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/libmpich2-dev.prerm	1969-12-31 19:00:00.000000000 -0500
+@@ -1,11 +0,0 @@
+-#!/bin/sh
+-
+-set -e
+-
+-if [ "$1" != "upgrade" ]; then
+-	update-alternatives --remove mpi /usr/include/mpich2
+-fi
+-
+-#DEBHELPER#
+-
+-exit 0
+diff -ruN a/debian/man.Attic/clog2_print.1 c/debian/man.Attic/clog2_print.1
+--- a/debian/man.Attic/clog2_print.1	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/man.Attic/clog2_print.1	1969-12-31 19:00:00.000000000 -0500
+@@ -1,16 +0,0 @@
+-.TH clog2_print 1 "21 Mar 2005" "" "MPI"
+-.SH NAME
+-clog2_print \- prints out the contents of a clog file
+-.SH SYNOPSIS
+-.B clog2_print [
+-.I clogfilename 
+-.B ]
+-
+-.SH DESCRIPTION
+-.B clog2_print 
+-dumps the contents of a clog file out to stdout.
+-.SH AUTHOR
+-This manpage has been written by Zach Lowry <zach@zachlowry.net>, modified from
+-the page written by Junichi Uekawa <dancer@debian.org> for Debian GNU/Linux
+-.SH "SEE ALSO"
+-mpicc(1), mpicxx(1), mpif77(1), mpirun(1), "MPICH2 user's guide".
+diff -ruN a/debian/man.Attic/mpd.1 c/debian/man.Attic/mpd.1
+--- a/debian/man.Attic/mpd.1	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/man.Attic/mpd.1	1969-12-31 19:00:00.000000000 -0500
+@@ -1,78 +0,0 @@
+-.\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.36.
+-.TH MPD "1" "September 2009" "mpd" "User Commands"
+-.SH NAME
+-mpd \- manual page for mpd daemon
+-.SH DESCRIPTION
+-usage: mpd [\-\-host=<host> \fB\-\-port=\fR<portnum>] [\-\-noconsole]
+-.IP
+-[\-\-trace] [\-\-echo] [\-\-daemon] [\-\-bulletproof] \fB\-\-ncpus=\fR<ncpus>
+-[\-\-ifhn=<interface\-hostname>] [\-\-listenport=<listenport>]
+-[\-\-pid=<pidfilename>] \fB\-\-tmpdir=\fR<tmpdir>] [\-zc] [\-\-debug]
+-.PP
+-Some long parameter names may be abbreviated to their first letters by using
+-.IP
+-only one hyphen and no equal sign:
+-.IP
+-mpd \fB\-h\fR donner \fB\-p\fR 4268 \fB\-n\fR
+-.IP
+-is equivalent to
+-.IP
+-mpd \fB\-\-host\fR=\fImagpie\fR \fB\-\-port\fR=\fI4268\fR \fB\-\-noconsole\fR
+-.PP
+-\fB\-\-host\fR and \fB\-\-port\fR must be specified together; they tell the new mpd where
+-.TP
+-to enter an existing ring;
+-if they are omitted, the new mpd forms a
+-.IP
+-stand\-alone ring that other mpds may enter later
+-.PP
+-\fB\-\-noconsole\fR is useful for running 2 mpds on the same machine; only one of
+-.IP
+-them will accept mpd commands
+-.PP
+-\fB\-\-trace\fR yields lots of traces thru mpd routines; currently too verbose
+-\fB\-\-debug\fR turns on some debugging prints; currently not verbose enough
+-\fB\-\-echo\fR causes the mpd echo its listener port by which other mpds may connect
+-\fB\-\-daemon\fR causes mpd to run backgrounded, with no controlling tty
+-\fB\-\-bulletproof\fR says to turn bulletproofing on (experimental)
+-\fB\-\-ncpus\fR indicates how many cpus are on the local host; used for starting processes
+-\fB\-\-ifhn\fR specifies an alternate interface hostname for the host this mpd is running on;
+-.IP
+-e.g. may be used to specify the alias for an interface other than default
+-.PP
+-\fB\-\-listenport\fR specifies a port for this mpd to listen on; by default it will
+-.IP
+-acquire one from the system
+-.PP
+-\fB\-\-conlistenport\fR specifies a port for this mpd to listen on for console
+-.IP
+-connections (only used when employing inet socket for console); by default it
+-will acquire one from the system
+-.PP
+-\fB\-\-pid\fR=\fIfilename\fR writes the mpd pid into the specified file, or \fB\-\-pid\fR alone
+-.IP
+-writes it into /var/run/mpd.pid
+-.PP
+-\fB\-\-tmpdir\fR=\fItmpdirname\fR where mpd places temporary sockets, etc.
+-\fB\-zc\fR is a purely EXPERIMENTAL option right now used to investigate zeroconf
+-.IP
+-networking; it can be used to allow mpds to discover each other locally
+-using multicast DNS; its usage may change over time
+-Currently, \fB\-zc\fR is specified like this:  \fB\-zc\fR N
+-where N specifies a 'level' in a startup set of mpds.  The first mpd in a ring
+-must have 1 and it will establish a ring of one mpd.  Subsequent mpds can specify
+-\fB\-zc\fR 2 and will hook into the ring via the one at level 1.  Except for level 1, new
+-mpds enter the ring via an mpd at level\-1.
+-.PP
+-A file named .mpd.conf file must be present in the user's home directory
+-.IP
+-with read and write access only for the user, and must contain at least
+-a line with MPD_SECRETWORD=<secretword>
+-.PP
+-To run mpd as root, install it while root and instead of a .mpd.conf file
+-use mpd.conf (no leading dot) in the /etc directory.'
+-.SH AUTHOR
+-mpd was written by The MPICH2 Team.
+-.PP
+-This manual page was written by Muammar El Khatib <muammarelkhatib@gmail.com>,
+-for the Debian project (but may be used by others).
+diff -ruN a/debian/man.Attic/mpdboot.1 c/debian/man.Attic/mpdboot.1
+--- a/debian/man.Attic/mpdboot.1	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/man.Attic/mpdboot.1	1969-12-31 19:00:00.000000000 -0500
+@@ -1,139 +0,0 @@
+-.\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.36.
+-.TH MPDBOOT: "1" "September 2009" "mpdboot" "User Commands"
+-.SH NAME
+-mpdboot: \- manual page for mpdboot command
+-.SH DESCRIPTION
+-usage:  mpdboot \fB\-\-totalnum=\fR<n_to_start> [\-\-file=<hostsfile>]  [\-\-help] \e
+-.TP
+-[\-\-rsh=<rshcmd>] [\-\-user=<user>] [\-\-mpd=<mpdcmd>]
+-\e
+-.TP
+-[\-\-loccons] [\-\-remcons] [\-\-shell] [\-\-verbose] [\-1]
+-[\-\-ncpus=<ncpus>] [\-\-ifhn=<ifhn>] [\-\-chkup] [\-\-chkuponly]                 [\-\-maxbranch=<maxbranch>]
+-.IP
+-or, in short form,
+-.IP
+-mpdboot \fB\-n\fR n_to_start [\-f <hostsfile>] [\-h] [\-r <rshcmd>] [\-u <user>] \e
+-.TP
+-[\-m <mpdcmd>]
+-\fB\-s\fR \fB\-v\fR [\-1] [\-c]
+-.PP
+-\fB\-\-totalnum\fR specifies the total number of mpds to start; at least
+-.IP
+-one mpd will be started locally, and others on the machines specified
+-by the file argument; by default, only one mpd per host will be
+-started even if the hostname occurs multiple times in the hosts file
+-.PP
+-\fB\-1\fR means remove the restriction of starting only one mpd per machine;
+-.IP
+-in this case, at most the first mpd on a host will have a console
+-.PP
+-\fB\-\-file\fR specifies the file of machines to start the rest of the mpds on;
+-.IP
+-it defaults to mpd.hosts
+-.PP
+-\fB\-\-mpd\fR specifies the full path name of mpd on the remote hosts if it is
+-.IP
+-not in your path
+-.PP
+-\fB\-\-rsh\fR specifies the name of the command used to start remote mpds; it
+-.IP
+-defaults to ssh; an alternative is rsh
+-.PP
+-\fB\-\-shell\fR says that the Bourne shell is your default for rsh'
+-\fB\-\-verbose\fR shows the ssh attempts as they occur; it does not provide
+-.IP
+-confirmation that the sshs were successful
+-.PP
+-\fB\-\-loccons\fR says you do not want a console available on local mpd(s)
+-\fB\-\-remcons\fR says you do not want consoles available on remote mpd(s)
+-\fB\-\-ncpus\fR indicates how many cpus you want to show for the local machine;
+-.IP
+-others are listed in the hosts file
+-.PP
+-\fB\-\-ifhn\fR indicates the interface hostname to use for the local mpd; others
+-.IP
+-may be specified in the hostsfile
+-.PP
+-\fB\-\-chkup\fR requests that mpdboot try to verify that the hosts in the host file
+-.IP
+-are up before attempting start mpds on any of them; it just checks the number
+-of hosts specified by \fB\-n\fR
+-.PP
+-\fB\-\-chkuponly\fR requests that mpdboot try to verify that the hosts in the host file
+-.IP
+-are up; it then terminates; it just checks the number of hosts specified by \fB\-n\fR
+-.PP
+-\fB\-\-maxbranch\fR indicates the maximum number of mpds to enter the ring under another;
+-.IP
+-the default is 4
+-.PP
+-usage:  mpdboot \fB\-\-totalnum=\fR<n_to_start> [\-\-file=<hostsfile>]  [\-\-help] \e
+-.TP
+-[\-\-rsh=<rshcmd>] [\-\-user=<user>] [\-\-mpd=<mpdcmd>]
+-\e
+-.TP
+-[\-\-loccons] [\-\-remcons] [\-\-shell] [\-\-verbose] [\-1]
+-[\-\-ncpus=<ncpus>] [\-\-ifhn=<ifhn>] [\-\-chkup] [\-\-chkuponly]                 [\-\-maxbranch=<maxbranch>]
+-.IP
+-or, in short form,
+-.IP
+-mpdboot \fB\-n\fR n_to_start [\-f <hostsfile>] [\-h] [\-r <rshcmd>] [\-u <user>] \e
+-.TP
+-[\-m <mpdcmd>]
+-\fB\-s\fR \fB\-v\fR [\-1] [\-c]
+-.PP
+-\fB\-\-totalnum\fR specifies the total number of mpds to start; at least
+-.IP
+-one mpd will be started locally, and others on the machines specified
+-by the file argument; by default, only one mpd per host will be
+-started even if the hostname occurs multiple times in the hosts file
+-.PP
+-\fB\-1\fR means remove the restriction of starting only one mpd per machine;
+-.IP
+-in this case, at most the first mpd on a host will have a console
+-.PP
+-\fB\-\-file\fR specifies the file of machines to start the rest of the mpds on;
+-.IP
+-it defaults to mpd.hosts
+-.PP
+-\fB\-\-mpd\fR specifies the full path name of mpd on the remote hosts if it is
+-.IP
+-not in your path
+-.PP
+-\fB\-\-rsh\fR specifies the name of the command used to start remote mpds; it
+-.IP
+-defaults to ssh; an alternative is rsh
+-.PP
+-\fB\-\-shell\fR says that the Bourne shell is your default for rsh'
+-\fB\-\-verbose\fR shows the ssh attempts as they occur; it does not provide
+-.IP
+-confirmation that the sshs were successful
+-.PP
+-\fB\-\-loccons\fR says you do not want a console available on local mpd(s)
+-\fB\-\-remcons\fR says you do not want consoles available on remote mpd(s)
+-\fB\-\-ncpus\fR indicates how many cpus you want to show for the local machine;
+-.IP
+-others are listed in the hosts file
+-.PP
+-\fB\-\-ifhn\fR indicates the interface hostname to use for the local mpd; others
+-.IP
+-may be specified in the hostsfile
+-.PP
+-\fB\-\-chkup\fR requests that mpdboot try to verify that the hosts in the host file
+-.IP
+-are up before attempting start mpds on any of them; it just checks the number
+-of hosts specified by \fB\-n\fR
+-.PP
+-\fB\-\-chkuponly\fR requests that mpdboot try to verify that the hosts in the host file
+-.IP
+-are up; it then terminates; it just checks the number of hosts specified by \fB\-n\fR
+-.PP
+-\fB\-\-maxbranch\fR indicates the maximum number of mpds to enter the ring under another;
+-.IP
+-the default is 4
+-.SH AUTHOR
+-mpdboot was written by The MPICH2 Team.
+-.PP
+-This manual page was written by Muammar El Khatib <muammarelkhatib@gmail.com>,
+-for the Debian project (but may be used by others).
+diff -ruN a/debian/man.Attic/mpdcheck.1 c/debian/man.Attic/mpdcheck.1
+--- a/debian/man.Attic/mpdcheck.1	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/man.Attic/mpdcheck.1	1969-12-31 19:00:00.000000000 -0500
+@@ -1,64 +0,0 @@
+-.\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.36.
+-.TH MPDCHECK "1" "September 2009" "mpdcheck" "User Commands"
+-.SH NAME
+-unrecognized \- manual page for mpdcheck command
+-.SH DESCRIPTION
+-mpdcheck
+-.PP
+-This script is a work in progress and may change frequently as we work
+-with users and gain additional insights into how to improve it.
+-.PP
+-This script prints useful information about the host on which it runs.
+-It is here to help us help users detect problems with configurations of
+-their computers.  For example, some computers are configured to think
+-of themselves simply as 'localhost' with 127.0.0.1 as the IP address.
+-This might present problems if a process on that computer wishes to
+-identify itself by host and port to a process on another computer.
+-The process on the other computer would try to contact 'localhost'.
+-.PP
+-If you are having problems running parallel jobs via mpd on one or more
+-hosts, you might try running this script once on each of those hosts.
+-.PP
+-Any output with *** at the beginning indicates a potential problem
+-that you may have to resolve before being able to run parallel jobs
+-via mpd.
+-.SS "For help:"
+-.IP
+-mpdcheck \fB\-h\fR (or \fB\-\-help\fR)
+-.IP
+-prints this message
+-.PP
+-In the following modes, the \fB\-v\fR (verbose) option provides info about what
+-mpdcheck is doing; the \fB\-l\fR (long messages) option causes long informational
+-messages to print in situations where problems are spotted.
+-.PP
+-The three major modes of operation for this program are:
+-.IP
+-mpdcheck
+-.IP
+-looks for config problems on 'this' host; prints as nec
+-.IP
+-mpdcheck \fB\-pc\fR
+-.IP
+-print config info about 'this' host, e.g. contents of /etc/hosts, etc.
+-.IP
+-mpdcheck \fB\-f\fR some_file [\-ssh]
+-.IP
+-prints info about 'this' host and locatability info about the ones
+-listed in some_file as well (note the file might be mpd.hosts);
+-the \fB\-ssh\fR option can be used in conjunction with the \fB\-f\fR option to
+-cause ssh tests to be run to each remote host
+-.IP
+-mpdcheck \fB\-s\fR
+-.IP
+-runs this program as a server on one host
+-.IP
+-mpdcheck \fB\-c\fR server_host server_port
+-.IP
+-runs a client on another (or same) host; connects to the specifed
+-host/port where you previously started the server
+-.SH AUTHOR
+-mpdcheck was written by The MPICH2 Team.
+-.PP
+-This manual page was written by Muammar El Khatib <muammarelkhatib@gmail.com>,
+-for the Debian project (but may be used by others).
+diff -ruN a/debian/man.Attic/mpich2version.1 c/debian/man.Attic/mpich2version.1
+--- a/debian/man.Attic/mpich2version.1	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/man.Attic/mpich2version.1	1969-12-31 19:00:00.000000000 -0500
+@@ -1,15 +0,0 @@
+-.TH mpich2version 1 "21 Mar 2005" "" "MPI"
+-.SH NAME
+-mpich2version \- prints information about installed version of mpich2
+-.SH SYNOPSIS
+-.B mpich2version
+-
+-.SH DESCRIPTION
+-.B mpich2version
+-Prints version information such as upstream version, configure options, build
+-date, etc. 
+-.SH AUTHOR
+-This manpage has been written by Zach Lowry <zach@zachlowry.net>. Modified from
+-the page written by Adam Powell <hazelsct@debian.org> for Debian GNU/Linux
+-.SH "SEE ALSO"
+-mpirun(1), "MPICH2 user's guide".
+diff -ruN a/debian/man.Attic/mpigdb.1 c/debian/man.Attic/mpigdb.1
+--- a/debian/man.Attic/mpigdb.1	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/man.Attic/mpigdb.1	1969-12-31 19:00:00.000000000 -0500
+@@ -1,17 +0,0 @@
+-.TH mpigdb 1 "21 Mar 2005" "" "mpd cmds"
+-.SH NAME
+-mpigdb \- debug a MPI program using mpd
+-.SH SYNOPSIS
+-.B mpigdb
+-
+-.SH DESCRIPTION
+-.B mpigdb
+-usage:
+-.TP
+-mpigdb -a jobid # to attach to a running job
+-.TP
+-mpigdb -n nprocs pgm [pgmars] # to use gdb on a new job
+-
+-.SH AUTHOR
+-This manpage has been written by Zach Lowry <zach@zachlowry.net>, modified from
+-the page written by Junichi Uekawa <dancer@debian.org> for Debian GNU/Linux
+diff -ruN a/debian/mpich2-doc.docs c/debian/mpich2-doc.docs
+--- a/debian/mpich2-doc.docs	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/mpich2-doc.docs	1969-12-31 19:00:00.000000000 -0500
+@@ -1,6 +0,0 @@
+-RELEASE_NOTES
+-debian/tmp/usr/share/doc/mpich2/user.pdf
+-debian/tmp/usr/share/doc/mpich2/install.pdf
+-debian/tmp/usr/share/doc/mpich2/smpd_pmi.pdf
+-debian/tmp/usr/share/doc/mpich2/logging.pdf
+-debian/tmp/usr/share/doc/mpich2/www*
+diff -ruN a/debian/mpich2-doc.examples c/debian/mpich2-doc.examples
+--- a/debian/mpich2-doc.examples	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/mpich2-doc.examples	1969-12-31 19:00:00.000000000 -0500
+@@ -1,4 +0,0 @@
+-debian/tmp/usr/share/examples_collchk
+-debian/tmp/usr/share/examples_graphics
+-debian/tmp/usr/share/examples_logging
+-debian/tmp/usr/share/logfiles
+diff -ruN a/debian/mpich2-doc.install c/debian/mpich2-doc.install
+--- a/debian/mpich2-doc.install	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/mpich2-doc.install	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-usr/share/man/man3/*
+diff -ruN a/debian/mpich2.install c/debian/mpich2.install
+--- a/debian/mpich2.install	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/mpich2.install	1969-12-31 19:00:00.000000000 -0500
+@@ -1,5 +0,0 @@
+-usr/bin/*py /usr/share/mpich2/
+-usr/bin/mpdroot
+-usr/bin/pmi_proxy
+-usr/bin/mpiexec.gforker
+-usr/bin/mpiexec.hydra
+diff -ruN a/debian/mpich2.manpages c/debian/mpich2.manpages
+--- a/debian/mpich2.manpages	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/mpich2.manpages	1969-12-31 19:00:00.000000000 -0500
+@@ -1,3 +0,0 @@
+-debian/tmp/usr/share/man/man1/MPI.1
+-debian/tmp/usr/share/man/man1/mpiexec.1
+-debian/tmp/usr/share/man/man1/mpd*
+diff -ruN a/debian/mpich2.postinst c/debian/mpich2.postinst
+--- a/debian/mpich2.postinst	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/mpich2.postinst	1969-12-31 19:00:00.000000000 -0500
+@@ -1,40 +0,0 @@
+-#!/bin/sh
+-
+-set -e
+-
+-case "$1" in
+-   configure)
+-      # Continue below
+-      ;;
+-   abort-upgrade|abort-remove|abort-deconfigure)
+-      exit 0;
+-      ;;
+-   *)
+-      echo "postinst called with unknown argument \`$1'" >&2
+-      exit 0;
+-      ;;
+-esac
+-
+-# so, we are running with $1 = configure
+-# mpich2 versions before 1.2.1~rc1-1 were using two alternatives where other
+-# MPI implementations were using only one, which breaks. Clean up
+-# our mess.
+-if [ "$2" != "" ] && dpkg --compare-versions "$2" le "1.2.1~rc1-1"; then
+-    update-alternatives --remove mpiexec /usr/bin/mpiexec.mpich2
+-fi
+-if update-alternatives --list mpiexec > /dev/null 2>&1; then
+-    # OK, that case sucks. Apparently, we still have a mpiexec alternative, maybe
+-    # from a different package (like openmpi). In that case, the only thing we
+-    # can do is --remove-all...
+-    update-alternatives --remove-all mpiexec
+-fi
+-
+-update-alternatives \
+-	--install /usr/bin/mpirun mpirun /usr/bin/mpirun.mpich2 40 \
+-	--slave /usr/share/man/man1/mpirun.1.gz mpirun.1.gz /usr/share/man/man1/mpirun.mpich2.1.gz \
+-	--slave /usr/bin/mpiexec mpiexec /usr/bin/mpiexec.mpich2 \
+-	--slave /usr/share/man/man1/mpiexec.1.gz mpiexec.1.gz /usr/share/man/man1/mpiexec.mpich2.1.gz 
+-
+-#DEBHELPER#
+-
+-exit 0
+diff -ruN a/debian/mpich2.prerm c/debian/mpich2.prerm
+--- a/debian/mpich2.prerm	2013-03-29 04:48:07.000000000 -0400
++++ c/debian/mpich2.prerm	1969-12-31 19:00:00.000000000 -0500
+@@ -1,11 +0,0 @@
+-#!/bin/sh
+-
+-set -e
+-
+-if [ "$1" != "upgrade" ]; then
+-	update-alternatives --remove mpirun /usr/bin/mpirun.mpich2
+-fi
+-
+-#DEBHELPER#
+-
+-exit 0
+diff -ruN a/debian/rules c/debian/rules
+--- a/debian/rules	2013-03-29 04:48:19.466506331 -0400
++++ c/debian/rules	2013-03-30 02:02:34.186505113 -0400
+@@ -12,14 +12,16 @@
+ # Fix Ubuntu 12.04 compile
+ CFLAGS+=-Wno-format-security
+ 
++NAME_PREFIX=scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR
++PREFIX=/opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2
++export LD_LIBRARY_PATH := $(PREFIX)/lib:$(LD_LIBRARY_PATH)
+ DEB_CONFIGURE_EXTRA_FLAGS := \
+ 	--enable-sharedlibs=gcc \
+-	--prefix=/usr \
++	--prefix=$(PREFIX) \
+ 	--enable-f90 \
+-	--sysconfdir=/etc/mpich2 \
+-	--includedir=/usr/include/mpich2 \
+-	--docdir=/usr/share/doc/mpich2
+-
++	--sysconfdir=$(PREFIX)/etc/mpich2 \
++	--includedir=$(PREFIX)/include/mpich2 \
++	--datadir=$(PREFIX)/share
+ # On sparc and sh4, OPA isn't available, so we need to fallback to
+ # emulation mode. There's a performance penalty, unfortunately.
+ ifneq (,$(findstring $(DEB_HOST_GNU_CPU),sparc sh4))
+@@ -28,6 +30,9 @@
+ 
+ DEB_MAKE_CLEAN_TARGET := distclean
+ 
++override_dh_auto_configure:
++	dh_auto_configure -- $(DEB_CONFIGURE_EXTRA_FLAGS)
++
+ clean::
+ 	rm -f src/binding/f90/libmpichf90.la bin/mpic++ bin/parkill src/mpe2/src/slog2sdk/awt_color.jar src/mpe2/src/slog2sdk/share/logfiles/fpilog.clog src/mpe2/src/slog2sdk/share/logfiles/fpilog.slog2
+ 
+@@ -36,36 +41,30 @@
+ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+ common-build-arch common-build-indep:: debian/stamp-makefile-testing
+ debian/stamp-makefile-testing: debian/stamp-makefile-build
+-	bash debian/run-tests.bash
++#	bash debian/run-tests.bash
+ 	touch $@
+ 
+ makefile-clean::
+ 	rm -f debian/stamp-makefile-testing
+ endif
+ 
+-# do some post-installation renamings
+-binary-install/libmpich2-dev::
++binary-install/$(NAME_PREFIX)-libmpich2-dev::
+ 	for i in  mpicc mpicxx mpif77 mpif90; do \
+-	(cd debian/libmpich2-dev/usr/bin/ && mv $$i $$i.mpich2); \
+-	(cd debian/libmpich2-dev/usr/share/man/man1/ && mv $$i.1 $$i.mpich2.1);\
++	(cd debian/$(NAME_PREFIX)-libmpich2-dev/$(PREFIX)/bin/ && mv $$i $$i.mpich2); \
+ 	done
+-	rm -f debian/libmpich2-dev/usr/bin/mpic++ debian/libmpich2-dev/usr/share/man/man1/mpic++.1
+-	dh_link -plibmpich2-dev /usr/bin/mpicxx.mpich2 /usr/bin/mpic++.mpich2
+-	dh_link -plibmpich2-dev /usr/share/man/man1/mpicxx.mpich2.1 /usr/share/man/man1/mpic++.mpich2.1
++	rm -f debian/$(NAME_PREFIX)-libmpich2-dev/$(PREFIX)/bin/mpic++
++	dh_link -p$(NAME_PREFIX)-libmpich2-dev $(PREFIX)/bin/mpicxx.mpich2 $(PREFIX)/bin/mpic++.mpich2
+ 
+-binary-install/mpich2::
+-	dh_pysupport -pmpich2
++binary-install/$(NAME_PREFIX)-mpich2::
++	dh_pysupport -p$(NAME_PREFIX)-mpich2
+ 	for i in mpd mpdallexit mpdboot mpdcheck mpdcleanup mpdexit \
+ 	       	mpdgdbdrv mpdhelp mpdkilljob mpdlistjobs mpdman \
+ 	       	mpdringtest mpdrun mpdsigjob mpdtrace; do \
+-	   dh_link -pmpich2 /usr/share/mpich2/$$i.py /usr/bin/$$i ;\
++	   dh_link -p$(NAME_PREFIX)-mpich2 $(PREFIX)/share/mpich2/$$i.py $(PREFIX)/bin/$$i ;\
+ 	done
+ 	for i in mpiexec mpirun; do \
+-	   dh_link -pmpich2 /usr/share/mpich2/$$i.py /usr/bin/$$i.mpich2 ;\
++	   dh_link -p$(NAME_PREFIX)-mpich2 $(PREFIX)/share/mpich2/$$i.py $(PREFIX)/bin/$$i.mpich2 ;\
+ 	done
+-	mv debian/mpich2/usr/share/man/man1/MPI.1 debian/mpich2/usr/share/man/man1/MPI.mpich2.1
+-	mv debian/mpich2/usr/share/man/man1/mpiexec.1 debian/mpich2/usr/share/man/man1/mpiexec.mpich2.1
+-	dh_link -pmpich2 /usr/share/man/man1/mpiexec.mpich2.1 /usr/share/man/man1/mpirun.mpich2.1
+ 
+ list-missing-mine:
+ 	(cd debian/tmp && find . -type f -exec md5sum {} \+ | grep -v '/DEBIAN/') > debian/tmp-files
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpe-mpich2-dev.install c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpe-mpich2-dev.install
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpe-mpich2-dev.install	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpe-mpich2-dev.install	2013-03-30 02:01:33.190504314 -0400
+@@ -0,0 +1,17 @@
++etc/mpich2/mpe*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/include/mpich2/mpe*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/include/mpich2/clog*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/share/man/man4
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/*mpe*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/clog*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/slog*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/log*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/jumpshot*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/trace*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/sbin/mpe*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/slog*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpe*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/jumpshot
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/log*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/clog*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/check_callstack
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-1.2.install c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-1.2.install
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-1.2.install	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-1.2.install	2013-03-30 02:01:33.190504314 -0400
+@@ -0,0 +1,4 @@
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpich.so.1.2
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libfmpich.so.1.2
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpichcxx.so.1.2
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpichf90.so.1.2
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.install c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.install
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.install	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.install	2013-03-30 02:01:33.190504314 -0400
+@@ -0,0 +1,14 @@
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/etc/mpich2/mpi*.conf
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpic++
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpicc
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpich2version
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpicxx
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpif77
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpif90
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/lib*mpich*.a
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/lib*mpich*.so
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/lib*opa*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/pkgconfig/mpich2-ch3.pc
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/include/mpich2/opa*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/include/mpich2/mpi*
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/include/mpich2/primitives/
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.links c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.links
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.links	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.links	2013-03-30 02:01:33.194504467 -0400
+@@ -0,0 +1,3 @@
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpich.so.1.2 opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpich.so
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libfmpich.so.1.2 opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libfmpich.so
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/share/man/man1/mpicxx.1.gz /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/share/man/man1/mpic++.1.gz
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.postinst c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.postinst
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.postinst	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.postinst	2013-03-30 02:01:33.190504314 -0400
+@@ -0,0 +1,32 @@
++#!/bin/sh
++
++set -e
++
++case "$1" in
++   configure)
++      # Continue below
++      ;;
++   abort-upgrade|abort-remove|abort-deconfigure)
++      exit 0;
++      ;;
++   *)
++      echo "postinst called with unknown argument \`$1'" >&2
++      exit 0;
++      ;;
++esac
++
++update-alternatives \
++	--install /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/include/mpi mpi /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/include/mpich2 40 \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpi.so libmpi.so /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpich.so \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpi++.so libmpi++.so /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpichcxx.so \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpif77.so libmpif77.so /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libfmpich.so \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpif90.so libmpif90.so /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/lib/libmpichf90.so \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpicc mpicc /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpicc.mpich2 \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpic++ mpic++ /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpic++.mpich2 \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpicxx mpicxx /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpicxx.mpich2 \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpif77 mpif77 /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpif77.mpich2 \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpif90 mpif90 /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpif90.mpich2
++
++#DEBHELPER#
++
++exit 0
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.prerm c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.prerm
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.prerm	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-libmpich2-dev.prerm	2013-03-30 02:01:33.190504314 -0400
+@@ -0,0 +1,11 @@
++#!/bin/sh
++
++set -e
++
++if [ "$1" != "upgrade" ]; then
++	update-alternatives --remove mpi /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/include/mpich2
++fi
++
++#DEBHELPER#
++
++exit 0
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.install c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.install
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.install	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.install	2013-03-30 02:01:33.190504314 -0400
+@@ -0,0 +1,5 @@
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/*py /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/share/mpich2/
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpdroot
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/pmi_proxy
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpiexec.gforker
++opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpiexec.hydra
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.postinst c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.postinst
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.postinst	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.postinst	2013-03-30 02:01:33.190504314 -0400
+@@ -0,0 +1,38 @@
++#!/bin/sh
++
++set -e
++
++case "$1" in
++   configure)
++      # Continue below
++      ;;
++   abort-upgrade|abort-remove|abort-deconfigure)
++      exit 0;
++      ;;
++   *)
++      echo "postinst called with unknown argument \`$1'" >&2
++      exit 0;
++      ;;
++esac
++
++# so, we are running with $1 = configure
++# mpich2 versions before 1.2.1~rc1-1 were using two alternatives where other
++# MPI implementations were using only one, which breaks. Clean up
++# our mess.
++if [ "$2" != "" ] && dpkg --compare-versions "$2" le "1.2.1~rc1-1"; then
++    update-alternatives --remove mpiexec /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpiexec.mpich2
++fi
++if update-alternatives --list mpiexec > /dev/null 2>&1; then
++    # OK, that case sucks. Apparently, we still have a mpiexec alternative, maybe
++    # from a different package (like openmpi). In that case, the only thing we
++    # can do is --remove-all...
++    update-alternatives --remove-all mpiexec
++fi
++
++update-alternatives \
++	--install /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpirun mpirun /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpirun.mpich2 40 \
++	--slave /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpiexec mpiexec /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpiexec.mpich2
++
++#DEBHELPER#
++
++exit 0
+diff -ruN a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.prerm c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.prerm
+--- a/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.prerm	1969-12-31 19:00:00.000000000 -0500
++++ c/debian/scidb-SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR-mpich2.prerm	2013-03-30 02:01:33.190504314 -0400
+@@ -0,0 +1,11 @@
++#!/bin/sh
++
++set -e
++
++if [ "$1" != "upgrade" ]; then
++	update-alternatives --remove mpirun /opt/scidb/SCIDB_VERSION_MAJOR.SCIDB_VERSION_MINOR/3rdparty/mpich2/bin/mpirun.mpich2
++fi
++
++#DEBHELPER#
++
++exit 0

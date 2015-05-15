@@ -45,9 +45,8 @@ Semaphore::Semaphore()
 {
 	if (sem_init(_sem, 0, 0) == -1)
 	{
-            // XXX TODO: this must be an error
-	    printf("errno=%d\n", errno);
-		assert(false);
+            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SEMAPHORE_ERROR)
+                << "initialize" << ::strerror(errno) << errno;
 	}
 }
 
@@ -55,8 +54,8 @@ Semaphore::~Semaphore()
 {
 	if (sem_destroy(_sem) == -1)
 	{
-        printf("errno=%d\n", errno);
-		assert(false);
+            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SEMAPHORE_ERROR)
+                << "destroy" << ::strerror(errno) << errno;
 	}
 }
 
@@ -67,9 +66,9 @@ void Semaphore::enter()
         if (sem_wait(_sem) == 0)
             return;
     } while (errno == EINTR);
-    // XXX TODO: this must be an error
-    printf("errno=%d\n", errno);
-    assert(false);
+
+    throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SEMAPHORE_ERROR)
+        << "wait" << ::strerror(errno) << errno;
 }
 
 bool Semaphore::enter(ErrorChecker& errorChecker)
@@ -96,7 +95,8 @@ bool Semaphore::enter(ErrorChecker& errorChecker)
         }
         if (errno != ETIMEDOUT) {
             assert(false);
-            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_THREAD_SEMAPHORE_ERROR) << errno;
+            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SEMAPHORE_ERROR)
+                << "timedwait" << ::strerror(errno) << errno;
         }
         if (errorChecker && !errorChecker()) {
            return false;
@@ -121,8 +121,8 @@ bool Semaphore::tryEnter()
 	if (errno == EAGAIN)
 		return false;
 
-    printf("errno=%d\n", errno);
-	assert(false);
+        throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SEMAPHORE_ERROR)
+            << "trywait" << ::strerror(errno) << errno;
 
 	return false;	// Shutdown warning
 }

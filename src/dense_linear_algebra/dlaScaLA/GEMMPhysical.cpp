@@ -42,7 +42,7 @@
 #include <mpi/MPISlaveProxy.h>
 #include <mpi/MPILauncher.h>
 #include <mpi/MPIManager.h>
-#include <query/Network.h>
+#include <util/Network.h>
 #include <query/Query.h>
 #include <system/BlockCyclic.h>
 #include <system/Cluster.h>
@@ -78,7 +78,8 @@ using namespace boost;
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.libdense_linear_algebra.ops.gemm"));
 
-static const bool DBG = false;
+static const bool DBG_CERR = false;
+static const bool DBG_REFORMAT = false;
 
 /**
  *  A Physical multiply operator implemented using ScaLAPACK
@@ -304,9 +305,13 @@ shared_ptr<Array> GEMMPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
     }
 
     // matrix allocations are of local size, not global size
-    slpp::int_t matrixLocalSize[NUM_MATRICES];
+    size_t matrixLocalSize[NUM_MATRICES];
     for(size_t i=0; i < numArray; i++ ) {
-        matrixLocalSize[i]  = LLD[i] * LTD[i] ;
+        matrixLocalSize[i]  = size_t(LLD[i]) * LTD[i] ;
+        LOG4CXX_DEBUG(logger, "GEMMPhysical::invokeMPI(): " 
+                << " LLD[" << i << "] ( " << LLD[i] << " ) x "   
+                << " LTD[" << i << "] ( " << LTD[i] << " ) = "  
+                << " matrixLocalSize[" << i << "] " << matrixLocalSize[i]);
     }
 
     //
@@ -325,6 +330,10 @@ shared_ptr<Array> GEMMPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
     bufElemBytes[BUF_MAT_CC]= sizeof(double) ; bufNumElem[BUF_MAT_CC]= matrixLocalSize[CC]; bufDbgNames[BUF_MAT_CC] = "C" ;
     typedef scidb::SharedMemoryPtr<double> shmSharedPtr_t ;
 
+    for(size_t i=0; i < numArray; i++ ) {
+        LOG4CXX_DEBUG(logger, "GEMMPhysical::invokeMPI(): " 
+                << " bufElemBytes[" << i << "] = " << bufElemBytes[i]);
+    }
     std::vector<MPIPhysical::SMIptr_t> shmIpc = allocateMPISharedMemory(NUM_BUFS, bufElemBytes, bufNumElem, bufDbgNames);
 
     // the following used to determine the PDGEMM() "K" argument just prior to pdgemm,
@@ -385,8 +394,8 @@ shared_ptr<Array> GEMMPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
         inputArrays[mat].reset();
         tmpRedistedInput.reset(); // and drop this array before iterating on the loop to the next repart/redist
 
-        if(DBG) { // that the reformat worked correctly
-            for(int ii=0; ii < matrixLocalSize[mat]; ii++) {
+        if(DBG_REFORMAT) { // that the reformat worked correctly
+            for(size_t ii=0; ii < matrixLocalSize[mat]; ii++) {
                 LOG4CXX_DEBUG(logger, "GEMMPhysical::invokeMPI():"
                                       << " @myPPos("<< MYPROW << "," << MYPCOL << ")"
                                       << " array["<<mat<<"]["<<ii<<"] = " << asDoubles[mat][ii]);
@@ -405,7 +414,7 @@ shared_ptr<Array> GEMMPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
                                                                   << size[CC][C]
                            << " MB,NB:" << MB_NB[AA][R] << "," << MB_NB[AA][C]);
 
-    if(DBG) std::cerr << "GEMMPhysical::invokeMPI(): calling pdgemm to compute" << std:: endl;
+    if(DBG_CERR) std::cerr << "GEMMPhysical::invokeMPI(): calling pdgemm to compute" << std:: endl;
     boost::shared_ptr<MpiSlaveProxy> slave = _ctx->getSlave(_launchId);
 
     slpp::int_t MYPE = query->getInstanceID() ;  // we map 1-to-1 between instanceID and MPI rank
@@ -428,7 +437,7 @@ shared_ptr<Array> GEMMPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
     if(logger->isTraceEnabled()) {
         LOG4CXX_TRACE(logger, "GEMMPhysical::invokeMPI():--------------------------------------");
         LOG4CXX_TRACE(logger, "GEMMPhysical::invokeMPI(): sequential values from 'C' memory");
-        for(int ii=0; ii < matrixLocalSize[CC]; ii++) {
+        for(size_t ii=0; ii < matrixLocalSize[CC]; ii++) {
             LOG4CXX_TRACE(logger, "GEMMPhysical::invokeMPI(): ("<< MYPROW << "," << MYPCOL << ") C["<<ii<<"] = " << asDoubles[CC][ii]);
         }
         LOG4CXX_TRACE(logger, "GEMMPhysical::invokeMPI(): --------------------------------------");
@@ -444,12 +453,12 @@ shared_ptr<Array> GEMMPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
     // by the chunkSize
     //
     Coordinates first(2);
-    first[R] = dimsCC[R].getStart() + MYPROW * MB_NB[CC][R];
-    first[C] = dimsCC[C].getStart() + MYPCOL * MB_NB[CC][C];
+    first[R] = dimsCC[R].getStartMin() + MYPROW * MB_NB[CC][R];
+    first[C] = dimsCC[C].getStartMin() + MYPCOL * MB_NB[CC][C];
 
     Coordinates last(2);
-    last[R] = dimsCC[R].getStart() + size[CC][R] - 1;
-    last[C] = dimsCC[C].getStart() + size[CC][C] - 1;
+    last[R] = dimsCC[R].getStartMin() + size[CC][R] - 1;
+    last[C] = dimsCC[C].getStartMin() + size[CC][C] - 1;
 
     shared_ptr<Array> result;
     // the process grid may be larger than the size of output in chunks... e.g multiplying A(1x100) * B(100x1) -> C(1x1)
@@ -461,7 +470,7 @@ shared_ptr<Array> GEMMPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
         iterDelta[1] = NPCOL * MB_NB[CC][C];
 
         LOG4CXX_DEBUG(logger, "GEMMPhysical::invokeMPI():Creating OpArray from ("<<first[R]<<","<<first[C]<<") to (" << last[R] <<"," <<last[C]<<") delta:"<<iterDelta[R]<<","<<iterDelta[C]);
-        reformatOp_t      pdelgetOp(Cx, DESC[CC], dimsCC[R].getStart(), dimsCC[C].getStart());
+        reformatOp_t      pdelgetOp(Cx, DESC[CC], dimsCC[R].getStartMin(), dimsCC[C].getStartMin());
         result = shared_ptr<Array>(new OpArray<reformatOp_t>(outSchema, resPtrDummy, pdelgetOp,
                                                              first, last, iterDelta, query));
         assert(resultShmIpcIndx == BUF_MAT_CC);

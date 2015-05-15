@@ -34,7 +34,6 @@ for other developers at that time
   * $../configure --with-threads=posix --enable-mpi-threads --disable-dlopen --with-platform=optimized
   * $ make all
   * $ sudo make install
-  * $ export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
   * $ export PATH=/usr/local/bin:$PATH
   * rememmber to put the above two lines in your .bashrc file or equivalent
   * THE LD_LIBRARY_PATH must be set so that CMake will find the correct MPI libraries

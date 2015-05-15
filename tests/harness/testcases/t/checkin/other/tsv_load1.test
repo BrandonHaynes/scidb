@@ -1,0 +1,19 @@
+# Basic unit tests for direct TSV loading.
+
+--setup
+--start-query-logging
+
+# There are about 100 elements, so chunk size 10 means 2.5 chunks per
+# node on a four node dev cluster.
+
+create array elts <No:int32,Unstable:string,Wt:double,Name:string,Sym:string,Melt:double,Boil:double,Density:double,CrustPct:float,YrFound:string,Group:int16,ElecCfg:string null,Ionize_eV:double>[i=0:*,10,0]
+
+# Strip nameline from our test data.
+--shell --command "sed 1d ${TEST_DATA_DIR}/elements.tsv > /tmp/elts.tsv"
+
+--test
+load(elts, '/tmp/elts.tsv', -2, 'tsv')
+
+--cleanup
+--shell --command "rm -f /tmp/elts.tsv /tmp/elts.out"
+remove(elts)

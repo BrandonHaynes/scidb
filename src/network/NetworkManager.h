@@ -55,6 +55,12 @@ namespace scidb
  * this value scidb instance can find itself in system catalog and register itself
  * as online. In other words instance number is a local data part number. Registering
  * instance in system catalog online means pointing where data part with given number is.
+ *
+ * @note As a naming convention, member functions by default interact with logical instances.
+ *       A function that interacts with physical instances should have a name that ends with 'Physical'.
+ *       E.g. send() takes as input a logical instanceID, and sendPhysical() takes as input a physical instanceID.
+ * @note Operator code typically interacts with logical instances.
+ *
  */
 class NetworkManager: public Singleton<NetworkManager>
 {
@@ -69,7 +75,7 @@ class NetworkManager: public Singleton<NetworkManager>
      * phase in a query involving a storing operator. The buffer space
      * used for replication must not be used by any other network
      * activity in the query to guarantee progress. Other multi-phase
-     * algoritms can also use the same mechanism to divide resources
+     * algorithms can also use the same mechanism to divide resources
      * among the phases if desired. mqtNone does not trigger any flow
      * control mechanisms and is the default queue type.
      */
@@ -134,6 +140,7 @@ class NetworkManager: public Singleton<NetworkManager>
     uint64_t _repMessageCount;
     uint64_t _maxRepSendQSize;
     uint64_t _maxRepReceiveQSize;
+    uint64_t _memUsage;
 
     class DefaultMessageDescription : virtual public ClientMessageDescription
     {
@@ -229,7 +236,7 @@ class NetworkManager: public Singleton<NetworkManager>
      */
     void handleControlMessage(const boost::shared_ptr<MessageDesc>& msgDesc);
 
-    void _sendMessage(InstanceID targetInstanceID,
+    void _sendPhysical(InstanceID physicalInstanceID,
                       boost::shared_ptr<MessageDesc>& messageDesc,
                       MessageQueueType flowControlType = mqtNone);
 
@@ -299,11 +306,17 @@ class NetworkManager: public Singleton<NetworkManager>
     void reconnect(InstanceID instanceID);
     void handleShutdown();
     uint64_t _getAvailable(MessageQueueType mqt);
-    void _broadcast(shared_ptr<MessageDesc>& messageDesc);
+    void _broadcastPhysical(shared_ptr<MessageDesc>& messageDesc);
 
 public:
     NetworkManager();
     ~NetworkManager();
+
+    uint64_t getUsedMemSize() const
+    {
+        // not synchronized, relying on 8byte atomic load
+        return _memUsage;
+    }
 
     /**
      * Request information about instances from system catalog.
@@ -317,27 +330,28 @@ public:
     }
 
     /**
-     *  This method send asynchronous message to instance with given target instance number.
-     *  @param targetInstanceID is a instance number for sending message to.
+     *  This method send asynchronous message to a physical instance.
+     *  @param physicalInstanceID is a instance number for sending message to.
      *  @param MessageDesc contains Google Protocol Buffer message and octet data.
      *  @param mqt the queue to use for this message
      *  @package waitSent waits when until message is sent then return
      */
-    void sendMessage(InstanceID targetInstanceID, boost::shared_ptr<MessageDesc>& messageDesc,
+    void sendPhysical(InstanceID physicalInstanceID, boost::shared_ptr<MessageDesc>& messageDesc,
                      MessageQueueType mqt = mqtNone);
 
     /**
-     *  This method sends out asynchronous message to every instance except this instance (using per-query instance ID maps)
+     *  This method sends out an asynchronous message to every logical instance except this instance (using per-query instance ID maps)
      *  @param MessageDesc contains Google Protocol Buffer message and octet data.
      *  @param waitSent waits when until message is sent then return
      */
-    void sendOutMessage(boost::shared_ptr<MessageDesc>& messageDesc);
+    void broadcastLogical(boost::shared_ptr<MessageDesc>& messageDesc);
 
     /**
      *  This method sends out asynchronous message to every physical instance except this instance
      *  @param MessageDesc contains Google Protocol Buffer message and octet data.
+     *
      */
-    void broadcast(boost::shared_ptr<MessageDesc>& messageDesc);
+    void broadcastPhysical(boost::shared_ptr<MessageDesc>& messageDesc);
 
     /// This method handle messages received by connections. Called by Connection class
     void handleMessage(boost::shared_ptr< Connection > connection, const boost::shared_ptr<MessageDesc>& messageDesc);
@@ -443,10 +457,17 @@ public:
     // Network Interface for operators
     void send(InstanceID logicalTargetID, boost::shared_ptr<MessageDesc>& msg);
 
-    // MPI functions
-    void send(InstanceID logicalTargetID, boost::shared_ptr< SharedBuffer> data, boost::shared_ptr<Query> query);
+    /**
+     * Send a message to the local instance (from the local instance)
+     * @throw NetworkManager::OverflowException currently not thrown, but is present for API completeness
+     */
+    void sendLocal(const boost::shared_ptr<Query>& query, boost::shared_ptr<MessageDesc>& messageDesc);
 
-    boost::shared_ptr< SharedBuffer> receive(InstanceID source, boost::shared_ptr<Query> query);
+
+    // MPI-like functions
+    void send(InstanceID logicalTargetID, boost::shared_ptr< SharedBuffer> const& data, boost::shared_ptr<Query> & query);
+
+    boost::shared_ptr< SharedBuffer> receive(InstanceID source, boost::shared_ptr<Query> & query);
 
     static void shutdown() {
        _shutdown = true;

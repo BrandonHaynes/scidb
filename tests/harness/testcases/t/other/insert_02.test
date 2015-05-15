@@ -22,8 +22,8 @@ create array TT <a:string> [x=0:2,4,0,y=0:2,2,0]
 
 --test
 insert(B,A)
-insert(A@1,B)
-insert(A,B)
+insert(scan(A@1,true),B)
+insert(scan(A,true),B)
 insert(B@1,B)
 insert(B@2,A)
 

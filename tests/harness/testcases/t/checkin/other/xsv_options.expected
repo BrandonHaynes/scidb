@@ -1,0 +1,70 @@
+SCIDB QUERY : <CREATE ARRAY gradebook <LName:string,FName:string,Dept:string null,Course:int32,GPA:double null,Remarks:string null>[i=0:*,8,0]>
+Query was executed successfully
+
+SCIDB QUERY : <CREATE ARRAY oddchars <id:int64, s1:string, s2:string, code:int64, s3:string, s4:string>[i=0:*,8,0]>
+Query was executed successfully
+
+Empty strings become nulls (like csv2scidb used to do) (Farnsworth, Kroker)
+SCIDB QUERY : <load(gradebook, '/tmp/xsvopts.tsv', -2, 'csv:t')>
+{i} LName,FName,Dept,Course,GPA,Remarks
+{0} 'Squarepants','Spongebob','CS',101,0.5,'Dolt.'
+{1} 'Starfish','Patrick','CS',101,2.5,null
+{2} 'Leela','Turanga','CS',101,3.8,'Note empty field at EOL on prev line.'
+{3} 'Wong','Amy','CS',101,null,'Null GPA here.'
+{4} 'Zoidberg','John',?42,101,2.75,'Missing dept, code 42.'
+{5} 'Brannigan','Zapp','CS',101,1.1,'Near dolt.'
+{6} 'Rodriguez','Bender',null,101,3,'Null dept and integer GPA.'
+{7} 'Fry','Philip','\'null\'',101,2.7,'Quoted \'null\' dept.'
+{8} 'Crumb','Robert \'Mr. Natural\'','CS',101,2.5,'Single quotes in FName.'
+{9} 'Farnsworth','Hubert',null,412,4,'Empty department string.'
+{10} 'Kroker','Kif','CS',101,null,'Empty GPA here.'
+
+Kif's empty grade becomes a zero in TSV-speak...
+SCIDB QUERY : <load(gradebook, '/tmp/xsvopts.psv', -2, 'tsv:p')>
+{i} LName,FName,Dept,Course,GPA,Remarks
+{0} 'Squarepants','Spongebob','CS',101,0.5,'Dolt.'
+{1} 'Starfish','Patrick','CS',101,2.5,''
+{2} 'Leela','Turanga','CS',101,3.8,'Note empty field at EOL on prev line.'
+{3} 'Wong','Amy','CS',101,null,'Null GPA here.'
+{4} 'Zoidberg','John',?42,101,2.75,'Missing dept, code 42.'
+{5} 'Brannigan','Zapp','CS',101,1.1,'Near dolt.'
+{6} 'Rodriguez','Bender',null,101,3,'Null dept and integer GPA.'
+{7} 'Fry','Philip','\'null\'',101,2.7,'Quoted \'null\' dept.'
+{8} 'Crumb','Robert \'Mr. Natural\'','CS',101,2.5,'Single quotes in FName.'
+{9} 'Farnsworth','Hubert','',412,4,'Empty department string.'
+{10} 'Kroker','Kif','CS',101,0,'Empty GPA here.'
+
+...but it's turned to a null in CSV-speak.
+SCIDB QUERY : <load(gradebook, '/tmp/xsvopts.psv', -2, 'csv:p')>
+{i} LName,FName,Dept,Course,GPA,Remarks
+{0} 'Squarepants','Spongebob','CS',101,0.5,'Dolt.'
+{1} 'Starfish','Patrick','CS',101,2.5,null
+{2} 'Leela','Turanga','CS',101,3.8,'Note empty field at EOL on prev line.'
+{3} 'Wong','Amy','CS',101,null,'Null GPA here.'
+{4} 'Zoidberg','John',?42,101,2.75,'Missing dept, code 42.'
+{5} 'Brannigan','Zapp','CS',101,1.1,'Near dolt.'
+{6} 'Rodriguez','Bender',null,101,3,'Null dept and integer GPA.'
+{7} 'Fry','Philip','\'null\'',101,2.7,'Quoted \'null\' dept.'
+{8} 'Crumb','Robert \'Mr. Natural\'','CS',101,2.5,'Single quotes in FName.'
+{9} 'Farnsworth','Hubert',null,412,4,'Empty department string.'
+{10} 'Kroker','Kif','CS',101,null,'Empty GPA here.'
+
+In-field comma causes "Too many fields" warning.
+SCIDB QUERY : <load(oddchars, '/tmp/xsvopts.csv', -2, 'tsv:c')>
+Warning(s) detected during query execution: 
+Too many fields in input at position 51, line 1, column 6 (truncating input records to fit)
+
+{i} id,s1,s2,code,s3,s4
+{0} 1,'Brian','Griffin',1,'"5 Spooner St.',' Quahog RI"'
+{1} 2,'Lois','Griffin*',1,'Quahog','{Utterly charming}'
+{2} 4,'Peter','Griffin',2,'Quahog','[less charming]'
+{3} 8,'Meg','Griffin',2,'(Remulax ®)','[It\'s terrible what they do to Meg...]'
+{4} 16,'Stewie','Griffin',7,'Evil Genius ®','[unbound]'
+{5} 32,'Chris','Griffin',2,'Quahog','[usually not inhumane]'
+
+SCIDB QUERY : <remove(gradebook)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(oddchars)>
+Query was executed successfully
+

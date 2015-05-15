@@ -39,6 +39,9 @@
 #include <iostream>         // For the operator<< and the dump().
 #include <boost/unordered_map.hpp>
 #include <boost/function.hpp>
+#include <util/Singleton.h>
+#include <query/TypeSystem.h>
+#include <array/RLE.h>
 
 namespace scidb {
 

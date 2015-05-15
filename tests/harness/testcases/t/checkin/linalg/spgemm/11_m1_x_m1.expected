@@ -19,33 +19,61 @@ SCIDB QUERY : <store( filter(build(spShape, 1), true), spMul)>
 {0,0} 1
 
 "annihilation"
-SCIDB QUERY : <spgemm(spAdd, spAdd)>
+SCIDB QUERY : <spgemm(spAdd, spAdd, 'rightReplicate=true')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spAdd, spNone)>
+SCIDB QUERY : <spgemm(spAdd, spAdd, 'rightReplicate=false')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spNone, spAdd)>
+SCIDB QUERY : <spgemm(spAdd, spNone, 'rightReplicate=true')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spNone, spNone)>
+SCIDB QUERY : <spgemm(spAdd, spNone, 'rightReplicate=false')>
 {x,y} multiply
 
-"should be: 3, 3, 1
-SCIDB QUERY : <spgemm(spMul, spE)>
+SCIDB QUERY : <spgemm(spNone, spAdd, 'rightReplicate=true')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spAdd, 'rightReplicate=false')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spNone, 'rightReplicate=true')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spNone, 'rightReplicate=false')>
+{x,y} multiply
+
+"next 6 results should be: 3,3, 3,3, 1,1
+SCIDB QUERY : <spgemm(spMul, spE, 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 3
 
-SCIDB QUERY : <spgemm(spE, spMul)>
+SCIDB QUERY : <spgemm(spMul, spE, 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 3
 
-SCIDB QUERY : <spgemm(spMul, spMul)>
+SCIDB QUERY : <spgemm(spE, spMul, 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 3
+
+SCIDB QUERY : <spgemm(spE, spMul, 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 3
+
+SCIDB QUERY : <spgemm(spMul, spMul, 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 1
 
-"should be 9"
-SCIDB QUERY : <spgemm(spE, spE)>
+SCIDB QUERY : <spgemm(spMul, spMul, 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 1
+
+"should be 9,9"
+SCIDB QUERY : <spgemm(spE, spE, 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 9
+
+SCIDB QUERY : <spgemm(spE, spE, 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 9
 
@@ -58,33 +86,61 @@ SCIDB QUERY : <store( filter(build(spShape, 0), true), spMul)>
 {0,0} 0
 
 "annihilation"
-SCIDB QUERY : <spgemm(spAdd, spAdd, 'min.+')>
+SCIDB QUERY : <spgemm(spAdd, spAdd, 'min.+', 'rightReplicate=true')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spAdd, spNone, 'min.+')>
+SCIDB QUERY : <spgemm(spAdd, spAdd, 'min.+', 'rightReplicate=false')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spNone, spAdd, 'min.+')>
+SCIDB QUERY : <spgemm(spAdd, spNone, 'min.+', 'rightReplicate=true')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spNone, spNone, 'min.+')>
+SCIDB QUERY : <spgemm(spAdd, spNone, 'min.+', 'rightReplicate=false')>
 {x,y} multiply
 
-"should be: 3, 3, 0(annihilation)
-SCIDB QUERY : <spgemm(spMul, spE, 'min.+')>
+SCIDB QUERY : <spgemm(spNone, spAdd, 'min.+', 'rightReplicate=true')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spAdd, 'min.+', 'rightReplicate=false')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spNone, 'min.+', 'rightReplicate=true')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spNone, 'min.+', 'rightReplicate=false')>
+{x,y} multiply
+
+"should be: 3,3, 3,3, 0,0(annihilation)
+SCIDB QUERY : <spgemm(spMul, spE, 'min.+', 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 3
 
-SCIDB QUERY : <spgemm(spE, spMul, 'min.+')>
+SCIDB QUERY : <spgemm(spMul, spE, 'min.+', 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 3
 
-SCIDB QUERY : <spgemm(spMul, spMul, 'min.+')>
+SCIDB QUERY : <spgemm(spE, spMul, 'min.+', 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 3
+
+SCIDB QUERY : <spgemm(spE, spMul, 'min.+', 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 3
+
+SCIDB QUERY : <spgemm(spMul, spMul, 'min.+', 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 0
 
-"should be 6"
-SCIDB QUERY : <spgemm(spE, spE, 'min.+')>
+SCIDB QUERY : <spgemm(spMul, spMul, 'min.+', 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 0
+
+"should be 6,6"
+SCIDB QUERY : <spgemm(spE, spE, 'min.+', 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 6
+
+SCIDB QUERY : <spgemm(spE, spE, 'min.+', 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 6
 
@@ -97,33 +153,61 @@ SCIDB QUERY : <store( filter(build(spShape, 0), true), spMul)>
 {0,0} 0
 
 "annihilation"
-SCIDB QUERY : <spgemm(spAdd, spAdd, 'max.+')>
+SCIDB QUERY : <spgemm(spAdd, spAdd, 'max.+', 'rightReplicate=true')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spAdd, spNone, 'max.+')>
+SCIDB QUERY : <spgemm(spAdd, spAdd, 'max.+', 'rightReplicate=false')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spNone, spAdd, 'max.+')>
+SCIDB QUERY : <spgemm(spAdd, spNone, 'max.+', 'rightReplicate=true')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(spNone, spNone, 'max.+')>
+SCIDB QUERY : <spgemm(spAdd, spNone, 'max.+', 'rightReplicate=false')>
 {x,y} multiply
 
-"should be: 3, 3, 0(annihilation)
-SCIDB QUERY : <spgemm(spMul, spE, 'max.+')>
+SCIDB QUERY : <spgemm(spNone, spAdd, 'max.+', 'rightReplicate=true')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spAdd, 'max.+', 'rightReplicate=false')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spNone, 'max.+', 'rightReplicate=true')>
+{x,y} multiply
+
+SCIDB QUERY : <spgemm(spNone, spNone, 'max.+', 'rightReplicate=false')>
+{x,y} multiply
+
+"should be: 3,3, 3,3, 0,0(annihilation)
+SCIDB QUERY : <spgemm(spMul, spE, 'max.+', 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 3
 
-SCIDB QUERY : <spgemm(spE, spMul, 'max.+')>
+SCIDB QUERY : <spgemm(spMul, spE, 'max.+', 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 3
 
-SCIDB QUERY : <spgemm(spMul, spMul, 'max.+')>
+SCIDB QUERY : <spgemm(spE, spMul, 'max.+', 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 3
+
+SCIDB QUERY : <spgemm(spE, spMul, 'max.+', 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 3
+
+SCIDB QUERY : <spgemm(spMul, spMul, 'max.+', 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 0
 
-"should be 6"
-SCIDB QUERY : <spgemm(spE, spE, 'max.+')>
+SCIDB QUERY : <spgemm(spMul, spMul, 'max.+', 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 0
+
+"should be 6,6"
+SCIDB QUERY : <spgemm(spE, spE, 'max.+', 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 6
+
+SCIDB QUERY : <spgemm(spE, spE, 'max.+', 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 6
 

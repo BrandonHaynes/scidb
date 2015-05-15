@@ -102,23 +102,35 @@ message(STATUS "Build type (use -DCMAKE_BUILD_TYPE=[RelWithDebInfo]/Debug/Releas
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo) # Default value for end user who want to install scidb from sources
 endif(NOT CMAKE_BUILD_TYPE)
+#
+# configure DISTRO_NAME_VERSION
+#
+include(LinuxDistroVersion)
+message(STATUS "DISTRO_NAME_VER is " ${DISTRO_NAME_VER})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -pedantic -W -Wextra -Wall -Wno-strict-aliasing -Wno-long-long -Wno-unused-parameter -Wno-variadic-macros -fPIC -D__STDC_FORMAT_MACROS")
+if(${DISTRO_NAME_VER} MATCHES "Ubuntu-14.04")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -pedantic -W -Wextra -Wall -Wno-unused-local-typedefs -Wno-strict-aliasing -Wno-long-long -Wno-unused-parameter -Wno-variadic-macros -fPIC -D__STDC_FORMAT_MACROS")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -pedantic -W -Wextra -Wall -Wno-strict-aliasing -Wno-long-long -Wno-unused-parameter -Wno-variadic-macros -fPIC -D__STDC_FORMAT_MACROS")
+endif()
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-system-headers -isystem /opt/local/include/ -isystem /usr/local/include/")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_LIMIT_MACROS")
-if ("${CMAKE_GENERATOR}" STREQUAL "Xcode")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPROJECT_ROOT=\\\\\"${CMAKE_SOURCE_DIR}/\\\\\"")
-else ("${CMAKE_GENERATOR}" STREQUAL "Xcode")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPROJECT_ROOT=\\\"${CMAKE_SOURCE_DIR}/\\\"")
-endif ("${CMAKE_GENERATOR}" STREQUAL "Xcode")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPROJECT_ROOT=\\\"${CMAKE_SOURCE_DIR}/\\\"")
 
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG -ggdb3")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-DNDEBUG -O3 -fno-omit-frame-pointer -g -ggdb3")
 set(CMAKE_CXX_FLAGS_PROFILE "-O2 -pg -DNDEBUG")
 set(CMAKE_CXX_FLAGS_CC "-fprofile-arcs -ftest-coverage -g -O0 -DCLEAN_EXIT")
 set(CMAKE_CXX_FLAGS_VALGRIND "-g -O0 -DCLEAN_EXIT")
 
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG -ggdb3")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -W -Wextra -Wall -Wno-long-long -Wno-unused-parameter -fPIC -D__STDC_FORMAT_MACROS")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-DNDEBUG -O3 -fno-omit-frame-pointer -g -ggdb3")
+
+if(${DISTRO_NAME_VER} MATCHES "Ubuntu-14.04")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -W -Wextra -Wall -Wno-unused-local-typedefs -Wno-long-long -Wno-unused-parameter -fPIC -D__STDC_FORMAT_MACROS")
+else()
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -W -Wextra -Wall -Wno-long-long -Wno-unused-parameter -fPIC -D__STDC_FORMAT_MACROS")
+endif()
+
 set(CMAKE_C_FLAGS_PROFILE "-O2 -pg -DNDEBUG")
 set(CMAKE_C_FLAGS_CC "-fprofile-arcs -ftest-coverage -g -O0 -DCLEAN_EXIT")
 set(CMAKE_C_FLAGS_VALGRIND "-g -O0 -DCLEAN_EXIT")
@@ -127,7 +139,7 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fno-f2c -Wline-truncation")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -I/opt/scidb/${SCIDB_VERSION_MAJOR}.${SCIDB_VERSION_MINOR}/3rdparty/mpich2/include/mpi")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -I/opt/scidb/${SCIDB_VERSION_MAJOR}.${SCIDB_VERSION_MINOR}/3rdparty/boost/include/boost")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${ALL_FLAGS}")
-set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_RELWITHDEBINFO} -DNDEBUG -ggdb3")
+set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "-DNDEBUG -O3 -fno-omit-frame-pointer -g -ggdb3")
 set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -DDEBUG")  # Just for detection debug mode in code
 set(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_PROFILE} -O2 -pg -DNDEBUG")
 set(CMAKE_Fortran_FLAGS_CC "${CMAKE_Fortran_FLAGS_CC} -fprofile-arcs -ftest-coverage")
@@ -193,6 +205,8 @@ set(PYTHON_SAMPLE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/pythonexamples")
 #
 # by setting it to "$ORIGIN/../lib:$ORIGIN/../.."
 #
+#   And we use $ORIGIN/../plugins to find plugins from plugins
+#
 # NOTE:
 #  this also allows resolution to ../scidb/<version>.  This will be fixed at a later point.
 #
@@ -216,17 +230,11 @@ set(PYTHON_SAMPLE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/pythonexamples")
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/../../")
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../plugins:$ORIGIN/../lib:$ORIGIN/../../")
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--enable-new-dtags")
 set(CMAKE_EXE_LINKER_FLAGS "-Wl,--enable-new-dtags")
 
 include(FindPkgConfig)
-#
-# configure DISTRO_NAME_VERSION
-#
-include(LinuxDistroVersion)
-message(STATUS "DISTRO_NAME_VER is " ${DISTRO_NAME_VER})
-
 #
 # CENTOS check
 #
@@ -273,30 +281,13 @@ find_package(LibPQ REQUIRED)
 # configure SWIG & PYTHON
 # TODO: configuring of SWIG and PYTHON should be separated as
 #       items should not be grouped by special platform handling
-if (APPLE)
-    FIND_PATH(CPPUNIT_INCLUDE_DIR cppunit/TestCase.h /usr/local/include /usr/include)
-    FIND_LIBRARY(CPPUNIT_LIBRARY cppunit ${CPPUNIT_INCLUDE_DIR}/../lib /usr/local/lib /usr/lib)
-    FIND_LIBRARY(CPPUNIT_DEBUG_LIBRARY cppunit ${CPPUNIT_INCLUDE_DIR}/../lib /usr/local/lib /usr/lib)
-    IF(CPPUNIT_INCLUDE_DIR)
-        IF(CPPUNIT_LIBRARY)
-            SET(CPPUNIT_FOUND "YES")
-            SET(CPPUNIT_LIBRARIES ${CPPUNIT_LIBRARY} ${CMAKE_DL_LIBS})
-            SET(CPPUNIT_DEBUG_LIBRARIES ${CPPUNIT_DEBUG_LIBRARY} ${CMAKE_DL_LIBS})
-        ENDIF()
-    ENDIF()
+pkg_check_modules(CPPUNIT cppunit)
 
-    if (NOT WITHOUT_PYTHON_BINDING)
-        message(FATAL_ERROR "Python binding broken on Mac!")
-    endif()
-else ()
-    pkg_check_modules(CPPUNIT cppunit)
-
-    if (NOT WITHOUT_PYTHON_BINDING)
-        find_package(SWIG2 "2.0")
-        find_package(PythonLibs)
-        if (NOT SWIG2_FOUND OR NOT PYTHONLIBS_FOUND)
-	        message(FATAL_ERROR "SWIG 2 and Python headers required for building Python API bindings. You can set proper SWIG executable with argument -DSWIG_EXECUTABLE=/path/to/swig2.0")
-        endif()
+if (NOT WITHOUT_PYTHON_BINDING)
+    find_package(SWIG2 "2.0")
+    find_package(PythonLibs)
+    if (NOT SWIG2_FOUND OR NOT PYTHONLIBS_FOUND)
+        message(FATAL_ERROR "SWIG 2 and Python headers required for building Python API bindings. You can set proper SWIG executable with argument -DSWIG_EXECUTABLE=/path/to/swig2.0")
     endif()
 endif()
 
@@ -345,7 +336,6 @@ include_directories("${CMAKE_SOURCE_DIR}/include")
 include_directories("${CMAKE_SOURCE_DIR}/utils")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/src")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/utils")
-include_directories("${CMAKE_SOURCE_DIR}/extern/bsdiff")
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIR})
 include_directories(${LOG4CXX_INCLUDE_DIRS})
@@ -371,19 +361,17 @@ set(DEBUG_SYMBOLS_EXTENSION "${DEBUG_SYMBOLS_DIRECTORY}")
 # TODO: should probably factor to a xxxxx.cmake file in scidb
 macro(extractDebugInfo input_dir input_file targ)
     if("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-		if (NOT APPLE)
-	        set(DEBUG_SYMBOLS_OUTPUT_DIRECTORY "${input_dir}/${DEBUG_SYMBOLS_DIRECTORY}")
+        set(DEBUG_SYMBOLS_OUTPUT_DIRECTORY "${input_dir}/${DEBUG_SYMBOLS_DIRECTORY}")
 
-	        file(MAKE_DIRECTORY "${DEBUG_SYMBOLS_OUTPUT_DIRECTORY}")
-	        add_custom_command(TARGET ${targ}
-	            POST_BUILD
-	            COMMAND objcopy --only-keep-debug "${input_dir}/${input_file}" "${DEBUG_SYMBOLS_OUTPUT_DIRECTORY}/${input_file}${DEBUG_SYMBOLS_EXTENSION}"
-	            COMMAND strip --strip-debug --strip-unneeded "${input_dir}/${input_file}"
-	            COMMAND objcopy --add-gnu-debuglink=${DEBUG_SYMBOLS_DIRECTORY}/${input_file}${DEBUG_SYMBOLS_EXTENSION} ${input_dir}/${input_file}
-	            COMMAND chmod -x "${DEBUG_SYMBOLS_OUTPUT_DIRECTORY}/${input_file}${DEBUG_SYMBOLS_EXTENSION}"
-	            WORKING_DIRECTORY "${input_dir}"
-	        )
-		endif()
+        file(MAKE_DIRECTORY "${DEBUG_SYMBOLS_OUTPUT_DIRECTORY}")
+        add_custom_command(TARGET ${targ}
+            POST_BUILD
+            COMMAND objcopy --only-keep-debug "${input_dir}/${input_file}" "${DEBUG_SYMBOLS_OUTPUT_DIRECTORY}/${input_file}${DEBUG_SYMBOLS_EXTENSION}"
+            COMMAND strip --strip-debug --strip-unneeded "${input_dir}/${input_file}"
+            COMMAND objcopy --add-gnu-debuglink=${DEBUG_SYMBOLS_DIRECTORY}/${input_file}${DEBUG_SYMBOLS_EXTENSION} ${input_dir}/${input_file}
+            COMMAND chmod -x "${DEBUG_SYMBOLS_OUTPUT_DIRECTORY}/${input_file}${DEBUG_SYMBOLS_EXTENSION}"
+            WORKING_DIRECTORY "${input_dir}"
+        )
     endif()
 endmacro(extractDebugInfo)
 
@@ -416,7 +404,7 @@ endif()
 # TEST TIMEOUT
 #
 if (NOT HARNESS_TEST_TIMEOUT)
-  set(HARNESS_TEST_TIMEOUT 32000)
+  set(HARNESS_TEST_TIMEOUT 420000)
 endif(NOT HARNESS_TEST_TIMEOUT)
 
 set_tests_properties (NightlyTest PROPERTIES TIMEOUT ${HARNESS_TEST_TIMEOUT})

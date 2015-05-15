@@ -21,12 +21,18 @@ store( filter(build(spRight, 10*row+col), true), spRight)
 
 --test
 # t1
-spgemm(SAleft, SAright)
-spgemm(SAleft, SAright, 'min.+')
-spgemm(SAleft, SAright, 'max.+')
+spgemm(SAleft, SAright, 'rightReplicate=true')
+spgemm(SAleft, SAright, 'rightReplicate=false')
+
+spgemm(SAleft, SAright, 'min.+', 'rightReplicate=true')
+spgemm(SAleft, SAright, 'min.+', 'rightReplicate=false')
+
+spgemm(SAleft, SAright, 'max.+', 'rightReplicate=true')
+spgemm(SAleft, SAright, 'max.+', 'rightReplicate=false')
 
 # t2
-spgemm(spLeft, spRight)
+spgemm(spLeft, spRight, 'rightReplicate=true')
+spgemm(spLeft, spRight, 'rightReplicate=false')
 
 --cleanup
 remove(SAleft)

@@ -47,11 +47,8 @@
 namespace scidb
 {
 
-using namespace std;
-using namespace boost;
-
-typedef vector<pair<Coordinates, Value> > HashBucket;
-typedef unordered_map<Coordinates, HashBucket> ChunkHash;
+typedef std::vector<std::pair<Coordinates, Value> > HashBucket;
+typedef boost::unordered_map<Coordinates, HashBucket> ChunkHash;
 
 class CrossJoinArray;
 class CrossJoinArrayIterator;
@@ -72,8 +69,7 @@ class CrossJoinChunk : public ConstChunk
     void setInputChunk(ConstChunk const* leftChunk, ConstChunk const* rightChunk);
 
     bool isMaterialized() const;
-    bool isSparse() const;
-    virtual Array const& getArray() const; 
+    virtual Array const& getArray() const;
 
     CrossJoinChunk(CrossJoinArray const& array, AttributeID attrID, bool isLeftAttr);
 
@@ -90,7 +86,7 @@ class CrossJoinChunk : public ConstChunk
     bool isEmptyIndicatorAttribute;
     bool isLeftAttribute;
 };
-    
+
 class CrossJoinChunkIterator : public ConstChunkIterator
 {
   public:
@@ -112,7 +108,7 @@ class CrossJoinChunkIterator : public ConstChunkIterator
     CrossJoinArray const& array;
     CrossJoinChunk const& chunk;
     boost::shared_ptr<ConstChunkIterator> leftIterator;
-    Coordinates currentPos; 
+    Coordinates currentPos;
     bool hasCurrent;
     Value boolValue;
 
@@ -135,10 +131,10 @@ class CrossJoinArrayIterator : public ConstArrayIterator
 	 * attribute in the input array.
 	 */
 	CrossJoinArrayIterator(CrossJoinArray const& cross, AttributeID attrID,
-                           shared_ptr<ConstArrayIterator> leftIterator,
-                           shared_ptr<ConstArrayIterator> rightIterator,
-                           shared_ptr<ConstArrayIterator> inputIterator);
-    
+                           boost::shared_ptr<ConstArrayIterator> leftIterator,
+                           boost::shared_ptr<ConstArrayIterator> rightIterator,
+                           boost::shared_ptr<ConstArrayIterator> inputIterator);
+
 	/***
 	 * Get chunk method retrieves the chunk at current position from the input iterator and either
 	 * passes it up intact (if the chunk is completely within the cross window), or carves out
@@ -183,11 +179,11 @@ class CrossJoinArrayIterator : public ConstArrayIterator
   private:
     CrossJoinArray const& array;
 	AttributeID attr;
-    shared_ptr<ConstArrayIterator> leftIterator;
-    shared_ptr<ConstArrayIterator> rightIterator;
-    shared_ptr<ConstArrayIterator> inputIterator;
+    boost::shared_ptr<ConstArrayIterator> leftIterator;
+    boost::shared_ptr<ConstArrayIterator> rightIterator;
+    boost::shared_ptr<ConstArrayIterator> inputIterator;
     CrossJoinChunk chunk;
-	Coordinates currentPos; 
+	Coordinates currentPos;
     bool hasCurrent;
     bool chunkInitialized;
 };
@@ -199,7 +195,11 @@ class CrossJoinArray : public Array
     friend class CrossJoinArrayIterator;
 
   public:
-    CrossJoinArray(ArrayDesc& desc, boost::shared_ptr<Array> left, boost::shared_ptr<Array> right, vector<int> const& leftJoinDims, vector<int> const& rightJoinDims);
+    CrossJoinArray(const ArrayDesc& desc,
+                   const boost::shared_ptr<Array>& left,
+                   const boost::shared_ptr<Array>& right,
+                   std::vector<int> const& leftJoinDims,
+                   std::vector<int> const& rightJoinDims);
 
     virtual const ArrayDesc& getArrayDesc() const;
     virtual boost::shared_ptr<ConstArrayIterator> getConstIterator(AttributeID id) const;
@@ -229,8 +229,8 @@ class CrossJoinArray : public Array
     //Hash key has right coordinates in the order they appear in right array
 
     //for each left coordinate - either 0-based index into hash key OR -1
-    vector<int> leftJoinDims;
-    vector<int> rightJoinDims;
+    std::vector<int> leftJoinDims;
+    std::vector<int> rightJoinDims;
 
     size_t nJoinDims;
 

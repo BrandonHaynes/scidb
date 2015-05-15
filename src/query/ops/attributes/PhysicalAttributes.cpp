@@ -46,7 +46,6 @@ public:
     PhysicalAttributes(const string& logicalName, const string& physicalName, const Parameters& parameters, const ArrayDesc& schema):
         PhysicalOperator(logicalName, physicalName, parameters, schema)
     {
-        _result = boost::shared_ptr<Array>(new TupleArray(_schema, vector< boost::shared_ptr<Tuple> >()));
     }
 
     virtual ArrayDistribution getOutputDistribution(const std::vector<ArrayDistribution> & inputDistributions,
@@ -64,22 +63,27 @@ public:
         SystemCatalog::getInstance()->getArrayDesc(arrayName, arrayDesc);
         Attributes const& attrs = arrayDesc.getAttributes(true);
         
-        vector< boost::shared_ptr<Tuple> > tuples(attrs.size());
+        boost::shared_ptr<TupleArray> tuples(boost::make_shared<TupleArray>(_schema, _arena));
         for (size_t i = 0; i < attrs.size(); i++) { 
-            Tuple& tuple = *new Tuple(3);
-            tuples[i] = boost::shared_ptr<Tuple>(&tuple);
+            Value tuple[3];
             tuple[0].setString(attrs[i].getName().c_str());
             tuple[1] = Value(TypeLibrary::getType(TID_STRING));
             tuple[1].setString(attrs[i].getType().c_str());
             tuple[2] = Value(TypeLibrary::getType(TID_BOOL));
             tuple[2].setBool(attrs[i].isNullable());
+
+            tuples->appendTuple(tuple);
         } 
-        _result = boost::shared_ptr<Array>(new TupleArray(_schema, tuples));
+        _result = tuples;
     }
 
     boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
         assert(inputArrays.size() == 0);
+        if (!_result)
+        {
+            _result = boost::make_shared<MemArray>(_schema, query);
+        }
         return _result;
     }
 

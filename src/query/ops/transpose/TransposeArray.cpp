@@ -19,10 +19,21 @@
 *
 * END_COPYRIGHT
 */
+#include <algorithm>
+#include <vector>
+
 #include "system/Utils.h"
 #include "TransposeArray.h"
 
 using namespace scidb;
+
+class CoordSorter {
+public:
+    CoordSorter(const std::vector<Coordinates>& positions) : _positions(positions) {;}
+    bool operator() (size_t i, size_t j) { return _positions[i] < _positions[j]; }
+private:
+    const std::vector<Coordinates>& _positions;
+};
 
 ConstChunk const& TransposeArray::TransposeArrayIterator::getChunk()
 {
@@ -43,27 +54,61 @@ ConstChunk const& TransposeArray::TransposeArrayIterator::getChunk()
     ConstChunk const& inputChunk = _inputArrayIterator->getChunk();
     shared_ptr<ConstChunkIterator> inputChunkIterator = inputChunk.getConstIterator(ConstChunkIterator::IGNORE_EMPTY_CELLS);
     _outputChunk.initialize(_transposeArray, &_transposeArray->getArrayDesc(), addr, inputChunk.getCompressionMethod());
-    _outputChunk.setRLE(true);
-    _outputChunk.setSparse(inputChunk.isSparse());
     if (_attributeID != _emptyTagID)
     {
         //this ensures that the _outputChunk will have a filled-in empty bitmasksss
         addr.attId = _emptyTagID;
         _emptyTagChunk.initialize(_transposeArray, &_transposeArray->getArrayDesc(), addr, inputChunk.getCompressionMethod());
-        _emptyTagChunk.setRLE(true);
-        _emptyTagChunk.setSparse(inputChunk.isSparse());
         _outputChunk.setBitmapChunk(&_emptyTagChunk);
     }
     shared_ptr<Query> localQueryPtr(Query::getValidQueryPtr(_query));
-    shared_ptr<ChunkIterator> outputChunkIterator = _outputChunk.getIterator(localQueryPtr, 0);
+
+    //
+    // std::sort() is about twice as fast as letting the ch
+    //
+    shared_ptr<ChunkIterator> outputChunkIterator = _outputChunk.getIterator(localQueryPtr, ConstChunkIterator::SEQUENTIAL_WRITE);
+
     //For each value in inputChunk, reorder its coordinates and place it into _outputChunk in the proper order
-    while (!inputChunkIterator->end())
-    {
-        _transposeArray->transposeCoordinates(inputChunkIterator->getPosition(), inPos);
-        outputChunkIterator->setPosition(inPos);
-        outputChunkIterator->writeItem(inputChunkIterator->getItem());
-        ++(*inputChunkIterator);
+    
+    // vectors, with sufficent reservation to hold a copy of the elements
+    std::vector<Coordinates> positions;
+    std::vector<Value> values;
+    size_t nCells = inputChunk.count();
+    positions.reserve(nCells);
+    values.reserve(nCells);
+
+    // get vector of positions and corresponding values
+    Coordinates outPos(inPos.size());
+    for(; !inputChunkIterator->end(); ++(*inputChunkIterator)) {
+        _transposeArray->transposeCoordinates(inputChunkIterator->getPosition(), outPos);
+
+        positions.push_back(outPos);  // always O(1) because of reserve()
+        values.push_back(inputChunkIterator->getItem());
     }
+    assert(positions.size() >= nCells); // count doesn't seem to include overlap
+    nCells = positions.size();  // update for 100% [] safety in NDEBUG mode, below
+
+    //
+    // sort a vector of indices rather than the values themselves
+    // (less memory bandwidth during exchanges)
+    //
+    std::vector<size_t> sortOrder;
+    sortOrder.reserve(nCells);
+    for(size_t ii=0; ii < nCells; ii++) {
+        sortOrder.push_back(ii);
+    }
+
+    // sort positions
+    CoordSorter coordSorter(positions);
+    std::sort(sortOrder.begin(), sortOrder.end(), coordSorter);
+
+    // and now do the output in SEQUENTIAL_WRITE order
+    for(size_t ii=0; ii < nCells; ii++) {
+        size_t index = sortOrder[ii];
+        outputChunkIterator->setPosition(positions[index]);
+        outputChunkIterator->writeItem(values[index]);
+    }
+
     outputChunkIterator->flush();
     _chunkInitialized = true;
     return _outputChunk;

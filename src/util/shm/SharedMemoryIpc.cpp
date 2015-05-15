@@ -178,9 +178,8 @@ void* SharedMemory::get()
             // map the whole shared memory in this process
             _region.reset(new mapped_region((*_shm), _shm->get_mode()));
         } catch(boost::interprocess::interprocess_exception &ex) {
-            std::cerr << "shm::map error:" << ex.what() << std::endl;
             if (ex.get_error_code() !=  boost::interprocess::no_error) {
-                throw SystemErrorException(ex.get_native_error(), REL_FILE, __FUNCTION__, __LINE__);
+                throw SharedMemoryIpc::ShmMapErrorException(ex.get_native_error(), REL_FILE, __FUNCTION__, __LINE__);
             }
             throw;
         }

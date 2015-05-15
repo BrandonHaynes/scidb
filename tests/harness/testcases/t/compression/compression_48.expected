@@ -1,0 +1,47 @@
+SCIDB QUERY : <create array Ts <a:string> [x=0:10000,1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_z <a:string compression 'zlib'> [x=0:10000,1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Ts_bz <a:string compression 'bzlib'> [x=0:10000,1000,0]>
+Query was executed successfully
+
+SCIDB QUERY : <create array Usage <name:string, file_blocks_512:uint64> [n=0:*,100,0]>
+Query was executed successfully
+
+SCIDB QUERY : <select * into Ts from build(Ts,string(x))>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <select * into Ts_z from Ts>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <select * into Ts_bz from Ts_z>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <store(redimension(project(filter(cross_join(filter(list('arrays'), regex(name, 'Ts(.*)')) as A, filter(list('datastores'), inst = 0) as B), A.uaid = B.uaid), name, file_blocks_512), Usage), Usage)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <project(filter(cross_join(Usage as A, project(filter(Usage, name = 'Ts') as B, file_blocks_512)), A.file_blocks_512 < B.file_blocks_512), name)>
+{n,n} name
+{1,0} 'Ts_z'
+{2,0} 'Ts_bz'
+
+SCIDB QUERY : <filter(join(Ts as A, Ts_z as B), A.a <> B.a)>
+{x} a,a
+
+SCIDB QUERY : <filter(join(Ts as A, Ts_bz as B), A.a <> B.a)>
+{x} a,a
+
+SCIDB QUERY : <remove(Ts)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_z)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Ts_bz)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(Usage)>
+Query was executed successfully
+

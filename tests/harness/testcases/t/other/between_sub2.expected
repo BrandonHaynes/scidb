@@ -24,16 +24,16 @@ SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(C, '${TEST_DATA_
 {100000000,500000,10000000} nan
 
 SCIDB QUERY : <subarray(A,0,0,2500,2500)>
-[[{0,0}(10)]]
+{0,0}[[{0,0}(10)]]
 
 SCIDB QUERY : <subarray(A,0,1,2500,2500)>
 [[]]
 
 SCIDB QUERY : <between(A,0,0,2500,2500)>
-[[{0,0}(10)]]
+{0,0}[[{0,0}(10)]]
 
 SCIDB QUERY : <between(B,1000,0,5001,5001)>
-[[{5000,5000}(55010)]]
+{5000,5000}[[{5000,5000}(55010)]]
 
 SCIDB QUERY : <join(subarray(A,0,0,2500,2500),subarray(A,0,1,2500,2500))>
 [[]]
@@ -45,34 +45,34 @@ SCIDB QUERY : <store(join(subarray(A,0,0,2500,2500),subarray(A,0,1,2500,2500)),A
 [[]]
 
 SCIDB QUERY : <slice(A,x,0)>
-[{0}(10)]
+{0}[{0}(10)]
 
 SCIDB QUERY : <slice(A,x,5000)>
-[{5000}(55010)]
+{5000}[{5000}(55010)]
 
 SCIDB QUERY : <store(subarray(B,0,0,5,5),Bsub)>
-[[{0,0}(10)]]
+{0,0}[[{0,0}(10)]]
 
 SCIDB QUERY : <concat(subarray(A,0,0,5,5),Bsub)>
-[[{0,0}(10),{6,0}(10)]]
+{0,0}[[{0,0}(10)]];[[{6,0}(10)]]
 
 SCIDB QUERY : <store(between(B,0,0,5,5),Bbetw)>
-[[{0,0}(10)]]
+{0,0}[[{0,0}(10)]]
 
-SCIDB QUERY : <concat(between(A,0,0,5,5),Bbetw)>
-[An error expected at this place for the query "concat(between(A,0,0,5,5),Bbetw)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+SCIDB QUERY : <concat(between(A,0,0,5,5),scan(Bbetw,true))>
+[An error expected at this place for the query "concat(between(A,0,0,5,5),scan(Bbetw,true))". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
 
 SCIDB QUERY : <aggregate(join(C,C),count(*))>
 {0}[{0}(3)]
 
 SCIDB QUERY : <subarray(C,1,1,1,10000,10000,10000)>
-[[[{0,0,0}(15.2)]]]
+{0,0,0}[[[{0,0,0}(15.2)]]]
 
 SCIDB QUERY : <subarray(C,1,1,1,1,1,2)>
-[[[{0,0,0}(15.2)]]]
+{0,0,0}[[[{0,0,0}(15.2)]]]
 
 SCIDB QUERY : <subarray(C,100000000,500000,9999999,100000000,500000,10000000)>
-[[[{0,0,1}(nan)]]]
+{0,0,1}[[[{0,0,1}(nan)]]]
 
 SCIDB QUERY : <join(subarray(C,1,1,1,1,1,2),subarray(C,100000000,500000,9999999,100000000,500000,10000000))>
 [[[]]]

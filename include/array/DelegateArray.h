@@ -62,10 +62,7 @@ class DelegateChunk : public ConstChunk
 
     size_t count() const;
     bool isCountKnown() const;
-    ConstChunk const* getPersistentChunk() const;
     bool isMaterialized() const;
-    bool isSparse() const;
-    bool isRLE() const;
     void* getData() const;
     size_t getSize() const;
     bool pin() const;
@@ -73,11 +70,6 @@ class DelegateChunk : public ConstChunk
     void compress(CompressedBuffer& buf, boost::shared_ptr<ConstRLEEmptyBitmap>& emptyBitmap) const;
     Array const& getArray() const;
 
-
-    void overrideSparse(bool dense = true) {
-        isDense = dense;
-    }
-        
     void overrideClone(bool clone = true) {
         isClone = clone;
     }
@@ -100,7 +92,6 @@ class DelegateChunk : public ConstChunk
     AttributeID attrID;
     ConstChunk const* chunk;
     bool isClone;
-    bool isDense;
     bool tileMode;
 };
 
@@ -116,8 +107,6 @@ class DelegateChunkIterator : public ConstChunkIterator
     virtual bool setPosition(Coordinates const& pos);
     virtual void reset();
     virtual ConstChunk const& getChunk();
-    virtual bool supportsVectorMode() const;
-    virtual void setVectorMode(bool enabled);
 
     DelegateChunkIterator(DelegateChunk const* chunk, int iterationMode);
     virtual ~DelegateChunkIterator() {}
@@ -143,7 +132,7 @@ class DelegateArrayIterator : public ConstArrayIterator
 
   protected:
     DelegateArray const& array;	
-	AttributeID attr;
+    AttributeID attr;
     boost::shared_ptr<ConstArrayIterator> inputIterator;
     boost::shared_ptr<DelegateChunk> chunk;
     bool chunkInitialized;
@@ -233,7 +222,6 @@ class NonEmptyableArray : public DelegateArray
 
   private:
     AttributeID emptyTagID;
-    bool rle;
 };
 
 /**

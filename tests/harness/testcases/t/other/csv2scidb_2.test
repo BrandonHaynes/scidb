@@ -1,0 +1,111 @@
+# This test is the same as csv2scidb_1, but uses the in-engine CSV loader instead.
+# The output should be very nearly the same as csv2scib_1.expected.
+
+--setup
+--start-query-logging
+
+CREATE array Raw_CSVLoad_1 < symbl : string, time : string, price : double, qry : int64 > [ Offset=0:*,10,0 ]
+
+CREATE array Raw_CSVLoad_2 < tax_id : int32, gene_id : int64, go_id : string, evidence : string, qualifier : int32 NULL, term : string, pubmed_id : int32 NULL, category : string > [ Offset=0:*,10,0 ] 
+
+CREATE array Raw_CSVLoad_3 < Probe_ID : string, Platform_ID : string, Entrez_Gene_ID : int32, Symbol   : string, Synonyms : string, Description : string, TaxOn_ID : int32, Count_Gene  : int32, Count_RefSeq  : int32, Unique_to_Gene : bool, Unique_to_Genome : bool, Unique_to_RefSeq : bool > [ Line=0:*,10,0]
+
+CREATE ARRAY Raw_CSVLoad_4 < Probe_ID : string, Platform_ID : string, Entrez_Gene_ID : int32, Symbol   : string, Synonyms : string, Description : string, TaxOn_ID : int32, Count_Gene  : int32, Count_RefSeq  : int32, Unique_to_Gene : bool, Unique_to_Genome : bool, Unique_to_RefSeq : bool > [ Line ]
+
+CREATE ARRAY Raw_CSVLoad_5 < attr_1 : int64 > [ I=0:*,4,0 ]
+
+CREATE ARRAY Raw_CSVLoad_6 < attr_1 : int64 > [ I=0:*,4,0 ]
+
+CREATE ARRAY Raw_CSVLoad_7 < attr_1 : string > [ I=0:*,4,0 ]
+
+CREATE ARRAY Raw_CSVLoad_8 < attr_2 : string > [ I=0:*,4,0 ]
+
+--test
+
+# Just strip the nameline.
+--shell --store --command " sed 1d ${TEST_DATA_DIR}/csv2scidb_1.csv > /tmp/csv2scidb_test_1.load " 
+
+load ( Raw_CSVLoad_1, '/tmp/csv2scidb_test_1.load', -2, 'csv' )
+
+# Here we have an input file that uses '|' instead of ',' and has embedded commas in some text
+# fields.  This kind of yuck is why TSV is superior to CSV, so let's not be shy---go ahead and
+# load it with TSV.  For this test case, there is one difference vs. csv2scidb_1.expected: when
+# there is an empty field for a nullable attribute, we do NOT convert it to database null.  The
+# Linear-TSV standard we adhere to is strict: <TAB><TAB> means an empty string and if you want
+# null you must say so, either with the standard \N or with one of the SciDB notations (null or
+# ?x for 0<=x<127).  You will see this difference if you diff the two .expected files.
+
+# Strip nameline, turn pipes to TABs, load as TSV.
+--shell --command " sed -e 1d -e 's/|/\t/g' ${TEST_DATA_DIR}/csv2scidb_2.csv > /tmp/csv2scidb_test_2.load "
+
+load ( Raw_CSVLoad_2, '/tmp/csv2scidb_test_2.load', -2, 'tsv' )
+
+# Just strip nameline.  Used to need magical -q option to csv2scidb, but no more.
+--shell --command " sed 1d ${TEST_DATA_DIR}/csv2scidb_3.csv > /tmp/csv2scidb_test_3.load "
+
+load ( Raw_CSVLoad_3, '/tmp/csv2scidb_test_3.load', -2, 'csv' )
+
+# Apparently #1560 had to do with not specifying a chunksize to
+# csv2scidb.  We didn't need to specify a chunk size above, so we
+# needn't do it here either.
+
+--shell --command " sed 1d ${TEST_DATA_DIR}/csv2scidb_3.csv > /tmp/csv2scidb_test_4.load "
+
+--start-igdata
+
+load ( Raw_CSVLoad_4, '/tmp/csv2scidb_test_4.load', -2, 'csv' )
+
+--stop-igdata
+
+subarray (Raw_CSVLoad_4, 0,100)
+
+show ( Raw_CSVLoad_4 )
+
+# empty lines in the input file - see #2134 
+--echo Empty lines in the input file, see ticket 2134
+--shell --command " cp ${TEST_DATA_DIR}/csv2scidb_5.csv /tmp/csv2scidb_test_5.load "
+
+load ( Raw_CSVLoad_5, '/tmp/csv2scidb_test_5.load', -2, 'csv' )
+
+# Without csv2scidb in the mix, this is a repeat of the previous test.
+--shell --command " cat ${TEST_DATA_DIR}/csv2scidb_5.csv > /tmp/csv2scidb_test_6.load "
+
+load ( Raw_CSVLoad_6, '/tmp/csv2scidb_test_6.load', -2, 'csv' )
+
+--shell --command " cat ${TEST_DATA_DIR}/csv2scidb_7.csv > /tmp/csv2scidb_test_7.load "
+
+load ( Raw_CSVLoad_7, '/tmp/csv2scidb_test_7.load', -2, 'csv' )
+
+# ...and another repeat.
+--shell --command " cat ${TEST_DATA_DIR}/csv2scidb_7.csv > /tmp/csv2scidb_test_8.load "
+
+load ( Raw_CSVLoad_8, '/tmp/csv2scidb_test_8.load', -2, 'csv' )
+
+--cleanup
+
+remove ( Raw_CSVLoad_1 )
+
+remove ( Raw_CSVLoad_2 )
+
+remove ( Raw_CSVLoad_3 )
+
+remove ( Raw_CSVLoad_4 )
+
+remove ( Raw_CSVLoad_5 )
+
+remove ( Raw_CSVLoad_6 )
+
+remove ( Raw_CSVLoad_7 )
+
+remove ( Raw_CSVLoad_8 )
+
+--shell --store --command "rm -rf /tmp/csv2scidb_test_1.load " 
+--shell --store --command "rm -rf /tmp/csv2scidb_test_2.load "
+--shell --store --command "rm -rf /tmp/csv2scidb_test_3.load "
+--shell --store --command "rm -rf /tmp/csv2scidb_test_4.load "
+--shell --store --command "rm -rf /tmp/csv2scidb_test_5.load " 
+--shell --store --command "rm -rf /tmp/csv2scidb_test_6.load "
+--shell --store --command "rm -rf /tmp/csv2scidb_test_7.load "
+--shell --store --command "rm -rf /tmp/csv2scidb_test_8.load "
+
+--stop-query-logging

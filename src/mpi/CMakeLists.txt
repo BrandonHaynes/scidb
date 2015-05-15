@@ -37,7 +37,7 @@ if (USE_LOCAL_MPI)
    set(LOCAL_MPI_PATH "UNDEFINED_FOR_THIS_PLATFORM")
    set(MPICH2_SUFFIX "")
 
-   if(${DISTRO_NAME_VER} MATCHES "Ubuntu-12.04")
+   if(${DISTRO_NAME_VER} MATCHES "Ubuntu")
        set(LOCAL_MPI_PATH "/opt/scidb/${SCIDB_VERSION_MAJOR}.${SCIDB_VERSION_MINOR}/3rdparty/mpich2")
        set(MPI_INCLUDE "-I ${LOCAL_MPI_PATH}/include/mpich2")
        set(MPICH2_SUFFIX ".mpich2")
@@ -212,9 +212,5 @@ endif (SCALAPACK_FOUND AND LAPACK_FOUND AND BLAS_FOUND AND
       MPI_CXX_FOUND AND MPI_Fortran_FOUND)
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libmpi${CMAKE_SHARED_LIBRARY_SUFFIX}" mpi)
 set_target_properties(mpi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
-
-if (APPLE)
-    set_target_properties(mpi PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif ()
 
 message(STATUS "****************** END src/mpi/CMakeLists.txt ******************")

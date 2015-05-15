@@ -189,7 +189,7 @@ void MpiManager::initMpi()
     }
     initMpiLinks(installPath,
                  scidb::Config::getInstance()->getOption<string>(CONFIG_MPI_DIR),
-                 scidb::Config::getInstance()->getOption<string>(CONFIG_PLUGINS));
+                 scidb::Config::getInstance()->getOption<string>(CONFIG_PLUGINSDIR));
     _isReady = true;
     // read the proc table and kill all the mpi procs started by the old process of this instance
     MpiErrorHandler::killAllMpiProcs();

@@ -32,15 +32,18 @@ store(build(two_dimension_B, length*breadth+breadth-length*length/(1.0)),two_dim
 cross_join(data_array,UB)
 aggregate(cross_join(data_array,UB),count(*))
 cross_join(data_array,UB,X,x)
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(Media,two_dimension,a,c)"
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(subarray(Media,1,1,2,2),two_dimension_A,b,II)"
+# Fixed by #850:
+cross_join(Media,two_dimension,a,c)
+# Fixed by #850:
+cross_join(subarray(Media,1,1,2,2),two_dimension_A,b,II)
 cross_join(two_dimension,two_dimension_A)
 cross_join(subarray(Media,1,1,2,2),two_dimension_B,b,length)
 cross_join(subarray(Media,1,1,2,2),two_dimension_B,a,length)
 cross_join(subarray(Media,1,1,2,2),two_dimension_B,a,breadth)
 store(cross_join(subarray(Media,2,2,3,3),two_dimension_B,a,breadth),crossjoin_result)
 cross_join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2))
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2),a,f)"
+# Fixed by #850:
+cross_join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2),a,f)
 join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2))
 cross_join (multiMedia_array_new, Media,O,a)
 cross_join (multiMedia_array_new, Media,P,b)
@@ -50,8 +53,10 @@ cross_join (Media_D,threeD_array_A,K,ZZ)
 cross_join (threeD_array,threeD_array_A,R,XX)
 cross_join (subarray(threeD_array,1,1,1,2,2,2),subarray(threeD_array_A,1,1,1,2,2,2),R,XX)
 cross_join (Media_B,Media_C,g,I)
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join (Media_B,Media_C,g,J)"
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(two_dimension_A,two_dimension_B,II,length)"
+# Fixed by #850:
+cross_join (Media_B,Media_C,g,J)
+# Fixed by #850:
+cross_join(two_dimension_A,two_dimension_B,II,length)
 cross_join(repart(two_dimension_A,< age:int32>[ II=0:1,3,0 , JJ=0:1,3,0]),two_dimension_B,II,length)
 cross_join(two_dimension_A,repart(two_dimension_B, < age:int32>[ length=0:1,2,0 , breadth=0:1,2,0]),II,length)
 

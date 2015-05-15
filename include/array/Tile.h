@@ -357,7 +357,8 @@ namespace scidb {
             if (ctx==NULL) {
                 return; /*nthn*/
             }
-            const rle::RLEPayloadProvider *provider = safe_dynamic_cast<const rle::RLEPayloadProvider*>(ctx);
+            const rle::RLEPayloadProvider *provider =
+                safe_dynamic_cast<const rle::RLEPayloadProvider*>(ctx);
             initialize(provider->getPayload(),
                        provider->getOffset(),
                        provider->getNumElements());
@@ -1502,12 +1503,11 @@ namespace scidb {
          * Push back a position as a set of coordinates
          * @param coords coordinates
          */
-        void push_back ( const scidb::Coordinates& coords )
+        void push_back ( CoordinateCRange coords )
         {
             assert(!coords.empty());
 
-            position_t pos =
-            _coordMapper.coord2pos(coords);
+            position_t pos = _coordMapper.coord2pos(coords);
             assert(pos>=0);
             _encoding.push_back(pos);
         }
@@ -1516,7 +1516,7 @@ namespace scidb {
          * Push back a position as a logical position within a chunk serialized in row-major order
          * @param pos position
          */
-        void push_back ( const position_t& pos )
+        void push_back ( position_t pos )
         {
             assert(pos>=0);
             _encoding.push_back(pos);
@@ -1555,7 +1555,20 @@ namespace scidb {
             const position_t& pos = _encoding.at(index);
             assert(pos>=0);
             _coordMapper.pos2coord(pos, val);
-            assert(!val.empty());
+            assert(val.size() == _coordMapper.getNumDims());
+        }
+
+        /**
+         * Get a position value at a given index in a form of Coordinates
+         * @param index of the value inside tile
+         * @param val [OUT] coordinates
+         */
+        void at( size_t index, CoordinateRange val ) const
+        {
+            assert(val.size() == _coordMapper.getNumDims());
+            position_t pos = _encoding.at(index);
+            assert(pos>=0);
+            _coordMapper.pos2coord(pos, val);
         }
 
         /// iostream output operator
@@ -1570,7 +1583,7 @@ namespace scidb {
                 tile.at(i, coords);
                 assert(!coords.empty());
 
-                out << " [" << CoordsToStr(coords) << "]" ;
+                out << " [" << coords << "]" ;
             }
             out << " ]";
             return out;

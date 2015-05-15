@@ -38,7 +38,7 @@ echo "ARG3: ${3}"
 echo "ARG4: ${4}"
 echo "ARG5: ${5}"
 
-(cd ${SETUP_DIR}; patch -p1 < ${PATCH})
+(cd ${SETUP_DIR}; patch -p1 -N < ${PATCH})
 
 # seems to break above -j1
 MAKEFLAGS="-j1" \

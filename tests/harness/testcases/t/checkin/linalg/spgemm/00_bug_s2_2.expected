@@ -11,7 +11,14 @@ SCIDB QUERY : <store( filter(build(sp1_c1_1,   1), true),  sp1_c1_1 )>
 {1,0} 1
 {1,1} 1
 
-SCIDB QUERY : <spgemm(sp1_c1_1, sp1_c1_1)>
+SCIDB QUERY : <spgemm(sp1_c1_1, sp1_c1_1,'rightReplicate=false')>
+{x,y} multiply
+{0,0} 2
+{0,1} 2
+{1,0} 2
+{1,1} 2
+
+SCIDB QUERY : <spgemm(sp1_c1_1, sp1_c1_1,'rightReplicate=true')>
 {x,y} multiply
 {0,0} 2
 {0,1} 2

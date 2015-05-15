@@ -44,8 +44,6 @@ cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [
 
 cross_join ( Timeseries_Example as A, Timeseries_Example as B)
 
-deldim ( adddim (Timeseries_Example, New_Dim ))
-
 filter (Timeseries_Example, Total_Qty > 150 )
 
 join (Timeseries_Example as A, Timeseries_Example as B )
@@ -93,8 +91,6 @@ between (bernoulli (Timeseries_Example, 0.85, 1), 'Foo', 'T_003', 'Wump', 'T_006
 cast ( bernoulli (Timeseries_Example, 0.85, 1), < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ])
 
 cross_join ( bernoulli (Timeseries_Example, 0.85, 1) as A, bernoulli (Timeseries_Example, 0.85, 1) as B)
-
-deldim ( adddim (bernoulli (Timeseries_Example, 0.85, 1), New_Dim ))
 
 filter (bernoulli (Timeseries_Example, 0.85, 1), Total_Qty > 150 )
 
@@ -144,8 +140,6 @@ cast ( between (Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' ), < Avg_Pri
 
 cross_join ( between (Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' ) as A, between (Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' ) as B)
 
-deldim ( adddim (between (Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' ), New_Dim ))
-
 filter (between (Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' ), Total_Qty > 150 )
 
 join (between (Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' ) as A, between (Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' ) as B )
@@ -192,8 +186,6 @@ cast ( cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 N
 
 cross_join ( cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ]) as A, cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ]) as B)
 
-deldim ( adddim (cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ]), New_Dim ))
-
 filter (cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ]), Total_Qty > 150 )
 
 join (cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ]) as A, cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ]) as B )
@@ -233,54 +225,52 @@ unpack (cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 
 
 window (cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ]), 0, 1, 0, 1, min(Avg_Price) as Avg_Price )
 
-aggregate ( deldim ( adddim (Timeseries_Example, New_Dim )), sum ( Avg_Price ) as aggr_res, Symbol )
+aggregate ( Timeseries_Example, sum ( Avg_Price ) as aggr_res, Symbol )
 
-apply (deldim ( adddim (Timeseries_Example, New_Dim )), apply_res, 2.0 + Avg_Price )
+apply (Timeseries_Example, apply_res, 2.0 + Avg_Price )
 
---igdata "bernoulli (deldim ( adddim (Timeseries_Example, New_Dim )), 0.85, 1)"
+--igdata "bernoulli (Timeseries_Example, 0.85, 1)"
 
-between (deldim ( adddim (Timeseries_Example, New_Dim )), 'Foo', 'T_003', 'Wump', 'T_006' )
+between (Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' )
 
-cast ( deldim ( adddim (Timeseries_Example, New_Dim )), < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ])
+cast ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ TS(string)=*,4,0, Symbol(string)=*,14,0 ])
 
-cross_join ( deldim ( adddim (Timeseries_Example, New_Dim )) as A, deldim ( adddim (Timeseries_Example, New_Dim )) as B)
+cross_join ( Timeseries_Example as A, Timeseries_Example as B)
 
-deldim ( adddim (deldim ( adddim (Timeseries_Example, New_Dim )), New_Dim ))
+filter (Timeseries_Example, Total_Qty > 150 )
 
-filter (deldim ( adddim (Timeseries_Example, New_Dim )), Total_Qty > 150 )
+join (Timeseries_Example as A, Timeseries_Example as B )
 
-join (deldim ( adddim (Timeseries_Example, New_Dim )) as A, deldim ( adddim (Timeseries_Example, New_Dim )) as B )
+lookup ( Timeseries_Lookup, Timeseries_Example)
 
-lookup ( Timeseries_Lookup,deldim ( adddim (Timeseries_Example, New_Dim )))
-
---error "merge ( filter ( deldim ( adddim (Timeseries_Example, New_Dim )), Total_Qty < 100 ) as A, filter ( deldim ( adddim (Timeseries_Example, New_Dim )), Total_Qty > 200 ) as B )"
+--error "merge ( filter ( Timeseries_Example, Total_Qty < 100 ) as A, filter ( Timeseries_Example, Total_Qty > 200 ) as B )"
 
 # ERROR8 (formerly)
-multiply ( substitute (transpose ( project (deldim ( adddim (Timeseries_Example, New_Dim )), Avg_Price )), Sub_Val) AS A, substitute (project ( deldim ( adddim (Timeseries_Example, New_Dim )), Avg_Price), Sub_Val) AS B ) 
+multiply ( substitute (transpose ( project ( Timeseries_Example, Avg_Price )), Sub_Val) AS A, substitute (project ( Timeseries_Example, Avg_Price), Sub_Val) AS B ) 
 
-project ( deldim ( adddim (Timeseries_Example, New_Dim )), Avg_Price, Total_Qty )
+project ( Timeseries_Example, Avg_Price, Total_Qty )
 
-repart ( deldim ( adddim (Timeseries_Example, New_Dim )), < Avg_Price : double NULL, Total_Qty : int64 NULL > [ Symbol(string)=*,2,0, TS(string)=*,7,0 ])
+repart ( Timeseries_Example, < Avg_Price : double NULL, Total_Qty : int64 NULL > [ Symbol(string)=*,2,0, TS(string)=*,7,0 ])
 
-reverse (deldim ( adddim (Timeseries_Example, New_Dim )))
+reverse (Timeseries_Example)
 
---igdata "bernoulli (deldim ( adddim (Timeseries_Example, New_Dim )), 0.85, 1)"
+--igdata "bernoulli ( Timeseries_Example, 0.85, 1)"
 
-slice ( deldim ( adddim (Timeseries_Example, New_Dim )), Symbol, 'Mug' )
+slice ( Timeseries_Example, Symbol, 'Mug' )
 
-sort (slice ( deldim ( adddim (Timeseries_Example, New_Dim )), Symbol, 'Mug' ), Total_Qty, Avg_Price )
+sort (slice ( Timeseries_Example, Symbol, 'Mug' ), Total_Qty, Avg_Price )
 
-subarray (deldim ( adddim (Timeseries_Example, New_Dim )), 'Foo', 'T_003', 'Wump', 'T_006' )
+subarray ( Timeseries_Example, 'Foo', 'T_003', 'Wump', 'T_006' )
 
-join ( substitute ( project (deldim ( adddim (Timeseries_Example, New_Dim )), Avg_Price ), build(<Avg_Price : double> [x=0:1,2,0], iif( x = 0, 20.0, 30.0))), substitute ( project (deldim ( adddim (Timeseries_Example, New_Dim )), Total_Qty), build(<Total_Qty : int64> [x=0:1,2,0], iif( x = 0, 100, 10))))
+join ( substitute ( project (Timeseries_Example, Avg_Price ), build(<Avg_Price : double> [x=0:1,2,0], iif( x = 0, 20.0, 30.0))), substitute ( project (Timeseries_Example, Total_Qty), build(<Total_Qty : int64> [x=0:1,2,0], iif( x = 0, 100, 10))))
 
-thin (deldim ( adddim (Timeseries_Example, New_Dim )), 0, 2, 0, 2)
+thin (Timeseries_Example, 0, 2, 0, 2)
 
-transpose (deldim ( adddim (Timeseries_Example, New_Dim )))
+transpose (Timeseries_Example)
 
-unpack (deldim ( adddim (Timeseries_Example, New_Dim )), New_Dim )
+unpack (Timeseries_Example, New_Dim)
 
-window (deldim ( adddim (Timeseries_Example, New_Dim )), 0, 1, 0, 1, min(Avg_Price) as Avg_Price )
+window (Timeseries_Example, 0, 1, 0, 1, min(Avg_Price) as Avg_Price )
 
 aggregate ( filter (Timeseries_Example, Total_Qty > 150 ), sum ( Avg_Price ) as aggr_res, Symbol )
 
@@ -294,7 +284,7 @@ cast ( filter (Timeseries_Example, Total_Qty > 150 ), < Avg_Price : double NULL,
 
 cross_join ( filter (Timeseries_Example, Total_Qty > 150 ) as A, filter (Timeseries_Example, Total_Qty > 150 ) as B)
 
-deldim ( adddim (filter (Timeseries_Example, Total_Qty > 150 ), New_Dim ))
+filter (Timeseries_Example, Total_Qty > 150 )
 
 filter (filter (Timeseries_Example, Total_Qty > 150 ), Total_Qty > 150 )
 
@@ -343,7 +333,7 @@ cast ( project ( Timeseries_Example, Avg_Price, Total_Qty ), < Avg_Price : doubl
 
 cross_join ( project ( Timeseries_Example, Avg_Price, Total_Qty ) as A, project ( Timeseries_Example, Avg_Price, Total_Qty ) as B)
 
-deldim ( adddim (project ( Timeseries_Example, Avg_Price, Total_Qty ), New_Dim ))
+project ( Timeseries_Example, Avg_Price, Total_Qty )
 
 filter (project ( Timeseries_Example, Avg_Price, Total_Qty ), Total_Qty > 150 )
 
@@ -394,7 +384,7 @@ cast ( bernoulli (Timeseries_Example, 0.85, 1), < Avg_Price : double NULL, Total
 
 cross_join ( bernoulli (Timeseries_Example, 0.85, 1) as A, bernoulli (Timeseries_Example, 0.85, 1) as B)
 
-deldim ( adddim (bernoulli (Timeseries_Example, 0.85, 1), New_Dim ))
+bernoulli (Timeseries_Example, 0.85, 1)
 
 filter (bernoulli (Timeseries_Example, 0.85, 1), Total_Qty > 150 )
 
@@ -445,7 +435,7 @@ cast ( scan (Timeseries_Example), < Avg_Price : double NULL, Total_Qty : int64 N
 
 cross_join ( scan (Timeseries_Example) as A, scan (Timeseries_Example) as B)
 
-deldim ( adddim (scan (Timeseries_Example), New_Dim ))
+scan (Timeseries_Example)
 
 filter (scan (Timeseries_Example), Total_Qty > 150 )
 
@@ -494,7 +484,7 @@ cast ( join ( substitute ( project (Timeseries_Example, Avg_Price ), build(<Avg_
 
 cross_join ( join ( substitute ( project (Timeseries_Example, Avg_Price ), build(<Avg_Price : double> [x=0:1,2,0], iif( x = 0, 20.0, 30.0))), substitute ( project (Timeseries_Example, Total_Qty), build(<Total_Qty : int64> [x=0:1,2,0], iif( x = 0, 100, 10)))) as A, join ( substitute ( project (Timeseries_Example, Avg_Price ), build(<Avg_Price : double> [x=0:1,2,0], iif( x = 0, 20.0, 30.0))), substitute ( project (Timeseries_Example, Total_Qty), build(<Total_Qty : int64> [x=0:1,2,0], iif( x = 0, 100, 10)))) as B)
 
-deldim ( adddim (join ( substitute ( project (Timeseries_Example, Avg_Price ), build(<Avg_Price : double> [x=0:1,2,0], iif( x = 0, 20.0, 30.0))), substitute ( project (Timeseries_Example, Total_Qty), build(<Total_Qty : int64> [x=0:1,2,0], iif( x = 0, 100, 10)))), New_Dim ))
+join ( substitute ( project (Timeseries_Example, Avg_Price ), build(<Avg_Price : double> [x=0:1,2,0], iif( x = 0, 20.0, 30.0))), substitute ( project (Timeseries_Example, Total_Qty), build(<Total_Qty : int64> [x=0:1,2,0], iif( x = 0, 100, 10))))
 
 filter (join ( substitute ( project (Timeseries_Example, Avg_Price ), build(<Avg_Price : double> [x=0:1,2,0], iif( x = 0, 20.0, 30.0))), substitute ( project (Timeseries_Example, Total_Qty), build(<Total_Qty : int64> [x=0:1,2,0], iif( x = 0, 100, 10)))), Total_Qty > 150 )
 
@@ -543,7 +533,7 @@ between (transpose (Timeseries_Example), 'Foo', 'T_003', 'Wump', 'T_006' )
 
 cross_join ( transpose (Timeseries_Example) as A, transpose (Timeseries_Example) as B)
 
-deldim ( adddim (transpose (Timeseries_Example), New_Dim ))
+transpose (Timeseries_Example)
 
 filter (transpose (Timeseries_Example), Total_Qty > 150 )
 

@@ -1,0 +1,43 @@
+# ticket:4456 says when comparing two missing values, we should make ?small < ?large.
+# ticket:4457 talks about several things that may benefit from enabling SortArray to store cell locations, including stable sort.
+
+--setup
+
+create temp array sort_4456 <v:double null>[i=0:5,1,0]
+store(build(sort_4456, '[(?2),(?1),(3.0),(?100),(NaN),(null)]', true), sort_4456)
+
+store(apply(build(<v1:int64>[i=0:5,2,0], i*10), v2, 5), sort_4457)
+
+create array sort_empty <v:int64>[i=0:9,4,0]
+
+--test
+--start-query-logging
+
+sort(sort_4456)
+sort(sort_4456, v desc)
+
+sort(sort_4457)
+sort(sort_4457, v1 desc)
+sort(sort_4457, 3)
+
+sort(sort_4457, v2)
+sort(sort_4457, v2 desc)
+
+sort(sort_4457, v2, 1)
+sort(sort_4457, v2, 2)
+sort(sort_4457, v2, 3)
+sort(sort_4457, v2, 4)
+sort(sort_4457, v2, 5)
+sort(sort_4457, v2, 6)
+sort(sort_4457, v2, 7)
+sort(sort_4457, v2, 8)
+
+sort(sort_empty)
+
+--stop-query-logging
+--cleanup
+
+remove(sort_4456)
+remove(sort_4457)
+remove(sort_empty)
+

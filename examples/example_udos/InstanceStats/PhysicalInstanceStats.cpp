@@ -29,7 +29,7 @@
 
 #include "InstanceStatsSettings.h"
 #include <query/Operator.h>
-#include <query/Network.h>
+#include <util/Network.h>
 
 namespace scidb
 {

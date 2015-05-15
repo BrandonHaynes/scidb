@@ -7,7 +7,8 @@
 <preface id="releaseNotes">
   <title id="rn_title">Release Notes</title>
 
-  <para>These release notes cover features and changes for:<itemizedlist>
+  <para>These release notes apply to version 14.12 of SciDB; they cover all
+  features and changes since version 14.8 of:<itemizedlist>
       <listitem>
         <para>SciDB Community Edition (CE)</para>
       </listitem>
@@ -24,135 +25,214 @@
     </itemizedlist></para>
 
   <para>New features and important bug fixes are described in Sections 2, 3,
-  and 4. Feature changes made in this release and advance notice of changes
-  planned for the next release (R14.9) are discussed in Section 5. Known
+  and 4. Feature changes made in these releases and advance notice of changes
+  planned for the next release (R15.3) are discussed in Section 5. Known
   limitations are noted in Section 6.</para>
 
   <section>
     <title>Supported Operating Systems</title>
 
-    <para>SciDB 14.7 supports three platforms: Ubuntu 12.04, RHEL 6, and
-    CentOS 6.</para>
+    <para>SciDB 14.12 supports these platforms: Ubuntu 12.04 and 14.04, RHEL
+    6, and CentOS 6.</para>
   </section>
 
   <section id="SciDB_ReleaseNotes">
     <title>Community Edition Features and Changes</title>
 
-    <para>This version includes the following features and changes:
-    <itemizedlist>
+    <para>Version 14.12 includes the following features and changes made since
+    SciDB 14.8: <itemizedlist>
         <listitem>
-          <para><emphasis role="bold">Chunk-Length Calculator:</emphasis> A
-          new utility is provided to recommend values of the chunk-length
-          parameter in dimension specifications. The utility is <emphasis
-          role="bold">calculate_chunk_length.py</emphasis>, located in
-          <emphasis role="bold">/opt/scidb/14.7/bin</emphasis> folder.</para>
+          <para><emphasis role="bold">Supported Platforms:</emphasis> SciDB
+          now supports Ubuntu 14.04, as well as Ubuntu 12.04, RHEL 6, and
+          CentOS 6.</para>
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">Delete Array Versions:</emphasis> A new
-          AFL operator, <command>remove_versions()</command>, removes all
-          versions of an array older than the version you specify. See <xref
-          linkend="removeVersionsOperator"/> for details.</para>
+          <para><emphasis role="bold">Storage Format:</emphasis> The database
+          file format for SciDB 14.12 differs from that of SciDB 14.8.
+          Existing 14.8 databases must be saved and reloaded into
+          14.12.</para>
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">Improved load: </emphasis>SciDB 14.7
-          includes these improvements to the load and save
-          functionality:<itemizedlist>
+          <para><emphasis role="bold">Installation changes:</emphasis>
+          Previous versions (14.3 and 14.8) included a script to help you
+          install without root privileges -- on CentOS/RHEL only. However, we
+          are not aware of anyone actively using that script, so in release
+          14.12, it is not supported. If you need such a script, contact us at
+          support@paradigm4.com.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Improved load, input, and save:
+          </emphasis>SciDB 14.12 includes these improvements to load, input,
+          and save functionality:<itemizedlist>
               <listitem>
-                <para>Support for files formatted in tab-separated
-                values.</para>
+                <para>Added native support for CSV data (comma-separated
+                value). Previous versions supported CSV format only through
+                utilities external to the SciDB engine. For example, loading
+                CSV data required an external CSV-to-SciDB conversion before
+                invoking the load() operator. With version 14.12, the load(),
+                input(), and save() operators support CSV format directly.
+                That is, "CSV' is an accepted value of the
+                <emphasis>format</emphasis> parameter of load(), input(), and
+                save().</para>
               </listitem>
 
               <listitem>
-                <para>A new utility that provides continuous batched loading
-                of data. The utility is <emphasis
-                role="bold">loadpipe.py</emphasis>, located in <emphasis
-                role="bold">/opt/scidb/14.7/bin</emphasis> folder.</para>
+                <para>Extended support for TSV data (tab-separated values).
+                With version 14.12, the load(), input(), and save() operators
+                support TSV format. That is, "TSV' is an accepted value of the
+                <emphasis>format</emphasis> parameter of load(), input(), and
+                save().</para>
+              </listitem>
+
+              <listitem>
+                <para>The load() and input() operators now include the
+                <emphasis>isStrict</emphasis> Boolean parameter. (See the item
+                about collision handling.)</para>
               </listitem>
             </itemizedlist></para>
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">Changes to query processing:</emphasis>
-          SciDB 14.7 includes these changes to query processing:</para>
+          <para><emphasis role="bold">Changes to collision handling:
+          </emphasis>In 14.8 and earlier versions, some operators would handle
+          collisions unhelpfully. For example, if a collision occurred during
+          a redimension() without synthetic dimension, SciDB would report no
+          warning and would arbitrarily choose one of the candidate cells to
+          include in the result. The input() and load() operators could be
+          subject to similar problems because neither input() nor load()
+          checked for duplicate data. A closely related issue was that neither
+          input() nor load() prohibited out-of-order data.</para>
 
-          <itemizedlist>
-            <listitem>
-              <para>Any SciDB instance can be the coordinator of any query. To
-              choose a coordinator other than the default coordinator, use the
-              <emphasis role="bold">--port</emphasis> option on the iquery
-              command.</para>
-            </listitem>
+          <para>SciDB 14.12 addresses these issues as follows.</para>
 
-            <listitem>
-              <para>The default value of the <emphasis
-              role="bold">deadlock-timeout</emphasis> configuration parameter
-              has been changed from 30 to 256 seconds.</para>
-            </listitem>
+          <para><itemizedlist>
+              <listitem>
+                <para>The redimension() operator now includes the
+                <emphasis>isStrict</emphasis> Boolean parameter. If true, this
+                parameter forces the operator to handle collisions more
+                gracefully: if a collision is detected and no synthetic
+                dimension is available, the operation will fail and geneate an
+                error. If <emphasis>isStrict</emphasis> is false,
+                redimension() behaves as it did in 14.8. By default, the
+                parameter is false.</para>
+              </listitem>
 
-            <listitem>
-              <para>The output of the <emphasis
-              role="bold">list('queries')</emphasis> operator has changed. It
-              now produces a two dimensional array: one dimension identifies
-              an in-progress query and the other dimension identifies the
-              SciDB instance participating in the processing of that query. In
-              addition, the output now includes an attribute, <emphasis
-              role="bold">coordinator</emphasis>, indicating which SciDB
-              instance is serving as the coordinator of the query.</para>
-            </listitem>
-          </itemizedlist>
+              <listitem>
+                <para>The load() and input() operators now include the
+                <emphasis>isStrict</emphasis> Boolean parameter. If true, this
+                parameter has two effects. First, it restricts the incoming
+                data to contain no "out-of-order" cell values, where order is
+                row-major as defined by the left-to-right declaration of
+                dimensions in the array schema. Second, it disallows
+                collisions. If the incoming data violates either of these
+                restrictions, the operator will fail. If
+                <emphasis>isStrict</emphasis> is false, load() or input()
+                behaves as it did in 14.8. By default, the parameter is
+                false.</para>
+              </listitem>
+            </itemizedlist></para>
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">The spgemm() operator:</emphasis> This
-          operator is now available in the Community Edition.</para>
+          <para><emphasis role="bold">Changes to configuration parameters:
+          </emphasis>The tmp_path parameter has been removed. SciDB now stores
+          temporary data the same directory as your production data, in a
+          subdirectory called /tmp.</para>
+
+          <para>Each SciDB instance maintains two queues: a "send" queue for
+          array data awaiting transmission to other instances, and a "receive"
+          queue for array data arriving from other instances. Four new
+          configuration parameters apply:</para>
+
+          <para><itemizedlist>
+              <listitem>
+                <para>The replication_send_queue_size parameter sets the
+                maximum size -- in number of chunks -- of the send queue for
+                each instance. The default value is 32.</para>
+              </listitem>
+
+              <listitem>
+                <para>The replication_receive_queue_size parameter sets the
+                maximum size -- in number of chunks -- of the receive queue
+                for each instance. The default value is 16.</para>
+              </listitem>
+
+              <listitem>
+                <para>The sg_send_queue_size parameter limits how much of a
+                SciDB instance's send queue can be occupied by the chunks of
+                an individual query. The default value is 16 chunks.</para>
+              </listitem>
+
+              <listitem>
+                <para>The sg_receive_queue_size parameter limits how much of a
+                SciDB instance's receive queue can be occupied by the chunks
+                of an individual query. The default value is 8 chunks.</para>
+              </listitem>
+            </itemizedlist></para>
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">The unfold() operator:</emphasis> An
-          operator that returns an n+1 dimensional result array based on an
-          n-dimensional input array. The first n dimensions match the
-          dimensions of the input array. The last dimension corresponds to the
-          list of attributes from the input array. The cell values in the
-          result array correspond to the values of the attributes in the
-          original array. See <xref linkend="unfoldOperator"/> for
-          details.</para>
+          <para><emphasis role="bold">Improved Chunk-Length
+          Calculation:</emphasis> Version 14.8 included an external utility to
+          recommend values of the chunk-length parameter in dimension
+          specifications. With version 14.12, that functionality is supported
+          natively via extensions to the CREATE ARRAY Syntax. For more
+          information, see <xref linkend="createArrayUsingClause"/>. The
+          external utility is deprecated.</para>
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">New functions:</emphasis> The Community
-          Edition of SciDB 14.7 now includes these functions:</para>
+          <para><emphasis role="bold">Changed operators: </emphasis>SciDB
+          14.12 includes these changes and additions to
+          operators:<itemizedlist>
+              <listitem>
+                <para>Relaxed restrictions on binary operators cross_join(),
+                join(), and merge(). In 14.8 and earlier versions, these
+                operators would work only if each pair of to-be-matched
+                dimensions had the same chunk size and chunk overlap. As of
+                14.12, that restriction is lifted.</para>
+              </listitem>
 
-          <itemizedlist>
-            <listitem>
-              <para>The hypergeometric cumulative distribution function
-              (<emphasis role="bold">hygecdf</emphasis>) function, previously
-              available only in the Enterprise Edition.</para>
-            </listitem>
+              <listitem>
+                <para>The sort() operator has been reimplemented as a true
+                distributed sort, so its scalability is significantly
+                improved.</para>
+              </listitem>
 
-            <listitem>
-              <para>The hypergeometric probability mass function (<emphasis
-              role="bold">hygepmf</emphasis>), new to SciDB 14.7.</para>
-            </listitem>
-
-            <listitem>
-              <para>The hypergeometric quantile function (<emphasis
-              role="bold">hygequant</emphasis>), new to SciDB 14.7.</para>
-            </listitem>
-          </itemizedlist>
+              <listitem>
+                <para>The scan() operator handles unbounded arrays
+                differently. In 14.8 and earlier versions, scan(A) -- where A
+                is an unbounded array -- would produce a bounded result array.
+                In 14.12, the result of scan(A) will be unbounded. Some
+                seemingly unrelated operators will be affected because scan()
+                is used to implement them. In the simplest case, the problem
+                can arise when the implementation of operator x(A) includes
+                the composition y(scan(A)), A is unbounded, and y() requires
+                bounded arrays. In previous versions, this would work because
+                regardless of input, the output of scan(A) was always bounded,
+                but in 14.12, such a query will produce unpredictable results.
+                Operators subject to this behavior include gesvd(), gemm(),
+                spgemm(), pearson(), spearman(), xgrid(), and quantile(). When
+                using these operators on unbounded arrays, you should rewrite
+                your queries to wrap an unbounded array A with
+                scan(A,true).</para>
+              </listitem>
+            </itemizedlist></para>
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">New storage version:</emphasis> As of
-          SciDB 14.7, the on-disk format of arrays differs from the format
-          used in all previous version of SciDB. In most situations, this will
-          be imperceptible to users and programmers of SciDB. However it does
-          mean that you cannot use SciDB 14.7 to open old SciDB database
-          files. Instead, you must backup your arrays using the current
-          version of SciDB, then reload them after you install version 14.7.
-          For details about backing up your arrays, see <xref
-          linkend="upgradeBackup"/>.</para>
+          <para><emphasis role="bold">Documentation changes:</emphasis> For
+          version 14.8, Paradigm4 published a single unwieldy document
+          encompassing reference material, installation instructions, release
+          notes, and expository overview material. As of 14.12, the SciDB
+          docset includes one book for reference and release notes, one book
+          for installation material, and a set of expository material to be
+          made available on line. Unless otherwise noted, the features
+          described in the docset apply to both the Community Edition and the
+          Enterprise Edition.</para>
         </listitem>
       </itemizedlist></para>
   </section>
@@ -160,43 +240,8 @@
   <section id="P4_ReleaseNotes">
     <title>Enterprise Edition Features and Changes</title>
 
-    <para>This version includes all the new features of the Community Edition,
-    plus the following features and changes:</para>
-
-    <itemizedlist>
-      <listitem>
-        <para><emphasis role="bold">New functions:</emphasis> The Enterprise
-        Edition of SciDB 14.7 now includes these functions:</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>The Fisher's two-tailed Exact Test function (<emphasis
-            role="bold">fisher_test_p_value</emphasis>), new to SciDB
-            14.7.</para>
-          </listitem>
-
-          <listitem>
-            <para>The Fisher exact test conditional odds ratio function
-            (<emphasis role="bold">fisher_test_odds_ratio</emphasis>), new to
-            SciDB 14.7.</para>
-          </listitem>
-        </itemizedlist>
-      </listitem>
-
-      <listitem>
-        <para>In the <emphasis role="bold">pearson()</emphasis> operator, the
-        name of the <emphasis role="bold">nan.or.complete</emphasis> value of
-        the 'use flag' has been changed to <emphasis
-        role="bold">null.or.complete</emphasis>.</para>
-      </listitem>
-
-      <listitem>
-        <para>The <emphasis role="bold">pearson()</emphasis> and <emphasis
-        role="bold">spearman()</emphasis> operators have changed the way they
-        handle nulls. For details, read the reference sections about these two
-        operators.</para>
-      </listitem>
-    </itemizedlist>
+    <para>Version 14.12 includes all the new features of the Community Edition
+    release 14.12.</para>
   </section>
 
   <section>
@@ -205,18 +250,14 @@
     <para>We make available a collection of external tools in the form of
     GitHub repositories at <ulink
     url="http://github.com/paradigm4">http://github.com/paradigm4</ulink>.</para>
-
-    <para>The non-root install procedure has been available since version
-    14.3, but in version 14.7 it has moved to a new location: <ulink
-    url="http://github.com/paradigm4/deployment">http://github.com/paradigm4/deployment</ulink>.</para>
   </section>
 
   <section>
     <title>Deprecation Notes</title>
 
-    <para>This section lists important feature changes made in this release
-    and changes forthcoming in future releases. For each change, we also
-    identify in which the release we provided deprecation notice.</para>
+    <para>This section lists important feature changes made in 14.12, and
+    changes anticipated in future releases. For each change, we also identify
+    in which the release we provided deprecation notice.</para>
 
     <informaltable>
       <tgroup cols="4">
@@ -241,153 +282,58 @@
 
           <row>
             <entry align="center" nameend="_4" namest="_1"><emphasis>Changes
-            made in this release (R14.7)</emphasis></entry>
+            made in 14.12</emphasis></entry>
           </row>
         </thead>
 
         <tbody>
           <row>
-            <entry>Removed the following operators: <command>corr()</command>,
-            <command>covar()</command> and
-            <command>covariance()</command>.<para>Use
-            <command>pearson()</command>, <command>spearman()</command>, or
-            <command>kendall()</command> instead of <command>corr()</command>
-            . For <command>covar()</command> and
-            <command>covariance()</command>, use matrix
-            multiply.</para></entry>
+            <entry>The operators <command>adddim()</command> and
+            <command>deldim()</command> have been removed. Use
+            <command>redimension()</command> or <command>reshape()</command>
+            instead. For example, <command>adddim(A,d)</command> can be
+            rewritten as <command>redimension(apply(A, d,
+            0),&lt;</command><emphasis>attribute_list_of_A</emphasis><command>&gt;[d=0:0,1,0,</command><emphasis>dimension_list_of_A</emphasis><command>&gt;)</command>.</entry>
 
             <entry>14.3</entry>
 
-            <entry>14.7</entry>
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>In previous versions, the "use flag' for the
+            <command>pearson()</command> operator had five potential values:
+            everything, all.obs, complete.obs, nan.or.complete, and
+            pairwise.complete.obs. Four of these flag values have been
+            removed. The only flag value that remains is
+            pairwise.complete.obs.</entry>
+
+            <entry>14.8</entry>
+
+            <entry>14.12</entry>
 
             <entry>EE</entry>
           </row>
 
           <row>
-            <entry>Removed the following operators:
-            <command>euclidean()</command> and
-            <command>manhattan()</command>.<para>Instead, use
-            <command>apply()</command> to add an attribute that calculates the
-            desired result. For Euclidean, calculate the square root of the
-            sums of the squares of the distances. For Manhattan, calculate the
-            sums of the differences of the distances.</para></entry>
+            <entry>Support for octal values in array literals and
+            dense-load-format (DLF) files -- also known as SciDB-formatted
+            text files -- has been removed. This affects the
+            <command>build()</command>, <command>input()</command>, and
+            <command>load()</command> operators. In previous versions, if an
+            array literal or DLF file included a value of an int64 attribute
+            and that value included a leading zero, the value would be
+            interpreted as an octal number. So '007' would yield the decimal
+            value 7, '017' would yield 15, and '018' would generate an error
+            because 8 is not a valid octal numeral. As of 14.12, such numbers
+            are interpreted as decimal numbers, so '007', '017', and '018'
+            will yield 7, 17, and 18 respectively.</entry>
 
-            <entry>14.3</entry>
+            <entry>14.8</entry>
 
-            <entry>14.7</entry>
-
-            <entry>EE</entry>
-          </row>
-
-          <row>
-            <entry>Removed attribute type <command>string_xxx</command>; use
-            the <command>string</command> type instead.</entry>
-
-            <entry>14.3</entry>
-
-            <entry>14.7</entry>
-
-            <entry>CE</entry>
-          </row>
-
-          <row>
-            <entry>Removed the use of integer data types with the
-            <command>spgemm()</command> operator.</entry>
-
-            <entry>14.3</entry>
-
-            <entry>14.7</entry>
-
-            <entry>CE</entry>
-          </row>
-
-          <row>
-            <entry>Removed the <command>sample()</command> operator.<para>Use
-            <command>bernoulli()</command> instead.</para></entry>
-
-            <entry>14.3</entry>
-
-            <entry>14.7</entry>
-
-            <entry>CE</entry>
-          </row>
-
-          <row>
-            <entry>Removed the <command>build_sparse()</command>
-            operator.<para>For small volumes of data, use a combination of
-            <command>filter()</command> and <command>build()</command>
-            instead. For larger volumes, use a combination of
-            <command>redimension()</command> and
-            <command>build()</command>.</para></entry>
-
-            <entry>13.12</entry>
-
-            <entry>14.7</entry>
-
-            <entry>CE</entry>
-          </row>
-
-          <row>
-            <entry>Removed the <command>NOT EMPTY</command> constraint in
-            array schemas. All SciDB arrays are now empty-able.</entry>
-
-            <entry>13.11</entry>
-
-            <entry>14.7</entry>
-
-            <entry>CE</entry>
-          </row>
-
-          <row>
-            <entry>The default chunk size has been changed to 1 million cells
-            (previously defaulted to 500,000 cells).</entry>
-
-            <entry>14.3</entry>
-
-            <entry>14.7</entry>
-
-            <entry>CE</entry>
-          </row>
-
-          <row>
-            <entry>Disallowed the use of the following parameters in <emphasis
-            role="bold">config.ini</emphasis>:<itemizedlist>
-                <listitem>
-                  <para><command>chunk-segment-size</command></para>
-                </listitem>
-
-                <listitem>
-                  <para><command>repart-seq-scan-threshold</command></para>
-                </listitem>
-
-                <listitem>
-                  <para><command>repart-algorithm</command></para>
-                </listitem>
-
-                <listitem>
-                  <para><command>repart-dense-open-once</command></para>
-                </listitem>
-
-                <listitem>
-                  <para><command>repart-disable-tile-mode</command></para>
-                </listitem>
-
-                <listitem>
-                  <para><command>rle-chunk-format</command></para>
-                </listitem>
-
-                <listitem>
-                  <para><command>parallel-sort</command></para>
-                </listitem>
-
-                <listitem>
-                  <para><command>save-ram</command></para>
-                </listitem>
-              </itemizedlist></entry>
-
-            <entry>14.3</entry>
-
-            <entry>14.7</entry>
+            <entry>14.12</entry>
 
             <entry>CE</entry>
           </row>
@@ -414,7 +360,7 @@
 
           <row>
             <entry align="center" nameend="_4" namest="_1"><emphasis>Expected
-            changes in the next release (R14.9)</emphasis></entry>
+            changes in the next release (R15.3)</emphasis></entry>
           </row>
         </thead>
 
@@ -427,8 +373,7 @@
                 <listitem>
                   <para><command>create_array()</command>,
                   <command>store()</command>, <command>load()</command>,
-                  <command>input()</command>, <command>rename()</command>,
-                  <command>remove()</command>,
+                  <command>rename()</command>, <command>remove()</command>,
                   <command>remove_versions()</command>, and
                   <command>save()</command>, which modify arrays.</para>
                 </listitem>
@@ -458,27 +403,164 @@
           </row>
 
           <row>
-            <entry>The operators <command>adddim()</command> and
-            <command>deldim()</command> will be removed from a future release.
-            Use <command>redimension()</command> or
-            <command>reshape()</command> instead.</entry>
+            <entry>The operator <command>join()</command> will be removed from
+            a future release. Use <command>cross_join()</command>
+            instead.</entry>
 
-            <entry>14.7</entry>
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The functions <command>fisher_test_p_value</command> and
+            <command>fisher_test_odds_ratio</command> will be removed from a
+            future release. Use<ulink
+            url="https://github.com/Paradigm4/superfunpack">
+            https://github.com/Paradigm4/superfunpack</ulink> instead.</entry>
+
+            <entry>14.12</entry>
 
             <entry>EE</entry>
           </row>
 
           <row>
-            <entry>The "use flag' for the <command>pearson()</command>
-            operator currently has five potential values: everything, all.obs,
-            complete.obs, nan.or.complete, and pairwise.complete.obs. Four of
-            these flag values are deprecated and will be removed from a future
-            release. The only flag value that is not deprecated is
-            pairwise.complete.obs; it will remain in future versions.</entry>
+            <entry>In release 14.12, the default value of the isStrict flag
+            (of the <command>input()</command>, <command>store()</command>,
+            and <command>redimension()</command> operators) is false. In a
+            future release, the default value will be true.</entry>
 
-            <entry>14.7</entry>
+            <entry>14.12</entry>
 
-            <entry>EE</entry>
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The operators <command>thin()</command> and
+            <command>lookup()</command> will be removed from a future release.
+            Workarounds will not be provided. If you need these operators,
+            contact <email>support@paradigm4.com</email>.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The operator <command>allversions()</command> will be
+            removed from a future release. To see all version of an array A,
+            use versions(A). To see all versions of all arrays, use
+            list('arrays',true). You can use redimension() and merge() to
+            establish the same shape as allversions().</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The operator <command>analyze()</command> will be removed.
+            The workaround for <command>analyze(A)</command> is to use
+            <command>aggregate(A, sum(a), max(a), min(a),
+            approxdc(a))</command> for each attribute you want to
+            analyze.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The function <command>approxDC()</command> will be renamed
+            to <command>approxdc()</command>. The automatically generated name
+            for the attribute created by the function will also use lowercase
+            letters.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The operator <command>attribute_rename()</command> will be
+            removed. The workaround is to use
+            <command>project(apply())</command> for each attribute you want to
+            analyze.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The operator <command>concat()</command> will be removed.
+            The workaround is to use a combination of
+            <command>merge(A)</command> and
+            <command>redimension()</command>.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The operator <command>normalize()</command> will be
+            removed. The workaround is <command>apply(aggregate(apply(A, sq,
+            a*a), sum(sq)), r, sqrt(sq))</command>.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The operator <command>reverse()</command> will be removed.
+            The workaround is to use <command>redimension( apply()
+            )</command>.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The utility script <command>csv2scidb</command> will be
+            removed because the <command>load()</command> operator now
+            supports CSV files natively.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The utility script <command>loadcsv.py</command> will be
+            removed because its capabilities are now natively supported by the
+            SciDB engine.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>The utility script
+            <command>calculate_chunk_length.py</command> will be removed
+            because its capabilities are now natively supported by the
+            <command>CREATE ARRAY</command> syntax.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
+          </row>
+
+          <row>
+            <entry>In 14.12 and earlier releases, attributes were by default
+            NOT NULL. In a future version, the default will be NULL.</entry>
+
+            <entry>14.12</entry>
+
+            <entry>CE</entry>
           </row>
         </tbody>
       </tgroup>
@@ -537,6 +619,20 @@
           role="bold">cross_join()</command> as a dimensions filter, see
           <ulink
           url="http://www.scidb.org/forum/viewtopic.php?f=18&amp;t=1204">http://www.scidb.org/forum/viewtopic.php?f=18&amp;t=1204</ulink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>The <command role="bold">aggregate()</command> operator works
+          best when it produces a 1-dimensional result array. To perform
+          aggregations that produce arrays with more than one dimension, use
+          <command role="bold">redimension()</command>.</para>
+        </listitem>
+
+        <listitem>
+          <para>A known bug can produce unpredictable results if you use
+          uppercase letters in the names of attributes or dimensions. Until
+          this bug is fixed, we recommend that you use only lowercase letters
+          in attribute and dimension names.</para>
         </listitem>
       </itemizedlist></para>
   </section>

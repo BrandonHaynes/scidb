@@ -20,215 +20,258 @@
 * END_COPYRIGHT
 */
 
-/*
- * @file TypeSystem.cpp
- *
- * @author roman.simakov@gmail.com
- */
+/****************************************************************************/
 
-#include <stdio.h>
-#include <inttypes.h>
 #include <iomanip>
-#include <stdarg.h>
-#include <float.h>
-#include <vector>
+#include <cerrno>
+
+#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include "log4cxx/logger.h"
-#include "log4cxx/basicconfigurator.h"
-#include "log4cxx/helpers/exception.h"
+#include <log4cxx/logger.h>
 
-#include "query/TypeSystem.h"
-#include "util/PluginManager.h"
-#include "query/FunctionLibrary.h"
-#include "query/LogicalExpression.h"
+#include <query/TypeSystem.h>
+#include <query/FunctionLibrary.h>
+
+/****************************************************************************/
 
 using namespace std;
 using namespace boost;
 
-namespace scidb
-{
+/****************************************************************************/
+namespace scidb {
+/****************************************************************************/
 
-// to prevent visibility of variable outside of file
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.typesystem"));
 
-std::ostream& operator<<(std::ostream& stream, const Type& ob )
+std::ostream& operator<<(std::ostream& os,const Type& t)
 {
-    stream << ob.typeId();
-    return stream;
+    return os << t.typeId();
 }
 
-//
-// PGB: Note that this will only generate the subset of the input list
-//      of types that are actually in the TypeLibrary.
-std::ostream& operator<<(std::ostream& stream,
-                         const std::vector< TypeId>& obs )
+/** PGB: Note that this will only generate the subset of the input list
+ *     of types that are actually in the TypeLibrary.
+ */
+std::ostream& operator<<(std::ostream& os,const std::vector<TypeId>& r)
 {
-    for (size_t i = 0, l = obs.size(); i < l; i++) {
-        if (i) {
-            stream << ", " << TypeLibrary::getType(obs[i]);
-        } else {
-            stream << " " << TypeLibrary::getType(obs[i]);
+    for (size_t i=0,n=r.size(); i!=n; ++i)
+    {
+        if (i != 0)
+        {
+            os << ',';
         }
+
+        os << ' ' << TypeLibrary::getType(r[i]);
     }
-    return stream;
+
+    return os;
 }
 
-std::ostream& operator<<(std::ostream& stream,
-                         const std::vector< Type>& obs )
+std::ostream& operator<<(std::ostream& os,const std::vector<Type>& r)
 {
-    for (size_t i = 0, l = obs.size(); i < l; i++) {
-        if (i) {
-            stream << ", " << obs[i];
-        } else {
-            stream << " " << obs[i];
-        }
-    }
-    return stream;
+    os << ' ';
+    insertRange(os,r,", ");
+    return os;
 }
 
-bool Type::isSubtype(TypeId const& subtype, TypeId const& supertype)
+template<class K,class V,class C>
+bool inFlatMap(PointerRange<const Keyed<K,V,C> > m,const K& k,V& v)
+{
+    const Keyed<K,V,C> *f,*l;                            // First+last matches
+
+    boost::tie(f,l) = std::equal_range(m.begin(),m.end(),k);
+
+    if (f != l)                                          // We found a match?
+    {
+        assert(l - f == 1);                              // ...match is unique
+        v = f->value;
+        return true;
+    }
+
+    return false;
+}
+
+TypeEnum typeId2TypeEnum(const TypeId& t,bool noThrow)
+{
+    static const Keyed<const char*,TypeEnum,less_strcmp> m[] =
+    {
+        {TID_BINARY    ,TE_BINARY    },
+        {TID_BOOL      ,TE_BOOL      },
+        {TID_CHAR      ,TE_CHAR      },
+        {TID_DATETIME  ,TE_DATETIME  },
+        {TID_DATETIMETZ,TE_DATETIMETZ},
+        {TID_DOUBLE    ,TE_DOUBLE    },
+        {TID_FLOAT     ,TE_FLOAT     },
+        {TID_INDICATOR ,TE_INDICATOR },
+        {TID_INT16     ,TE_INT16     },
+        {TID_INT32     ,TE_INT32     },
+        {TID_INT64     ,TE_INT64     },
+        {TID_INT8      ,TE_INT8      },
+        {TID_STRING    ,TE_STRING    },
+        {TID_UINT16    ,TE_UINT16    },
+        {TID_UINT32    ,TE_UINT32    },
+        {TID_UINT64    ,TE_UINT64    },
+        {TID_UINT8     ,TE_UINT8     },
+        {TID_VOID      ,TE_VOID      },
+    };
+
+    TypeEnum e = TE_INVALID;
+
+    if (inFlatMap(pointerRange(m),t.c_str(),e) || noThrow)
+    {
+        return e;
+    }
+
+    // Probably a user-defined type of some kind.  XXX We need to do a
+    // better job of supporting those here!
+
+    throw USER_EXCEPTION(SCIDB_SE_TYPE, SCIDB_LE_TYPE_NOT_REGISTERED) << t;
+}
+
+/**
+ *  Return true if this supertype is base type for subtype.
+ *  return true if subtype is direct or indirect subtype of supertype
+ */
+bool Type::isSubtype(TypeId const& subtype,TypeId const& supertype)
 {
     return TypeLibrary::getType(subtype).isSubtypeOf(supertype);
 }
 
-std::ostream& operator<<(std::ostream& os, const Value& ob )
+std::ostream& operator<<(std::ostream& s,const Value& v)
 {
-    // We could do a whole lot better here, but at the very least, for
-    // data of manageable sizes let's print out the bit pattern.
+    s << "scidb::Value(";
 
-    os << "scidb::Value(";
-    switch (ob.size()) {
-    case 1:
-        os << "0x" << hex << setfill('0') 
-           << *static_cast<uint8_t*>(ob.data()) << dec;
-        if (ob.getMissingReason() != -1)
-            os << ", missingReason=" << ob.getMissingReason();
-        break;
-    case 2:
-        os << "0x" << hex << setfill('0') 
-           << *static_cast<uint16_t*>(ob.data()) << dec;
-        if (ob.getMissingReason() != -1)
-            os << ", missingReason=" << ob.getMissingReason();
-        break;
-    case 4:
-        os << "0x" << hex << setfill('0') 
-           << *static_cast<uint32_t*>(ob.data()) << dec;
-        if (ob.getMissingReason() != -1)
-            os << ", missingReason=" << ob.getMissingReason();
-        break;
-    case 8:
-        os << "0x" << hex << setfill('0')
-           << *static_cast<uint64_t*>(ob.data()) << dec;
-        if (ob.getMissingReason() != -1)
-            os << ", missingReason=" << ob.getMissingReason();
-        break;
-    default:
-        os << "size=" << ob.size()
-           << ", data=" << ob.data()
-           << ", missingReason=" << ob.getMissingReason();
-        break;
+    switch (v.size())
+    {
+        case 1: s<<"0x"<<hex<<setfill('0')<<v.get<uint8_t> ()<< dec;break;
+        case 2: s<<"0x"<<hex<<setfill('0')<<v.get<uint16_t>()<< dec;break;
+        case 4: s<<"0x"<<hex<<setfill('0')<<v.get<uint32_t>()<< dec;break;
+        case 8: s<<"0x"<<hex<<setfill('0')<<v.get<uint64_t>()<< dec;break;
+        default:s<<"size="<< v.size()<<", data="<< v.data();        break;
     }
-    os << ')';
-    return os;
+
+    if (v.isNull())
+    {
+        s << ", missingReason=" << v.getMissingReason();
+    }
+
+    return s << ')';
 }
 
 /**
  * TypeLibrary implementation
  */
 
-/*
-** This is the list of type names and the bit-sizes for the built-in type
-** list.
-*/
-static struct BuiltinInfo {
-    const char* name;
-    size_t      bits;
-} const builtinTypeInfo[] = {
-    { TID_INDICATOR,    1 },
-    { TID_CHAR,         8 },
-    { TID_INT8,         8 },
-    { TID_INT16,        16 },
-    { TID_INT32,        32 },
-    { TID_INT64,        64 },
-    { TID_UINT8,        8 },
-    { TID_UINT16,       16 },
-    { TID_UINT32,       32 },
-    { TID_UINT64,       64 },
-    { TID_FLOAT,        32 },
-    { TID_DOUBLE,       64 },
-    { TID_BOOL,         1 },
-    { TID_STRING,       0 },
-    { TID_DATETIME,     sizeof(time_t) * 8 },
-    { TID_VOID,         0 },
-    { TID_BINARY,       0 },
-    { TID_DATETIMETZ,   2 * sizeof(time_t) * 8 }
-    // TID_FIXED_STRING intentionally left out, see below.
-};
-
-#define BUILTIN_INFO_COUNT      SCIDB_SIZE(builtinTypeInfo)
-
-
 TypeLibrary TypeLibrary::_instance;
 
 TypeLibrary::TypeLibrary()
 {
-#ifdef SCIDB_CLIENT
+#if defined(SCIDB_CLIENT)
     registerBuiltInTypes();
 #endif
 }
 
 void TypeLibrary::registerBuiltInTypes()
 {
-    for (unsigned i = 0; i < BUILTIN_INFO_COUNT; i++) {
-        const BuiltinInfo& bti = builtinTypeInfo[i];
-        Type type(bti.name, bti.bits);
-        Value _defaultValue(type);
-        _instance._registerType(type);
-        _instance._builtinTypesById[bti.name] = type;
-        _instance._defaultValuesById[bti.name] = _defaultValue;
+    static struct builtin {const char* name;size_t bits;} const builtins[] =
+    {
+        {TID_INDICATOR,    1                     },
+        {TID_CHAR,         8                     },
+        {TID_INT8,         8                     },
+        {TID_INT16,        16                    },
+        {TID_INT32,        32                    },
+        {TID_INT64,        64                    },
+        {TID_UINT8,        8                     },
+        {TID_UINT16,       16                    },
+        {TID_UINT32,       32                    },
+        {TID_UINT64,       64                    },
+        {TID_FLOAT,        32                    },
+        {TID_DOUBLE,       64                    },
+        {TID_BOOL,         1                     },
+        {TID_STRING,       0                     },
+        {TID_DATETIME,     sizeof(time_t) * 8    },
+        {TID_VOID,         0                     },
+        {TID_BINARY,       0                     },
+        {TID_DATETIMETZ,   2 * sizeof(time_t) * 8}
+       //TID_FIXED_STRING intentionally left out, see below.
+    };
+
+    for (size_t i=0; i != SCIDB_SIZE(builtins); ++i)
+    {
+        const builtin& bti = builtins[i];
+
+        Type t(bti.name, bti.bits);
+
+        _instance._registerType(t);
+        _instance._builtinTypesById [bti.name] = t;
+        _instance._defaultValuesById[bti.name] = Value(t);
     }
 }
 
-bool TypeLibrary::_hasType(TypeId typeId)
+bool TypeLibrary::_hasType(const TypeId& typeId) const
 {
-    if (_builtinTypesById.find(typeId) != _builtinTypesById.end()) {
+    if (_builtinTypesById.find(typeId) != _builtinTypesById.end())
+    {
         return true;
-    } else {
-        ScopedMutexLock cs(mutex);
+    }
+    else
+    {
+        ScopedMutexLock cs(_mutex);
+
         return _typesById.find(typeId) != _typesById.end();
     }
 }
 
-const Type& TypeLibrary::_getType(TypeId typeId)
+const Type& TypeLibrary::_getType(const TypeId& typeId)
 {
-    map<TypeId, Type, __lesscasecmp>::const_iterator i = _builtinTypesById.find(typeId);
-    if (i != _builtinTypesById.end()) {
+    map<TypeId,Type,__lesscasecmp >::const_iterator i = _builtinTypesById.find(typeId);
+    if (i != _builtinTypesById.end())
+    {
         return i->second;
-    } else {
-        ScopedMutexLock cs(mutex);
+    }
+    else
+    {
+        ScopedMutexLock cs(_mutex);
         i = _typesById.find(typeId);
-        if (i == _typesById.end()) {
+        if (i == _typesById.end())
+        {
             size_t pos = typeId.find_first_of('_');
-            if (pos != string::npos) {
-                string genericTypeId = typeId.substr(0, pos+1) + '*';
+            if (pos != string::npos)
+            {
+                string genericTypeId = typeId.substr(0, pos + 1) + '*';
                 i = _typesById.find(genericTypeId);
-                if (i != _typesById.end()) {
-                    Type limitedType(typeId, atoi(typeId.substr(pos+1).c_str())*8, i->second.baseType());
+                if (i != _typesById.end())
+                {
+                    Type limitedType(typeId, atoi(typeId.substr(pos + 1).c_str()) * 8,
+                            i->second.baseType());
                     _typeLibraries.addObject(typeId);
                     return _typesById[typeId] = limitedType;
                 }
             }
             LOG4CXX_DEBUG(logger, "_getType('" << typeId << "') not found");
-            throw SYSTEM_EXCEPTION(SCIDB_SE_TYPESYSTEM, SCIDB_LE_TYPE_NOT_REGISTERED) << typeId;
+            throw SYSTEM_EXCEPTION(SCIDB_SE_TYPESYSTEM, SCIDB_LE_TYPE_NOT_REGISTERED)<< typeId;
         }
         return i->second;
     }
 }
 
+std::vector<Type> TypeLibrary::getTypes(PointerRange<TypeId> ts)
+{
+    ScopedMutexLock cs(_instance._mutex);
+
+    std::vector<Type> v; v.reserve(ts.size());
+
+    for (size_t i=0,n=ts.size(); i!=n; ++i)
+    {
+        v.push_back(_instance._getType(ts[i]));
+    }
+
+    return v;
+}
+
 void TypeLibrary::_registerType(const Type& type)
 {
-    ScopedMutexLock cs(mutex);
+    ScopedMutexLock cs(_mutex);
     map<string, Type, __lesscasecmp>::const_iterator i = _typesById.find(type.typeId());
     if (i == _typesById.end()) {
         _typesById[type.typeId()] = type;
@@ -240,9 +283,9 @@ void TypeLibrary::_registerType(const Type& type)
     }
 }
 
-size_t TypeLibrary::_typesCount()
+size_t TypeLibrary::_typesCount() const
 {
-    ScopedMutexLock cs(mutex);
+    ScopedMutexLock cs(_mutex);
     size_t count = 0;
     for (map<string, Type, __lesscasecmp>::const_iterator i = _typesById.begin();
          i != _typesById.end();
@@ -254,22 +297,26 @@ size_t TypeLibrary::_typesCount()
     return count;
 }
 
-std::vector<TypeId> TypeLibrary::_typeIds()
+std::vector<TypeId> TypeLibrary::_typeIds() const
 {
-    ScopedMutexLock cs(mutex);
-    std::vector<std::string> list;
-    for (map<string, Type, __lesscasecmp>::const_iterator i = _typesById.begin(); i != _typesById.end();
-         ++i)
+    ScopedMutexLock cs(_mutex);
+    std::vector<TypeId> v;v.reserve(_typesById.size());
+
+    for (map<TypeId,Type,__lesscasecmp>::const_iterator i = _typesById.begin(); i!=_typesById.end(); ++i)
     {
         if (i->first[0] != '$')
-            list.push_back(i->first);
+        {
+            v.push_back(i->first);
+        }
     }
-    return list;
+
+    return v;
 }
 
-const Value& TypeLibrary::_getDefaultValue(TypeId typeId)
+const Value& TypeLibrary::_getDefaultValue(const TypeId& typeId)
 {
-    std::map<TypeId, Value, __lesscasecmp>::iterator iter = _defaultValuesById.find(typeId);
+    std::map<TypeId, Value, __lesscasecmp>::const_iterator iter = _defaultValuesById.find(typeId);
+
     if (iter != _defaultValuesById.end())
     {
         return iter->second;
@@ -304,15 +351,12 @@ const Value& TypeLibrary::_getDefaultValue(TypeId typeId)
  * @param s the string to copy out
  * @param quoteThese string of characters requiring backslashes
  */
-static void
-tidStringQuote(std::ostream& os, const char *s, const char *quoteThese)
+static void tidStringQuote(std::ostream& os, const char *s, const char *quoteThese)
 {
-    char ch;
-    const char *cp = s;
-    while ((ch = *cp++)) {
-        if (::index(quoteThese, ch))
+    while (char c = *s++) {
+        if (strchr(quoteThese, c))
             os << '\\';
-        os << ch;
+        os << c;
     }
 }
 
@@ -322,7 +366,7 @@ tidStringQuote(std::ostream& os, const char *s, const char *quoteThese)
  * NOTE: This will only work efficiently for the built in types. If you try
  *       use this for a UDT it needs to do a lookup to try and find a UDF.
  */
-string ValueToString(const TypeId type, const Value& value, int precision)
+string ValueToString(const TypeId& type, const Value& value, int precision)
 {
     std::stringstream ss;
 
@@ -433,60 +477,34 @@ string ValueToString(const TypeId type, const Value& value, int precision)
     return ss.str();
 }
 
-inline void mStringToMonth(char* mString, int& month)
+inline char mStringToMonth(const char* s)
 {
-    if (boost::iequals(mString, "jan"))
+    assert(s != 0);                                      // Validate arguments
+
+    static const Keyed<const char*,char,less_strcasecmp> map[] =
     {
-        month = 1;
-    }
-    else if (boost::iequals(mString, "feb"))
+        {"apr", 4},
+        {"aug", 8},
+        {"feb", 2},
+        {"dec",12},
+        {"jan", 1},
+        {"jul", 7},
+        {"jun", 6},
+        {"mar", 3},
+        {"may", 5},
+        {"nov",11},
+        {"oct",10},
+        {"sep", 9}
+    };
+
+    char n;
+
+    if (inFlatMap(pointerRange(map),s,n))
     {
-        month = 2;
+        return n;
     }
-    else if (boost::iequals(mString, "mar"))
-    {
-        month = 3;
-    }
-    else if (boost::iequals(mString, "apr"))
-    {
-        month = 4;
-    }
-    else if (boost::iequals(mString, "may"))
-    {
-        month = 5;
-    }
-    else if (boost::iequals(mString, "jun"))
-    {
-        month = 6;
-    }
-    else if (boost::iequals(mString, "jul"))
-    {
-        month = 7;
-    }
-    else if (boost::iequals(mString, "aug"))
-    {
-        month = 8;
-    }
-    else if (boost::iequals(mString, "sep"))
-    {
-        month = 9;
-    }
-    else if (boost::iequals(mString, "oct"))
-    {
-        month = 10;
-    }
-    else if (boost::iequals(mString, "nov"))
-    {
-        month = 11;
-    }
-    else if (boost::iequals(mString, "dec"))
-    {
-        month = 12;
-    }
-    else
-    {
-        throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_INVALID_MONTH_REPRESENTATION) << string(mString);
-    }
+
+    throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION,SCIDB_LE_INVALID_MONTH_REPRESENTATION) << string(s);
 }
 
 /**
@@ -516,7 +534,7 @@ time_t parseDateTime(std::string const& str)
           sscanf(s, "%d-%3s-%d%n", &t.tm_mday, &mString[0], &t.tm_year, &n) == 3 ||
           sscanf(s, "%d%3s%d:%d:%d:%d%n", &t.tm_mday, &mString[0], &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) == 6 ) && n == (int) str.size())
     {
-        mStringToMonth(&mString[0], t.tm_mon);
+        t.tm_mon = mStringToMonth(mString);
         if(amPmString[0]=='P')
         {
             t.tm_hour += 12;
@@ -525,19 +543,19 @@ time_t parseDateTime(std::string const& str)
     else
     {
         if((sscanf(s, "%d/%d/%d %d:%d:%d%n", &t.tm_mon, &t.tm_mday, &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 6 &&
-                    sscanf(s, "%d.%d.%d %d:%d:%d%n", &t.tm_mday, &t.tm_mon, &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 6 &&
-                    sscanf(s, "%d-%d-%d %d:%d:%d.%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &sec_frac, &n) != 7 &&
-                    sscanf(s, "%d-%d-%d %d.%d.%d.%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &sec_frac, &n) != 7 &&
-                    sscanf(s, "%d-%d-%d %d.%d.%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 6 &&
-                    sscanf(s, "%d-%d-%d %d:%d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 6 &&
-                    sscanf(s, "%d/%d/%d %d:%d%n", &t.tm_mon, &t.tm_mday, &t.tm_year, &t.tm_hour, &t.tm_min, &n) != 5 &&
-                    sscanf(s, "%d.%d.%d %d:%d%n", &t.tm_mday, &t.tm_mon, &t.tm_year, &t.tm_hour, &t.tm_min, &n) != 5 &&
-                    sscanf(s, "%d-%d-%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &n) != 5 &&
-                    sscanf(s, "%d-%d-%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &n) != 3 &&
-                    sscanf(s, "%d/%d/%d%n", &t.tm_mon, &t.tm_mday, &t.tm_year, &n) != 3 &&
-                    sscanf(s, "%d.%d.%d%n", &t.tm_mday, &t.tm_mon, &t.tm_year, &n) != 3 &&
-                    sscanf(s, "%d:%d:%d%n", &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 3 &&
-                    sscanf(s, "%d:%d%n", &t.tm_hour, &t.tm_min, &n) != 2)
+            sscanf(s, "%d.%d.%d %d:%d:%d%n", &t.tm_mday, &t.tm_mon, &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 6 &&
+            sscanf(s, "%d-%d-%d %d:%d:%d.%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &sec_frac, &n) != 7 &&
+            sscanf(s, "%d-%d-%d %d.%d.%d.%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &sec_frac, &n) != 7 &&
+            sscanf(s, "%d-%d-%d %d.%d.%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 6 &&
+            sscanf(s, "%d-%d-%d %d:%d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 6 &&
+            sscanf(s, "%d/%d/%d %d:%d%n", &t.tm_mon, &t.tm_mday, &t.tm_year, &t.tm_hour, &t.tm_min, &n) != 5 &&
+            sscanf(s, "%d.%d.%d %d:%d%n", &t.tm_mday, &t.tm_mon, &t.tm_year, &t.tm_hour, &t.tm_min, &n) != 5 &&
+            sscanf(s, "%d-%d-%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &n) != 5 &&
+            sscanf(s, "%d-%d-%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &n) != 3 &&
+            sscanf(s, "%d/%d/%d%n", &t.tm_mon, &t.tm_mday, &t.tm_year, &n) != 3 &&
+            sscanf(s, "%d.%d.%d%n", &t.tm_mday, &t.tm_mon, &t.tm_year, &n) != 3 &&
+            sscanf(s, "%d:%d:%d%n", &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 3 &&
+            sscanf(s, "%d:%d%n", &t.tm_hour, &t.tm_min, &n) != 2)
                     || n != (int)str.size())
             throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << TID_DATETIME;
     }
@@ -580,7 +598,7 @@ void parseDateTimeTz(std::string const& str, Value& result)
     if ((sscanf(s, "%d-%3s-%d %d.%d.%d %2s %d:%d%n", &t.tm_mday, &mString[0], &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &amPmString[0], &offsetHours, &offsetMinutes, &n) == 9)
         && n == (int)str.size())
     {
-        mStringToMonth(&mString[0], t.tm_mon);
+        t.tm_mon = mStringToMonth(mString);
         if(amPmString[0]=='P')
         {
             t.tm_hour += 12;
@@ -589,12 +607,12 @@ void parseDateTimeTz(std::string const& str, Value& result)
     else
     {
         if((sscanf(s, "%d/%d/%d %d:%d:%d %d:%d%n", &t.tm_mon, &t.tm_mday, &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &offsetHours, &offsetMinutes, &n) != 8 &&
-                sscanf(s, "%d.%d.%d %d:%d:%d %d:%d%n", &t.tm_mday, &t.tm_mon, &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &offsetHours, &offsetMinutes, &n) != 8 &&
-                sscanf(s, "%d-%d-%d %d:%d:%d.%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &secFrac, &offsetHours, &offsetMinutes, &n) != 9 &&
-                sscanf(s, "%d-%d-%d %d:%d:%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &offsetHours, &offsetMinutes, &n) != 8 &&
-                sscanf(s, "%d-%d-%d %d.%d.%d.%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &secFrac, &offsetHours, &offsetMinutes, &n) != 9 &&
-                sscanf(s, "%d-%d-%d %d.%d.%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &offsetHours, &offsetMinutes, &n) != 8 &&
-                sscanf(s, "%d-%3s-%d %d.%d.%d %2s %d:%d%n", &t.tm_mday, &mString[0], &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &amPmString[0], &offsetHours, &offsetMinutes, &n) != 9)
+            sscanf(s, "%d.%d.%d %d:%d:%d %d:%d%n", &t.tm_mday, &t.tm_mon, &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &offsetHours, &offsetMinutes, &n) != 8 &&
+            sscanf(s, "%d-%d-%d %d:%d:%d.%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &secFrac, &offsetHours, &offsetMinutes, &n) != 9 &&
+            sscanf(s, "%d-%d-%d %d:%d:%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &offsetHours, &offsetMinutes, &n) != 8 &&
+            sscanf(s, "%d-%d-%d %d.%d.%d.%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &secFrac, &offsetHours, &offsetMinutes, &n) != 9 &&
+            sscanf(s, "%d-%d-%d %d.%d.%d %d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &offsetHours, &offsetMinutes, &n) != 8 &&
+            sscanf(s, "%d-%3s-%d %d.%d.%d %2s %d:%d%n", &t.tm_mday, &mString[0], &t.tm_year, &t.tm_hour, &t.tm_min, &t.tm_sec, &amPmString[0], &offsetHours, &offsetMinutes, &n) != 9)
               || n != (int)str.size())
             throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << TID_DATETIMETZ;
     }
@@ -626,68 +644,46 @@ void parseDateTimeTz(std::string const& str, Value& result)
     result.setData(&r, 2*sizeof(time_t));
 }
 
-bool isBuiltinType(const TypeId type)
-{
-        return TID_DOUBLE == type
-        || TID_INT64 == type
-        || TID_INT32 == type
-        || TID_CHAR == type
-        || TID_STRING == type
-        || TID_FLOAT == type
-        || TID_INT8 == type
-        || TID_INT16 == type
-        || TID_UINT8 == type
-        || TID_UINT16 == type
-        || TID_UINT32 == type
-        || TID_UINT64 == type
-        || TID_INDICATOR == type
-        || TID_BOOL == type
-        || TID_DATETIME == type
-        || TID_VOID == type
-        || TID_DATETIMETZ == type
-        || TID_BINARY == type;
+bool isBuiltinType(const TypeId& t)
+{// use a flat map here
+    return TID_DOUBLE == t
+        || TID_INT64 == t
+        || TID_INT32 == t
+        || TID_CHAR == t
+        || TID_STRING == t
+        || TID_FLOAT == t
+        || TID_INT8 == t
+        || TID_INT16 == t
+        || TID_UINT8 == t
+        || TID_UINT16 == t
+        || TID_UINT32 == t
+        || TID_UINT64 == t
+        || TID_INDICATOR == t
+        || TID_BOOL == t
+        || TID_DATETIME == t
+        || TID_VOID == t
+        || TID_DATETIMETZ == t
+        || TID_BINARY == t;
 }
 
-TypeId propagateType(const TypeId type)
+TypeId propagateType(const TypeId& type)
 {
-        return TID_INT8 == type || TID_INT16 == type || TID_INT32 == type
-        ? TID_INT64
-        : TID_UINT8 == type || TID_UINT16 == type || TID_UINT32 == type
-        ? TID_UINT64
-        : TID_FLOAT == type ? TID_DOUBLE : type;
+    return TID_INT8 == type || TID_INT16 == type || TID_INT32 == type
+    ? TID_INT64
+    : TID_UINT8 == type || TID_UINT16 == type || TID_UINT32 == type
+    ? TID_UINT64
+    : TID_FLOAT == type ? TID_DOUBLE : type;
 }
 
-TypeId propagateTypeToReal(const TypeId type)
+TypeId propagateTypeToReal(const TypeId& type)
 {
-        return TID_INT8 == type || TID_INT16 == type || TID_INT32 == type || TID_INT64 == type
+    return TID_INT8 == type || TID_INT16 == type || TID_INT32 == type || TID_INT64 == type
         || TID_UINT8 == type || TID_UINT16 == type || TID_UINT32 == type || TID_UINT64 == type
         || TID_FLOAT == type ? TID_DOUBLE : type;
 }
 
-// Use of "%"PRIi64"%n" as a sscanf format string for parsing int64
-// values is problematic because it treats numbers with leading zeroes
-// as octal, so that for example the ZIP code 02139 is not parseable
-// since 9 is not an octal digit.  This routine gets rid of leading
-// zeroes to prevent this non-intuitive behavior.  See ticket #4273.
-//
-#ifdef FIX_TICKET_4273
-static string stripLeadingZeroes(const string& str)
+void StringToValue(const TypeId& type, const string& str, Value& value)
 {
-    const char* cp = str.c_str();
-    if (*cp == '0' && ::tolower(*(cp + 1)) != 'x') {
-        while (*cp == '0')
-            ++cp;
-        if (!::isdigit(*cp))
-            --cp;
-        return string(cp);
-    }
-    return str;
-}
-#endif
-
-void StringToValue(const TypeId type, const string& str, Value& value)
-{
-    int n;
     if ( TID_DOUBLE == type ) {
         if (str == "NA") {
             // backward compatibility
@@ -696,19 +692,10 @@ void StringToValue(const TypeId type, const string& str, Value& value)
             value.setDouble(atof(str.c_str()));
         }
     } else if ( TID_INT64 == type ) {
-        int64_t val;
-#ifdef FIX_TICKET_4273
-        string str1 = stripLeadingZeroes(str);
-#else
-        const string& str1 = str;
-#endif
-        if (sscanf(str1.c_str(), "%"PRIi64"%n", &val, &n) != 1 || n != (int)str1.size())
-            throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << type;
+        int64_t val = StringToInteger<int64_t>(str.c_str(), TID_INT64);
         value.setInt64(val);
     } else if ( TID_INT32 == type ) {
-        int val;
-        if (sscanf(str.c_str(), "%d%n", &val, &n) != 1 || n != (int)str.size())
-            throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << type;
+        int32_t val = StringToInteger<int32_t>(str.c_str(), TID_INT32);
         value.setInt32(val);
     } else if (  TID_CHAR == type )  {
         value.setChar(str[0]);
@@ -722,34 +709,22 @@ void StringToValue(const TypeId type, const string& str, Value& value)
             value.setFloat(atof(str.c_str()));
         }
     } else if ( TID_INT8 == type ) {
-        int16_t val;
-        if (sscanf(str.c_str(), "%hd%n", &val, &n) != 1 || n != (int)str.size() || val>127 || val<-127)
-            throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << type;
-        value.setInt8(static_cast<int8_t>(val));
+        int8_t val = StringToInteger<int8_t>(str.c_str(), TID_INT8);
+        value.setInt8(val);
     } else if (TID_INT16 == type) {
-        int16_t val;
-        if (sscanf(str.c_str(), "%hd%n", &val, &n) != 1 || n != (int)str.size())
-            throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << type;
+        int16_t val = StringToInteger<int16_t>(str.c_str(), TID_INT16);
         value.setInt16(val);
     } else if ( TID_UINT8 == type ) {
-        uint16_t val;
-        if (sscanf(str.c_str(), "%hu%n", &val, &n) != 1 || n != (int)str.size() || val>255)
-            throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << type;
-        value.setUint8(static_cast<uint8_t>(val));
+        uint8_t val = StringToInteger<uint8_t>(str.c_str(), TID_UINT8);
+        value.setUint8(val);
     } else if ( TID_UINT16 == type ) {
-        uint16_t val;
-        if (sscanf(str.c_str(), "%hu%n", &val, &n) != 1 || n != (int)str.size())
-            throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << type;
+        uint16_t val = StringToInteger<uint16_t>(str.c_str(), TID_UINT16);
         value.setUint16(val);
     } else if ( TID_UINT32 == type ) {
-        unsigned val;
-        if (sscanf(str.c_str(), "%u%n", &val, &n) != 1 || n != (int)str.size())
-            throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << type;
+        uint32_t val = StringToInteger<uint32_t>(str.c_str(), TID_UINT32);
         value.setUint32(val);
     } else if ( TID_UINT64 == type ) {
-        uint64_t val;
-        if (sscanf(str.c_str(), "%"PRIu64"%n", &val, &n) != 1 || n != (int)str.size())
-            throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION, SCIDB_LE_FAILED_PARSE_STRING) << str << type;
+        uint64_t val = StringToInteger<uint64_t>(str.c_str(), TID_UINT64);
         value.setUint64(val);
     } else if (( TID_INDICATOR == type ) || ( TID_BOOL == type )) {
         if (str == "true") {
@@ -775,7 +750,7 @@ void StringToValue(const TypeId type, const string& str, Value& value)
     }
 }
 
-double ValueToDouble(const TypeId type, const Value& value)
+double ValueToDouble(const TypeId& type, const Value& value)
 {
     std::stringstream ss;
     if ( TID_DOUBLE == type ) {
@@ -817,7 +792,7 @@ double ValueToDouble(const TypeId type, const Value& value)
     }
 }
 
-void DoubleToValue(const TypeId type, double d, Value& value)
+void DoubleToValue(const TypeId& type, double d, Value& value)
 {
       if (  TID_DOUBLE == type ) {
         value.setDouble(d);
@@ -853,39 +828,174 @@ void DoubleToValue(const TypeId type, double d, Value& value)
     }
 }
 
-void Value::makeTileConstant(const TypeId& typeId)
-{
-    assert(_tile == NULL);
+template<>  TypeId type2TypeId<char>()      {return TID_CHAR;  }
+template<>  TypeId type2TypeId<int8_t>()    {return TID_INT8;  }
+template<>  TypeId type2TypeId<int16_t>()   {return TID_INT16; }
+template<>  TypeId type2TypeId<int32_t>()   {return TID_INT32; }
+template<>  TypeId type2TypeId<int64_t>()   {return TID_INT64; }
+template<>  TypeId type2TypeId<uint8_t>()   {return TID_UINT8; }
+template<>  TypeId type2TypeId<uint16_t>()  {return TID_UINT16;}
+template<>  TypeId type2TypeId<uint32_t>()  {return TID_UINT32;}
+template<>  TypeId type2TypeId<uint64_t>()  {return TID_UINT64;}
+template<>  TypeId type2TypeId<float>()     {return TID_FLOAT; }
+template<>  TypeId type2TypeId<double>()    {return TID_DOUBLE;}
 
-    RLEPayload& p = *getTile(typeId);
-    RLEPayload::Segment s;
-    s._same = true;
-    s._null = isNull();
-    s._pPosition = 0;
-    s._valueIndex = 0;
-    if (!s._null) {
+/****************************************************************************/
+
+/**
+ *  Construct and return value that carries a tile that consists of the single
+ *  constant value 'v' repeated indefinitely.
+ */
+Value makeTileConstant(const TypeId& t,const Value& v)
+{
+    Value               w(TypeLibrary::getType(t),Value::asTile);
+    RLEPayload*   const p = w.getTile();
+    RLEPayload::Segment s(0,0,true,v.isNull());
+
+    if (!s._null)
+    {
         std::vector<char> varPart;
-        p.appendValue(varPart, *this, 0);
-        p.setVarPart(varPart);
+
+        p->appendValue(varPart,v,0);
+        p->setVarPart(varPart);
     }
-    p.addSegment(s);
-    p.flush(INFINITE_LENGTH);
+
+    p->addSegment(s);
+    p->flush(INFINITE_LENGTH);
+
+    return w;
 }
 
-template<>  TypeId type2TypeId<char>() { return TID_CHAR; }
-template<>  TypeId type2TypeId<int8_t>() { return TID_INT8; }
-template<>  TypeId type2TypeId<int16_t>() { return TID_INT16; }
-template<>  TypeId type2TypeId<int32_t>() { return TID_INT32; }
-template<>  TypeId type2TypeId<int64_t>() { return TID_INT64; }
-template<>  TypeId type2TypeId<uint8_t>() { return TID_UINT8; }
-template<>  TypeId type2TypeId<uint16_t>() { return TID_UINT16; }
-template<>  TypeId type2TypeId<uint32_t>() { return TID_UINT32; }
-template<>  TypeId type2TypeId<uint64_t>() { return TID_UINT64; }
-template<>  TypeId type2TypeId<float>() { return TID_FLOAT; }
-template<>  TypeId type2TypeId<double>() { return TID_DOUBLE; }
+/**
+ *  Throw a type system exception with code 'e'.
+ */
+void Value::fail(int e)
+{
+    throw SYSTEM_EXCEPTION(SCIDB_SE_TYPESYSTEM,e);       // Throw exception e
+}
+
+/**
+ *  Return true if the object looks to be in good shape.  Centralizes a number
+ *  of consistency checks that would otherwise clutter up the code, and, since
+ *  only ever called from within assertions, can be eliminated entirely by the
+ *  compiler from the release build.
+ */
+bool Value::consistent() const
+{
+    assert(_code >= -2);                                 // Check status code
+    assert(implies(large(_size), _data!=0));             // Check data buffer
+    assert(implies(_size==0,_data==0 || isTile()));      // Check buffer size
+    assert(implies(isTile(),_tile!=0));                  // Check tile pointer
+    assert(implies(isTile(),_size==0));                  // Check buffer size
+
+    return true;                                         // Appears to be good
+}
 
 
+/**
+ * Shorthand for throwing USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION,SCIDB_LE_FAILED_PARSE_STRING)
+ * @param s string being parsed
+ * @param tid TypeId of desired destination type
+ * @param what additional error information
+ * @throws USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION,SCIDB_LE_FAILED_PARSE_STRING)
+ * @returns never returns, always throws
+ */
+static void throwFailedParseEx(const char *s, const TypeId& tid, const char* what)
+{
+    stringstream ss;
+    ss << tid << " (" << what << ')';
+    throw USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION,
+                         SCIDB_LE_FAILED_PARSE_STRING) << s << ss.str();
+}
 
+/**
+ * @defgroup Templates to yield correct strtoimax(3)/strtoumax(3) return type.
+ * @{
+ */
+template <bool isSigned>
+struct maxint;
 
-} // namespace
+template <>
+struct maxint<true> { typedef intmax_t type; };
 
+template <>
+struct maxint<false> { typedef uintmax_t type; };
+/**@}*/
+
+/**
+ * Convert string to integral type T, backward compatibly with sscanf(3).
+ *
+ * @description We know we have an integer type here, so sscanf(3) is
+ * overkill: we can call strtoimax(3)/strtoumax(3) with less overhead.
+ * Also disallow octal input: the string is either base 10 or (with
+ * leading 0x or 0X) base 16.
+ *
+ * @param s null-terminated string
+ * @param type TypeId used to generate exception messages
+ * @return the T integer value parsed from the string @c s
+ * @throws USER_EXCEPTION(SCIDB_SE_TYPE_CONVERSION,SCIDB_LE_FAILED_PARSE_STRING)
+ *
+ * @note The "non-digits" check is backward compatible with the old
+ * sscanf(3) implementation.  "42hike" is not an integer.
+ */
+template <typename T>
+T StringToInteger(const char *s, const TypeId& tid)
+{
+    ASSERT_EXCEPTION(s, "StringToInteger<> was given NULL string pointer");
+
+    // FWIW "VMIN" is used by termio headers, so: V_MIN, V_MAX.
+    typedef typename maxint< std::numeric_limits<T>::is_signed >::type MaxT;
+    MaxT const V_MAX = std::numeric_limits<T>::max();
+    MaxT const V_MIN = std::numeric_limits<T>::min();
+
+    // For signed values, this is "right-sized" all-ones.
+    MaxT const MASK = (V_MAX << 1) | 1;
+
+    while (::isspace(*s))
+        ++s;
+    char next = *s ? *(s + 1) : '\0';
+    int base = (*s == '0' && (next == 'x' || next == 'X')) ? 16 : 10;
+
+    errno = 0;
+    char *endptr = 0;
+    MaxT v;
+    if (std::numeric_limits<T>::is_signed) {
+        v = ::strtoimax(s, &endptr, base);
+    } else {
+        v = ::strtoumax(s, &endptr, base);
+    }
+    if (errno) {
+        throwFailedParseEx(s, tid, ::strerror(errno));
+    }
+    if (v > V_MAX) {
+        if (!std::numeric_limits<T>::is_signed)
+            throwFailedParseEx(s, tid, "unsigned overflow");
+        if (base == 10 || (v & ~MASK))
+            throwFailedParseEx(s, tid, "signed overflow");
+        // Else it's a negative number entered as hex, and only *looks* > V_MAX.
+        // Sign-extend it so that the cast will do the right thing.
+        v |= ~MASK;
+    }
+    if (std::numeric_limits<T>::is_signed && v < V_MIN) {
+        throwFailedParseEx(s, tid, "signed underflow");
+    }
+    // Allow trailing whitespace, but nothing else.  [csv2scidb compat]
+    if (!iswhitespace(endptr)) {
+        throwFailedParseEx(s, tid, "non-digits");
+    }
+    return static_cast<T>(v);
+}
+
+// Explicit instantiations for our favorite types.
+template int8_t StringToInteger<int8_t>(const char *s, const TypeId& tid);
+template uint8_t StringToInteger<uint8_t>(const char *s, const TypeId& tid);
+template int16_t StringToInteger<int16_t>(const char *s, const TypeId& tid);
+template uint16_t StringToInteger<uint16_t>(const char *s, const TypeId& tid);
+template int32_t StringToInteger<int32_t>(const char *s, const TypeId& tid);
+template uint32_t StringToInteger<uint32_t>(const char *s, const TypeId& tid);
+template int64_t StringToInteger<int64_t>(const char *s, const TypeId& tid);
+template uint64_t StringToInteger<uint64_t>(const char *s, const TypeId& tid);
+
+/****************************************************************************/
+}
+/****************************************************************************/

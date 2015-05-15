@@ -205,13 +205,13 @@ sudo service iptables stop   # stop iptables</programlisting></para>
       <orderedlist>
         <listitem>
           <para>Add SciDB's GPG public key by running the following command.
-          <programlisting>wget -O- https://downloads.paradigm4.com/key | sudo apt-key add -</programlisting></para>
+          <programlisting>wget -O- http://downloads.paradigm4.com/key | sudo apt-key add -</programlisting></para>
         </listitem>
 
         <listitem>
           <para>Add SciDB's APT repository to the apt configuration file
-          <code>/etc/apt/sources.list.d/scidb.list</code>. <programlisting>deb  https://downloads.paradigm4.com/  ubuntu12.04/&scidb_version;/
-deb-src  https://downloads.paradigm4.com/  ubuntu12.04/&scidb_version;/</programlisting></para>
+          <code>/etc/apt/sources.list.d/scidb.list</code>. <programlisting>deb  http://downloads.paradigm4.com/  ubuntu12.04/&scidb_version;/
+deb-src  http://downloads.paradigm4.com/  ubuntu12.04/&scidb_version;/</programlisting></para>
 
           <para>If the <code>/etc/apt/sources.list.d/scidb.list</code> file
           does not exist, create it (using sudo).</para>
@@ -259,7 +259,7 @@ sudo apt-get source scidb # If you want the SciDB source</programlisting></para>
       <orderedlist>
         <listitem>
           <para>Add SciDB's GPG public key by running the following command.
-          <programlisting>wget https://downloads.paradigm4.com/key
+          <programlisting>wget http://downloads.paradigm4.com/key
 sudo rpm --import key
 rm -f key</programlisting></para>
         </listitem>
@@ -274,7 +274,7 @@ rm -f key</programlisting></para>
           <para>Add the following lines to the
           <code>/etc/yum.repos.d/scidb.repo</code> file:<programlisting>[scidb]
 name=SciDB
-baseurl=https://downloads.paradigm4.com/centos6.3/&scidb_version;/
+baseurl=http://downloads.paradigm4.com/centos6.3/&scidb_version;/
 gpgcheck=1</programlisting></para>
         </listitem>
 

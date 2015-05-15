@@ -1,0 +1,40 @@
+Description: compiling with 1.54.0 with gcc 4.8.1 fails with uintptr_t type not declared
+Author: timblechmann <tim@klingt.org>
+Bug: 8973
+Forwarded: https://svn.boost.org/trac/boost/ticket/8973
+
+--- a/libs/locale/src/icu/formatter.cpp 2011-07-12 14:57:36.000000000 +0100
++++ b/libs/locale/src/icu/formatter.cpp 2012-05-01 14:27:54.000000000 +0100
+@@ -58,7 +58,7 @@
+             virtual string_type format(int64_t value,size_t &code_points) const
+             {
+                 icu::UnicodeString tmp;
+-                icu_fmt_->format(value,tmp);
++                icu_fmt_->format(::int64_t(value),tmp);
+                 code_points=tmp.countChar32();
+                 return cvt_.std(tmp);
+             }
+
+--- a/boost/atomic/atomic.hpp	2013-02-23 10:24:58.000000000 -0500
++++ b/boost/atomic/atomic.hpp	2014-11-24 04:27:36.316063739 -0500
+@@ -194,7 +194,7 @@
+ #if !defined(__PGIC__)
+ 
+ #if (defined(BOOST_WINDOWS) && !defined(_WIN32_WCE)) \
+-    || (defined(_XOPEN_UNIX) && (_XOPEN_UNIX+0 > 0) && !defined(__UCLIBC__)) \
++    || (defined(_XOPEN_UNIX) && (_XOPEN_UNIX+0 > 0) && !defined(__UCLIBC__) && !defined(__GLIBC__)) \
+     || defined(__CYGWIN__) \
+     || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) \
+     || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+
+--- a/boost/log/detail/intptr_t.hpp	2013-05-06 16:48:52.000000000 -0400
++++ b/boost/log/detail/intptr_t.hpp	2014-11-24 04:29:24.136063739 -0500
+@@ -34,7 +34,7 @@
+ #if !defined(__PGIC__)
+ 
+ #if (defined(BOOST_WINDOWS) && !defined(_WIN32_WCE)) \
+-    || (defined(_XOPEN_UNIX) && (_XOPEN_UNIX+0 > 0) && !defined(__UCLIBC__)) \
++    || (defined(_XOPEN_UNIX) && (_XOPEN_UNIX+0 > 0) && !defined(__UCLIBC__) && !defined(__GLIBC__)) \
+     || defined(__CYGWIN__) \
+     || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) \
+     || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)

@@ -27,12 +27,7 @@
  *
  * @brief Implementation of query context methods
  */
-#ifdef __APPLE__
-#include <malloc/malloc.h>
-#else
 #include <malloc.h>
-#endif
-
 #include <time.h>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -55,6 +50,9 @@
 #include <network/MessageUtils.h>
 #include <network/MessageHandleJob.h>
 #include <smgr/io/ReplicationManager.h>
+#ifndef SCIDB_CLIENT
+#include <util/MallocStats.h>
+#endif
 
 using namespace std;
 using namespace boost;
@@ -137,9 +135,9 @@ boost::shared_ptr<Query> Query::createDetached(QueryID queryID)
 {
     boost::shared_ptr<Query> query = boost::make_shared<Query>(queryID);
 
-    const size_t smType = Config::getInstance()->getOption<int>(CONFIG_STATISTICS_MONITOR);
+    const size_t smType = Config::getInstance()->getOption<int>(CONFIG_STAT_MONITOR);
     if (smType) {
-        const string& smParams = Config::getInstance()->getOption<string>(CONFIG_STATISTICS_MONITOR_PARAMS);
+        const string& smParams = Config::getInstance()->getOption<string>(CONFIG_STAT_MONITOR_PARAMS);
         query->statisticsMonitor = StatisticsMonitor::create(smType, smParams);
     }
 
@@ -218,11 +216,16 @@ void Query::init(InstanceID coordID,
 
       /* set up our private arena...*/
       {
+          assert(_arena == 0);
           char s[64];
           snprintf(s,SCIDB_SIZE(s),"query %lu",_queryID);
-          assert(_arena == 0);
-          _arena = arena::newArena(s);
-          assert(_arena != 0);
+
+          arena::Options options(s);
+          options.threading(true);
+        //options.resetting(true); LeaArena may not be ready for prime time...
+        //options.recycling(true);
+        //options.pagesize(64*MiB);
+          _arena = arena::newArena(options);
       }
 
       assert(!_coordinatorLiveness);
@@ -247,8 +250,8 @@ void Query::init(InstanceID coordID,
       assert(_instanceID != INVALID_INSTANCE);
       assert(_instanceID < nInstances);
 
-      if (coordID == COORDINATOR_INSTANCE) {
-         _coordinatorID = COORDINATOR_INSTANCE;
+      if (coordID == INVALID_INSTANCE) {
+         _coordinatorID = INVALID_INSTANCE;
          shared_ptr<Query::ErrorHandler> ptr(new BroadcastAbortErrorHandler());
          pushErrorHandler(ptr);
       } else {
@@ -256,7 +259,6 @@ void Query::init(InstanceID coordID,
          assert(_coordinatorID < nInstances);
       }
 
-      _remoteArrays.resize(nInstances);
       _receiveSemaphores.resize(nInstances);
       _receiveMessages.resize(nInstances);
       chunkReqs.resize(nInstances);
@@ -294,7 +296,7 @@ shared_ptr<Query> Query::insert(const shared_ptr<Query>& query)
    setCurrentQueryID(query->getQueryID());
 
    if (res.second) {
-       const uint32_t nRequests = std::max(Config::getInstance()->getOption<int>(CONFIG_MAX_REQUESTS),1);
+       const uint32_t nRequests = std::max(Config::getInstance()->getOption<int>(CONFIG_REQUESTS),1);
        if (_queries.size() > nRequests) {
            _queries.erase(res.first);
            throw (SYSTEM_EXCEPTION(SCIDB_SE_NO_MEMORY, SCIDB_LE_RESOURCE_BUSY) << "too many queries");
@@ -620,7 +622,7 @@ void Query::handleComplete()
 {
     handleCommit();
     boost::shared_ptr<MessageDesc>  msg(makeCommitMessage(_queryID));
-    NetworkManager::getInstance()->broadcast(msg);
+    NetworkManager::getInstance()->broadcastPhysical(msg);
 }
 
 void Query::handleCancel()
@@ -631,7 +633,7 @@ void Query::handleCancel()
 void Query::handleLivenessNotification(boost::shared_ptr<const InstanceLiveness>& newLiveness)
 {
     QueryID thisQueryId(0);
-    InstanceID coordPhysId = COORDINATOR_INSTANCE;
+    InstanceID coordPhysId = INVALID_INSTANCE;
     shared_ptr<const scidb::Exception> msg;
     bool isAbort = false;
     {
@@ -653,9 +655,9 @@ void Query::handleLivenessNotification(boost::shared_ptr<const InstanceLiveness>
             msg = _error;
         }
 
-        if (_coordinatorID != COORDINATOR_INSTANCE) {
-
+        if (_coordinatorID != INVALID_INSTANCE) {
             coordPhysId = getPhysicalCoordinatorID();
+
             InstanceLiveness::InstancePtr newCoordState = newLiveness->find(coordPhysId);
             isAbort = newCoordState->isDead();
             if (!isAbort) {
@@ -687,7 +689,7 @@ void Query::handleLivenessNotification(boost::shared_ptr<const InstanceLiveness>
         boost::shared_ptr<MessageDesc> msg = makeAbortMessage(thisQueryId);
 
         // HACK (somewhat): set sourceid to coordinator, because only it can issue an abort
-        assert(coordPhysId != COORDINATOR_INSTANCE);
+        assert(coordPhysId != INVALID_INSTANCE);
         msg->setSourceInstanceID(coordPhysId);
 
         shared_ptr<MessageHandleJob> job = make_shared<ServerMessageHandleJob>(msg);
@@ -702,32 +704,18 @@ void Query::handleLivenessNotification(boost::shared_ptr<const InstanceLiveness>
     }
 }
 
-InstanceID Query::getCoordinatorPhysicalInstanceID()
+InstanceID Query::getPhysicalCoordinatorID(bool resolveLocalInstanceId)
 {
-   ScopedMutexLock cs(errorMutex);
-
-   InstanceID coord = _coordinatorID;
-   if (coord == COORDINATOR_INSTANCE) {
-       coord = _instanceID;
-   }
-
-   assert(_liveInstances.size() > 0);
-   assert(_liveInstances.size() > coord);
-   return  _liveInstances[coord];
-}
-
-InstanceID Query::getPhysicalCoordinatorID()
-{
-   ScopedMutexLock cs(errorMutex);
-   if (_coordinatorID == COORDINATOR_INSTANCE) {
-      return COORDINATOR_INSTANCE;
-   }
-   if (_coordinatorID == INVALID_INSTANCE) {
-      return INVALID_INSTANCE;
-   }
-   assert(_liveInstances.size() > 0);
-   assert(_liveInstances.size() > _coordinatorID);
-   return  _liveInstances[_coordinatorID];
+    InstanceID coord = _coordinatorID;
+    if (_coordinatorID == INVALID_INSTANCE) {
+        if (!resolveLocalInstanceId) {
+            return INVALID_INSTANCE;
+        }
+        coord = _instanceID;
+    }
+    assert(_liveInstances.size() > 0);
+    assert(_liveInstances.size() > coord);
+    return _liveInstances[coord];
 }
 
 InstanceID Query::mapLogicalToPhysical(InstanceID instance)
@@ -737,8 +725,9 @@ InstanceID Query::mapLogicalToPhysical(InstanceID instance)
    }
    ScopedMutexLock cs(errorMutex);
    assert(_liveInstances.size() > 0);
-   if (instance >= _liveInstances.size())
+   if (instance >= _liveInstances.size()) {
        throw SYSTEM_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_INSTANCE_OFFLINE) << instance;
+   }
    checkNoError();
    instance = _liveInstances[instance];
    return instance;
@@ -766,7 +755,6 @@ bool Query::isPhysicalInstanceDead(InstanceID instance)
    return isDead;
 }
 
-#ifndef __APPLE__
 static __thread QueryID currentQueryID = 0;
 QueryID Query::getCurrentQueryID()
 {
@@ -777,25 +765,6 @@ void Query::setCurrentQueryID(QueryID queryID)
 {
     currentQueryID = queryID;
 }
-#else
-static ThreadContext<QueryID> currentQueryID;
-
-QueryID Query::getCurrentQueryID()
-{
-    QueryID* ptr = currentQueryID;
-    return ptr == NULL ? 0 : *ptr;
-}
-
-void Query::setCurrentQueryID(QueryID queryID)
-{
-    QueryID* ptr = currentQueryID;
-    if (ptr == NULL) {
-        ptr = new QueryID();
-        currentQueryID = ptr;
-    }
-    *ptr = queryID;
-}
-#endif
 
 boost::shared_ptr<Query> Query::getQueryByID(QueryID queryID, bool raise)
 {
@@ -831,28 +800,22 @@ void Query::freeQueries()
     }
 }
 
-#ifndef SCIDB_CLIENT
-extern size_t totalPersistentChunkAllocatedSize;
-extern size_t totalMemChunkAllocatedSize;
-#endif
-
 void dumpMemoryUsage(const QueryID queryId)
 {
-#ifndef NDEBUG
-#ifdef HAVE_MALLOC_STATS
-    if (Config::getInstance()->getOption<bool>(CONFIG_OUTPUT_PROC_STATS)) {
-        cerr << "Stats after query ID ("<<queryId<<") :" << endl;
-        malloc_stats();
 #ifndef SCIDB_CLIENT
-        cerr <<
-                "Allocated size for PersistentChunks: " << totalPersistentChunkAllocatedSize <<
-                ", allocated size for MemChunks: " << SharedMemCache::getInstance().getUsedMemSize() <<
-                ", MemChunks were swapped out: " << SharedMemCache::getInstance().getSwapNum() <<
-                ", MemChunks were loaded: " << SharedMemCache::getInstance().getLoadsNum() <<
-                endl;
-#endif
+    if (Config::getInstance()->getOption<bool>(CONFIG_OUTPUT_PROC_STATS)) {
+        const size_t* mstats = getMallocStats();
+        LOG4CXX_DEBUG(Query::_logger,
+                      "Stats after query ID ("<<queryId<<"): "
+                      <<"Allocated size for PersistentChunks: " << StorageManager::getInstance().getUsedMemSize()
+                      <<", allocated size for network messages: " << NetworkManager::getInstance()->getUsedMemSize()
+                      <<", allocated size for MemChunks: " << SharedMemCache::getInstance().getUsedMemSize()
+                      <<", MemChunks were swapped out: " << SharedMemCache::getInstance().getSwapNum()
+                      <<", MemChunks were loaded: " << SharedMemCache::getInstance().getLoadsNum()
+                      <<", MemChunks were dropped: " << SharedMemCache::getInstance().getDropsNum()
+                      <<", number of mallocs: " << (mstats ? mstats[0] : 0)
+                      <<", number of frees: "   << (mstats ? mstats[1] : 0));
     }
-#endif
 #endif
 }
 
@@ -860,7 +823,6 @@ void Query::destroy()
 {
     shared_ptr<Array> resultArray;
     shared_ptr<RemoteMergedArray> mergedArray;
-    vector<shared_ptr<RemoteArray> > remoteArrays;
     shared_ptr<WorkQueue> bufferQueue;
     shared_ptr<WorkQueue> errQueue;
     shared_ptr<WorkQueue> opQueue;
@@ -888,8 +850,6 @@ void Query::destroy()
         _currentResultArray.swap(resultArray);
 
         _mergedArray.swap(mergedArray);
-
-        _remoteArrays.swap(remoteArrays);
     }
     if (bufferQueue) { bufferQueue->stop(); }
     if (errQueue)    { errQueue->stop(); }
@@ -907,14 +867,14 @@ BroadcastAbortErrorHandler::handleError(const boost::shared_ptr<Query>& query)
         assert(false);
         return;
     }
-    if (query->getCoordinatorID() != COORDINATOR_INSTANCE) {
+    if (! query->isCoordinator()) {
         assert(false);
         return;
     }
     LOG4CXX_DEBUG(_logger, "Broadcast ABORT message to all instances for query " << query->getQueryID());
     shared_ptr<MessageDesc> abortMessage = makeAbortMessage(query->getQueryID());
     // query may not have the instance map, so broadcast to all
-    NetworkManager::getInstance()->broadcast(abortMessage);
+    NetworkManager::getInstance()->broadcastPhysical(abortMessage);
 }
 
 void Query::freeQuery(QueryID queryID)
@@ -1105,8 +1065,8 @@ void UpdateErrorHandler::handleErrorOnCoordinator(const shared_ptr<SystemCatalog
    string const& arrayName = lock->getArrayName();
 
    shared_ptr<SystemCatalog::LockDesc> coordLock =
-   SystemCatalog::getInstance()->checkForCoordinatorLock(arrayName,
-                                                         lock->getQueryId());
+      SystemCatalog::getInstance()->checkForCoordinatorLock(arrayName,
+                                                            lock->getQueryId());
    if (!coordLock) {
       LOG4CXX_DEBUG(_logger, "UpdateErrorHandler::handleErrorOnCoordinator:"
                     " coordinator lock does not exist. No abort action for query "
@@ -1117,35 +1077,30 @@ void UpdateErrorHandler::handleErrorOnCoordinator(const shared_ptr<SystemCatalog
    VersionID newVersion      = coordLock->getArrayVersion();
    ArrayID newArrayVersionId = coordLock->getArrayVersionId();
 
-   if (newVersion != 0) {
-      ArrayID arrayId = coordLock->getArrayId();
-      assert(arrayId != 0);
-      VersionID lastVersion = SystemCatalog::getInstance()->getLastVersion(arrayId);
-
-      assert(lastVersion <= newVersion);
-      LOG4CXX_DEBUG(_logger, "UpdateErrorHandler::handleErrorOnCoordinator:"
-                    " the new version "<< newVersion <<" of array "<<arrayName<<" is being rolled back for query ("
-                    << lock->getQueryId() << ")");
-
-      // if a query is stopped after the coordinator has committed the new
-      // array version to the version table, then reduce "lastVersion" by
-      // 1 so we are ensured that it will actually be rolled back
-      if (lastVersion == newVersion)
-      {
-          --lastVersion;
-      }
-
-      if (newArrayVersionId > 0 && rollback) {
-         rollback(lastVersion, arrayId, newArrayVersionId);
-      }
-   }
-
    if (coordLock->getLockMode() == SystemCatalog::LockDesc::CRT) {
       SystemCatalog::getInstance()->deleteArray(arrayName);
    } else if (newVersion != 0) {
       assert(coordLock->getLockMode() == SystemCatalog::LockDesc::WR);
       string newArrayVersionName = ArrayDesc::makeVersionedName(arrayName,newVersion);
       SystemCatalog::getInstance()->deleteArray(newArrayVersionName);
+   }
+
+   if (newVersion != 0 &&
+       newArrayVersionId > 0 &&
+       rollback) {
+
+       const ArrayID arrayId = coordLock->getArrayId();
+       assert(arrayId != 0);
+
+       LOG4CXX_DEBUG(_logger, "UpdateErrorHandler::handleErrorOnCoordinator:"
+                     " the new version "<< newVersion
+                     <<" of array " << arrayName
+                     <<" (arrId="<< newArrayVersionId <<")"
+                     <<" is being rolled back for query ("
+                     << lock->getQueryId() << ")");
+
+       const VersionID lastStableVersion = newVersion-1;
+       rollback(lastStableVersion, arrayId, newArrayVersionId);
    }
 }
 

@@ -125,6 +125,18 @@ Other .
     return token::DCSV;
 }
 
+(?i:tsv) {
+    return token::TSV;
+}
+
+(?i:tsv\+) {
+    return token::TSV_PLUS;
+}
+
+(?i:ltsv\+) {
+    return token::LTSV_PLUS;
+}
+
 {OneLineComment} {
 }
 

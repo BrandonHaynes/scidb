@@ -20,8 +20,6 @@
 # END_COPYRIGHT
 #
 
-set -eu
-
 SCIDB_VER="${1}"
 
 function ubuntu1204 ()
@@ -30,7 +28,13 @@ echo "Prepare Ubuntu 12.04 for building SciDB"
 apt-get update
 
 # Build dependencies:
-apt-get install -y build-essential cmake scidb-${SCIDB_VER}-libboost1.54-all-dev libpqxx-3.1 libpqxx3-dev libprotobuf7 libprotobuf-dev protobuf-compiler doxygen flex bison liblog4cxx10 liblog4cxx10-dev libcppunit-1.12-1 libcppunit-dev libbz2-dev zlib1g-dev subversion libreadline6-dev libreadline6 python-paramiko python-crypto xsltproc gfortran libscalapack-mpi1 liblapack-dev libopenmpi-dev swig2.0 scidb-${SCIDB_VER}-libmpich2-dev scidb-${SCIDB_VER}-mpich2 expect debhelper sudo ant ant-contrib ant-optional libprotobuf-java openjdk-6-jdk junit git libpam-dev libcsv
+apt-get install -y build-essential cmake libpqxx-3.1 libpqxx3-dev libprotobuf-dev protobuf-compiler doxygen flex bison liblog4cxx10 liblog4cxx10-dev libcppunit-dev libbz2-dev zlib1g-dev subversion libreadline6-dev libreadline6 python-paramiko python-crypto xsltproc gfortran libscalapack-mpi1 liblapack-dev libopenmpi-dev swig2.0 expect debhelper sudo ant ant-contrib ant-optional libprotobuf-java openjdk-6-jdk junit git libpam-dev
+
+# Boost package build requires:
+apt-get install -y python3
+
+# Scidb 3rd party packages
+apt-get install -y scidb-${SCIDB_VER}-libboost1.54-all-dev scidb-${SCIDB_VER}-libmpich2-dev scidb-${SCIDB_VER}-mpich2 scidb-${SCIDB_VER}-libcsv
 
 # Reduce rebuild time:
 apt-get install -y ccache
@@ -47,9 +51,41 @@ apt-get install -y time
 echo "DONE"
 }
 
+function ubuntu1404 ()
+{
+echo "Prepare Ubuntu 14.04 for building SciDB"
+apt-get update
+
+# Build dependencies:
+apt-get install -y build-essential cmake libpqxx-3.1 libpqxx3-dev libprotobuf-dev protobuf-compiler doxygen flex bison liblog4cxx10 liblog4cxx10-dev libcppunit-dev libbz2-dev zlib1g-dev subversion libreadline6-dev libreadline6 python-paramiko python-crypto xsltproc gfortran libscalapack-mpi1 liblapack-dev libopenmpi-dev swig2.0 expect debhelper sudo ant ant-contrib ant-optional libprotobuf-java openjdk-6-jdk junit git libpam-dev
+
+# Boost package build requires:
+apt-get install -y python3
+
+# Scidb 3rd party packages
+apt-get install -y scidb-${SCIDB_VER}-libboost1.54-all-dev scidb-${SCIDB_VER}-libmpich2-dev scidb-${SCIDB_VER}-mpich2 scidb-${SCIDB_VER}-libcsv
+
+# Reduce rebuild time:
+apt-get install -y ccache
+
+# Documentation: 
+apt-get install -y fop docbook-xsl
+
+# Testing:
+apt-get install -y postgresql-9.3 postgresql-contrib-9.3
+
+# ScaLAPACK tests:
+apt-get install -y time
+
+echo "DONE"
+}
+
 function centos6 ()
 {
 echo "Prepare CentOS 6 for building SciDB"
+
+# ...setup epel repo (libcsv is in there)
+rpm -U http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm || true
 
 INSTALL="yum install --enablerepo=scidb3rdparty -y"
 # Build dependencies:
@@ -88,4 +124,8 @@ fi
 
 if [ "${OS}" = "Ubuntu 12.04" ]; then
     ubuntu1204
+fi
+
+if [ "${OS}" = "Ubuntu 14.04" ]; then
+    ubuntu1404
 fi

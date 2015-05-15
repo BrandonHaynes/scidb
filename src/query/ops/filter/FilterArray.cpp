@@ -47,7 +47,7 @@ namespace scidb {
     //
     // Filter chunk iterator methods
     //
-    inline Value& FilterChunkIterator::evaluate() 
+    inline Value& FilterChunkIterator::evaluate()
     {
 
         for (size_t i = 0, n = _array.bindings.size(); i < n; i++) {
@@ -134,15 +134,15 @@ namespace scidb {
                     // empty bitmap containing all ones: just return original value
                     return value;
                 }
-                tileValue.getTile(_type)->clear();
+                tileValue.getTile()->clear();
             } else {
-                RLEPayload::append_iterator appender(tileValue.getTile(_type));
+                RLEPayload::append_iterator appender(tileValue.getTile());
                 Value v;
                 while (!ei.end()) {
                     uint64_t count = ei.getRepeatCount();
                     if (ei.isNull() == false && ei.checkBit()) {
                         count = appender.add(vi, count);
-                    } else { 
+                    } else {
                         vi += count;
                     }
                     ei += count;
@@ -186,12 +186,12 @@ namespace scidb {
         for (size_t i = 0, n = _array.bindings.size(); i < n; i++) {
             switch (_array.bindings[i].kind) {
               case BindInfo::BI_COORDINATE:
-                if (_mode & TILE_MODE) { 
-                    if (arrayIterator.iterators[i] == arrayIterator.getInputIterator()) { 
+                if (_mode & TILE_MODE) {
+                    if (arrayIterator.iterators[i] == arrayIterator.getInputIterator()) {
                         _iterators[i] = inputIterator;
                     } else {
                         _iterators[i] = arrayIterator.iterators[i]->getChunk().getConstIterator(iterationMode);
-                        
+
                     }
                 }
                 break;
@@ -209,11 +209,11 @@ namespace scidb {
                 break;
             }
         }
-        if (iterationMode & TILE_MODE) { 
-            tileValue = Value(TypeLibrary::getType(chunk->getAttributeDesc().getType()));
+        if (iterationMode & TILE_MODE) {
+            tileValue = Value(TypeLibrary::getType(chunk->getAttributeDesc().getType()),Value::asTile);
             if (arrayIterator.emptyBitmapIterator) {
                 emptyBitmapIterator = arrayIterator.emptyBitmapIterator->getChunk().getConstIterator(TILE_MODE|IGNORE_EMPTY_CELLS);
-            } else { 
+            } else {
                 ArrayDesc const& arrayDesc = chunk->getArrayDesc();
                 Address addr(arrayDesc.getEmptyBitmapAttribute()->getId(), chunk->getFirstPosition(false));
                 shapeChunk.initialize(&_array, &arrayDesc, addr, 0);
@@ -227,7 +227,7 @@ namespace scidb {
     {
         Value& value = evaluate();
         RLEPayload* inputPayload = value.getTile();
-        RLEPayload::append_iterator appender(tileValue.getTile(_type));
+        RLEPayload::append_iterator appender(tileValue.getTile());
         RLEPayload::iterator vi(inputPayload);
         if (!emptyBitmapIterator->setPosition(inputIterator->getPosition()))
             throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_OPERATION_FAILED) << "setPosition";
@@ -247,11 +247,11 @@ namespace scidb {
 #endif
             assert (prevPos == currPos);
             uint64_t count;
-            if (ei.checkBit()) { 
+            if (ei.checkBit()) {
                 count = min(vi.getRepeatCount(), ei.getRepeatCount());
                 appender.add((vi.isNull()==false && vi.checkBit()) ? trueVal : falseVal, count);
                 vi += count;
-            } else { 
+            } else {
                 count = ei.getRepeatCount();
                 appender.add(falseVal, count);
             }
@@ -270,9 +270,9 @@ namespace scidb {
     //
     Value& ExistedBitmapChunkIterator::getItem()
     {
-        if (_mode & TILE_MODE) { 
+        if (_mode & TILE_MODE) {
             return buildBitmap();
-        } else { 
+        } else {
             _value.setBool(inputIterator->getItem().getBool() && filter());
             return _value;
         }
@@ -291,30 +291,9 @@ namespace scidb {
         return (_mode & TILE_MODE) ? buildBitmap() : evaluate();
     }
 
-    bool NewBitmapChunkIterator::supportsVectorMode() const
-    {
-        return _supportsVectorMode;
-    }
-
-    void NewBitmapChunkIterator::setVectorMode(bool enabled)
-    {
-        if (enabled) {
-            _mode |= VECTOR_MODE;
-        } else {
-            _mode &= ~VECTOR_MODE;
-        }
-        for (size_t i = 0, n = _iterators.size(); i < n; i++) {
-            if (_iterators[i]) {
-                _iterators[i]->setVectorMode(enabled);
-            }
-        }
-    }
-
     NewBitmapChunkIterator::NewBitmapChunkIterator(FilterArrayIterator const& arrayIterator, DelegateChunk const* chunk, int iterationMode)
     : FilterChunkIterator(arrayIterator, chunk, iterationMode)
     {
-        _supportsVectorMode = _array.expression->supportsVectorMode() && inputIterator->supportsVectorMode();
-        ((DelegateChunk*)chunk)->overrideSparse();
     }
 
     //
@@ -324,12 +303,10 @@ namespace scidb {
     ConstChunk const& FilterArrayIterator::getChunk()
     {
         chunk->setInputChunk(inputIterator->getChunk());
-        if (chunk->isRLE()) {
-            chunk->overrideClone(false);
-        }
+        chunk->overrideClone(false);
         return *chunk;
     }
-        
+
 
     bool FilterArrayIterator::setPosition(Coordinates const& pos)
     {
@@ -341,7 +318,7 @@ namespace scidb {
                         throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_OPERATION_FAILED) << "setPosition";
                 }
             }
-            if (emptyBitmapIterator) { 
+            if (emptyBitmapIterator) {
                 if (!emptyBitmapIterator->setPosition(pos))
                     throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_OPERATION_FAILED) << "setPosition";
             }
@@ -359,7 +336,7 @@ namespace scidb {
                 iterators[i]->reset();
             }
         }
-        if (emptyBitmapIterator) { 
+        if (emptyBitmapIterator) {
             emptyBitmapIterator->reset();
         }
     }
@@ -373,7 +350,7 @@ namespace scidb {
                 ++(*iterators[i]);
             }
         }
-        if (emptyBitmapIterator) { 
+        if (emptyBitmapIterator) {
             ++(*emptyBitmapIterator);
         }
     }
@@ -384,7 +361,7 @@ namespace scidb {
       inputAttrID(inAttrID)
     {
         for (size_t i = 0, n = iterators.size(); i < n; i++) {
-            switch (array.bindings[i].kind) { 
+            switch (array.bindings[i].kind) {
               case BindInfo::BI_ATTRIBUTE:
                 if ((AttributeID)array.bindings[i].resolvedId == inAttrID) {
                     iterators[i] = inputIterator;
@@ -393,7 +370,7 @@ namespace scidb {
                 }
                 break;
               case BindInfo::BI_COORDINATE:
-                if (array._tileMode) { 
+                if (array._tileMode) {
                     AttributeDesc const* emptyAttr = array.getInputArray()->getArrayDesc().getEmptyBitmapAttribute();
                     if (emptyAttr == NULL || emptyAttr->getId() == inputAttrID) {
                         iterators[i] = inputIterator;
@@ -408,10 +385,10 @@ namespace scidb {
         }
         if (array._tileMode) {
             AttributeDesc const* emptyAttr = array.getInputArray()->getArrayDesc().getEmptyBitmapAttribute();
-            if (emptyAttr != NULL) { 
+            if (emptyAttr != NULL) {
                 emptyBitmapIterator = array.getInputArray()->getConstIterator(emptyAttr->getId());
             }
-        }            
+        }
     }
 
     ConstChunk const& FilterArrayEmptyBitmapIterator::getChunk()
@@ -419,7 +396,7 @@ namespace scidb {
         chunk = array.getEmptyBitmapChunk(this);
         return *chunk->materialize();
     }
-            
+
     FilterArrayEmptyBitmapIterator::FilterArrayEmptyBitmapIterator(FilterArray const& arr, AttributeID outAttrID, AttributeID inAttrID)
     : FilterArrayIterator(arr, outAttrID, inAttrID),
       array((FilterArray&)arr)
@@ -441,9 +418,9 @@ namespace scidb {
     {
         FilterArrayIterator const& arrayIterator = (FilterArrayIterator const&)chunk->getArrayIterator();
         AttributeDesc const& attr = chunk->getAttributeDesc();
-        if (_tileMode/* && chunk->isRLE()*/) { 
+        if (_tileMode/* && chunk->isRLE()*/) {
             iterationMode |= ChunkIterator::TILE_MODE;
-        } else { 
+        } else {
             iterationMode &= ~ChunkIterator::TILE_MODE;
         }
         iterationMode &= ~ChunkIterator::INTENDED_TILE_MODE;
@@ -465,9 +442,9 @@ namespace scidb {
                     break;
                 }
             }
-        }        
+        }
 #if FILTER_CHUNK_CACHE
-        return attrID == emptyAttrID 
+        return attrID == emptyAttrID
             ? (DelegateArrayIterator*)new FilterArrayEmptyBitmapIterator(*this, attrID, inputAttrID)
             : (DelegateArrayIterator*)new FilterArrayIterator(*this, attrID, inputAttrID);
 #else
@@ -482,7 +459,7 @@ namespace scidb {
         {
             ScopedMutexLock cs(mutex);
             chunk = cache[pos];
-            if (chunk) { 
+            if (chunk) {
                 return chunk;
             }
         }
@@ -503,7 +480,7 @@ namespace scidb {
                              boost::shared_ptr< Expression> expr, boost::shared_ptr<Query>& query,
                              bool tileMode)
     : DelegateArray(desc, array), expression(expr), bindings(expr->getBindings()), _tileMode(tileMode),
-      cacheSize(Config::getInstance()->getOption<int>(CONFIG_PREFETCHED_CHUNKS)),
+      cacheSize(Config::getInstance()->getOption<int>(CONFIG_RESULT_PREFETCH_QUEUE_SIZE)),
       emptyAttrID(desc.getEmptyBitmapAttribute()->getId())
     {
         assert(query);

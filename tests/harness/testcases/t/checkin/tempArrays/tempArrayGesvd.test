@@ -4,7 +4,7 @@ load_library('dense_linear_algebra')
 --start-query-logging
 create temp array M8x8_default <val:double default 0.0> [x=0:*,32,0,y=0:*,32,0]
 store(build(M8x8_default,'[[{0,0}(1),{1,1}(2),{2,2}(3),{3,3}(4),{4,4}(5),{5,5}(6),{6,6}(7),{7,7}(8)]]',true),M8x8_default)
-gesvd(M8x8_default, 'values')
+gesvd(scan(M8x8_default, true), 'values')
 
 --cleanup
 remove(M8x8_default)

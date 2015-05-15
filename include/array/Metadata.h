@@ -43,6 +43,7 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
 
+#include <array/Coordinate.h>
 #include <query/TypeSystem.h>
 
 namespace scidb
@@ -52,8 +53,9 @@ class AttributeDesc;
 class DimensionDesc;
 class InstanceDesc;
 class LogicalOpDesc;
-class PhysicalOpDesc;
 class ObjectNames;
+class PhysicalOpDesc;
+class Value;
 
 /**
  * Vector of AttributeDesc type
@@ -106,103 +108,6 @@ typedef uint64_t QueryID;
 
 typedef uint64_t OpID;
 
-/**
- * Coordinates comparator to be used in std::map
- */
-struct CoordinatesLess
-{
-    bool operator()(const Coordinates& c1, const Coordinates& c2) const
-    {
-        assert(c1.size() == c2.size());
-
-        for (size_t i=0, n=c1.size(); i != n; ++i)
-        {
-            if (c1[i] != c2[i])
-            {
-                return c1[i] < c2[i];
-            }
-        }
-
-        return false;
-    }
-};
-
-/**
- * Compare two coordinates and return a number indicating how they differ.
- * @param c1                the left side of the comparison
- * @param c2                the right side of the comparison
- * @param rowMajorOrder     whether rowMajorOrder or columnMajorOrder is used
- * @return some negative value if c1 is less than c2;
- *         some positive value if c2 is less than c1,
- *         0 if both are equal.
- */
-inline int64_t coordinatesCompare(Coordinates const& c1, Coordinates const& c2, bool rowMajorOrder = true)
-{
-    assert(c1.size() == c2.size());
-
-    if (rowMajorOrder)
-    {
-        for (size_t i = 0; i < c1.size(); ++i)
-        {
-            int64_t res = c1[i] - c2[i];
-            if (res != 0)
-            {
-                return res;
-            }
-        }
-    }
-    else
-    {
-        for (size_t i = c1.size(); i-- > 0; )
-        {
-            int64_t res = c1[i] - c2[i];
-            if (res != 0)
-            {
-                return res;
-            }
-        }
-    }
-    return 0;
-}
-
-/**
- * Comparator of two Coordinates, using row-major ordering.
- */
-struct CoordinatesComparatorRMO
-{
-    bool operator()(Coordinates const& c1, Coordinates const& c2)
-    {
-        return coordinatesCompare(c1, c2) < 0;
-    }
-};
-
-/**
- * Comparator of two Coordinates, using column-major ordering.
- */
-struct CoordinatesComparatorCMO
-{
-    bool operator()(Coordinates const& c1, Coordinates const& c2)
-    {
-        return coordinatesCompare(c1, c2, false) < 0;
-    }
-};
-
-typedef std::set<Coordinates, CoordinatesLess> CoordinateSet;
-
-//For some strange STL reason, operator<< does not work on Coordinates.
-//So we create this wrapper class. This works:
-// LOG4CXX_DEBUG(logger, "My coordinates are "<<CoordsToStr(coords))
-struct CoordsToStr
-{
-    Coordinates const& _co;
-    CoordsToStr(const Coordinates& co)
-        : _co(co)
-    {}
-};
-
-const Coordinate  MAX_COORDINATE        = (uint64_t)-1 >> 2;
-const Coordinate  MIN_COORDINATE        = -MAX_COORDINATE;
-const uint64_t    INFINITE_LENGTH       = MAX_COORDINATE;
 const VersionID   LAST_VERSION          = (VersionID)-1;
 const VersionID   ALL_VERSIONS          = (VersionID)-2;
 const InstanceID  CLIENT_INSTANCE       = ~0;  // Connection with this instance id is client connection
@@ -211,7 +116,6 @@ const QueryID     INVALID_QUERY_ID      = ~0;
 const ArrayID     INVALID_ARRAY_ID      = ~0;
 const AttributeID INVALID_ATTRIBUTE_ID  = ~0;
 const size_t      INVALID_DIMENSION_ID  = ~0;
-const InstanceID  COORDINATOR_INSTANCE  = INVALID_INSTANCE;
 const std::string DEFAULT_EMPTY_TAG_ATTRIBUTE_NAME = "EmptyTag";
 
 /**
@@ -556,10 +460,7 @@ public:
      */
     ArrayDesc(ArrayDesc const& other);
 
-   ~ArrayDesc()
-    {
-        assert(_accessCount == 0);
-    }
+   ~ArrayDesc() { }
 
     /**
      * Assignment operator
@@ -634,34 +535,14 @@ public:
      * @return true if name contains '@' at position 1 or greater and does not contain ':'.
      *         false otherwise.
      */
-    static bool isNameVersioned(std::string const& name)
-    {
-        if (name.empty())
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "calling isNameVersioned on an empty string";
-        }
-
-        size_t const locationOfAt = name.find('@');
-        size_t const locationOfColon = name.find(':');
-        return locationOfAt > 0 && locationOfAt < name.size() && locationOfColon == std::string::npos;
-    }
+    static bool isNameVersioned(std::string const& name);
 
     /**
      * Find out if an array name is for an unversioned array - not a NID and not a version.
      * @param[in] the name to check. A nonempty string.
      * @return true if the name contains neither ':' nor '@'. False otherwise.
      */
-    static bool isNameUnversioned(std::string const& name)
-    {
-        if (name.empty())
-        {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "calling isNameUnversioned on an empty string";
-        }
-
-        size_t const locationOfAt = name.find('@');
-        size_t const locationOfColon = name.find(':');
-        return locationOfAt == std::string::npos && locationOfColon == std::string::npos;
-    }
+    static bool isNameUnversioned(std::string const& name);
 
     /**
      * Given the versioned array name, extract the corresponing name for the unversioned array.
@@ -759,10 +640,22 @@ public:
      * Get vector of array dimensions
      * @return array dimensions
      */
-    Dimensions const& getDimensions() const
+    Dimensions const& getDimensions() const {return _dimensions;}
+    Dimensions&       getDimensions()       {return _dimensions;}
+
+    /** Set vector of array dimensions */
+    ArrayDesc& setDimensions(Dimensions const& dims)
     {
-        return _dimensions;
+        _dimensions = dims;
+        initializeDimensions();
+        return *this;
     }
+
+    /**
+     * Find the index of a DimensionDesc by name and alias.
+     * @return index of desired dimension or -1 if not found
+     */
+    ssize_t findDimension(const std::string& name, const std::string& alias) const;
 
     /**
      * Check if position belongs to the array boundaries
@@ -780,6 +673,13 @@ public:
      * @param[in] pos  a cell position.
      */
     bool isAChunkPosition(Coordinates const& pos) const;
+
+    /**
+     * @return whether a cellPos belongs to a chunk specified with a chunkPos.
+     * @param[in] cellPos  a cell position.
+     * @param[in] chunkPos a chunk position.
+     */
+    bool isCellPosInChunk(Coordinates const& cellPos, Coordinates const& chunkPos) const;
 
     /**
       * Get boundaries of the chunk
@@ -906,8 +806,6 @@ public:
     void addAttribute(AttributeDesc const& newAttribute);
 
     double getNumChunksAlongDimension(size_t dimension, Coordinate start = MAX_COORDINATE, Coordinate end = MIN_COORDINATE) const;
-
-    size_t _accessCount;
 
 private:
     void locateBitmapAttribute();
@@ -1074,13 +972,6 @@ public:
     Value const& getDefaultValue() const;
 
     /**
-     * Set default compression method for this attribute: it is possible to specify explictely different
-     * compression methods for each chunk, but by default one set by this method is used
-     * @param method default compression for this attribute
-     */
-    void setDefaultCompressionMethod(uint16_t method);
-
-    /**
      * Get attribute flags
      * @return attribute flags
      */
@@ -1195,7 +1086,7 @@ public:
      *
      * @param name dimension name
      * @param startMin dimension minimum start
-     * @param currStart dimension current start
+     * @param currSart dimension current start
      * @param currMax dimension current end
      * @param endMax dimension maximum end
      * @param chunkInterval chunk size in this dimension
@@ -1226,8 +1117,8 @@ public:
     bool operator == (DimensionDesc const&) const;
 
     /**
-     * Get minimum value for array index - _startMin
-     * @return minimum dimension start
+     * @return minimum start coordinate.
+     * @note This is reliable. The value is independent of the data in the array.
      */
     Coordinate getStartMin() const
     {
@@ -1235,8 +1126,11 @@ public:
     }
 
     /**
-     * Get current start for array index - _currStart
-     * @return current dimension start
+     * @return current start coordinate.
+     * @note In an array with no data, getCurrStart()=MAX_COORDINATE and getCurrEnd()=MIN_COORDINATE.
+     * @note This is NOT reliable.
+     *       The only time the value can be trusted is right after the array schema is generated by scan().
+     *       As soon as we add other ops into the mix (e.g. filter(scan()), the value is not trustworthy anymore.
      */
     Coordinate getCurrStart() const
     {
@@ -1244,29 +1138,8 @@ public:
     }
 
     /**
-     * Get from catalog low boundary for the specified dimension
-     * @return low boundary for the dimension
-     */
-    Coordinate getLowBoundary() const;
-
-    /**
-     * Get from catalog high boundary for the specified dimension
-     * @return high boundary for the dimension
-     */
-    Coordinate getHighBoundary() const;
-
-    /**
-     * Get dimension start ( _startMin  )
-     * @return dimension start
-     */
-    Coordinate getStart() const
-    {
-        return _startMin;
-    }
-
-    /**
-     * Get current end for array index - _currEnd
-     * @return current dimension end
+     * @return current end coordinate.
+     * @note This is NOT reliable. @see getCurrStart().
      */
     Coordinate getCurrEnd() const
     {
@@ -1274,8 +1147,8 @@ public:
     }
 
     /**
-     * Get maximum end for array index - _endMax
-     * @return maximum dimension end
+     * @return maximum end coordinate.
+     * @note This is reliable. @see getStartMin().
      */
     Coordinate getEndMax() const
     {
@@ -1283,20 +1156,20 @@ public:
     }
 
     /**
-     * Get dimension length
-     * @return dimension length
+     * @return dimension length, or INFINITE_LENGTH in case getStartMin() is MIN_COORDINATE or getEndMax() is MAX_COORDINATE.
+     * @note This is reliable. @see getStartMin().
      */
     uint64_t getLength() const;
 
     /**
-     * Get current dimension length
-     * @return dimension length
+     * @return current dimension length.
+     * @note This is NOT reliable. @see getCurrStart().
+     * @note This may read from the system catalog.
      */
     uint64_t getCurrLength() const;
 
     /**
-     * Get length of chunk in this dimension (not including overlaps)
-     * @return step of partitioning array into chunks for this dimension
+     * @return the chunk interval in this dimension, not including overlap.
      */
     int64_t getChunkInterval() const
     {
@@ -1304,31 +1177,14 @@ public:
     }
 
     /**
-     * Get chunk overlap in this dimension, so given base coordinate Xi,
-     * chunk stores interval of array Ai=[Xi-getChunkOverlap(), Xi+getChunkInterval()+getChunkOverlap()]
+     * @return chunk overlap in this dimension.
+     * @note Given base coordinate Xi, a chunk stores data with coordinates in [Xi-getChunkOverlap(), Xi+getChunkInterval()+getChunkOverlap()].
      */
     int64_t getChunkOverlap() const
     {
         return _chunkOverlap;
     }
 
-#ifndef SWIG
-
-    /**
-     * Get current origin of array along this dimension (not including overlap).
-     * @return current starting offset of array int64_t index
-     */
-    int64_t start() const
-    {
-        return _startMin;
-    }
-
-    /**
-     * Get current length of array along this dimension (not including overlap).
-     * @return difference between the current end and the current start of array along this dimension
-     */
-    uint64_t length() const;
-#endif
     /**
      * Retrieve a human-readable description.
      * Append a human-readable description of this onto str. Description takes up
@@ -1350,6 +1206,7 @@ public:
         ar & _chunkInterval;
         ar & _chunkOverlap;
     }
+
     void setCurrStart(Coordinate currStart)
     {
         _currStart = currStart;
@@ -1360,9 +1217,28 @@ public:
         _currEnd = currEnd;
     }
 
+    void setStartMin(Coordinate startMin)
+    {
+        _startMin = startMin;
+    }
+
     void setEndMax(Coordinate endMax)
     {
         _endMax = endMax;
+    }
+
+    void setChunkInterval(int64_t i)
+    {
+        assert(i >= 1);
+
+        _chunkInterval = i;
+    }
+
+    void setChunkOverlap(int64_t i)
+    {
+        assert(i >= 0);
+
+        _chunkOverlap = i;
     }
 
 private:
@@ -1741,12 +1617,12 @@ inline Coordinates computeFirstChunkPosition(Coordinates const& chunkPos, Dimens
 
     Coordinates firstPos = chunkPos;
     for (size_t i=0; i<dims.size(); ++i) {
-        assert(chunkPos[i]>=dims[i].getStart());
+        assert(chunkPos[i]>=dims[i].getStartMin());
         assert(chunkPos[i]<=dims[i].getEndMax());
 
         firstPos[i] -= dims[i].getChunkOverlap();
-        if (firstPos[i] < dims[i].getStart()) {
-            firstPos[i] = dims[i].getStart();
+        if (firstPos[i] < dims[i].getStartMin()) {
+            firstPos[i] = dims[i].getStartMin();
         }
     }
     return firstPos;
@@ -1765,7 +1641,7 @@ inline Coordinates computeLastChunkPosition(Coordinates const& chunkPos, Dimensi
 
     Coordinates lastPos = chunkPos;
     for (size_t i=0; i<dims.size(); ++i) {
-        assert(chunkPos[i]>=dims[i].getStart());
+        assert(chunkPos[i]>=dims[i].getStartMin());
         assert(chunkPos[i]<=dims[i].getEndMax());
 
         lastPos[i] += dims[i].getChunkInterval()-1;
@@ -1786,21 +1662,7 @@ inline Coordinates computeLastChunkPosition(Coordinates const& chunkPos, Dimensi
  * @return     #cells in the space that the chunk covers
  * @throw      SYSTEM_EXCEPTION(SCIDB_SE_METADATA, SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE)
  */
-inline size_t getChunkNumberOfElements(Coordinates const& low, Coordinates const& high)
-{
-    size_t M = size_t(-1);
-    size_t ret = 1;
-    assert(low.size()==high.size());
-    for (size_t i=0; i<low.size(); ++i) {
-        assert(high[i] >= low[i]);
-        size_t interval = high[i] - low[i] + 1;
-        if (M/ret < interval) {
-            throw SYSTEM_EXCEPTION(SCIDB_SE_METADATA, SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE);
-        }
-        ret *= interval;
-    }
-    return ret;
-}
+size_t getChunkNumberOfElements(Coordinates const& low, Coordinates const& high);
 
 /**
  * Get the logical space size of a chunk.
@@ -1817,16 +1679,22 @@ inline size_t getChunkNumberOfElements(Coordinates const& chunkPos, Dimensions c
 }
 
 /**
- * Print only the persistent part of the relevant object.
+ * Determine whether two arrays have the same partitioning.
+ * @returns true IFF all dimensions have same chunk sizes and overlaps
+ * @throws internal error if dimension sizes do not match.
  */
+bool samePartitioning(ArrayDesc const& a1, ArrayDesc const& a2);
+
+/**
+ * Print only the pertinent part of the relevant object.
+ */
+void printDimNames(std::ostream&, const Dimensions&);
 void printSchema(std::ostream&,const Dimensions&);
 void printSchema(std::ostream&,const DimensionDesc&);
 void printSchema(std::ostream&,const ArrayDesc&);
 void printNames (std::ostream&,const ObjectNames::NamesType&);
 std::ostream& operator<<(std::ostream&,const Attributes&);
 std::ostream& operator<<(std::ostream&,const ArrayDesc&);
-std::ostream& operator<<(std::ostream&,const Coordinates&);
-std::ostream& operator<<(std::ostream&,const CoordsToStr&);
 std::ostream& operator<<(std::ostream&,const AttributeDesc&);
 std::ostream& operator<<(std::ostream&,const DimensionDesc&);
 std::ostream& operator<<(std::ostream&,const Dimensions&);

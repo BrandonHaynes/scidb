@@ -121,6 +121,7 @@ if [ "$#" -lt 2 ]; then
 fi
 MAT_IN=$1
 RESULTNAME=$2
+TEST_RIGHT_REPLICATE=$3 # for test purposes only, of the form "rightReplicate=true" (or false)
 
 # argument checks:
 NROW=`nRow $MAT_IN`
@@ -134,6 +135,11 @@ fi
 if [ "`nRowStart $MAT_IN`" -ne "0" -o "`nColStart $MAT_IN`" -ne "0" ]; then
     echo "${0}: MAT_IN $MAT_IN must have its dimensions start at 0" >&2
     exit 1
+fi
+
+TEST_STR=""
+if [ "$TEST_RIGHT_REPLICATE" != "" ] ; then
+    TEST_STR=", '$TEST_RIGHT_REPLICATE'"
 fi
 
 ################################################################################
@@ -354,7 +360,7 @@ for (( II=0; II < ITER_LIMIT; II++)) ; do
     # note: V1 dot V2 = spgemm(transpose(V1), V2) [transpose can also be done by redimension]
     TRAPPED="PAGERANK_TRAPPED_$$"
     $IQUERY -aq "remove($TRAPPED)" 2>/dev/null # failure expected the first time
-    timequery_n "store(spgemm(transpose($Q_VEC), $ZERO_COLS_ACTIVE_VEC),$TRAPPED)"
+    timequery_n "store(spgemm(transpose($Q_VEC), $ZERO_COLS_ACTIVE_VEC ${TEST_STR}),$TRAPPED)"
     TRAP_VAL=`getValue "project(aggregate($TRAPPED,max(multiply),vectorDummy2),multiply_max)"`
     #echo "TRAP_VAL is $TRAP_VAL"
 

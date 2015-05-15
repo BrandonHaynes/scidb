@@ -30,7 +30,7 @@
  *  @namespace  scidb::arena
  *
  *  @brief      Introduces facilities for controlling and tracking the use of
- *              memory within a SciDB server instance.
+ *              memory within a %SciDB server instance.
  *
  *  @see        http://trac.scidb.net/wiki/Development/OperatorMemoryManagement
  *              for a description of the main issues that this library aims to
@@ -47,7 +47,7 @@
  *
  *  @details    The managed namespace includes specializations for a number of
  *              the more useful standard library containers that acquire their
- *              internal memory from an abstract Arena.  They are designed for
+ *              internal memory from an abstract %arena. They are designed for
  *              'drop in' compatibility with the standard library classes from
  *              which they inherit - they would be defined as template aliases
  *              if this language feature were available to us - and are housed

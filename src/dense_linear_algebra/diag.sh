@@ -67,6 +67,19 @@ eliminate() {
         iquery -naq "remove(${1})" 2> /dev/null | grep -v 'Query was executed successfully'
     fi
 }
+
+# convert adddim(array,dimension) to redimension(apply())
+getAdddim() {
+    MY_SCHEMA=`iquery -c $IQUERY_HOST -p $IQUERY_PORT -o dense -aq "show($1)"`
+    MY_SCHEMA=${MY_SCHEMA:2:(${#MY_SCHEMA}-4)}
+
+    ATTR_S=`expr index "${MY_SCHEMA}" \<`
+    DIM_S=`expr index "${MY_SCHEMA}" \[`
+    DIM_E=`expr index "${MY_SCHEMA}" \]`
+    RES="redimension(apply($1,$2,0),<${MY_SCHEMA:$ATTR_S:$DIM_S-$ATTR_S}$2=0:0,1,0,${MY_SCHEMA:$DIM_S:$DIM_E-$DIM_S})"
+    echo $RES
+}
+
 ######################
 # end was iqfuncs.bash
 ######################
@@ -119,13 +132,14 @@ iquery -naq "create array ${TMP_VEC_1} <v:double>[r=0:0,1,0,c=0:${COL_MAX},${CHU
 nafl -q "store(build(${TMP_VEC_1},1),${TMP_VEC_1})"
 
 eliminate "${TMP_OUTER_PRODUCT}"
+ADDDIM_Q=$(getAdddim "${VEC_IN}" "c")
 
 if false ; then
     echo "debug diag transpose(adddim(VEC_IN)) @@@@@@@@@@@@@@@@"
     set -x
-    afl -q "transpose(adddim(${VEC_IN},c))"
+    afl -q "transpose(${ADDDIM_Q})"
     eliminate "DEBUG_1"
-    afl -q "store(transpose(adddim(${VEC_IN},c)),DEBUG_1)"
+    afl -q "store(transpose(${ADDDIM_Q}),DEBUG_1)"
     afl -q "show(DEBUG_1);"
     echo "debug diag transpose ${TMP_VEC_1} @@@@@@@@@@@@@@@@"
     afl -q "show(${TMP_VEC_1})"
@@ -137,7 +151,7 @@ fi
 # make a vector from the original vector with the "add dim" operator, and multiply it
 # ... or use gemm, or just use redimension, buddy!
 
-iquery -naq "store(aggregate(apply(cross_join(transpose(adddim(${VEC_IN},c)) as A, ${TMP_VEC_1} as B, A.c, B.r), s, A.sigma*B.v), sum(s) as multiply, A.i, B.c),${TMP_OUTER_PRODUCT})" >> /dev/null
+iquery -naq "store(aggregate(apply(cross_join(transpose(${ADDDIM_Q}) as A, ${TMP_VEC_1} as B, A.c, B.r), s, A.sigma*B.v), sum(s) as multiply, A.i, B.c),${TMP_OUTER_PRODUCT})" >> /dev/null
 
 # then we just use iif to set off-diagonal values to 0
 #  

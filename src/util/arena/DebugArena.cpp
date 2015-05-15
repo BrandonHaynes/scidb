@@ -22,8 +22,8 @@
 
 /****************************************************************************/
 
-#include <util/arena/LockingArena.h>                     // For Locking
-#include <list>                                          // For list
+#include <util/arena/ArenaDecorator.h>                   // For ArenaDecorator
+#include <list>                                          // For list<>
 #include "ArenaDetails.h"                                // For implementation
 
 /****************************************************************************/
@@ -31,112 +31,132 @@ namespace scidb { namespace arena {
 /****************************************************************************/
 
 /**
- *  @brief      Adds diagnostic checking to an existing Arena.
+ *  @brief      Decorates an %arena with support for memory painting and other
+ *              diagnostic checks.
  *
  *  @details    Details to follow...
  *
- *  @todo       malloc() to  place blocks on an intrusive doubly linked list
- *              free() to take them off again
- *              walk the list to dump leaked blocks to the log.
- *              design issue: when to check this list? obviously from dtor,
+ *  @todo       - malloc() places blocks on intrusive doubly linked list.
+ *
+ *              - free() takes them off again
+ *
+ *              - walk the list to dump leaked blocks to the log.
+ *
+ *              - design issue: when to check this list? obviously from dtor,
  *              but when else?
- *              possible to also make use of system malloc debugging features?
+ *
+ *              - possible to also use system malloc debugging features?
  *
  *  @author     jbell@paradigm4.com.
  */
-struct DebugArena : public Arena
+class DebugArena : public ArenaDecorator
 {
  public:                   // Construction
-                              DebugArena(const Options&);
+                              DebugArena(const ArenaPtr&);
 
  public:                   // Attributes
-    virtual name_t            name()               const {return "debug";}
-    virtual ArenaPtr          parent()             const {return _parent;}
+    virtual features_t        features()           const;
 
  public:                   // Implementation
     virtual void*             doMalloc(size_t);
-    virtual size_t            doFree  (void*,size_t);
-
- protected:                // Implementation
-            bool              consistent()  const;
-
- protected:                // Representation
-            ArenaPtr    const _parent;                   // Our parent arena
+    virtual void              doFree  (void*,size_t);
 };
 
 /****************************************************************************/
 
-const size_t head = 0xaaaaaaaaaaaaaaaa;
-const size_t tail = 0xffffffffffffffff;
-const size_t born = 0xbabefacebabeface;
-const size_t dead = 0xdeadbeefdeadbeef;
-const size_t overhead = sizeof(head) + sizeof(tail);
+const size_t head = 0xAaaaAaaaAaaaAaaa;                  // Head of a block
+const size_t tail = 0xFfffFfffFfffFfff;                  // Tail of a block
+const size_t born = 0xBabeFaceBabeFace;                  // Color of new block
+const size_t dead = 0xDeadBeefDeadBeef;                  // Color of dead block
+const size_t over = sizeof(head) + sizeof(tail);         // Additional overhead
 
 /****************************************************************************/
 
-    DebugArena::DebugArena(const Options& o)
-              : _parent(o.parent())
+BOOST_STATIC_ASSERT(sizeof(size_t)==sizeof(alignment_t));// Guards are aligned
+
+/****************************************************************************/
+
+/**
+ *  Construct a decorator that adds support for memory painting and diagnostic
+ *  checking to the given arena.
+ */
+    DebugArena::DebugArena(const ArenaPtr& p)
+              : ArenaDecorator(p)
+{}
+
+/**
+ *  Return a bitfield indicating the set of features this %arena supports.
+ */
+features_t DebugArena::features() const
 {
-    assert(consistent());                                // Check consistency
-}
-
-void* DebugArena::doMalloc(size_t const size)
-{
-    assert(size!=0 && isAligned(size));                  // Is already aligned
-
-    size_t  const m = size / sizeof(size_t);
-    void*   const p = _parent->doMalloc(size + overhead);
-    size_t*       q = static_cast<size_t*>(p) + 1;
-
-
-    q[-1] = head;
-    std::fill(q,q+m,born);
-    q[+m] = tail;
-
-    return q;
-}
-
-size_t DebugArena::doFree(void* payload,size_t const size)
-{
-    assert(payload!=0 && size!=0 && isAligned(size));    // Validate arguments
-
-    size_t  const m = size / sizeof(size_t);
-    size_t* const q = static_cast<size_t*>(payload);
-
-    assert(q[-1] == head);
-    assert(q[+m] == tail);
-    std::fill(q,q+m,dead);
-
-    _parent->doFree(q-1,size + overhead);
-
-    return size;
+    return _arena->features() | debugging;               // Adds debug support
 }
 
 /**
- *  Return true if the object looks to be in good shape.  Centralizes a number
- *  of consistency checks that would otherwise clutter up the code, and, since
- *  only ever called from within assertions, can be eliminated entirely by the
- *  compiler from the release build.
+ *  Allocate 'size' bytes of raw storage.
+ *
+ *  'size' may not be zero.
+ *
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
+ *
+ *  The resulting allocation must eventually be returned to the same a%arena by
+ *  calling doFree(), and with the same value for 'size'.
  */
-bool DebugArena::consistent() const
+void* DebugArena::doMalloc(size_t size)
 {
-    assert(_parent != 0);
+    assert(size != 0);                                   // Validate arguments
 
-    return true;
+    size = align(size);                                  // Round up the size
+
+    size_t  const m = size / sizeof(size_t);             // Words in the body
+    void*   const p = _arena->doMalloc(size + over);     // Allocate the block
+    size_t* const q = static_cast<size_t*>(p) + 1;       // Point at payload
+
+    q[-1] = head;                                        // Paint the head
+    std::fill(q,q+m,born);                               // Paint the body
+    q[+m] = tail;                                        // Paint the tail
+
+    assert(aligned(q));                                  // Check it's aligned
+    return q;                                            // The new allocation
 }
 
-ArenaPtr newDebugArena(const Options& o)
+/**
+ *  Free the memory that was allocated earlier from the same %arena by calling
+ *  malloc() and attempt to recycle it for future reuse to reclaim up to 'size'
+ *  bytes of raw storage.  No promise is made as to *when* this memory will be
+ *  made available again however: the %arena may, for example, prefer to defer
+ *  recycling until a subsequent call to reset() is made.
+ */
+void DebugArena::doFree(void* payload,size_t size)
 {
-    using boost::make_shared;                            // For make_shared()
+    assert(aligned(payload) && size!=0);                 // Validate arguments
 
-    if (o.locking())                                     // Needs locking too?
+    size = align(size);                                  // Round up the size
+
+    size_t  const m = size / sizeof(size_t);             // Words in the body
+    size_t* const q = static_cast<size_t*>(payload);     // Retreive the block
+
+    assert(q[-1] == head);                               // Check head intact
+    assert(q[+m] == tail);                               // Check tail intact
+    std::fill(q,q+m,dead);                               // Paint the body
+
+    _arena->doFree(q-1,size + over);                     // And free the block
+}
+
+/**
+ *  Add support for memory painting and other diagnostic checks to the %arena
+ *  o.parent() if it does not already support these features.
+ */
+ArenaPtr addDebugging(const Options& o)
+{
+    ArenaPtr p(o.parent());                              // The delegate arena
+
+    if (p->supports(debugging))                          // Already supported?
     {
-        return make_shared< Locking<DebugArena> >(o);    // ...locking arena
+        return p;                                        // ...no need to add
     }
-    else                                                 // No locking needed
-    {
-        return make_shared<DebugArena>(o);               // ...vanilla arena
-    }
+
+    return boost::make_shared<DebugArena>(p);            // Attach decoration
 }
 
 /****************************************************************************/

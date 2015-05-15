@@ -126,14 +126,17 @@ void Expression::compile(boost::shared_ptr<LogicalExpression> expr,
         _contextNo.resize(_bindings.size());
         _inputSchemas = inputSchemas;
         _outputSchema = outputSchema;
-        _supportsVectorMode = true; // We try to use it always, but note internalCompile can reset it
         _nullable = false;
         _constant = true;
         _resultType = internalCompile(expr, query, tile, 0, 0, false).type;
         if (_resultType != expectedType && expectedType != TID_VOID) {
             ConversionCost cost = EXPLICIT_CONVERSION_COST;
-            FunctionPointer converter = FunctionLibrary::getInstance()->findConverter(
-                    _resultType, expectedType, _supportsVectorMode, tile, true, &cost);
+            FunctionPointer converter =
+                FunctionLibrary::getInstance()->findConverter(_resultType,
+                                                              expectedType,
+                                                              tile,
+                                                              true,
+                                                              &cost);
             insertConverter(expectedType, converter, 0, -1, tile);
             _resultType = expectedType;
         }
@@ -142,16 +145,12 @@ void Expression::compile(boost::shared_ptr<LogicalExpression> expr,
         {
             // Create new value with needed type if it's not a constant
             if (!_props[i].isConst) {
-                Type const& type = TypeLibrary::getType(_props[i].type);
-                _eargs[i] = Value(type);
-                if (tile) {
-                    _eargs[i].getTile(_props[i].type);
-                }
+                Type const& t = TypeLibrary::getType(_props[i].type);
+                _eargs[i] = tile ? Value(t,Value::asTile) : Value(t);
                 _tempValuesNumber++;
             }
         }
         _tempValuesNumber -= _contextNo.size();
-        _supportsVectorMode &= !(_constant || tile);
         _compiled = true;
     }
     catch (const scidb::Exception& e)
@@ -202,7 +201,6 @@ void Expression::compile(std::string functionName,
     _bindings.push_back(b);
     _contextNo.push_back(vector<size_t>(1, 2));
 
-    _supportsVectorMode = true; // We try to use it always, but note findFunction can reset it
     _nullable = false;
     _constant = true;
 
@@ -211,7 +209,7 @@ void Expression::compile(std::string functionName,
     vector<FunctionPointer> converters;
     if (FunctionLibrary::getInstance()->findFunction(f.functionName, funcArgTypes,
                                                      functionDesc, converters,
-                                                     _supportsVectorMode, tile))
+                                                     tile))
     {
         _functions[functionIndex].function = functionDesc.getFuncPtr();
         _resultType = functionDesc.getOutputArg();
@@ -241,7 +239,7 @@ void Expression::compile(std::string functionName,
     }
 
     if (_resultType != expectedType && expectedType != TID_VOID) {
-        FunctionPointer converter = FunctionLibrary::getInstance()->findConverter(_resultType, expectedType, _supportsVectorMode, tile);
+        FunctionPointer converter = FunctionLibrary::getInstance()->findConverter(_resultType, expectedType, tile);
         if (!converter)
         {
             throw USER_EXCEPTION(SCIDB_SE_QPROC, SCIDB_LE_TYPE_CONVERSION_ERROR)
@@ -255,11 +253,8 @@ void Expression::compile(std::string functionName,
     {
         assert(i == 0 || _props[i].type != TID_VOID || _eargs[i].isNull());
         assert(!_props[i].isConst);
-        Type const& type = TypeLibrary::getType(_props[i].type);
-        _eargs[i] = Value(type);
-        if (tile) {
-            _eargs[i].getTile(_props[i].type);
-        }
+        Type const& t = TypeLibrary::getType(_props[i].type);
+        _eargs[i] = tile ? Value(t,Value::asTile) : Value(t);
     }
     _tempValuesNumber = _eargs.size() - 2;
     _compiled = true;
@@ -281,17 +276,13 @@ void Expression::compile(const string& expression, const vector<string>& names, 
 void Expression::compile(bool tile, const TypeId& type, const Value& value)
 {
     _tileMode = tile;
-    _eargs[0] = value;
+    _eargs[0] = tile ? makeTileConstant(type,value) : value;
     _props[0].type = type;
     _props[0].isConst = true;
     _resultType = type;
     _compiled = true;
-    _supportsVectorMode = false;
     _constant = true;
     _nullable = value.isNull();
-    if (_tileMode) {
-        _eargs[0].makeTileConstant(type);
-    }
 }
 
 void Expression::addVariableInfo(const std::string& name, const TypeId& type)
@@ -469,23 +460,16 @@ Expression::internalCompile(boost::shared_ptr<LogicalExpression> expr,
             _contextNo.push_back(vector<size_t>(1, resultIndex));
         }
         _props[resultIndex].type = bind.type;
-        if (bind.kind == BindInfo::BI_COORDINATE) {
-            _supportsVectorMode = false;
-        }
     }
     else if (typeid(*expr) == typeid(Constant))
     {
         boost::shared_ptr<Constant> e = dynamic_pointer_cast<Constant>(expr);
         _props[resultIndex].type = e->getType();
         _eargs.resize(_props.size());
-        const Value& v = e->getValue();
-        _eargs[resultIndex] = v;
-        if (tile) {
-            _eargs[resultIndex].makeTileConstant(e->getType());
-        }
+        _eargs[resultIndex] = tile ? makeTileConstant(e->getType(),e->getValue()) : e->getValue();
         _props[resultIndex].isConst = true;
-        assert(_props[resultIndex].type !=  TID_VOID || _eargs[resultIndex].isNull());
-        _nullable |= _eargs[resultIndex].isNull();
+        assert(_props[resultIndex].type != TID_VOID || e->getValue().isNull());
+        _nullable |= e->getValue().isNull();
     }
     else if (typeid(*expr) == typeid(Function))
     {
@@ -538,7 +522,7 @@ Expression::internalCompile(boost::shared_ptr<LogicalExpression> expr,
         vector<FunctionPointer> converters;
         bool swapInputs = false;
         if (FunctionLibrary::getInstance()->findFunction(f.functionName, funcArgTypes,
-                                                         functionDesc, converters, _supportsVectorMode, tile, swapInputs))
+                                                         functionDesc, converters, tile, swapInputs))
         {
             _functions[functionIndex].function = functionDesc.getFuncPtr();
             _functions[functionIndex].functionTypes = functionDesc.getInputArgs();
@@ -650,14 +634,11 @@ void Expression::insertConverter(TypeId newType, FunctionPointer converter,
      *  There is no function which output result into position to be converter,
      *  so convert in-place and only once now.
      */
-    assert(_props[resultIndex].type !=  TID_VOID || _eargs[resultIndex].isNull());
-    assert(_eargs[resultIndex].data() != NULL || _eargs[resultIndex].isNull());
+    assert(_eargs[resultIndex].isNull() || _eargs[resultIndex].isTile() || _props[resultIndex].type   != TID_VOID);
+    assert(_eargs[resultIndex].isNull() || _eargs[resultIndex].isTile() || _eargs[resultIndex].data() != NULL    );
     _props[resultIndex].type = newType;
     Type const& resType(TypeLibrary::getType(newType));
-    Value val(resType);
-    if (tile) {
-        val.getTile(newType);
-    }
+    Value val = tile ? Value(resType,Value::asTile) : Value(resType);
     const Value* v = &_eargs[resultIndex];
     converter(&v, &val, NULL);
     _eargs[resultIndex] = val;
@@ -686,15 +667,33 @@ const Value& Expression::evaluate(ExpressionContext& e)
      * Loop for every function to be performed due expression evaluating
      */
     try {
-        for (size_t i = _functions.size(); i > 0; i--)
+       for (size_t i = _functions.size(); i > 0; i--)
         {
             f = &_functions[i - 1];
-            if (f->skipIndex && f->skipValue == e._args[f->skipIndex]->getBool())
-                continue;
-            switch ((size_t)f->function) {
-            default:
-                f->function((const Value**)&e._args[f->argIndex], e._args[f->resultIndex], e._state[i-1].get());
+
+         /* Can this evaluation potentially be skipped, perhaps because it
+            occurs within argument position of a special form like IIF, AND,
+            or OR...? */
+
+            if (f->skipIndex)
+            {
+             /* Locate the  boolean value that determines whether or not we
+                short circuit: for IIF, for example, this is the conditional
+                expression in the first argument position...*/
+
+                const Value* v = e._args[f->skipIndex];
+
+            /* Compare 'v's actual value with 'skipValue', the value that the
+               expression compiler determined earlier should lead to a short
+               circuit. Notice here that when used as a conditonal exprerssion,
+               a null value is currently treated as if it were 'false'. PB
+               notes we may want to redefine this behaviour, however...*/
+
+                if (f->skipValue == (v->isNull() ? false : v->getBool()))
+                    continue;
             }
+
+            f->function((const Value**)&e._args[f->argIndex], e._args[f->resultIndex], e._state[i-1].get());
         }
     } catch (const Exception& ex) {
         throw;
@@ -712,7 +711,6 @@ const Value& Expression::evaluate(ExpressionContext& e)
 
 void Expression::resolveFunctions()
 {
-    bool vectorMode = true;
     for (size_t i = 0; i < _functions.size(); i++)
     {
         CompiledFunction& f = _functions[i];
@@ -721,12 +719,12 @@ void Expression::resolveFunctions()
         if (f.functionName.empty()) {
             // Converter case
             assert(f.functionTypes.size() == 2);
-            f.function = FunctionLibrary::getInstance()->findConverter(f.functionTypes[0], f.functionTypes[1], vectorMode, _tileMode);
+            f.function = FunctionLibrary::getInstance()->findConverter(f.functionTypes[0], f.functionTypes[1], _tileMode);
         }
         else {
             // Function case
             if (FunctionLibrary::getInstance()->findFunction(f.functionName, f.functionTypes,
-                                                             functionDesc, converters, vectorMode, _tileMode))
+                                                             functionDesc, converters, _tileMode))
             {
                 f.function = functionDesc.getFuncPtr();
                 if (functionDesc.getScratchSize() > 0)

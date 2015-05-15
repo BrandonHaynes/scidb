@@ -40,6 +40,7 @@ set(query_parser_src
     parser/Visitor.cpp
     parser/Keywords.cpp
     parser/Unparser.cpp
+    parser/Desugarer.cpp
     parser/Translator.cpp
     parser/ListMacros.cpp
     parser/ParsingContext.cpp
@@ -87,7 +88,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(scalar_proc_src
     LogicalExpression.cpp
     Expression.cpp
-    UDT.cpp
     FunctionLibrary.cpp
     FunctionDescription.cpp
     TypeSystem.cpp
@@ -113,6 +113,7 @@ set(qproc_src
     executor/SciDBExecutor.cpp
     RemoteArray.cpp
     Operator.cpp
+    OperatorProfiling.cpp
     SGChunkReceiver.cpp
     PullSGContext.cpp
     PullSGArray.cpp

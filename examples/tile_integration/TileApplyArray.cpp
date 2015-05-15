@@ -38,7 +38,7 @@ log4cxx::LoggerPtr TileApplyChunkIterator::_logger(log4cxx::Logger::getLogger("s
 
 inline bool TileApplyChunkIterator::isNull()
 {
-    return !chunk->isRLE() && _nullable && (_mode & IGNORE_NULL_VALUES) && getItem().isNull();
+    return false;
 }
 
 void TileApplyChunkIterator::reset()
@@ -271,7 +271,8 @@ double getTimeInSecs()
     if (::clock_gettime(CLOCK_REALTIME, &ts) == -1) {
         int err = errno;
         stringstream ss;
-        ss << "clock_gettime(CLOCK_REALTIME,...) failed, errno="<<err;
+        ss << "clock_gettime(CLOCK_REALTIME,...) failed: " << ::strerror(err)
+           << " (" << err << ")";
         assert(false);
         throw std::runtime_error(ss.str());
     }
@@ -478,16 +479,6 @@ void TileApplyChunkIterator::operator ++()
         }
         assert(!isNull());
     }
-}
-
-bool TileApplyChunkIterator::supportsVectorMode() const
-{
-    return false;
-}
-
-void TileApplyChunkIterator::setVectorMode(bool enabled)
-{
-    assert(!enabled); abort();
 }
 
 TileApplyChunkIterator::TileApplyChunkIterator(TileApplyArrayIterator const& arrayIterator,

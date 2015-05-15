@@ -19,7 +19,6 @@
 # END_COPYRIGHT
 ########################################
 
-add_subdirectory("ss-db")
 #
 #  PGB: Adding this to help me to build a couple of fast and dirty examples
 #       of how things like the UDF SDK would work.

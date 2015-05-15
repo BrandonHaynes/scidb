@@ -9,15 +9,26 @@ create array spRight <v:double>[row=1:13,3,0, col=1:1,1,0]
 --test
 store( filter(build(spLeft, row+col), true), spLeft )
 store( filter(build(spRight, row/col), true), spRight )
-spgemm(spLeft, spRight)
-spgemm(spLeft, spRight, 'min.+')
-spgemm(spLeft, spRight, 'max.+')
+spgemm(spLeft, spRight, 'rightReplicate=true')
+spgemm(spLeft, spRight, 'rightReplicate=false')
+
+spgemm(spLeft, spRight, 'min.+', 'rightReplicate=true')
+spgemm(spLeft, spRight, 'min.+', 'rightReplicate=false')
+
+spgemm(spLeft, spRight, 'max.+', 'rightReplicate=true')
+spgemm(spLeft, spRight, 'max.+', 'rightReplicate=false')
+
 
 store( filter(build(spLeft, row), row=col), spLeft )
 store( filter(build(spRight, 1),  true), spRight )
-spgemm(spLeft, spRight)
-spgemm(spLeft, spRight, 'min.+')
-spgemm(spLeft, spRight, 'max.+')
+spgemm(spLeft, spRight, 'rightReplicate=true')
+spgemm(spLeft, spRight, 'rightReplicate=false')
+
+spgemm(spLeft, spRight, 'min.+', 'rightReplicate=true')
+spgemm(spLeft, spRight, 'min.+', 'rightReplicate=false')
+
+spgemm(spLeft, spRight, 'max.+', 'rightReplicate=true')
+spgemm(spLeft, spRight, 'max.+', 'rightReplicate=false')
 
 --cleanup
 remove(spLeft)

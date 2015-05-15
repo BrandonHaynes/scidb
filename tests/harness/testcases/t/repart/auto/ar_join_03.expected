@@ -1,0 +1,24 @@
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <join(aa, cc)>
+[An error expected at this place for the query "join(aa, cc)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSION_COUNT_MISMATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_DIMENSION_COUNT_MISMATCH.]
+
+SCIDB QUERY : <join(aa, bb)>
+[An error expected at this place for the query "join(aa, bb)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH.]
+
+Query was executed successfully
+
+Query was executed successfully
+
+Query was executed successfully
+

@@ -27,13 +27,14 @@
  *      Author: knizhnik@garret.ru
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/Array.h"
-#include "query/ops/subarray/SubArray.h"
-#include "network/NetworkManager.h"
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/Array.h>
+#include <network/NetworkManager.h>
+#include "SubArray.h"
 
-namespace scidb {
+namespace scidb
+{
 
 class PhysicalSubArray: public  PhysicalOperator
 {
@@ -51,9 +52,9 @@ public:
         for (size_t i = 0; i < nDims; i++)
         {
             Value const& low = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[i])->getExpression()->evaluate();
-            if ( low.isNull() || low.getInt64() < dims[i].getStart())
+            if ( low.isNull() || low.getInt64() < dims[i].getStartMin())
             {
-                result[i] = dims[i].getStart();
+                result[i] = dims[i].getStartMin();
             }
             else
             {
@@ -135,7 +136,7 @@ public:
 
         for (size_t i = 0; i < numCoords; i++)
         {
-            Coordinate arrayStartCoord = (inputDimensions[i]).getStart();
+            Coordinate arrayStartCoord = (inputDimensions[i]).getStartMin();
             result[i] = windowStart[i]-arrayStartCoord;
         }
 

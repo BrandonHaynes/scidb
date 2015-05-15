@@ -422,7 +422,7 @@ class ScidbCommander:
             self._list_arrays_query_command[:-1]
 
         self._list_all_versions_arrays_query_command.append(
-            'sort(filter(list(\'arrays\',true),temporary=false),id)'
+            'sort(filter(list(\'arrays\',true),temporary=false),aid)'
             )
     #-------------------------------------------------------------------------
     # _getHostInstanceData: gets the information about all scidb instances 

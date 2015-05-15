@@ -31,10 +31,6 @@
  * which implementing logical and physical operators.
  */
 
-//Example: see XExample.cpp files for details
-//LOGICAL_BUILDIN_OPERATOR(LogicalExample);
-//PHYSICAL_BUILDIN_OPERATOR(PhysicalExample);
-
 // unfold
 LOGICAL_BUILDIN_OPERATOR(LogicalUnfold);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalUnfold);
@@ -42,6 +38,8 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalUnfold);
 // CreateArray
 LOGICAL_BUILDIN_OPERATOR(LogicalCreateArray);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalCreateArray);
+LOGICAL_BUILDIN_OPERATOR(LogicalCreateArrayUsing);
+PHYSICAL_BUILDIN_OPERATOR(PhysicalCreateArrayUsing);
 
 // Load
 LOGICAL_BUILDIN_OPERATOR(LogicalLoad);
@@ -80,15 +78,6 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalApply);
 LOGICAL_BUILDIN_OPERATOR(LogicalFilter);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalFilter);
 
-// Count
-//LOGICAL_BUILDIN_OPERATOR(LogicalCount);
-
-// Average
-//LOGICAL_BUILDIN_OPERATOR(LogicalAverage);
-
-// Sum
-//LOGICAL_BUILDIN_OPERATOR(LogicalSum);
-
 // Store
 LOGICAL_BUILDIN_OPERATOR(LogicalStore);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalStore);
@@ -96,10 +85,6 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalStore);
 // Redimension
 LOGICAL_BUILDIN_OPERATOR(LogicalRedimension);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalRedimension);
-
-// Redimension_Store
-//LOGICAL_BUILDIN_OPERATOR(LogicalRedimensionStore);
-//PHYSICAL_BUILDIN_OPERATOR(PhysicalRedimensionStore);
 
 // Reshape
 LOGICAL_BUILDIN_OPERATOR(LogicalReshape);
@@ -148,6 +133,8 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalSlice);
 // Sort
 LOGICAL_BUILDIN_OPERATOR(LogicalSort);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalSort);
+LOGICAL_BUILDIN_OPERATOR(LogicalOldSort);
+PHYSICAL_BUILDIN_OPERATOR(PhysicalOldSort);
 
 // Sort
 LOGICAL_BUILDIN_OPERATOR(LogicalSort2);
@@ -178,17 +165,9 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalConcat);
 LOGICAL_BUILDIN_OPERATOR(LogicalUnpack);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalUnpack);
 
-// Unpack
-LOGICAL_BUILDIN_OPERATOR(LogicalOldUnpack);
-PHYSICAL_BUILDIN_OPERATOR(PhysicalOldUnpack);
-
 // Build
 LOGICAL_BUILDIN_OPERATOR(LogicalBuild);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalBuild);
-
-// BuildSparse
-//LOGICAL_BUILDIN_OPERATOR(LogicalBuildSparse);
-//PHYSICAL_BUILDIN_OPERATOR(PhysicalBuildSparse);
 
 // Transpose
 LOGICAL_BUILDIN_OPERATOR(LogicalTranspose);
@@ -210,20 +189,6 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalRemoveVersions);
 LOGICAL_BUILDIN_OPERATOR(LogicalMerge);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalMerge);
 
-// Min
-//LOGICAL_BUILDIN_OPERATOR(LogicalMin);
-
-// Max
-//LOGICAL_BUILDIN_OPERATOR(LogicalMax);
-
-// Adddim
-LOGICAL_BUILDIN_OPERATOR(LogicalAdddim);
-PHYSICAL_BUILDIN_OPERATOR(PhysicalAdddim);
-
-// Deldim
-LOGICAL_BUILDIN_OPERATOR(LogicalDeldim);
-PHYSICAL_BUILDIN_OPERATOR(PhysicalDeldim);
-
 // Normalize
 LOGICAL_BUILDIN_OPERATOR(LogicalNormalize);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalNormalize);
@@ -239,10 +204,6 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalXgrid);
 // Thin
 LOGICAL_BUILDIN_OPERATOR(LogicalThin);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalThin);
-
-// Cross
-//LOGICAL_BUILDIN_OPERATOR(LogicalCross);
-//PHYSICAL_BUILDIN_OPERATOR(PhysicalCross);
 
 // Help
 LOGICAL_BUILDIN_OPERATOR(LogicalHelp);
@@ -280,14 +241,6 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalExplainLogical);
 LOGICAL_BUILDIN_OPERATOR(LogicalUnLoadLibrary);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalUnLoadLibrary);
 
-// Solve
-//LOGICAL_BUILDIN_OPERATOR(LogicalSolve);
-//PHYSICAL_BUILDIN_OPERATOR(PhysicalSolve);
-
-// Solve
-//LOGICAL_BUILDIN_OPERATOR(LogicalCovariance);
-//PHYSICAL_BUILDIN_OPERATOR(PhysicalCovariance);
-
 // AttributeRename
 LOGICAL_BUILDIN_OPERATOR(LogicalAttributeRename);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalAttributeRename);
@@ -300,19 +253,9 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalBernoulli);
 LOGICAL_BUILDIN_OPERATOR(LogicalCancel);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalCancel);
 
-// Var
-//LOGICAL_BUILDIN_OPERATOR(LogicalVar);
-
-// Stdev
-//LOGICAL_BUILDIN_OPERATOR(LogicalStdev);
-
 //Show
 LOGICAL_BUILDIN_OPERATOR(LogicalShow);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalShow);
-
-//Echo
-LOGICAL_BUILDIN_OPERATOR(LogicalEcho);
-PHYSICAL_BUILDIN_OPERATOR(PhysicalEcho);
 
 //Reduce Distro
 LOGICAL_BUILDIN_OPERATOR(LogicalReduceDistro);
@@ -333,13 +276,6 @@ PHYSICAL_BUILDIN_OPERATOR(PhysicalDiskInfo);
 //Analyze
 LOGICAL_BUILDIN_OPERATOR(LogicalAnalyze);
 PHYSICAL_BUILDIN_OPERATOR(PhysicalAnalyze);
-
-//ApproxDC
-//LOGICAL_BUILDIN_OPERATOR(LogicalApproxDC);
-
-// MStat
-LOGICAL_BUILDIN_OPERATOR(LogicalMStat);
-PHYSICAL_BUILDIN_OPERATOR(PhysicalMStat);
 
 // Rank-Quantile
 LOGICAL_BUILDIN_OPERATOR(LogicalRank);

@@ -23,7 +23,6 @@
 /****************************************************************************/
 
 #include <util/arena/LimitedArena.h>                     // For LimitedArena
-#include <util/arena/LockingArena.h>                     // For Locking<>
 #include "ArenaDetails.h"                                // For implementation
 
 /****************************************************************************/
@@ -31,8 +30,8 @@ namespace scidb { namespace arena {
 /****************************************************************************/
 
 /**
- *  Construct an Arena that can allocate at most o.limit() bytes of memory off
- *  the parent Arena o.parent().
+ *  Construct an %arena that allocates at most o.limit() bytes of memory from
+ *  the parent %arena o.parent().
  */
     LimitedArena::LimitedArena(const Options& o)
                 : _name       (o.name()),
@@ -40,26 +39,25 @@ namespace scidb { namespace arena {
                   _parent     (o.parent()),
                   _available  (o.limit()),
                   _allocated  (0),
-                  _peakUsage  (0),
+                  _peakusage  (0),
                   _allocations(0)
 {
     assert(consistent());                                // Check consistency
 }
 
 /**
- *  A LimitedArena supports the same features as the parent to which it passes
- *  the actual requests for memory, but does not support resetting: to forward
- *  the call to reset() on to the parent would invalidate any allocations made
- *  by sibling arenas that happen to be allocating from the same parent.
+ *  Return a bitfield indicating the set of features this %arena supports.
  */
-bool LimitedArena::supports(features_t features) const
+features_t LimitedArena::features() const
 {
-    if (features & (resetting|locking))                  // Resetting|locking?
+    if (_parent->supports(recycling))                    // Parent recycles?
     {
-        return false;                                    // ...not supported
+        return finalizing | recycling;                   // ...then so do we
     }
-
-    return _parent->supports(features);                  // Delegate to parent
+    else                                                 // Nope, they do not
+    {
+        return finalizing;                               // ...then nor do we
+    }
 }
 
 /**
@@ -70,51 +68,59 @@ bool LimitedArena::supports(features_t features) const
 void LimitedArena::reset()
 {
     _available  = _limit;                                // Reclaim allocated
-    _allocated  = _peakUsage = _allocations = 0;         // Reset all counters
+    _allocated  = _peakusage = _allocations = 0;         // Reset all counters
 
     assert(consistent());                                // Check consistency
 }
 
 /**
- *  Allocate 'size' bytes of raw storage from our parent Arena, first checking
+ *  Allocate 'size' bytes of raw memory from our parent %arena, first checking
  *  to see if this would exceed our own internal limit, in which case we throw
  *  an Exhausted exception.
  */
 void* LimitedArena::doMalloc(size_t const size)
 {
-    assert(size!=0 && isAligned(size));                  // Is already aligned
+    assert(size != 0);                                   // Validate arguments
 
     if (size > _available)                               // Exceeds our limit?
     {
         this->exhausted(size);                           // ...sorry,  but no
     }
 
-    void*       p = _parent->doMalloc(size);             // Delegate to parent
-    _available   -= size;                                // ...less available
-    _allocated   += size;                                // ...more allocated
+    void* const p = _parent->doMalloc(size);             // Delegate to parent
+
     _allocations += 1;                                   // ...update counter
-    _peakUsage    = std::max(_allocated,_peakUsage);     // ...update peak
+    _allocated   += size;                                // ...more allocated
+    _peakusage    = std::max(_allocated,_peakusage);     // ...update peak
+
+    if (_available < unlimited)                          // Enforcing a limit?
+    {
+        _available -= size;                              // ...less available
+    }
 
     assert(consistent());                                // Check consistency
     return p;                                            // The new allocation
 }
 
 /**
- *  Return the 'size' bytes of memory at address 'p' to our parent Arena.
+ *  Return the 'size' bytes of memory at address 'p' to our parent %arena.
  */
-size_t LimitedArena::doFree(void* p,size_t const size)
+void LimitedArena::doFree(void* p,size_t const size)
 {
-    assert(p!=0 && size!=0 && isAligned(size));          // Validate arguments
+    assert(aligned(p) && size!=0);                       // Validate arguments
     assert(size<=_allocated && _allocated!=0);           // Check counts match
 
-    size_t n = _parent->doFree(p,size);                  // Delegate to parent
+    _parent->doFree(p,size);                             // Delegate to parent
 
-    _available   += n;                                   // ...more available
-    _allocated   -= n;                                   // ...less allocated
     _allocations -= 1;                                   // ...update counter
+    _allocated   -= size;                                // ...less allocated
+
+    if (_available < unlimited)                          // Enforcing a limit?
+    {
+        _available += size;                              // ...more available
+    }
 
     assert(consistent());                                // Check consistency
-    return n;                                            // Actually reclaimed
 }
 
 /**
@@ -127,33 +133,28 @@ bool LimitedArena::consistent() const
 {
     assert(_parent      != 0);                           // Validate the parent
     assert(_limit       <= unlimited);                   // Now check that our
-    assert(_available   <= _limit);                      //   various counters
-    assert(_allocated   <= _peakUsage);                  //   are all within
-    assert(_peakUsage   <= _limit);                      //   legal ranges
+    assert(_available   <= _limit);                      //  various counters
+    assert(_allocated   <= _peakusage);                  //  are within their
+    assert(_peakusage   <= _limit);                      //  legal ranges...
     assert(_allocations <= unlimited);                   //
-    assert(_allocated + _available == _limit);           // Check book keeping
-    assert((_allocated==0) == (_allocations==0));        // Live=0 <=> Total=0
+    assert(iff(_allocated==0,_allocations==0));          // Live=0 <=> Total=0
+
+    if (_available < unlimited)                          // Enforcing a limit?
+    {
+        assert(_allocated + _available == _limit);       // ...check accounts
+    }
 
     return true;                                         // Seems to be kosher
 }
 
 /**
- *  Construct and return a LimitedArena that constrains the Arena 'o.parent()'
- *  to allocating at most 'o.limit()' bytes of memory before throwing an Arena
+ *  Construct and return a LimitedArena that constrains the %arena  o.parent()
+ *  to allocating at most o.limit() bytes of memory before throwing an arena::
  *  Exhausted exception.
  */
 ArenaPtr newLimitedArena(const Options& o)
 {
-    using boost::make_shared;                            // For make_shared()
-
-    if (o.locking())                                     // Needs locking too?
-    {
-        return make_shared< Locking<LimitedArena> >(o);  // ...locking arena
-    }
-    else                                                 // No locking needed
-    {
-        return make_shared<LimitedArena>(o);             // ...vanilla arena
-    }
+    return boost::make_shared<LimitedArena>(o);          // Allocate new arena
 }
 
 /****************************************************************************/

@@ -31,12 +31,12 @@ def runSubProcess(
     se=subprocess.PIPE, # Standard error.
     useShell=False # Flag to use shell option when starting process.
     ):
-    
-    localCmd = list(cmd) # Copy list to make sure it is not referenced 
+
+    localCmd = list(cmd) # Copy list to make sure it is not referenced
                          # elsewhere.
     if (useShell): # If command is for shell, flatten it into a single
         localCmd = ' '.join(localCmd) # string.
-    
+
     proc = subprocess.Popen( # Run the command.
         localCmd,
         stdin=si,
@@ -46,29 +46,39 @@ def runSubProcess(
         )
     return proc
 def main():
-    print 'SCIDB_INSTALL_PATH',os.environ['SCIDB_INSTALL_PATH']    
+    print 'SCIDB_INSTALL_PATH',os.environ['SCIDB_INSTALL_PATH']
+
+    iquery_host = 'localhost'
+    iquery_port = '1239'
+    if (os.environ.has_key('IQUERY_HOST')):
+        iquery_host = os.environ['IQUERY_HOST']
+    if (os.environ.has_key('IQUERY_PORT')):
+        iquery_port = os.environ['IQUERY_PORT']
+
     cmd = [
         'java',
         '-classpath',
         '${SCIDB_INSTALL_PATH}/jdbc/example.jar:${SCIDB_INSTALL_PATH}/jdbc/scidb4j.jar:/usr/share/java/protobuf.jar:/usr/share/java/protobuf-java.jar',
-        'org.scidb.JDBCExample'
+        'org.scidb.JDBCExample',
+        iquery_host,
+        iquery_port
         ]
     proc = runSubProcess(cmd,useShell=True)
     exitCode = proc.poll()
     while (exitCode is None):
         time.sleep(0.1)
         exitCode = proc.poll()
-        
+
     sOut = proc.stdout.read().strip()
     sErr = proc.stderr.read().strip()
-    
+
     sOut = sOut.split('\n')
-    
+
     if (exitCode != 0):
         print 'Bad exit code!'
         print sErr
         sys.exit(1)
-        
+
     expectedData = [
         '0 0 a',
         '0 1 b',
@@ -80,7 +90,7 @@ def main():
         '2 1 456',
         '2 2 789'
     ]
-    
+
     compData = sOut[8:]
     if (set(expectedData) != set(compData)):
         print 'Error: data mismatch!'
@@ -91,6 +101,6 @@ def main():
         sys.exit(1)
 
     print 'PASS'
-    
+
 if __name__ == '__main__':
     main()

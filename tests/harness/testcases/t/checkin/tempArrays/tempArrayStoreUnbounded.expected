@@ -6,7 +6,7 @@ Query was executed successfully
 SCIDB QUERY : <create temp array mutable <a:int64>[x=0:29,5,0]>
 Query was executed successfully
 
-SCIDB QUERY : <store (subarray(unbounded,null,null), mutable)>
+SCIDB QUERY : <store (subarray(scan(unbounded,true),null,null), mutable)>
 {x} a
 {0} 1
 {1} 2

@@ -1,2 +1,2 @@
-update-alternatives --remove dense_linear_algebra /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra.so
-update-alternatives --remove linear_algebra /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra.so
+update-alternatives --remove dense_linear_algebra.VERSION_MAJOR.VERSION_MINOR /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/libdense_linear_algebra.so
+update-alternatives --remove linear_algebra.VERSION_MAJOR.VERSION_MINOR /opt/scidb/VERSION_MAJOR.VERSION_MINOR/lib/scidb/plugins/liblinear_algebra.so

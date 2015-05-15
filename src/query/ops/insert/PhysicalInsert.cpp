@@ -376,10 +376,6 @@ public:
 
                 ConstChunk const& inputChunk = inputIters[i]->getChunk();
                 ConstChunk* matChunk = inputChunk.materialize();
-                if(matChunk->isRLE() == false)
-                {
-                    throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ILLEGAL_OPERATION) << "Attempt to insert non-RLE chunks";
-                }
                 if(matChunk->count() == 0)
                 {
                     break;
@@ -387,7 +383,9 @@ public:
 
                 if(haveExistingChunk)
                 {
-                    insertMergeChunk(query, matChunk, existingIters[i]->getChunk(), outputIters[i]->newChunk(pos), nDims);
+                    insertMergeChunk(query, matChunk, existingIters[i]->getChunk(),
+                                     getNewChunk(pos,outputIters[i]),
+                                     nDims);
                 }
                 else
                 {
@@ -416,6 +414,27 @@ public:
         }
 
         return dstArray;
+    }
+
+    Chunk&
+    getNewChunk(const Coordinates& chunkPos,
+                const shared_ptr<ArrayIterator> & outputIter)
+    {
+        Chunk* chunk = NULL;
+        try {
+            chunk = &outputIter->newChunk(chunkPos);
+            assert(chunk);
+        } catch (const SystemException& err) {
+            if (err.getLongErrorCode() != SCIDB_LE_CHUNK_ALREADY_EXISTS ||
+                !_schema.isTransient()) {
+                throw;
+            }
+            bool rc = outputIter->setPosition(chunkPos);
+            ASSERT_EXCEPTION(rc, "PhysicalInsert::getNewChunk");
+            chunk = &outputIter->updateChunk();
+            assert(chunk);
+        }
+        return *chunk;
     }
 
     /**

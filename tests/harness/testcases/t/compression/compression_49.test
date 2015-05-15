@@ -1,0 +1,35 @@
+--setup
+--start-query-logging
+
+# ensure compression is actually compressing #4455
+
+create array Ti <a:int32> [x=0:10000,1000,0]
+create array Ti_z <a:int32 compression 'zlib'> [x=0:10000,1000,0]
+create array Ti_bz <a:int32 compression 'bzlib'> [x=0:10000,1000,0]
+create array Usage <name:string, file_blocks_512:uint64> [n=0:*,100,0]
+
+--test
+--igdata --aql "select * into Ti from build(Ti,random()%1000)"
+--igdata --aql "select * into Ti_z from Ti"
+--igdata --aql "select * into Ti_bz from Ti_z"
+
+# check the space usage --- both compressors should show up in the query output
+
+--igdata "store(redimension(project(filter(cross_join(filter(list('arrays'), regex(name, 'Ti(.*)')) as A, filter(list('datastores'), inst = 0) as B), A.uaid = B.uaid), name, file_blocks_512), Usage), Usage)"
+aggregate(project(filter(cross_join(Usage as A, project(filter(Usage, name = 'Ti') as B, file_blocks_512)), A.file_blocks_512 < B.file_blocks_512),name), count(*))
+
+# check that the nelem field is maintained properly in the chunk descriptors
+filter(project(filter(cross_join(filter(list('chunk descriptors'), inst = 0), list('arrays', true)), name = 'Ti_z@1' AND arrid = aid), nelem), nelem = 0)
+
+# check that the contents are all readable and indentical --- both queries should be empty
+
+filter(join(Ti as A, Ti_z as B), A.a <> B.a)
+filter(join(Ti as A, Ti_bz as B), A.a <> B.a)
+
+--cleanup
+remove(Ti)
+remove(Ti_z)
+remove(Ti_bz)
+remove(Usage)
+
+--stop-query-logging

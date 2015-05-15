@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<appendix id="troubleInstall">
+  <title id="a_title">Manual SciDB Installation</title>
+
+  <para>This appendix contains information about installing SciDB manually --
+  that is, without using the Cluster Install script. Note that Paradigm4
+  supports the Cluster Install procedure as the primary method of
+  installation. This appendix is provided only as a guide for those who cannot
+  use that script.</para>
+
+  <section xml:id="troubleshootPlatformPrep">
+    <title>Preparing the Platform</title>
+
+    <para>Before installing SciDB, the following steps are required to prepare
+    a cluster for running SciDB. Many of these steps must be executed as the
+    Linux 'root' account (creating the scidb account, preparing the system
+    catalog, configuring a local data directory for use by SciDB, installing
+    SciDB software packages).</para>
+
+    <section id="troubleshootssh_passwordless">
+      <title>Remote Execution Configuration (SSH)</title>
+
+      <note>
+        <para><!--If fixed for next release, re-enter this sentence: This step is only required if you are setting up a cluster environment,
+ and can be skipped for single-server installations.-->This step must be
+        performed by the scidb user account, <emphasis role="bold">on the
+        coordinator server only</emphasis>.</para>
+      </note>
+
+      <para><indexterm>
+          <primary>ssh</primary>
+        </indexterm><indexterm>
+          <primary>password-less communication</primary>
+        </indexterm><indexterm>
+          <primary>communication between instances</primary>
+        </indexterm>SciDB uses <code>ssh</code> for execution of management
+      commands such as start and stop within a cluster. This is why the
+      <emphasis role="bold">scidb</emphasis> user account needs to have
+      <code>ssh</code> access from the coordinator to the workers and from the
+      coordinator to itself.</para>
+
+      <para>There are several methods to configure password-less
+      <code>SSH</code> between servers. We recommend the following simple
+      method.</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Create a key:<programlisting>ssh-keygen</programlisting><indexterm>
+              <primary>key file</primary>
+            </indexterm>By default, this creates a key file with a
+          public/private key pair in ~/.ssh/id_rsa.pub and ~/.ssh/id_rsa.
+          Optionally, a key file name may be specified. If a non-default
+          filename is used for the key pair, it must be listed in the SciDB
+          configuration file for use by scidb.py.</para>
+
+          <programlisting>
+scidb@monolith1:~/.ssh$ ssh-keygen 
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/scidb/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in id_rsa.
+Your public key has been saved in id_rsa.pub.
+...</programlisting>
+        </listitem>
+
+        <listitem>
+          <para>Copy the key to all instances—the coordinator and to each
+          worker—to authorize ssh clients connecting to SciDB:
+          <programlisting>ssh-copy-id -i ~/.ssh/id_rsa.pub scidb@localhost
+ssh-copy-id -i ~/.ssh/id_rsa.pub scidb@0.0.0.0
+ssh-copy-id -i ~/.ssh/id_rsa.pub scidb@127.0.0.1
+ssh-copy-id -i ~/.ssh/id_rsa.pub scidb@<replaceable>worker</replaceable>
+</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Login to the localhost (and 0.0.0.0 and 127.0.0.1) and each
+          remote host. Note that no password is required now (though you still
+          need to approve each host by responding 'yes' at the
+          prompt):<programlisting>ssh scidb@localhost
+ssh scidb@0.0.0.0
+ssh scidb@127.0.0.1
+ssh scidb@<replaceable>worker</replaceable></programlisting><note>
+              <para>If you are running SciDB on CentOS or RHEL, you may need
+              to perform additional configuration steps. See the next section
+              for details.</para>
+            </note></para>
+        </listitem>
+      </orderedlist>
+    </section>
+
+    <section>
+      <title>Additional Configuration on CentOS and RHEL</title>
+
+      <para>This section describes two additional configuration steps that are
+      necessary if you are running SciDB on CentOS or RHEL:<itemizedlist>
+          <listitem>
+            <para>Disable iptables</para>
+          </listitem>
+
+          <listitem>
+            <para>Configure SELinux</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>
+        <note>
+          <para>These configuration steps must be performed on all servers—the
+          coordinator and all workers.</para>
+        </note>
+      </para>
+
+      <section id="troubleshootExtraCentOS">
+        <title>Disable iptables</title>
+
+        <para><indexterm>
+            <primary>firewall</primary>
+          </indexterm><indexterm>
+            <primary>iptables</primary>
+          </indexterm>If you are running on CentOS or RHEL, you need to
+        disable iptables, in order for a multi-server configuration of SciDB
+        to function properly.</para>
+
+        <para>The iptables program controls a host-based firewall for Linux
+        operating systems. For SciDB, you must disable iptables. To disable
+        iptables, use either of the following commands:<programlisting>sudo chkconfig iptables off  # do not start iptables during boot
+sudo service iptables stop   # stop iptables</programlisting></para>
+      </section>
+
+      <section>
+        <title>Configure SELinux</title>
+
+        <para>CentOS and RHEL have SELinux (Security-Enhanced Linux) enabled
+        by default. This can cause problems when you attempt to set up
+        password-less SSH. You can either disable SELinux or configure SELinux
+        to allow password-less SSH to function correctly. For details, see
+        your operating system documentation, or search the web for
+        instructions.</para>
+
+        <para>
+          <note>
+            <para>Disabling SELinux may introduce security risks.</para>
+          </note>
+        </para>
+
+        <para>For more information on SELinux, see <ulink
+        url="http://wiki.centos.org/HowTos/SELinux">http://wiki.centos.org/HowTos/SELinux</ulink>.</para>
+      </section>
+    </section>
+  </section>
+
+  <section xml:id="troubleshootPackageInstall">
+    <title>Installing Packages</title>
+
+    <para>Packages are available for Ubuntu, CentOS, and RHEL. Note that
+    CentOS and RHEL use the same package.</para>
+
+    <para><indexterm>
+        <primary>wget</primary>
+      </indexterm><indexterm>
+        <primary>sudo</primary>
+      </indexterm><indexterm>
+        <primary>packages</primary>
+
+        <secondary>sudo</secondary>
+      </indexterm><indexterm>
+        <primary>packages</primary>
+
+        <secondary>wget</secondary>
+      </indexterm>To install SciDB packages, you need to have
+    <command>wget</command>.<itemizedlist>
+        <listitem>
+          <para>On CentOS or RHEL:<programlisting>sudo yum install wget</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>On Ubuntu:<programlisting>sudo apt-get install wget </programlisting></para>
+        </listitem>
+      </itemizedlist></para>
+
+    <section xml:id="troubleshootInstallCommunityUbuntufrombinarypackage">
+      <title>Install SciDB Community Edition on Ubuntu from binary
+      package</title>
+
+      <para><indexterm>
+          <primary>packages</primary>
+
+          <secondary>SciDB</secondary>
+        </indexterm>This section describes how to download and install SciDB
+      Community Edition on Ubuntu, using pre-built binary packages.</para>
+
+      <note>
+        <para>SciDB v14.12 supports both Ubuntu 12.04 and 14.04. The commands
+        in this section show how to install SciDB Community Edition on Ubuntu
+        12.04.</para>
+      </note>
+
+      <note>
+        <para>This step must be performed by a user with sudo privileges. In a
+        cluster, this step must be performed on all servers.</para>
+      </note>
+
+      <para>This section describes how to download and install SciDB using
+      pre-built binary packages.</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Add SciDB's GPG public key by running the following command.
+          <programlisting>wget -O- https://downloads.paradigm4.com/key | sudo apt-key add -</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Add SciDB's APT repository to the apt configuration file
+          <code>/etc/apt/sources.list.d/scidb.list</code>. <programlisting>deb  https://downloads.paradigm4.com/  ubuntu12.04/14.12/
+deb-src  https://downloads.paradigm4.com/  ubuntu12.04/14.12/</programlisting></para>
+
+          <para>If the <code>/etc/apt/sources.list.d/scidb.list</code> file
+          does not exist, create it (using sudo).</para>
+        </listitem>
+
+        <listitem>
+          <para>Update APT index and install SciDB. If you want the default
+          SciDB installation with all packages installed, you can install the
+          scidb-all (or scidb-all-coord) metapackage. This package includes
+          all of the standard SciDB packages.<programlisting>sudo apt-get update
+sudo apt-cache search scidb
+sudo apt-get install scidb-14.12-all-coord # On the coordinator server only
+sudo apt-get install scidb-14.12-all # On all servers other than the coordinator server
+sudo apt-get source scidb # If you want the SciDB source</programlisting></para>
+        </listitem>
+      </orderedlist>
+
+      <note>
+        <para>The only difference between the scidb-14.8-all and
+        scidb-14.8-all-coord packages is that the latter has a dependence on
+        PostgreSQL 8.4. Installing scidb-14.8-all-coord will also install
+        PostgreSQL 8.4, if it is not already installed on your system. If you
+        already have PostgreSQL 8.4 on your coordinator server, there is no
+        particular need to use the scidb-14.8-all-coord package.</para>
+      </note>
+    </section>
+
+    <section xml:id="troubleshootInstallUbuntuEnterprisefrombinarypackage">
+      <title>Install SciDB Enterprise Edition on Ubuntu from binary
+      package</title>
+
+      <para><indexterm>
+          <primary>packages</primary>
+
+          <secondary>SciDB</secondary>
+        </indexterm>This section describes how to download and install SciDB
+      Enterprise Edition on Ubuntu, using pre-built binary packages.</para>
+
+      <note>
+        <para>SciDB v14.12 supports both Ubuntu 12.04 and 14.04. The commands
+        in this section show how to install SciDB Enterprise Edition on Ubuntu
+        12.04.</para>
+      </note>
+
+      <note>
+        <para>This step must be performed by a user with sudo privileges. In a
+        cluster, this step must be performed on all servers.</para>
+      </note>
+
+      <orderedlist>
+        <listitem>
+          <para>Add SciDB's APT repository to the apt configuration file
+          <literal>/etc/apt/sources.list.d/p4.list.</literal> <programlisting>deb https://USERNAME:PASSWORD@downloads.paradigm4.com/private/  ubuntu12.04/14.12
+deb-src https://USERNAME:PASSWORD@downloads.paradigm4.com/private/  ubuntu12.04/14.12</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Uninstall an existing packages (optional) and install the new
+          package. All Enterprise Edition extensions are installed into the
+          <literal>/opt/scidb/<replaceable>release-number</replaceable></literal>
+          area.<programlisting># Using direct repository download
+sudo apt-get remove scidb-<replaceable>old_version</replaceable>-p4 # OPTIONAL: run to remove old package
+sudo apt-get update
+sudo apt-get install scidb-14-12-p4</programlisting></para>
+        </listitem>
+      </orderedlist>
+    </section>
+
+    <section xml:id="troubleshootPackageCentOS">
+      <title>Install SciDB Community Edition on CentOS / RHEL from binary
+      package</title>
+
+      <para><indexterm>
+          <primary>packages</primary>
+
+          <secondary>SciDB</secondary>
+        </indexterm>This section describes how to download and install SciDB
+      Community Edition on CentOS and RHEL, using pre-built binary packages.
+      The CentOS / RHEL packages work with CentOS 6.3, 6.4, and 6.5.</para>
+
+      <note>
+        <para>This procedure must be performed by a user with sudo privileges.
+        In a cluster, this step must be performed on all servers.</para>
+      </note>
+
+      <orderedlist>
+        <listitem>
+          <para>Add SciDB's GPG public key by running the following command.
+          <programlisting>wget https://downloads.paradigm4.com/key
+sudo rpm --import key
+rm -f key</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Add the SciDB repository to the repository folder, by creating
+          the configuration file
+          <code>/etc/yum.repos.d/scidb.repo</code>.</para>
+        </listitem>
+
+        <listitem>
+          <para>Add the following lines to the
+          <code>/etc/yum.repos.d/scidb.repo</code> file:<programlisting>[scidb]
+name=SciDB
+baseurl=https://downloads.paradigm4.com/centos6.3/14.12/
+gpgcheck=1</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>If you are upgrading from a previous version of SciDB, run the
+          following command:<programlisting>sudo yum clean all</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Update packages by running the following
+          command:<programlisting>sudo yum update</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Install SciDB. If you want the default SciDB installation with
+          all packages installed, you can install the scidb-14.8-all (or
+          scidb-14.8-all-coord) meta-package. This package includes all of the
+          standard SciDB packages.<programlisting>sudo yum search scidb
+sudo yum install scidb-14.12-all-coord # On the coordinator server only
+sudo yum install scidb-14.12-all # On all servers other than the coordinator server</programlisting></para>
+        </listitem>
+      </orderedlist>
+
+      <note>
+        <para>The only difference between the scidb-14.12-all and
+        scidb-14.12-all-coord packages is that the latter has a dependence on
+        PostgreSQL 8.4. Installing scidb-14.qw-all-coord will also install
+        PostgreSQL 8.4, if it is not already installed on your system. If you
+        already have PostgreSQL 8.4 on your coordinator server, there is no
+        particular need to use the scidb-14.12-all-coord package.</para>
+      </note>
+    </section>
+
+    <section xml:id="troubleshootInstallCentOSEnterprisefrombinarypackage">
+      <title>Install SciDB Enterprise Edition on CentOS / RHEL from binary
+      package</title>
+
+      <para><indexterm>
+          <primary>packages</primary>
+
+          <secondary>SciDB</secondary>
+        </indexterm>This section describes how to download and install SciDB
+      Enterprise Edition on CentOS or RHEL, using pre-built binary
+      packages.</para>
+
+      <note>
+        <para>This step must be performed by a user with sudo privileges. In a
+        cluster, this step must be performed on all servers.</para>
+      </note>
+
+      <orderedlist>
+        <listitem>
+          <para>Add the following lines to the
+          <literal>/etc/yum.repos.d/p4.repo</literal> file.<programlisting>[p4
+name=P4
+baseur1=https://USERNAME:PASSWORD@downloads.paradigm4.com/private/centos6.3/14.12
+gpgcheck=1</programlisting></para>
+        </listitem>
+
+        <listitem>
+          <para>Uninstall any existing packages (optional) and install the new
+          package. All enterprise Edition extensions are installed into
+          the<literal>/opt/scidb/<replaceable>release-number</replaceable></literal>
+          area.<programlisting># Using direct repository download
+sudo yum remove scidb-<replaceable>old_version</replaceable>-p4 # OPTIONAL: run to remove old package
+sudo yum update
+sudo yum install scidb-14-12-p4</programlisting></para>
+        </listitem>
+      </orderedlist>
+    </section>
+  </section>
+
+  <section xml:id="troubleshootPostgresInstallationandConfiguration">
+    <title>Set Up Postgres as the SciDB System Catalog</title>
+
+    <para>If you are upgrading from a previous version of SciDB, you can skip
+    this section, and continue with <xref linkend="ConfiguringSciDB"/>. Also,
+    this section only applies to the coordinator server: if you are installing
+    SciDB to a cluster, you can skip this section for all of your worker
+    servers.</para>
+
+    <para><indexterm>
+        <primary>system catalog</primary>
+      </indexterm><indexterm>
+        <primary>Postgres</primary>
+      </indexterm><indexterm>
+        <primary>security, Postgres</primary>
+      </indexterm>SciDB relies on Postgres as the system catalog. In this
+    section, we describe how to set up and use Postgres <emphasis
+    role="bold">for SciDB</emphasis>.</para>
+
+    <warning>
+      <para>We strongly recommend that you use a separate Postgres
+      installation exclusively for SciDB. The main reason for this is that
+      SciDB needs to store the password for the 'scidb' user in clear text in
+      a configuration file. Thus, if you use an existing Postgres installation
+      for SciDB, you introduce a security risk into the existing Postgres
+      installation.</para>
+    </warning>
+
+    <para>Note the following:<itemizedlist>
+        <listitem>
+          <para><indexterm>
+              <primary>port numbers</primary>
+            </indexterm>SciDB requires Postgres 8.4. This version is typically
+          available on most Linux platforms. If your platform provides
+          multiple versions of Postgres, be aware that SciDB assumes that
+          version 8.4 is running and using port 5432. To change, set the
+          optional configuration parameter, <code>pg-port</code>.</para>
+        </listitem>
+
+        <listitem>
+          <para>The installation and configuration of Postgres must be
+          performed by root, or an account with equivalent administrative
+          privileges.</para>
+        </listitem>
+
+        <listitem>
+          <para>You install and configure Postgres on the coordinator server
+          only.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>By default, Postgres is configured to allow only local access via
+    Unix-domain sockets. In a cluster environment, the Postgres database
+    server needs to be configured to allow access from other instances in the
+    cluster. To do this, perform the following steps:</para>
+
+    <procedure>
+      <step>
+        <para><emphasis role="bold">For CentOS/RHEL only:</emphasis> If you
+        have never previously run Postgres on your system, you must create the
+        Postgres configuration file, <literal>pg_hba.conf</literal>, by
+        running the following command:<programlisting>sudo service postgresql initdb</programlisting>Note
+        that for Ubuntu, the configuration file is created automatically when
+        you install the SciDB repository.</para>
+      </step>
+
+      <step>
+        <para>Configure Postgres to use 'md5' authentication for local and
+        remote TCP/IP connections. To do this, modify the
+        <literal>pg_hba.conf</literal> file (usually at
+        <literal>/etc/postgresql/8.4/main/</literal> or
+        <literal>/var/lib/pgsql/data/</literal>) and include the following
+        settings.<programlisting>host    all     all     127.0.0.1/32      md5
+host    all     all     ::1/128           md5
+host    all     all     W.X.Y.Z/N         md5</programlisting>This
+        configuration setting causes Postgres to use 'md5' authentication for
+        all local and remote connections from instances within the
+        <literal>W.X.Y.Z/N</literal> subnet in CIDR notation. Replace the
+        subnet/mask with the correct one for your cluster network (by using
+        the Linux <command>ifconfig</command> tool or consulting your system
+        administrator).<warning>
+            <para>Although the 'md5' authentication does provide some level of
+            security, this Postgres configuration might still pose security
+            issues. To make a more secure installation, you can list specific
+            host IP addresses, user names, and role mappings.</para>
+
+            <para>You can read more on the security details of Postgres
+            client-authentication in the Postgres documentation at <ulink
+            url="http://www.postgresql.org/docs/8.4/static/client-authentication.html"/>.</para>
+          </warning></para>
+      </step>
+
+      <step>
+        <para>You might need to set the <literal>postgresql.conf</literal>
+        file to have it listen on the relevant port. If you are running a
+        cluster with multiple servers, you will also need to modify the
+        <literal>postgresql.conf</literal> file to allow connections from
+        other instances in the cluster.<programlisting># - Connection Settings -
+listen_addresses = '*'
+port = 5432
+</programlisting></para>
+      </step>
+
+      <step>
+        <para>Restart Postgres.<programlisting>sudo /etc/init.d/postgresql restart
+</programlisting></para>
+      </step>
+
+      <step>
+        <para>The final step, after you have configured Postgres, is to add it
+        to Linux system services. This means that Postgres will be started
+        automatically on system reboot.<programlisting>sudo /sbin/chkconfig --add postgresql
+sudo /sbin/chkconfig postgresql on
+</programlisting>To run the previous command, you need to install the
+        chkconfig package, if it is not already installed on your
+        system.</para>
+      </step>
+    </procedure>
+
+    <para>You can verify that a PostgreSQL instance is running on the
+    coordinator with the <literal>status</literal> command: <programlisting>sudo /etc/init.d/postgresql status
+</programlisting></para>
+  </section>
+</appendix>

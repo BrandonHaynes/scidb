@@ -27,10 +27,11 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/DelegateArray.h"
-
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/DelegateArray.h>
+#include <array/StreamArray.h>
+#include <util/Utility.h>
 
 using namespace std;
 using namespace boost;
@@ -79,7 +80,7 @@ class SubstituteArray : public DelegateArray
     }
 
     shared_ptr<Array> substArray;
-    
+
   private:
     vector<bool> substituteAttrs;
 
@@ -87,7 +88,7 @@ class SubstituteArray : public DelegateArray
 
 SubstituteChunkIterator::SubstituteChunkIterator(SubstituteArray& arr, DelegateChunk const* chunk, int iterationMode)
 : DelegateChunkIterator(chunk, iterationMode & ~IGNORE_NULL_VALUES),
-  array(arr), 
+  array(arr),
   itemIterator(arr.substArray->getItemIterator(0)),
   mode(iterationMode),
   pos(1)
@@ -138,13 +139,16 @@ public:
             substituteAttrs[attId] = true;
         }
 
-        shared_ptr<Array> input1 = redistribute(inputArrays[1], query, psReplication);
-        input1 = ensureRandomAccess(input1, query);
+        shared_ptr<Array> input1 = redistributeToRandomAccess(inputArrays[1], query, psReplication,
+                                                              ALL_INSTANCE_MASK,
+                                                              shared_ptr<DistributionMapper>(),
+                                                              0,
+                                                              shared_ptr<PartitioningSchemaData>());
 
         return make_shared<SubstituteArray>(_schema, inputArrays[0], input1, substituteAttrs);
     }
 };
-    
+
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalSubstitute, "substitute", "physicalSubstitute")
 
 }  // namespace scidb

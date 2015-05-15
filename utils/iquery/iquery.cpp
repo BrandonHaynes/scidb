@@ -223,7 +223,8 @@ void executePreparedSciDBQuery(const string &queryString, scidb::QueryResult& qu
             scidb::ArrayWriter::save(*queryResult.array,
                                      cfg->getOption<string>(CONFIG_RESULT_FILE),
                                      emptyQuery,
-                                     format, !iqueryState.firstSaving);
+                                     format,
+                                     (iqueryState.firstSaving ? 0 : scidb::ArrayWriter::F_APPEND));
             iqueryState.firstSaving = false;
         }
 
@@ -521,7 +522,7 @@ int main(int argc, char* argv[])
                 " lsparse, store, text, opaque, tsv, tsv+, ltsv+, dcsv."
                 " Default is 'dcsv'.",
                  string("dcsv"), false)
-            (CONFIG_PLUGINS_DIRECTORY, 'u', "plugins", "plugins", "", scidb::Config::STRING,
+            (CONFIG_PLUGINSDIR, 'u', "pluginsdir", "plugins", "", scidb::Config::STRING,
                 "Path to the plugins directory",
                 string(scidb::SCIDB_INSTALL_PREFIX()) + string("/lib/scidb/plugins"),
                 false)
@@ -542,7 +543,7 @@ int main(int argc, char* argv[])
         const std::string& queryFile = cfg->getOption<string>(CONFIG_QUERY_FILE);
         std::string queryString = cfg->getOption<string>(CONFIG_QUERY_STRING);
 
-        scidb::PluginManager::getInstance()->setPluginsDirectory(cfg->getOption<string>(CONFIG_PLUGINS_DIRECTORY));
+        scidb::PluginManager::getInstance()->setPluginsDirectory(cfg->getOption<string>(CONFIG_PLUGINSDIR));
 
         iqueryState.aql = !cfg->getOption<bool>(CONFIG_AFL);
         iqueryState.verbose = cfg->getOption<bool>(CONFIG_VERBOSE);

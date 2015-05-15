@@ -59,8 +59,6 @@ public:
     virtual void operator ++();
     virtual void reset();
     virtual bool setPosition(Coordinates const& pos);
-    virtual bool supportsVectorMode() const;
-    virtual void setVectorMode(bool enabled);
     TileApplyChunkIterator(TileApplyArrayIterator const& arrayIterator,
                            DelegateChunk const* chunk,
                            int iterationMode);

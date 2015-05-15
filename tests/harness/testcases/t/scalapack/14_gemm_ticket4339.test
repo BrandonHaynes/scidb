@@ -1,0 +1,23 @@
+--setup
+--start-query-logging
+
+# ticket 4339.
+# when the local width * height of a matrix exceeded 2^31, a variable
+# in GEMMPhysical.cpp (matrixLocalSize) wrapped negative before
+# it was copied to a size_t (64-bit) variable.
+# that variable never should have been 32 bits.
+# The following reproduced the bug:
+
+create array smSquare<a: double>     [r=0:1000-1,1000,0, c=0:1000-1,      1000,0]
+create array tooLarge<a: double >    [r=0:1000-1,1000,0, c=0:2500*1000-1,1000,0]
+
+load_library('dense_linear_algebra')
+
+
+--test
+--start-igdata
+gemm(build(smSquare,0), build(tooLarge,0), build(tooLarge,0))
+
+--cleanup
+remove(smSquare)
+remove(tooLarge)

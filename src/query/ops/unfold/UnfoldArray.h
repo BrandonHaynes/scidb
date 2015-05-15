@@ -142,6 +142,7 @@ namespace scidb
 
     mutable Coordinates _firstPosition;
     mutable Coordinates _lastPosition;
+    size_t _unfoldedDimensionUpperBound;
   };
 
   class UnfoldChunkIter : public DelegateChunkIterator
@@ -165,10 +166,6 @@ namespace scidb
     virtual bool setPosition(Coordinates const& pos);
 
     virtual void reset();
-
-    virtual bool supportsVectorMode() const;
-
-    virtual void setVectorMode(bool enabled);
 
   private:
     // Don't allow the compiler to automatically

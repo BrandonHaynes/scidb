@@ -238,7 +238,7 @@ class SciDBExecutor: public scidb::SciDB
                 // Execution of single part of physical plan
                 queryProcessor->preSingleExecute(query);
                 NetworkManager* networkManager = NetworkManager::getInstance();
-                size_t instancesCount = query->getInstancesCount();
+                const size_t instancesCount = query->getInstancesCount();
 
                 {
                     std::ostringstream planString;
@@ -266,7 +266,7 @@ class SciDBExecutor: public scidb::SciDB
                         throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_QUORUM2);
                     }
                     preparePhysicalPlanRecord->set_cluster_uuid(cluster->getUuid());
-                    networkManager->sendOutMessage(preparePhysicalPlanMsg);
+                    networkManager->broadcastLogical(preparePhysicalPlanMsg);
                     LOG4CXX_DEBUG(logger, "Prepare physical plan was sent out");
                     LOG4CXX_DEBUG(logger, "Waiting confirmation about preparing physical plan in queryID from "
                                   << instancesCount - 1 << " instances")

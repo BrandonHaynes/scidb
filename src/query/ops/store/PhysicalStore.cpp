@@ -250,7 +250,7 @@ class PhysicalStore: public PhysicalOperator
 
         // Perform parallel evaluation of aggregate
         shared_ptr<JobQueue> queue = PhysicalOperator::getGlobalQueueForOperators();
-        size_t nJobs = srcArray->getSupportedAccess() == Array::RANDOM ? Config::getInstance()->getOption<int>(CONFIG_PREFETCHED_CHUNKS) : 1;
+        size_t nJobs = srcArray->getSupportedAccess() == Array::RANDOM ? Config::getInstance()->getOption<int>(CONFIG_RESULT_PREFETCH_QUEUE_SIZE) : 1;
         vector< shared_ptr<StoreJob> > jobs(nJobs);
         Dimensions const& dims = dstArrayDesc.getDimensions();
         size_t nDims = dims.size();

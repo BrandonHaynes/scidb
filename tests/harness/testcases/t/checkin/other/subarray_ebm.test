@@ -1,0 +1,29 @@
+# ticket #4318
+
+--setup
+--start-query-logging
+
+--test
+
+subarray(window(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),0,5,0,4,0,5,min(a1),max(a2),'probe'),66,-26,-5,68,-12,9)
+
+# check against an equivalent query (redimension(between())
+aggregate(filter(apply(join(subarray(window(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),0,5,0,4,0,5,min(a1),max(a2),'probe'),66,-26,-5,68,-12,9) as left, redimension(apply(between(window(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),0,5,0,4,0,5,min(a1),max(a2),'probe'),66,-26,-5,68,-12,9), dd2, d2-66, dd1,d1+26, dd0,d0+5), <a1_min:int64 NULL, a2_max:int64 NULL>[dd2=0:2,8,0, dd1=0:14,27,0, dd0=0:14,7,0])  as right), diff1, left.a1_min-right.a1_min, diff2, left.a2_max-right.a2_max), diff1<>0 or diff2<>0), count(*))
+
+consume(subarray(window(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),0,5,0,4,0,5,min(a1),max(a2),'probe'),66,-26,-5,68,-12,9))
+
+# check against sg(subarray())
+aggregate(filter(apply(join(subarray(window(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),0,5,0,4,0,5,min(a1),max(a2),'probe'),66,-26,-5,68,-12,9) as left, sg(subarray(window(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),0,5,0,4,0,5,min(a1),max(a2),'probe'),66,-26,-5,68,-12,9), 1) as right), diff1, left.a1_min-right.a1_min, diff2, left.a2_max-right.a2_max), diff1<>0 or diff2<>0), count(*))
+
+# no window, with overlap
+
+subarray(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),66,-26,-5,68,-12,9)
+
+aggregate(filter(apply(join(subarray(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),66,-26,-5,68,-12,9)  as left, redimension(apply(between(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),66,-26,-5,68,-12,9), dd2, d2-66, dd1,d1+26, dd0,d0+5), <a0:int64 NULL, a1:int64 NULL, a2:int64 NULL>[dd2=0:2,8,1, dd1=0:14,27,4, dd0=0:14,7,3]) as right),diff0, left.a0-right.a0, diff1, left.a1-right.a1, diff2, left.a2-right.a2), diff0<>0 or diff1<>0 or diff2<>0), count(*))
+
+consume(subarray(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),66,-26,-5,68,-12,9))
+
+aggregate(filter(apply(join(subarray(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),66,-26,-5,68,-12,9) as left, sg(subarray(transpose(apply(build(<a0:int64 NULL>[d0=-7:14,7,3,d1=-30:-2,27,4,d2=46:70,8,1],0),a1,d1,a2,d2)),66,-26,-5,68,-12,9),1) as right), diff0, left.a0-right.a0, diff1, left.a1-right.a1, diff2, left.a2-right.a2), diff0<>0 or diff1<>0 or diff2<>0), count(*))
+
+--cleanup
+--stop-query-logging

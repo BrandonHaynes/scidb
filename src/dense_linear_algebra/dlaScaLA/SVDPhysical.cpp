@@ -36,7 +36,7 @@
 
 // SciDB
 #include <array/MemArray.h>
-#include <query/Network.h>
+#include <util/Network.h>
 #include <query/Query.h>
 #include <system/BlockCyclic.h>
 #include <system/Cluster.h>
@@ -517,10 +517,10 @@ shared_ptr<Array>  SVDPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
         Dimensions const& dimsS = outSchema.getDimensions();
 
         Coordinates first(1);
-        first[0] = dimsS[0].getStart() + MYPROW * dimsS[0].getChunkInterval();
+        first[0] = dimsS[0].getStartMin() + MYPROW * dimsS[0].getChunkInterval();
 
         Coordinates last(1);
-        last[0] = dimsS[0].getStart() + MIN_MN - 1;
+        last[0] = dimsS[0].getStartMin() + MIN_MN - 1;
 
         // the process grid may be larger than the size of output in chunks...
         // e.g gesvd(<1x40 matrix>, 'U') results in a 1x1 result from only one process,
@@ -541,7 +541,7 @@ shared_ptr<Array>  SVDPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
             iterDelta[0] = NPROW * dimsS[0].getChunkInterval();
 
             LOG4CXX_DEBUG(logger, "SVDPhysical::invokeMPI(S): Creating OpArray from "<<first[0]<<" to "<<last[0]<<" delta "<<iterDelta[0]);
-            reformatOp_t      pdelgetOp(Sx, DESC_S, dimsS[0].getStart(), 0, /*isGlobal*/true);
+            reformatOp_t      pdelgetOp(Sx, DESC_S, dimsS[0].getStartMin(), 0, /*isGlobal*/true);
             result = shared_ptr<Array>(new OpArray<reformatOp_t>(outSchema, resPtrDummy, pdelgetOp,
                                                                  first, last, iterDelta, query));
             resultShmIpcIndx = BUF_MAT_S; // this ShmIpc memory cannot be released at the end of the method
@@ -576,12 +576,12 @@ shared_ptr<Array>  SVDPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
         Dimensions const& dimsU = outSchema.getDimensions();
 
         Coordinates first(2);
-        first[0] = dimsU[0].getStart() + MYPROW * dimsU[0].getChunkInterval();
-        first[1] = dimsU[1].getStart() + MYPCOL * dimsU[1].getChunkInterval();
+        first[0] = dimsU[0].getStartMin() + MYPROW * dimsU[0].getChunkInterval();
+        first[1] = dimsU[1].getStartMin() + MYPCOL * dimsU[1].getChunkInterval();
 
         Coordinates last(2);
-        last[0] = dimsU[0].getStart() + dimsU[0].getLength() - 1;
-        last[1] = dimsU[1].getStart() + dimsU[1].getLength() - 1;
+        last[0] = dimsU[0].getStartMin() + dimsU[0].getLength() - 1;
+        last[1] = dimsU[1].getStartMin() + dimsU[1].getLength() - 1;
 
         // the process grid may be larger than the size of output in chunks...
         // e.g gesvd(<1x40 matrix>, 'U') results in a 1x1 result from only one process,
@@ -593,7 +593,7 @@ shared_ptr<Array>  SVDPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
             iterDelta[0] = NPROW * dimsU[0].getChunkInterval();
             iterDelta[1] = NPCOL * dimsU[1].getChunkInterval();
             LOG4CXX_DEBUG(logger, "SVDPhysical::invokeMPI(U): Creating OpArray from ("<<first[0]<<","<<first[1]<<") to (" << last[0] <<"," <<last[1]<<") delta:"<<iterDelta[0]<<","<<iterDelta[1]);
-            reformatOp_t      pdelgetOp(Ux, DESC_U, dimsU[0].getStart(), dimsU[1].getStart());
+            reformatOp_t      pdelgetOp(Ux, DESC_U, dimsU[0].getStartMin(), dimsU[1].getStartMin());
             result = shared_ptr<Array>(new OpArray<reformatOp_t>(outSchema, resPtrDummy, pdelgetOp,
                                                                  first, last, iterDelta, query));
             resultShmIpcIndx = BUF_MAT_U;  // this ShmIpc memory cannot be released at the end of the method
@@ -617,13 +617,13 @@ shared_ptr<Array>  SVDPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
         Dimensions const& dimsVT = outSchema.getDimensions();
 
         Coordinates first(2);
-        first[0] = dimsVT[0].getStart() + MYPROW * dimsVT[0].getChunkInterval();
-        first[1] = dimsVT[1].getStart() + MYPCOL * dimsVT[1].getChunkInterval();
+        first[0] = dimsVT[0].getStartMin() + MYPROW * dimsVT[0].getChunkInterval();
+        first[1] = dimsVT[1].getStartMin() + MYPCOL * dimsVT[1].getChunkInterval();
 
         // TODO JHM ; clean up use of last
         Coordinates last(2);
-        last[0] = dimsVT[0].getStart() + dimsVT[0].getLength() - 1;
-        last[1] = dimsVT[1].getStart() + dimsVT[1].getLength() - 1;
+        last[0] = dimsVT[0].getStartMin() + dimsVT[0].getLength() - 1;
+        last[1] = dimsVT[1].getStartMin() + dimsVT[1].getLength() - 1;
 
         // the process grid may be larger than the size of output in chunks...
         // see comment in the 'U' case above for an example.
@@ -633,7 +633,7 @@ shared_ptr<Array>  SVDPhysical::invokeMPI(std::vector< shared_ptr<Array> >& inpu
             iterDelta[0] = NPROW * dimsVT[0].getChunkInterval();
             iterDelta[1] = NPCOL * dimsVT[1].getChunkInterval();
             LOG4CXX_DEBUG(logger, "SVDPhysical::invokeMPI(VT): Creating OpArray from ("<<first[0]<<","<<first[1]<<") to (" << last[0] <<"," <<last[1]<<") delta:"<<iterDelta[0]<<","<<iterDelta[1]);
-            reformatOp_t    pdelgetOp(VTx, DESC_VT, dimsVT[0].getStart(), dimsVT[1].getStart());
+            reformatOp_t    pdelgetOp(VTx, DESC_VT, dimsVT[0].getStartMin(), dimsVT[1].getStartMin());
             result = shared_ptr<Array>(new OpArray<reformatOp_t>(outSchema, resPtrDummy, pdelgetOp,
                                                                  first, last, iterDelta, query));
             resultShmIpcIndx = BUF_MAT_VT; // this ShmIpc memory cannot be released at the end of the method

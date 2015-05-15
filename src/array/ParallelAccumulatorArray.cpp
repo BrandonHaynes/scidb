@@ -104,14 +104,11 @@ namespace scidb
                     _accChunk.setBitmapChunk((Chunk*)&inputChunk);
                     shared_ptr<ConstChunkIterator> src = inputChunk.getConstIterator(ChunkIterator::INTENDED_TILE_MODE |
                                                                                             ChunkIterator::IGNORE_EMPTY_CELLS);
-                    shared_ptr<ChunkIterator> dst = _accChunk.getIterator(_query,
-                                                                                (src->getMode() & ChunkIterator::TILE_MODE) |
-                                                                                ChunkIterator::NO_EMPTY_CHECK |
-                                                                                (inputChunk.isSparse() ? ChunkIterator::SPARSE_CHUNK : 0) |
-                                                                                ChunkIterator::SEQUENTIAL_WRITE);
-                    bool vectorMode = src->supportsVectorMode() && dst->supportsVectorMode();
-                    src->setVectorMode(vectorMode);
-                    dst->setVectorMode(vectorMode);
+                    shared_ptr<ChunkIterator> dst =
+                        _accChunk.getIterator(_query,
+                                              (src->getMode() & ChunkIterator::TILE_MODE) |
+                                              ChunkIterator::NO_EMPTY_CHECK |
+                                              ChunkIterator::SEQUENTIAL_WRITE);
                     size_t count = 0;
                     while (!src->end()) {
                         const Coordinates& srcPos = src->getPosition();
@@ -122,7 +119,7 @@ namespace scidb
                         }
                         ++(*src);
                     }
-                    if (!vectorMode && !acc->desc.hasOverlap()) {
+                    if (!acc->desc.hasOverlap()) {
                         _accChunk.setCount(count);
                     }
                     dst->flush();
@@ -160,7 +157,7 @@ namespace scidb
         for (size_t i = 0; i < nAttrs; i++) {
             iterators[i] = pipe->getConstIterator(i);
         }
-        int nPrefetchedChunks = Config::getInstance()->getOption<int>(CONFIG_PREFETCHED_CHUNKS);
+        int nPrefetchedChunks = Config::getInstance()->getOption<int>(CONFIG_RESULT_PREFETCH_QUEUE_SIZE);
         do {
             for (size_t i = 0; i < nAttrs; i++) {
                 shared_ptr<ChunkPrefetchJob> job = make_shared<ChunkPrefetchJob>(shared_from_this(), i, query);

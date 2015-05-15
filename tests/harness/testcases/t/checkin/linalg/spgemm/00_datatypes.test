@@ -42,8 +42,11 @@ store( filter(build(SAstring, string(x+y)), true), SAstring )
 --error "spgemm(SAuint16, SAuint16)"
 --error "spgemm(SAuint32, SAuint32)"
 --error "spgemm(SAuint64, SAuint64)"
-spgemm(SAfloat, SAfloat)
-spgemm(SAdouble, SAdouble)
+spgemm(SAfloat, SAfloat, 'rightReplicate=true')
+spgemm(SAfloat, SAfloat, 'rightReplicate=false')
+
+spgemm(SAdouble, SAdouble, 'rightReplicate=true')
+spgemm(SAdouble, SAdouble, 'rightReplicate=false')
 --error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_MULTIPLY_ERROR9 "spgemm(SAstring, SAstring)"
 
 --cleanup

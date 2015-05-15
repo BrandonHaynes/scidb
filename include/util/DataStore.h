@@ -43,6 +43,7 @@ namespace scidb
 
 class DataStores;
 class DataStoreFlusher;
+class ListDataStoresArrayBuilder;
 
 /**
  * @brief   Class which manages on-disk storage for an array.
@@ -110,10 +111,21 @@ public:
 
     /**
      * Return the size of the data store
-     * @param size Out param size of the store in bytes
-     * @param blocks Out param # of 512b blocks used
+     * @param filesize Out param size of the store in bytes
+     * @param blocks Out param # of 512b blocks used by store
+     * @param reservedbytes Out param # of bytes reserved for use in store
+     * @param freebytes Out param # of bytes free in store
      */
-    void getSizes(off_t& size, blkcnt_t& blocks);
+    void getSizes(off_t& filesize,
+                  blkcnt_t& fileblocks,
+                  off_t& reservedbytes,
+                  off_t& freebytes) const;
+
+    /**
+     * Return the guid
+     */
+    Guid getGuid() const
+        { return _guid; }
 
     /**
      * Destroy a DataStore object
@@ -137,6 +149,12 @@ public:
      */
     size_t getOverhead()
         { return sizeof(DiskChunkHeader); }
+
+    /**
+     * Verify the integrity of the free list and throw exception
+     * if there is a problem
+     */
+    void verifyFreelist();
 
 private:
     friend class DataStores;
@@ -185,6 +203,10 @@ private:
      */
     void addToFreelist(size_t bucket, off_t off);
 
+    /* Verify the freelist, but with lock already held
+     */
+    void verifyFreelistInternal();
+
     /* Allocate more space into the data store to handle the requested chunk
      */
     void makeMoreSpace(size_t request);
@@ -192,6 +214,10 @@ private:
     /* Update the largest free chunk member
      */
     void calcLargestFreeChunk();
+
+    /* Check whether any parent blocks are on the freelist
+     */
+    bool isParentBlockFree(off_t off, size_t size);
 
     /* Dump the free list to the log for debug
      */
@@ -256,15 +282,16 @@ private:
         size_t size() { return *_size + sizeof(size_t); }
     };
 
-    DataStores*        _dsm;              // DataStores manager
-    Mutex              _dslock;           // lock protects local state
-    Guid               _guid;             // unique id for this store
-    File::FilePtr      _file;             // handle for data file
-    DataStoreFreelists _freelists;        // free blocks in the data file
-    size_t             _largestFreeChunk; // size of the biggest chunk in free list
-    size_t             _allocatedSize;    // size of the store including free blks
-    bool               _dirty;            // unflushed data is present
-    bool               _fldirty;          // fl data differs from fl data on-disk
+    DataStores*                _dsm;              // DataStores manager
+    mutable Mutex              _dslock;           // lock protects local state
+    Guid                       _guid;             // unique id for this store
+    File::FilePtr              _file;             // handle for data file
+    mutable DataStoreFreelists _freelists;        // free blocks in the data file
+    uint64_t                   _frees;            // counter used to track calls to free
+    size_t                     _largestFreeChunk; // size of the biggest chunk in free list
+    size_t                     _allocatedSize;    // size of the store including free blks
+    bool                       _dirty;            // unflushed data is present
+    bool                       _fldirty;          // fl data differs from fl data on-disk
 };
 
 
@@ -363,6 +390,11 @@ public:
      * Clear all datastore files from the basepath
      */
     void clearAllDataStores();
+
+    /**
+     * List information about all datastores using the builder
+     */
+    void listDataStores(ListDataStoresArrayBuilder& builder);
 
     /**
      * Accessor, return the min allocation size

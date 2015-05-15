@@ -26,7 +26,7 @@
 /****************************************************************************/
 
 #include <limits>                                        // For numeric_limits
-#include <util/Arena.h>                                  // For Arena
+#include "ArenaDetails.h"                                // For implementation
 
 /****************************************************************************/
 namespace scidb { namespace arena {
@@ -75,19 +75,19 @@ namespace scidb { namespace arena {
  *              'allocated' is implied if the 'finalizer' flag is set, and the
  *              value '0' is implied otherwise.
  *
- *              The Header constructor is protected; rather than construct the
- *              Header directly, the Arena constructs (using the placement new
+ *              The header constructor is protected; rather than construct the
+ *              header directly, an %arena constructs (using the placement new
  *              operator) one of 5 nested types that in turn embed the Header;
  *              for example:
  *  @code
- *                  void* p = doMalloc(size + ...);      // Allocate storage
+ *                  void* p = doMalloc(size + ...);      // Perform allocation
  *
- *                  new(p) Header::CS(size,finalizer);   // Initalize header
+ *                  new(p) Header::CS(size,finalizer);   // Fill in the header
  *  @endcode
  *              because this gives us a type whose size we can take at compile
  *              time (with the sizeof operator) and a constructor that accepts
  *              the proper arguments and that initializes the (dynamic) fields
- *              for us correctly, while all the while ensuring that the Header
+ *              for us correctly, while all the while ensuring that the header
  *              flags remain at the *back* of the structure, directly in front
  *              of the actual allocation payload, thus allowing us to retrieve
  *              the header later when given only the payload pointer (say in a
@@ -111,8 +111,9 @@ class Header
             size_t            getElementSize()    const; // n
             size_t            getElementCount()   const; // c
             finalizer_t       getFinalizer()      const; // f
-            byte_t*           getAllocation();           // this - h
+      const byte_t*           getPayload()        const; // this + 1
             byte_t*           getPayload();              // this + 1
+            byte_t*           getAllocation();           // this - h
 
  public:                   // Operations
     static  Header&           retrieve(void*);
@@ -176,10 +177,10 @@ class Header
  * stored within the header itself. In addition, the header records the length
  * of this vector. This is the largest and most complex type of header.
  */
-struct Header::POD{                          Header _h;POD(size_t n)                        :            _h(n,0)                                        {}};
-struct Header::AS {                          Header _h;AS (size_t n)                        :            _h(n,finalizer)                                {}};
-struct Header::AV {count_t _c;               Header _h;AV (size_t n,count_t c)              :_c(c),      _h(n,finalizer|vectorFinalizer)                {}};
-struct Header::CS {           finalizer_t _f;Header _h;CS (size_t n,finalizer_t f)          :      _f(f),_h(n,finalizer|customFinalizer)                {}};
+struct Header::POD{                          Header _h;POD(size_t n,finalizer_t=0,count_t=1):            _h(n,0)                                        {}};
+struct Header::AS {                          Header _h;AS (size_t n,finalizer_t=0,count_t=1):            _h(n,finalizer)                                {}};
+struct Header::AV {count_t _c;               Header _h;AV (size_t n,finalizer_t  ,count_t c):_c(c),      _h(n,finalizer|vectorFinalizer)                {}};
+struct Header::CS {           finalizer_t _f;Header _h;CS (size_t n,finalizer_t f,count_t=1):      _f(f),_h(n,finalizer|customFinalizer)                {}};
 struct Header::CV {count_t _c;finalizer_t _f;Header _h;CV (size_t n,finalizer_t f,count_t c):_c(c),_f(f),_h(n,finalizer|vectorFinalizer|customFinalizer){}};
 
 /**
@@ -239,13 +240,11 @@ inline size_t Header::getElementSize() const
 }
 
 /**
- *  Return a pointer to the start of the original allocation.
+ *  Return a pointer to the start of the user visible area of the allocation.
  */
-inline byte_t* Header::getAllocation()
+inline const byte_t* Header::getPayload() const
 {
-    byte_t* p = reinterpret_cast<byte_t*>(this);         //
-
-    return p - (getHeaderSize() - sizeof(Header));       // Rewind past header
+    return reinterpret_cast<const byte_t*>(this + 1);    // Start of user area
 }
 
 /**
@@ -257,11 +256,20 @@ inline byte_t* Header::getPayload()
 }
 
 /**
+ *  Return a pointer to the start of the original allocation.
+ */
+inline byte_t* Header::getAllocation()
+{
+    byte_t* p = reinterpret_cast<byte_t*>(this);         // Cast to raw bytes
+
+    return p - (getHeaderSize() - sizeof(Header));       // Rewind past header
+}
+
+/**
  *  Return a reference to the allocation header from a pointer to its payload.
  */
 inline Header& Header::retrieve(void* payload)
 {
-    assert(payload != 0);                                // Validate argument
     assert(rewind<Header>(payload)->consistent());       // Check it looks ok
 
     return *rewind<Header>(payload);                     // Rewind past header
@@ -274,7 +282,7 @@ inline Header& Header::retrieve(void* payload)
 template<class field_t>
 inline field_t* Header::rewind(void* p)
 {
-    assert(p != 0);                                      // Validate argument
+    assert(aligned(p));                                  // Validate argument
 
     return static_cast<field_t*>(p) - 1;                 // Rewind past field
 }
@@ -286,7 +294,7 @@ inline field_t* Header::rewind(void* p)
 template<class field_t>
 inline const field_t* Header::rewind(const void* p)
 {
-    assert(p != 0);                                      // Validate argument
+    assert(aligned(p));                                  // Validate argument
 
     return static_cast<const field_t*>(p) - 1;           // Rewind past field
 }
@@ -297,6 +305,23 @@ inline const field_t* Header::rewind(const void* p)
 inline bool Header::has(flags_t flags) const
 {
     return (_flags & flags) == flags;                    // Are flags all set?
+}
+
+/**
+ *  Carve a block of memory from the given %arena that is large enough to hold
+ *  a payload of 'c' objects of size 'n' bytes,  each being finalized with the
+ *  function 'f', establish a header of the given type at the front of the new
+ *  block, and return this new payload.
+ */
+template<class header>
+inline void* carve(Arena& arena,size_t n,finalizer_t f = 0,count_t c = 1)
+{
+    assert(n <= (unlimited - sizeof(header)) / c);       // Validate arguments
+    void* a = arena.doMalloc(sizeof(header) + n * c);    // Perform allocation
+    void* p = (new(a) header(n,f,c)) + 1;                // Fill in the header
+
+    assert(aligned(p));                                  // Check it's aligned
+    return p;                                            // Return the payload
 }
 
 /****************************************************************************/

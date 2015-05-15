@@ -20,7 +20,14 @@ SCIDB QUERY : <repart(gemm(V_c1, V_c1, build(V_c1,0)),FMT3)>
 {1,0} 40
 {1,1} 64
 
-SCIDB QUERY : <repart(spgemm(V_c1, V_c1),FMT3)>
+SCIDB QUERY : <repart(spgemm(V_c1, V_c1, 'rightReplicate=true'),FMT3)>
+{i,j} multiply
+{0,0} 16
+{0,1} 24
+{1,0} 40
+{1,1} 64
+
+SCIDB QUERY : <repart(spgemm(V_c1, V_c1, 'rightReplicate=false'),FMT3)>
 {i,j} multiply
 {0,0} 16
 {0,1} 24

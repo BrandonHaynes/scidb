@@ -77,20 +77,36 @@ SCIDB QUERY : <store( filter(build(spRight, 10*row+col), true), spRight)>
 {9,4} 94
 {10,4} 104
 
-SCIDB QUERY : <spgemm(SAleft, SAright)>
+SCIDB QUERY : <spgemm(SAleft, SAright, 'rightReplicate=true')>
 {x,y} multiply
 
-SCIDB QUERY : <spgemm(SAleft, SAright, 'min.+')>
+SCIDB QUERY : <spgemm(SAleft, SAright, 'rightReplicate=false')>
 {x,y} multiply
-{4,4} 1
-{4,5} 0
 
-SCIDB QUERY : <spgemm(SAleft, SAright, 'max.+')>
+SCIDB QUERY : <spgemm(SAleft, SAright, 'min.+', 'rightReplicate=true')>
 {x,y} multiply
 {4,4} 1
 {4,5} 0
 
-SCIDB QUERY : <spgemm(spLeft, spRight)>
+SCIDB QUERY : <spgemm(SAleft, SAright, 'min.+', 'rightReplicate=false')>
+{x,y} multiply
+{4,4} 1
+{4,5} 0
+
+SCIDB QUERY : <spgemm(SAleft, SAright, 'max.+', 'rightReplicate=true')>
+{x,y} multiply
+{4,4} 1
+{4,5} 0
+
+SCIDB QUERY : <spgemm(SAleft, SAright, 'max.+', 'rightReplicate=false')>
+{x,y} multiply
+{4,4} 1
+{4,5} 0
+
+SCIDB QUERY : <spgemm(spLeft, spRight, 'rightReplicate=true')>
+{row,col} multiply
+
+SCIDB QUERY : <spgemm(spLeft, spRight, 'rightReplicate=false')>
 {row,col} multiply
 
 SCIDB QUERY : <remove(SAleft)>

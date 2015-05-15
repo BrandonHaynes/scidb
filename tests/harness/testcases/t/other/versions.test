@@ -51,5 +51,6 @@ remove(INH_CH)
 remove(INH_DOUBLE)
 remove(INHXXX)
 remove(INHXXX_2)
+remove(NODE_ID)
 
 --stop-query-logging

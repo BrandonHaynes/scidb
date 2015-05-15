@@ -33,37 +33,22 @@
 #include <boost/filesystem/path.hpp>
 
 #ifndef SCIDB_CLIENT
-#include "system/Config.h"
+#include <system/Config.h>
 #endif
-#include "util/PointerRange.h"
-#include "system/SciDBConfigOptions.h"
-#include "query/TypeSystem.h"
-#include "array/Metadata.h"
-#include "system/SystemCatalog.h"
-#include "system/Utils.h"
-#include "smgr/io/Storage.h"
-#include "array/Compressor.h"
+
+#include <util/PointerRange.h>
+#include <system/SciDBConfigOptions.h>
+#include <query/TypeSystem.h>
+#include <array/Metadata.h>
+#include <system/SystemCatalog.h>
+#include <system/Utils.h>
+#include <smgr/io/Storage.h>
+#include <array/Compressor.h>
 
 using namespace std;
 
 namespace scidb
 {
-/*
- * For std::vector < uint64_t >
- */
-std::ostream& operator<<(std::ostream& stream,const Coordinates& coords)
-{
-    stream << '{';
-    insertRange(stream,coords,", ");
-    stream << '}';
-    return stream;
-}
-
-std::ostream& operator<<(std::ostream& stream,const CoordsToStr& w)
-{
-    return stream << w._co;
-}
-
 ObjectNames::ObjectNames()
 {}
 
@@ -243,7 +228,6 @@ void DimensionVector::toString (std::ostringstream &str, int indent) const
  * Class ArrayDesc
  */
 ArrayDesc::ArrayDesc() :
-    _accessCount(0),
     _arrId(0),
     _uAId(0),
     _versionId(0),
@@ -256,7 +240,6 @@ ArrayDesc::ArrayDesc(const std::string &name,
                      const Attributes& attributes,
                      const Dimensions &dimensions,
                      int32_t flags) :
-    _accessCount(0),
     _arrId(0),
     _uAId(0),
     _versionId(0),
@@ -275,7 +258,6 @@ ArrayDesc::ArrayDesc(ArrayID arrId, ArrayUAID uAId, VersionID vId,
                      const Attributes& attributes,
                      const Dimensions &dimensions,
                      int32_t flags) :
-    _accessCount(0),
     _arrId(arrId),
     _uAId(uAId),
     _versionId(vId),
@@ -293,7 +275,6 @@ ArrayDesc::ArrayDesc(ArrayID arrId, ArrayUAID uAId, VersionID vId,
 }
 
 ArrayDesc::ArrayDesc(ArrayDesc const& other) :
-    _accessCount(0),
     _arrId(other._arrId),
     _uAId(other._uAId),
     _versionId(other._versionId),
@@ -331,6 +312,30 @@ ArrayDesc& ArrayDesc::operator = (ArrayDesc const& other)
     initializeDimensions();
     _ps = other._ps;
     return *this;
+}
+
+bool ArrayDesc::isNameVersioned(std::string const& name)
+{
+    if (name.empty())
+    {
+        throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "calling isNameVersioned on an empty string";
+    }
+
+    size_t const locationOfAt = name.find('@');
+    size_t const locationOfColon = name.find(':');
+    return locationOfAt > 0 && locationOfAt < name.size() && locationOfColon == std::string::npos;
+}
+
+bool ArrayDesc::isNameUnversioned(std::string const& name)
+{
+    if (name.empty())
+    {
+        throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "calling isNameUnversioned on an empty string";
+    }
+
+    size_t const locationOfAt = name.find('@');
+    size_t const locationOfColon = name.find(':');
+    return locationOfAt == std::string::npos && locationOfColon == std::string::npos;
 }
 
 void ArrayDesc::initializeDimensions()
@@ -385,16 +390,27 @@ uint64_t ArrayDesc::getHashedChunkNumber(Coordinates const& pos) const
         // For 1-d arrays value of this constant is not important, because we are multiplying it on 0.
         // 3-d arrays and arrays with more dimensions are less common and using prime number and XOR should provide
         // well enough (uniform) mixing of bits.
-        no = (no * 1013) ^ ((pos[i] - dims[i].getStart()) / dims[i].getChunkInterval());
+        no = (no * 1013) ^ ((pos[i] - dims[i].getStartMin()) / dims[i].getChunkInterval());
     }
     return no;
+}
+
+ssize_t ArrayDesc::findDimension(const std::string& name, const std::string& alias) const
+{
+    const ssize_t N_DIMS = _dimensions.size();
+    for (ssize_t i = 0; i < N_DIMS; ++i) {
+        if (_dimensions[i].hasNameAndAlias(name, alias)) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 bool ArrayDesc::contains(Coordinates const& pos) const
 {
     Dimensions const& dims = _dimensions;
     for (size_t i = 0, n = pos.size(); i < n; i++) {
-        if (pos[i] < dims[i].getStart() || pos[i] > dims[i].getEndMax()) {
+        if (pos[i] < dims[i].getStartMin() || pos[i] > dims[i].getEndMax()) {
             return false;
         }
     }
@@ -406,7 +422,19 @@ void ArrayDesc::getChunkPositionFor(Coordinates& pos) const
     Dimensions const& dims = _dimensions;
     for (size_t i = 0, n = pos.size(); i < n; i++) {
         if ( dims[i].getChunkInterval() != 0) {
-            pos[i] -= (pos[i] - dims[i].getStart()) % dims[i].getChunkInterval();
+            Coordinate diff = (pos[i] - dims[i].getStartMin()) % dims[i].getChunkInterval();
+
+            // The code below ensures the correctness of this code, in case pos[i] < dims[i].getStartMin().
+            // Example:
+            //   - Suppose dimStart=0, chunkInterval=5. All chunkPos should be a multiple of 5.
+            //   - Given pos[i]=-9, we desire to reduce it to -10.
+            //   - The calculated diff = -4.
+            //   - The step below changes diff to a non-negative number of 1, bedore using it to decrease pos[i].
+            if (diff < 0) {
+                diff += dims[i].getChunkInterval();
+            }
+
+            pos[i] -= diff;
         }
     }
 }
@@ -416,6 +444,13 @@ bool ArrayDesc::isAChunkPosition(Coordinates const& pos) const
     Coordinates chunkPos = pos;
     getChunkPositionFor(chunkPos);
     return coordinatesCompare(pos, chunkPos) == 0;
+}
+
+bool ArrayDesc::isCellPosInChunk(Coordinates const& cellPos, Coordinates const& chunkPos) const
+{
+    Coordinates chunkPosForCell = cellPos;
+    getChunkPositionFor(chunkPosForCell);
+    return coordinatesCompare(chunkPosForCell, chunkPos) == 0;
 }
 
 void ArrayDesc::getChunkBoundaries(Coordinates const& chunkPosition,
@@ -447,7 +482,7 @@ void ArrayDesc::getChunkBoundaries(Coordinates const& chunkPosition,
         }
     }
     for (size_t i = 0; i < n; ++i) {
-        lowerBound[i] = std::max(lowerBound[i], d[i].getStart());
+        lowerBound[i] = std::max(lowerBound[i], d[i].getStartMin());
         upperBound[i] = std::min(upperBound[i], d[i].getEndMax());
     }
 }
@@ -644,6 +679,43 @@ double ArrayDesc::getNumChunksAlongDimension(size_t dimension, Coordinate start,
     return ceil((end * 1.0 - start + 1.0) / _dimensions[dimension].getChunkInterval());
 }
 
+size_t getChunkNumberOfElements(Coordinates const& low, Coordinates const& high)
+{
+    size_t M = size_t(-1);
+    size_t ret = 1;
+    assert(low.size()==high.size());
+    for (size_t i=0; i<low.size(); ++i) {
+        assert(high[i] >= low[i]);
+        size_t interval = high[i] - low[i] + 1;
+        if (M/ret < interval) {
+            throw SYSTEM_EXCEPTION(SCIDB_SE_METADATA, SCIDB_LE_LOGICAL_CHUNK_SIZE_TOO_LARGE);
+        }
+        ret *= interval;
+    }
+    return ret;
+}
+
+bool samePartitioning(ArrayDesc const& a1, ArrayDesc const& a2)
+{
+    Dimensions const& dims1 = a1.getDimensions();
+    Dimensions const& dims2 = a2.getDimensions();
+
+    // Same dimension count, or else some inferSchema() method failed to forbid this!
+    SCIDB_ASSERT(dims1.size() == dims2.size());
+
+    for (size_t i = 0; i < dims1.size(); ++i) {
+        DimensionDesc const& dim1 = dims1[i];
+        DimensionDesc const& dim2 = dims2[i];
+        if (dim1.getChunkInterval() != dim2.getChunkInterval()) {
+            return false;
+        }
+        if (dim1.getChunkOverlap() != dim2.getChunkOverlap()) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 void printSchema(std::ostream& stream,const ArrayDesc& ob)
 {
@@ -698,13 +770,18 @@ AttributeDesc::AttributeDesc() :
 #else
         0
 #endif
-    )
+     ),
+    _varSize(0)
 {}
 
-AttributeDesc::AttributeDesc(AttributeID id, const std::string &name,  TypeId type, int16_t flags,
+AttributeDesc::AttributeDesc(AttributeID id,
+                             const std::string &name,
+                             TypeId type,
+                             int16_t flags,
                              uint16_t defaultCompressionMethod,
                              const std::set<std::string> &aliases,
-                             int16_t reserve, Value const* defaultValue,
+                             int16_t reserve,
+                             Value const* defaultValue,
                              const string &defaultValueExpr,
                              size_t varSize):
     _id(id),
@@ -869,11 +946,6 @@ size_t AttributeDesc::getVarSize() const
     return _varSize;
 }
 
-void AttributeDesc::setDefaultCompressionMethod(uint16_t method)
-{
-    _defaultCompressionMethod = method;
-}
-
 const std::string& AttributeDesc::getDefaultValueExpr() const
 {
     return _defaultValueExpr;
@@ -922,7 +994,7 @@ std::ostream& operator<<(std::ostream& stream, const AttributeDesc& att)
            << (att.getFlags() & AttributeDesc::IS_NULLABLE ? " NULL" : "");
     try
     {
-        if (!att.getDefaultValue().isDefault(att.getType()))
+        if (!isDefaultFor(att.getDefaultValue(),att.getType()))
         {
             stream << " DEFAULT " << ValueToString(att.getType(), att.getDefaultValue());
         }
@@ -1029,36 +1101,6 @@ bool DimensionDesc::operator == (DimensionDesc const& other) const
         _chunkOverlap == other._chunkOverlap;
 }
 
-Coordinate DimensionDesc::getLowBoundary() const
-{
-#ifndef SCIDB_CLIENT
-    if (_startMin == MIN_COORDINATE) {
-        if (_array->getId() != 0) {
-            size_t index = this - &_array->_dimensions[0];
-            return SystemCatalog::getInstance()->getLowBoundary(_array->getId())[index];
-        } else {
-            return _currStart;
-        }
-    }
-#endif
-    return _startMin;
-}
-
-Coordinate DimensionDesc::getHighBoundary() const
-{
-#ifndef SCIDB_CLIENT
-    if (_endMax == MAX_COORDINATE) {
-        if (_array->getId() != 0) {
-            size_t index = this - &_array->_dimensions[0];
-            return SystemCatalog::getInstance()->getHighBoundary(_array->getId())[index];
-        } else {
-            return _currEnd;
-        }
-    }
-#endif
-    return _endMax;
-}
-
 uint64_t DimensionDesc::getLength() const
 {
     return _startMin == MIN_COORDINATE || _endMax == MAX_COORDINATE ? INFINITE_LENGTH : (_endMax - _startMin + 1);
@@ -1147,7 +1189,7 @@ std::ostream& operator<<(std::ostream& stream,const Dimensions& dims)
 
 std::ostream& operator<<(std::ostream& stream,const DimensionDesc& dim)
 {
-    Coordinate start = dim.getStart();
+    Coordinate start = dim.getStartMin();
     stringstream ssstart;
     ssstart << start;
 
@@ -1163,7 +1205,7 @@ std::ostream& operator<<(std::ostream& stream,const DimensionDesc& dim)
 
 void printSchema(std::ostream& stream,const DimensionDesc& dim)
 {
-    Coordinate start = dim.getStart();
+    Coordinate start = dim.getStartMin();
     stringstream ssstart;
     ssstart << start;
 
@@ -1175,6 +1217,18 @@ void printSchema(std::ostream& stream,const DimensionDesc& dim)
     stream << '=' << (start == MIN_COORDINATE ? "*" : ssstart.str()) << ':'
            << (end == MAX_COORDINATE ? "*" : ssend.str()) << ","
            << dim.getChunkInterval() << "," << dim.getChunkOverlap();
+}
+
+void printDimNames(std::ostream& os, Dimensions const& dims)
+{
+    const size_t N = dims.size();
+    for (size_t i = 0; i < N; ++i) {
+        if (i) {
+            // Alias separator used by printNames is a comma, so use semi-colon.
+            os << ';';
+        }
+        printNames(os, dims[i].getNamesAndAliases());
+    }
 }
 
 /*

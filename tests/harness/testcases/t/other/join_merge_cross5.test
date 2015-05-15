@@ -10,13 +10,13 @@ store(filter(build(<b:char NULL>[x=1:10,2,0],string(x+2)),x<6),B)
 store(apply(B,c,b+'_Zebra'),B1)
 
 --test
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(A1,B1)"
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(B1,A1)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "merge(A1,B1)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "merge(B1,A1)"
 --error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_OP_REPART_ERROR3 "merge(A1,repart(B1,<b:char>[x=10:20,3,2]))"
 ## Work-arround for the above querries
 merge(subarray(A1, null, null),subarray(repart(B1,<b:char>[x=1:10,3,2]), null, null))
 merge(subarray(A, null, null),subarray(repart(B,<b:char NULL>[x=1:10,3,2]), null, null))
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "merge(A,B)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "merge(A,B)"
 
 --cleanup
 remove(A)

@@ -48,26 +48,16 @@ set(ops_lib_src
     sg/LogicalSG.cpp
     sg/PhysicalSG.cpp
     load/LogicalLoad.cpp
-#    count/LogicalCount.cpp
-#    average/LogicalAverage.cpp
-#    sum/LogicalSum.cpp
     store/LogicalStore.cpp
     store/PhysicalStore.cpp
     redimension/LogicalRedimension.cpp
     redimension/PhysicalRedimension.cpp
-#    redimension/LogicalRedimensionStore.cpp
-#    redimension/PhysicalRedimensionStore.cpp
     redimension/RedimensionCommon.cpp
+    redimension/SyntheticDimChunkMerger.cpp
     reshape/LogicalReshape.cpp
     reshape/PhysicalReshape.cpp
     reshape/ReshapeArray.cpp
     reshape/ShiftArray.cpp
-    adddim/LogicalAdddim.cpp
-    adddim/PhysicalAdddim.cpp
-    adddim/AdddimArray.cpp
-    deldim/LogicalDeldim.cpp
-    deldim/PhysicalDeldim.cpp
-    deldim/DeldimArray.cpp
     repart/LogicalRepart.cpp
     repart/PhysicalRepart.cpp
     load_library/LogicalLoadLibrary.cpp
@@ -96,6 +86,10 @@ set(ops_lib_src
     slice/SliceArray.cpp
     sort/LogicalSort.cpp
     sort/PhysicalSort.cpp
+    sort/ArrayBreaker.cpp
+    sort/DistributedSort.cpp
+    sort/LogicalOldSort.cpp
+    sort/PhysicalOldSort.cpp
     sort2/LogicalSort.cpp
     sort2/PhysicalSort.cpp
     list/ListArrayBuilder.cpp
@@ -112,10 +106,6 @@ set(ops_lib_src
     concat/ConcatArray.cpp
     unpack/LogicalUnpack.cpp
     unpack/PhysicalUnpack.cpp
-    unpack/UnpackArray.cpp
-    unpack/UnpackUnalignedArray.cpp
-    unpack/LogicalOldUnpack.cpp
-    unpack/PhysicalOldUnpack.cpp
     build/LogicalBuild.cpp
     build/PhysicalBuild.cpp
     build/BuildArray.cpp
@@ -131,8 +121,6 @@ set(ops_lib_src
     merge/LogicalMerge.cpp
     merge/PhysicalMerge.cpp
     merge/MergeArray.cpp
-#    max/LogicalMax.cpp
-#    min/LogicalMin.cpp
     normalize/LogicalNormalize.cpp
     normalize/PhysicalNormalize.cpp
     normalize/NormalizeArray.cpp
@@ -144,9 +132,6 @@ set(ops_lib_src
     thin/LogicalThin.cpp
     thin/PhysicalThin.cpp
     thin/ThinArray.cpp
-#    cross/LogicalCross.cpp
-#    cross/PhysicalCross.cpp
-#    cross/CrossArray.cpp
     help/LogicalHelp.cpp
     help/PhysicalHelp.cpp
     lookup/LogicalLookup.cpp
@@ -158,6 +143,8 @@ set(ops_lib_src
     input/LogicalInput.cpp
     input/PhysicalInput.cpp
     input/InputArray.cpp
+    input/ChunkLoader.cpp
+    input/CsvChunkLoader.cpp
     explainPhysical/LogicalExplainPhysical.cpp
     explainPhysical/PhysicalExplainPhysical.cpp
     versions/LogicalVersions.cpp
@@ -175,10 +162,6 @@ set(ops_lib_src
     cancel/PhysicalCancel.cpp
     show/LogicalShow.cpp
     show/PhysicalShow.cpp
-    echo/LogicalEcho.cpp
-    echo/PhysicalEcho.cpp
-#    var/LogicalVar.cpp
-#    var/LogicalStdev.cpp
     reduce_distro/LogicalReduceDistro.cpp
     reduce_distro/PhysicalReduceDistro.cpp
     setopt/LogicalSetopt.cpp
@@ -189,10 +172,6 @@ set(ops_lib_src
     materialize/PhysicalMaterialize.cpp
     analyze/LogicalAnalyze.cpp
     analyze/PhysicalAnalyze.cpp
-    analyze/AnalyzeAggregate.cpp
-#    analyze/LogicalApproxDC.cpp
-    mstat/LogicalMStat.cpp
-    mstat/PhysicalMStat.cpp
     rankquantile/LogicalRank.cpp
     rankquantile/PhysicalRank.cpp
     rankquantile/LogicalQuantile.cpp
@@ -217,7 +196,10 @@ set(ops_lib_src
     index_lookup/PhysicalIndexLookup.cpp
 )
 
+find_package(Libcsv REQUIRED)
+include_directories(${libcsv_INCLUDE_DIR})
+
 file(GLOB_RECURSE ops_lib_include "*.h")
 
 add_library(ops_lib STATIC ${ops_lib_src} ${ops_lib_include})
-target_link_libraries(ops_lib compression_lib network_lib MurmurHash_lib)
+target_link_libraries(ops_lib compression_lib network_lib MurmurHash_lib ${libcsv_LIBRARY})

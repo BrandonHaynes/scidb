@@ -67,17 +67,20 @@ const ArrayDesc& LogicalQueryPlanNode::inferTypes(boost::shared_ptr< Query> quer
 {
     std::vector<ArrayDesc> inputSchemas;
     ArrayDesc outputSchema;
-	for (size_t i=0, end=_childNodes.size(); i<end; i++)
-	{
+    for (size_t i=0, end=_childNodes.size(); i<end; i++)
+    {
         inputSchemas.push_back(_childNodes[i]->inferTypes(query));
-	}
+    }
     outputSchema = _logicalOperator->inferSchema(inputSchemas, query);
     //FIXME: May be cover inferSchema method with another one and assign alias there?
-    if (_logicalOperator->getAliasName() != "")
+    if (!_logicalOperator->getAliasName().empty())
+    {
         outputSchema.addAlias(_logicalOperator->getAliasName());
-	_logicalOperator->setSchema(outputSchema);
-	LOG4CXX_DEBUG(logger, "Inferred schema for operator " << _logicalOperator->getLogicalName() << ": " << outputSchema);
-	return _logicalOperator->getSchema();
+    }
+    _logicalOperator->setSchema(outputSchema);
+    LOG4CXX_DEBUG(logger, "Inferred schema for operator " <<
+                  _logicalOperator->getLogicalName() << ": " << outputSchema);
+    return _logicalOperator->getSchema();
 }
 
 void LogicalQueryPlanNode::inferArrayAccess(boost::shared_ptr<Query>& query)

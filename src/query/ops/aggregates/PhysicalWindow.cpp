@@ -44,9 +44,10 @@ private:
 
 public:
 
-    PhysicalWindow(const string& logicalName, const string& physicalName, const Parameters& parameters, const ArrayDesc& schema):
-	     PhysicalOperator(logicalName, physicalName, parameters, schema)
-	{
+    PhysicalWindow(const string& logicalName, const string& physicalName,
+                   const Parameters& parameters, const ArrayDesc& schema)
+        : PhysicalOperator(logicalName, physicalName, parameters, schema)
+    {
         size_t nDims = _schema.getDimensions().size();
         _window = vector<WindowBoundaries>(nDims);
         for (size_t i = 0, size = nDims * 2, boundaryNo = 0; i < size; i+=2, ++boundaryNo)
@@ -56,13 +57,18 @@ public:
                     ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[i+1])->getExpression()->evaluate().getInt64()
                     );
         }
-	}
+    }
 
     /**
      * @see PhysicalOperator::requiresRepart()
      */
-    virtual bool requiresRepart(ArrayDesc const& inputSchema) const
+    virtual void requiresRepart(vector<ArrayDesc> const& inputSchemas,
+                                vector<ArrayDesc const*>& repartPtrs) const
     {
+        assert(inputSchemas.size() == 1);
+        assert(repartPtrs.size() == 1);
+        ArrayDesc const& inputSchema = inputSchemas[0];
+
         Dimensions const& dims = inputSchema.getDimensions();
         for (size_t i = 0; i < dims.size(); i++)
         {
@@ -70,17 +76,16 @@ public:
             if(static_cast<uint64_t>(srcDim.getChunkInterval()) != srcDim.getLength() &&
                srcDim.getChunkOverlap() < std::max(_window[i]._boundaries.first, _window[i]._boundaries.second))
             {
-                return true;
+                repartPtrs[0] = getRepartSchema(inputSchema);
+                return;
             }
         }
-        return false;
+        repartPtrs.clear();
     }
 
-    /**
-     * @see PhysicalOperator::getRepartSchema()
-     */
-    virtual ArrayDesc getRepartSchema(ArrayDesc const& inputSchema) const
+    ArrayDesc* getRepartSchema(ArrayDesc const& inputSchema) const
     {
+        _repartSchemas.clear(); // Forget previous results, if any.
         Attributes attrs = inputSchema.getAttributes();
 
         Dimensions dims;
@@ -105,7 +110,8 @@ public:
                                           overlap));
         }
 
-        return ArrayDesc(inputSchema.getName(), attrs, dims);
+        _repartSchemas.push_back(make_shared<ArrayDesc>(inputSchema.getName(), attrs, dims));
+        return _repartSchemas.back().get();
     }
 
     void verifyInputSchema(ArrayDesc const& input) const
@@ -120,12 +126,12 @@ public:
         }
     }
 
-	/**
-	 * window(...) is a pipelined operator, hence it executes by returning an 
+    /**
+     * window(...) is a pipelined operator, hence it executes by returning an 
      * iterator-based array to the consumer that overrides the chunkiterator 
      * method.
-	 */
-	boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
+     */
+    boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
         SCIDB_ASSERT(inputArrays.size() == 1);
 

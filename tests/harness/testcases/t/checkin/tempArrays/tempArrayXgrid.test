@@ -3,7 +3,7 @@
 
 create temp array teeth1 <val:int64 null> [x=0:*,2,0,y=0:*,2,0]
 --shell --store-all --command "iquery -ocsv -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth1, '${TEST_DATA_DIR}/teeth_na.txt')""
-xgrid(teeth1,2,2)
+xgrid(scan(teeth1, true),2,2)
 
 --cleanup
 remove(teeth1)

@@ -34,13 +34,7 @@ namespace scidb { namespace parser { namespace {
  *  a fixed map from strings to their corresponding token numbers, implemented
  *  as an array of pairs sorted by their first component.
  */
-struct keyword
-{
-     const chars name;                                   // The keyword name
-     const int   token;                                  // Its token number
-    friend bool  operator<(const keyword& k,chars s)     {return strcasecmp(k.name,s) < 0;}
-    friend bool  operator<(chars s,const keyword& k)     {return strcasecmp(s,k.name) < 0;}
-};
+typedef Keyed<chars,int,less_strcasecmp> keyword;        // Keyword name/token
 
 /**
  *  Return true if the string 'text' matches an entry in the given lexicon. If
@@ -56,8 +50,8 @@ bool isKeyword(PointerRange<const keyword> lexicon,chars text,chars& lexeme,int&
     if (f != l)                                          // We found a match?
     {
         assert(l - f == 1);                              // ...match is unique
-        lexeme = f->name;                                // ...save the name
-        token  = f->token;                               // ...save the token
+        lexeme = f->key;                                 // ...save the name
+        token  = f->value;                               // ...save the token
         return true;                                     // ...yes, it sure is
     }
 
@@ -90,6 +84,7 @@ bool isAFLKeyword(chars text,chars& lexeme,int& token)
         {"reserve",     Token::RESERVE    },
         {"select",      Token::SELECT     },             // ...reserved
         {"temp",        Token::TEMP       },
+        {"using",       Token::USING      },
         {"where",       Token::WHERE      },             // ...reserved
     };
 
@@ -159,6 +154,7 @@ bool isAQLKeyword(chars text,chars& lexeme,int& token)
         {"unbound",     Token::UNBOUND    },
         {"unload",      Token::UNLOAD     },             // ...reserved
         {"update",      Token::UPDATE     },             // ...reserved
+        {"using",       Token::USING      },
         {"variable",    Token::VARIABLE   },             // ...reserved
         {"where",       Token::WHERE      },             // ...reserved
         {"window",      Token::WINDOW     }              // ...reserved

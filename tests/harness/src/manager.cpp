@@ -188,6 +188,10 @@ static Result execute_testcase (struct InfoForExecutor &ie)
 				result_str = "RECORDED";
 				failureReason = "";
 				complete_es.testcasesPassed++;
+				if (bfs::file_size(ie.expected_rfile) == 0)
+				{       // Remove empty expected file
+					bfs::remove (ie.expected_rfile);
+				}
 			}
 			else
 			{
@@ -325,19 +329,20 @@ static Result execute_testcase (struct InfoForExecutor &ie)
 
 	time_t rawtime;
 	time ( &rawtime );
-	std::string _ctime = ctime (&rawtime);
-	_ctime = _ctime.substr(0,_ctime.size()-1);
+	std::string nowStr = ctime (&rawtime);
+	nowStr = nowStr.substr(0,nowStr.size()-1); // remove newline
 
 	/* throw this line on console only if other log is going to the harness.log file */
-        const char * periods30 = "..............................";  // 30, more than enough
+	double duration = (eTime - sTime)/1000.0 ;
+	double testSectionDuration = (ie.endTestSectionMillisec - ie.startTestSectionMillisec)/1000.0;
  	if (strcasecmp (ie.logDestination.c_str (), LOGDESTINATION_CONSOLE) != 0)
 	{
-		cout << "[" << ie.test_sequence_number << "][" << _ctime << "]: " << ie.testID
-                     << " " << periods30 << " " << result_str << std::endl << std::flush;
+		cout << "[" << ie.test_sequence_number << "][" << nowStr << "]: " << "[end]   "
+		     << ie.testID << " " << result_str << " " << duration << " " << testSectionDuration << std::endl;
 	}
 	else
 	{
-		LOG4CXX_INFO (logger, ie.testID << " " << periods30 << " " << result_str);
+		LOG4CXX_INFO (logger, ie.testID << result_str << " " << duration << "s" );
 	}
 
 	IndividualTestInfo ti(ie, g_test_ei);

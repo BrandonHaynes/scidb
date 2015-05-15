@@ -263,7 +263,7 @@ void toScidbTuple(FILE* fout, vector<char*>& fields)
             CKRET(::fputc(',', fout), != EOF);
         }
         const char *field = fields[i];
-        CKRET(::fprintf(fout, toScidbField(i, field, workbuf)), >= 0);
+        CKRET(::fprintf(fout, "%s", toScidbField(i, field, workbuf)), >= 0);
     }
     CKRET(::fputc(')', fout), != EOF);
 }

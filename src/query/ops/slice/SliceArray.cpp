@@ -28,8 +28,8 @@
  * @author Konstantin Knizhnik <knizhnik@garret.ru>
  */
 
+#include <system/Exceptions.h>
 #include "SliceArray.h"
-#include "system/Exceptions.h"
 
 #include <stdio.h>
 
@@ -58,11 +58,6 @@ namespace scidb
     int SliceChunk::getCompressionMethod() const
     {
         return inputChunk->getCompressionMethod();
-    }
-
-    bool SliceChunk::isSparse() const
-    { 
-        return inputChunk->isSparse();
     }
 
     Coordinates const& SliceChunk::getFirstPosition(bool withOverlap) const
@@ -322,7 +317,7 @@ namespace scidb
                     }
                     goto TryPos;
                 }
-                inPos[i] = dims[i].getStart();
+                inPos[i] = dims[i].getStartMin();
             }
         }
         hasCurrent = false;
@@ -355,7 +350,7 @@ namespace scidb
         uint64_t mask = array.mask;
         for (int i = 0, n = inPos.size(); i < n ; mask >>= 1, i++) { 
             if (!(mask & 1)) { 
-                inPos[i] = dims[i].getStart();
+                inPos[i] = dims[i].getStartMin();
                 j = i;
             } else { 
                 inPos[i] = array.slice[i];

@@ -48,7 +48,8 @@ FITSParser::FITSParser(string const& filePath)
 {
     file.open(filePath.c_str());
     if (file.fail()) {
-        throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_CANT_OPEN_FILE) << filePath << errno;
+        throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_CANT_OPEN_FILE)
+            << filePath << ::strerror(errno) << errno;
     }
     pbuffer = file.rdbuf();
 }

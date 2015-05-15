@@ -13,10 +13,10 @@ store(filter(build(d2, 1.0*x+100.0*y), x<>y),d2)
 
 --test
 cross_join(d1,b)
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(d1,b,y,k)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "cross_join(d1,b,y,k)"
 ## work-arround for the above case 
 cross_join(subarray(d1,0,-2,4,1),subarray(b,1,4),y,k)  
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT "cross_join(d2,b,x,k)" 
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "cross_join(d2,b,x,k)" 
 ## In this case star cordinate as well as chunk size differs so we use both repart and subarray as a work-arround.
 cross_join(d2,repart(subarray(b,1,4),<sum: double>[k=0:3,3,2]),x,k)   
 

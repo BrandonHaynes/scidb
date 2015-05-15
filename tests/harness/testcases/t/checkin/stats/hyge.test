@@ -41,6 +41,17 @@ apply(succesSpecial,y,hygecdf(0.68122,20,80,success))
 apply(drawSpecial,output, hygecdf(.5,80,2,drawings))
 apply(drawSpecial,output, hygecdf(drawings,80,2,5,true))
 
+# hygepmf
+apply(apply(build(<x:int64>[i=0:0,1,0],3),m,4,n,4,k,4),thepmf,hygepmf(x,m,n,k))
+apply(apply(build(<x:int64>[i=0:0,1,0],2),m,12,n,18,k,17),thepmf,hygepmf(x,m,n,k))
+
+# hygequant
+apply(apply(build(<x:double>[i=0:0,1,0],0.45),m,4,n,4,k,4),thequant,hygequant(x,m,n,k,true))
+apply(apply(build(<x:double>[i=0:0,1,0],0.45),m,12,n,18,k,17),thequant,hygequant(x,m,n,k,true))
+apply(apply(build(<x:double>[i=0:0,1,0],0.45),m,4,n,4,k,4),thequant,hygequant(x,m,n,k,false))
+apply(apply(build(<x:double>[i=0:0,1,0],0.45),m,12,n,18,k,17),thequant,hygequant(x,m,n,k,false))
+apply(apply(build(<q:double>[i=0:0,1,0],0.117030028794735),m,10,n,7,k,8),quantile,hygequant(q,m,n,k,true))
+
 --cleanup
 # t.checkin.la_cdf
 remove(p4_cdf_test1)

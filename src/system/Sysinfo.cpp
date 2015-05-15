@@ -42,14 +42,19 @@
 namespace scidb
 {
 
-enum { DEFAULT_CACHE_SIZE = 64*KiB };
+// James says these defaults should be reasonable for all x86_64 CPUs.
+enum {
+    DEFAULT_L1_CACHE_BYTES = 32*KiB,    // This hasn't changed for Intel for years and years.
+    DEFAULT_L2_CACHE_BYTES = 64*KiB, 
+    DEFAULT_L3_CACHE_BYTES = 2*MiB
+};
 
 int Sysinfo::getNumberOfCPUs()
 {
     int nCores = sysconf(_SC_NPROCESSORS_ONLN);
     int usedCpuLimit =
 #ifndef SCIDB_CLIENT
-        Config::getInstance()->getOption<int>(CONFIG_USED_CPU_LIMIT);
+        Config::getInstance()->getOption<int>(CONFIG_OPERATOR_THREADS);
 #else
         0;
 #endif
@@ -58,42 +63,49 @@ int Sysinfo::getNumberOfCPUs()
 
 int Sysinfo::getCPUCacheSize(int level)
 {
+    // Cache values from OS so we needn't always make system calls.
+    static int l1_size = -1;
+    static int l2_size = -1;
+    static int l3_size = -1;
+
+    // Add up the requested cache sizes.
+    //
+    // Frankly, I do not understand why the sum of two cache sizes is
+    // a useful number, but I won't mess with it now.
+    //
     int cache_size = 0;
-    if (level & CPU_CACHE_L1) { 
+    if (level & CPU_CACHE_L1) {
+        if (l1_size < 0) {
 #ifdef _SC_LEVEL1_DCACHE_SIZE
-        cache_size += sysconf(_SC_LEVEL1_DCACHE_SIZE); 
-#elif defined(HW_L1DCACHESIZE)
-        int mib[2] = {CTL_HW, HW_L1DCACHESIZE};
-        int val = 0;
-        size_t len = sizeof(val);
-        sysctl(mib, 2, &val, &len, NULL, 0);
-        cache_size += val;
-#endif       
-    }    
-    if (level & CPU_CACHE_L2) { 
+            l1_size = sysconf(_SC_LEVEL1_DCACHE_SIZE);
+#else
+            l1_size = DEFAULT_L1_CACHE_BYTES;
+#endif
+        }
+        cache_size += l1_size;
+    }
+    if (level & CPU_CACHE_L2) {
+        if (l2_size < 0) {
 #ifdef _SC_LEVEL2_CACHE_SIZE
-        cache_size += sysconf(_SC_LEVEL2_CACHE_SIZE); 
-#elif defined(HW_L2CACHESIZE)
-        int mib[2] = {CTL_HW, HW_L2CACHESIZE};
-        int val = 0;
-        size_t len = sizeof(val);
-        sysctl(mib, 2, &val, &len, NULL, 0);
-        cache_size += val;
-#endif       
-    }    
-    if (level & CPU_CACHE_L3) { 
+            l2_size = sysconf(_SC_LEVEL2_CACHE_SIZE);
+#else
+            l2_size = DEFAULT_L2_CACHE_BYTES;
+#endif
+        }
+        cache_size += l2_size;
+    }
+    if (level & CPU_CACHE_L3) {
+        if (l3_size < 0) {
 #ifdef _SC_LEVEL3_CACHE_SIZE
-        cache_size += sysconf(_SC_LEVEL3_CACHE_SIZE); 
-#elif defined(HW_L3CACHESIZE)
-        int mib[2] = {CTL_HW, HW_L3CACHESIZE};
-        int val = 0;
-        size_t len = sizeof(val);
-        sysctl(mib, 2, &val, &len, NULL, 0);
-        cache_size += val;
-#endif       
-    }    
-    return cache_size ? cache_size : DEFAULT_CACHE_SIZE;
+            l3_size = sysconf(_SC_LEVEL3_CACHE_SIZE);
+#else
+            l3_size = DEFAULT_L3_CACHE_BYTES;
+#endif
+        }
+        cache_size += l3_size;
+    }
+    return cache_size;
 }
-    
+
 
 } //namespace

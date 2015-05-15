@@ -35,6 +35,7 @@
 #include <query/TypeSystem.h>
 #include <query/FunctionDescription.h>
 #include <array/Metadata.h>
+#include <array/RLE.h>
 
 namespace scidb
 {
@@ -598,7 +599,7 @@ public:
 
     static void init(State& state)
     {
-        state._sum = TSR();
+        state._sum = 0;
     }
 
     static void aggregate(State& state, const TS& value)
@@ -616,9 +617,15 @@ public:
         state._sum += new_state._sum;
     }
 
-    static bool final(State& state, bool stateNull, TSR& result)
+    static bool final(const State& state, TSR& result)
     {
-        result = stateNull ? 0 : state._sum;
+        result = state._sum;
+        return true;
+    }
+
+    static bool final(Value::reason, TSR& result)
+    {
+        result = 0;
         return true;
     }
 };
@@ -655,9 +662,15 @@ public:
         state._prod *= newState._prod;
     }
 
-    static bool final(State& state, bool stateNull, TSR& result)
+    static bool final(const State& state, TSR& result)
     {
-        result = stateNull ? 0 : state._prod;
+        result = state._prod;
+        return true;
+    }
+
+    static bool final(Value::reason, TSR& result)
+    {
+        result = 0;
         return true;
     }
 };
@@ -690,9 +703,15 @@ public:
         state._count += new_state._count;
     }
 
-    static bool final(State& state, bool stateNull, uint64_t& result)
+    static bool final(const State& state, TSR& result)
     {
-        result = stateNull ? 0 : state._count;
+        result = state._count;
+        return true;
+    }
+
+    static bool final(Value::reason, TSR& result)
+    {
+        result = 0;
         return true;
     }
 };
@@ -746,12 +765,15 @@ public:
             state._min = new_state._min;
     }
 
-    static bool final(State& state, bool stateNull, TSR& result)
+    static bool final(const State& state, TSR& result)
     {
-        if (stateNull)
-            return false;
         result = state._min;
         return true;
+    }
+
+    static bool final(Value::reason, TSR&)
+    {
+        return false;
     }
 };
 
@@ -786,12 +808,15 @@ public:
             state._max = new_state._max;
     }
 
-    static bool final(State& state, bool stateNull, TSR& result)
+    static bool final(const State& state, TSR& result)
     {
-        if (stateNull)
-            return false;
         result = state._max;
         return true;
+    }
+
+    static bool final(Value::reason, TSR&)
+    {
+        return false;
     }
 };
 
@@ -828,12 +853,17 @@ public:
         state._count += new_state._count;
     }
 
-    static bool final(State& state, bool stateNull, TSR& result)
+    static bool final(const State& state, TSR& result)
     {
-        if (stateNull || !state._count)
+        if (state._count == 0)
             return false;
         result = static_cast<TSR>(state._sum) / state._count;
         return true;
+    }
+
+    static bool final(Value::reason, TSR&)
+    {
+        return false;
     }
 };
 
@@ -875,14 +905,19 @@ public:
         state._count += new_state._count;
     }
 
-    static bool final(State& state, bool stateNull, TSR& result)
+    static bool final(const State& state, TSR& result)
     {
-        if (state._count <= 1 || stateNull)
+        if (state._count <= 1)
             return false;
         const TSR x = state._m / state._count;
         const TSR s = state._m2 / state._count - x * x;
         result = s * state._count / (state._count - 1) ;
         return true;
+    }
+
+    static bool final(Value::reason, TSR&)
+    {
+        return false;
     }
 };
 
@@ -924,14 +959,19 @@ public:
         state._count += new_state._count;
     }
 
-    static bool final(State& state, bool stateNull, TSR& result)
+    static bool final(const State& state, TSR& result)
     {
-        if (state._count <= 1 || stateNull)
+        if (state._count <= 1)
             return false;
         const TSR x = state._m / state._count;
         const TSR s = state._m2 / state._count - x * x;
         result = sqrt(s * state._count / (state._count - 1) );
         return true;
+    }
+
+    static bool final(Value::reason, TSR&)
+    {
+        return false;
     }
 };
 

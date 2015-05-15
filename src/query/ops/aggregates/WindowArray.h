@@ -106,7 +106,6 @@ class WindowChunk : public ConstChunk
     virtual Coordinates const& getLastPosition(bool withOverlap) const;
     virtual boost::shared_ptr<ConstChunkIterator> getConstIterator(int iterationMode) const;
     virtual int getCompressionMethod() const;
-    virtual bool isSparse() const;
     virtual Array const& getArray() const;
 
     /**
@@ -193,7 +192,6 @@ private:
     boost::shared_ptr<ConstArrayIterator> _emptyTagArrayIterator;
     boost::shared_ptr<ConstChunkIterator> _emptyTagIterator;
     Value _nextValue;
-    bool _noNullsCheck;
 };
 
 class MaterializedWindowChunkIterator : public ConstChunkIterator

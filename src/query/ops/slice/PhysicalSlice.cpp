@@ -27,11 +27,10 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/Array.h"
-#include "query/ops/slice/SliceArray.h"
-
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/Array.h>
+#include "SliceArray.h"
 
 using namespace std;
 
@@ -151,7 +150,7 @@ public:
                 assert(((boost::shared_ptr<OperatorParam>&)_parameters[k*2+1])->getParamType() == PARAM_PHYSICAL_EXPRESSION);
                 Value const& coord = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[k*2+1])->getExpression()->evaluate();
                 slice[i] = coord.getInt64();
-                if (slice[i] < dims[i].getStart() || slice[i] > dims[i].getEndMax())
+                if (slice[i] < dims[i].getStartMin() || slice[i] > dims[i].getEndMax())
                     throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_OP_SLICE_ERROR2);
                 mask |= (uint64_t)1 << i;
             }

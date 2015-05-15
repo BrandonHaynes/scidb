@@ -23,33 +23,27 @@
 #ifndef __RLE_H__
 #define __RLE_H__
 
-#include <stdlib.h>
-#include <assert.h>
-#include <inttypes.h>
-#include <string.h>
 #include <map>
 #include <vector>
 #include <boost/utility.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/split_member.hpp>
+#include <system/Exceptions.h>
+#include <array/Coordinate.h>
 #include <util/arena/Map.h>
+#include <query/Value.h>
 
 namespace scidb
 {
-
-class Value;
 class ConstChunk;
 class RLEPayload;
 class Query;
 class ArrayDesc;
 
-typedef int64_t position_t;
-typedef int64_t Coordinate;
-typedef std::vector<Coordinate> Coordinates;
 typedef mgd::map<position_t, Value> ValueMap;
 
-extern bool checkChunkMagic(ConstChunk const& chunk);
+extern void checkChunkMagic(ConstChunk const& chunk);
 
 class RLEEmptyBitmap;
 class ConstRLEEmptyBitmap
@@ -60,6 +54,11 @@ public:
         position_t _lPosition;   // start position of sequence of set bits
         position_t _length;  // number of set bits
         position_t _pPosition; // index of value in payload
+
+        Segment()
+            : _lPosition(-1),
+              _length(-1),
+              _pPosition(-1) {}
     };
 
     // This structure must use platform independent data types with fixed size.
@@ -71,7 +70,7 @@ public:
 
   protected:
     size_t _nSegs;
-    Segment* _seg;
+    Segment const* _seg;
     uint64_t _nNonEmptyElements;
     ConstChunk const* _chunk;
     bool _chunkPinned;
@@ -140,7 +139,10 @@ public:
     /**
      * Get size needed to pack bitmap (used to dermine size of chunk)
      */
-    size_t packedSize() const;
+    size_t packedSize() const
+    {
+        return sizeof(Header) + _nSegs*sizeof(Segment);
+    }
 
     /**
      * Constructor for initializing Bitmap with raw chunk data
@@ -315,16 +317,6 @@ public:
     }
 
     /**
-     * Merge THIS with VM and return the result as a new RLEEmptyBitmap
-     */
-    boost::shared_ptr<RLEEmptyBitmap> merge(ValueMap& vm);
-
-    /**
-     * Merge THIS with other bitmap
-     */
-    boost::shared_ptr<RLEEmptyBitmap> merge(ConstRLEEmptyBitmap const& other);
-
-    /**
      * Extract subregion from bitmap.
      *
      * @param lowerOrigin lower coordinates of original array.
@@ -339,17 +331,6 @@ public:
             Coordinates const& upperOrigin,
             Coordinates const& lowerResult,
             Coordinates const& upperResult) const;
-
-    /**
-     * Merge THIS with MERGEBITS and return the result as a new RLEEmptyBitmap
-     * MERGEBITS must have one BIT for each "1" in THIS.
-     */
-    boost::shared_ptr<RLEEmptyBitmap> merge(uint8_t const* mergeBits);
-
-    /**
-     * Join THIS with other bitmap
-     */
-    boost::shared_ptr<RLEEmptyBitmap> join(ConstRLEEmptyBitmap const& other);
 };
 
 std::ostream& operator<<(std::ostream& stream, ConstRLEEmptyBitmap const& map);
@@ -479,17 +460,18 @@ class RLEPayload;
 
 /**
   * class ConstRLEPayload
-  * This class allows to store values as stride-major-ordered array with RLE-pack of data.
-  * We have the "payload" array where we store values.
-  * "payload" array splited to separated parts, which name "segment"
-  * Every "segment" has description (struct Segment), all Segments stored to "container"
-  * Every Segment has following fields:
-  *  - pPosition - physical position (stride-major-order) of first value from segment
-  *  - valueIndex - byte number inside "payload" array where located data for this segment, or "missingReason" if segment absent (nulls, empty, etc)
-  *  - same - bit which describes, contain this segment equal values or different
-  *  - null - bit which desribes, what exactly represent valueIndex.
+  * This class stores values in a stride-major-ordered array with RLE-packing of data.
+  * We have the payload array where we store values.
+  * The payload array is split into separated parts called segments.
+  * Each segment has description (struct Segment).  All Segments stored within a container.
+  * Every segment has the following fields:
+  *  - pPosition:  physical position (stride-major-order) of first value from segment
+  *  - valueIndex:  byte number inside the payload array where the data for this segment is
+  *      located, or a value for missingReason if the segment is absent (nulls, empty, etc).
+  *  - same:  true if all values in the segment are equal
+  *  - null:  bit describing valueIndex
   *
-  * NOTE: Payload that is constructed from memory allocated elsewhere - not responsible for freeing memory.
+  * NOTE: This class doesn't take ownership of passed-in payloads.
   * NOTE: Cannot add values
   */
 class ConstRLEPayload
@@ -502,6 +484,21 @@ public:
         uint32_t   _valueIndex : 30; // index of element in payload array or missing reason
         uint32_t   _same:1; // sequence of same values
         uint32_t   _null:1; // trigger if value is NULL (missingReason) or normal value (valueIndex)
+
+        Segment()
+        : _pPosition(-1),
+        _valueIndex(static_cast<uint32_t>(0)),
+        _same(uint8_t(0)),
+        _null(uint8_t(0)) {}
+
+        Segment(position_t pPos,
+                uint32_t vIndex,
+                bool isSame,
+                bool isNull)
+        : _pPosition(pPos),
+        _valueIndex(vIndex),
+        _same(isSame),
+        _null(isNull) {}
 
         /**
          * NOTE: Danger method implementation!!!
@@ -668,7 +665,7 @@ public:
      */
     size_t payloadSize() const {
         return _dataSize;
-    }
+        }
 
     /**
      * Get number of items in payload
@@ -682,6 +679,7 @@ public:
      */
     Segment const& getSegment(size_t i) const {
         assert(i <= _nSegs); // allow _nSegs, used to cut new Tile's
+        assert(_seg);
         return _seg[i];
     }
 
@@ -710,9 +708,13 @@ public:
     void pack(char* dst) const;
 
     /**
-     * Get size needed to pack bitmap (used to determine size of chunk)
+     * Get size needed to pack payload (used to determine size of chunk)
      */
-    size_t packedSize() const;
+    size_t packedSize() const
+    {
+        return sizeof(Header) + (_nSegs+1)*sizeof(Segment) + _dataSize;
+    }
+
 
     /**
      * Constructor for initializing payload with raw chunk data
@@ -1067,7 +1069,7 @@ std::ostream& operator<<(std::ostream& stream, ConstRLEPayload const& payload);
  *   Donghui believes the class should be rewritten in several ways:
  *   - It is better to store the variable part of the data inside the RLEPayload object, not somewhere else.
  *   - getValuesCount() returns _dataSize/elementSize, which is simply wrong after setVarPart() is called.
- *   - It is not clear when _valuesCount can be trusted. Seems that while data are being appended, _valuesCount is trustworthy only if the data type is boolean.
+ *   - It is not clear when _valuesCount can be trusted. Seems that while data are being appended, _valuesCount is trustworthy only if the data type is boolean.  DJG While this is true, you never access _valuesCount directly.  The getValuesCount accessor returns the correct number of elements regardless of whether or not _isBoolean is true.  _valuesCount is an optimization for the _isBoolean = true case only.
  *   - addBoolValues() updates _dataSize and _valuesCount, but addRawValues() and addRawVarValues() do NOT update any of them. This is very inconsistent.
  *   - It is redundant to have both RLEPayload::append_iterator and RLEPayloadAppender.
  *   - append(RLEPayload& other) may set _data = other._data. This seems to violate the theme of the class -- storing its own copy of the data.
@@ -1164,6 +1166,7 @@ class RLEPayload : public ConstRLEPayload
         assert(_container.size() == 0 || _container[_container.size() - 1]._pPosition < segment._pPosition);
         _container.push_back(segment);
         _seg = &_container[0];
+        _nSegs = _container.size() - 1;
     }
 
     /**
@@ -1274,11 +1277,9 @@ class RLEPayload : public ConstRLEPayload
         RLEPayload* result;
         std::vector<char> varPart;
         RLEPayload::Segment segm;
-        Value* prevVal;
+        Value prevVal;
         size_t valueIndex;
         size_t segLength;
-
-        void init();
 
       public:
         RLEPayload* getPayload() {
@@ -1286,7 +1287,6 @@ class RLEPayload : public ConstRLEPayload
         }
 
         explicit append_iterator(RLEPayload* dstPayload);
-        explicit append_iterator(size_t bitSize);
         void flush();
         void add(Value const& v, uint64_t count = 1);
         /**
@@ -1305,6 +1305,8 @@ class RLEPayload : public ConstRLEPayload
          */
         uint64_t add(iterator& inputIterator, uint64_t limit, bool setupPrevVal = false);
         ~append_iterator();
+    private:
+        append_iterator();
     };
 
     /**

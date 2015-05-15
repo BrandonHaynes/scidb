@@ -25,11 +25,12 @@
 
 /****************************************************************************/
 
-#include <new>                                           // For operator new
-#include <assert.h>                                      // For assert()
-#include <sstream>
-#include <vector>
-#include <system/Exceptions.h>
+#include <ctype.h>                                       // For isspace
+#include <string.h>                                      // For strcmp
+#include <vector>                                        // For vector
+#include <typeinfo>                                      // For typeid
+#include <functional>                                    // For less<>.
+#include <util/Platform.h>                               // For SCIDB_NORETURN
 
 /****************************************************************************/
 namespace scidb {
@@ -48,11 +49,11 @@ namespace scidb {
  *              that the lifetime of an object is tied to the lexical scope in
  *              which it is instantiated:
  *  @code
- *              class Lock : stackonly, boost::noncopyable
- *              {
- *                 Lock(...) ...
- *                ~Lock(...) ...
- *              }  lock(...);
+ *                  class Lock : stackonly, boost::noncopyable
+ *                  {
+ *                     Lock(...) ...
+ *                    ~Lock(...) ...
+ *                  }  lock(...);
  *  @endcode
  *              since without allocating an object on the heap there is no way
  *              for it to escape the current program block.
@@ -110,6 +111,59 @@ struct null_deleter
 };
 
 /**
+ *  @brief      Implements a pair that is ordered by its first component only.
+ *
+ *  @details    Class Keyed implements a simple key-value pair as an aggregate
+ *              that is totally ordered by the first element of the pair only.
+ *              Contrast this with class std::pair,  which tests both elements
+ *              in its comparison operator,  and whose constructors prevent it
+ *              from being created within the initializer list of an array.
+ *
+ *              Class Keyed is useful for implementing 'flat' maps:
+ *  @code
+ *                  static const Keyed<const char*,int,less_strcmp> m[] =
+ *                  {
+ *                      {"apr",4},
+ *                      {"aug",8},
+ *                         ..
+ *                      {"sep",9},
+ *                  };
+ *
+ *                  ...  = std::equal_range(m,m+SCIDB_SIZE(m),"mar");
+ *  @endcode
+ *              Here lower_bound() returns a pair of iterators - pointers - to
+ *              the key-value pair matching the entry for the month of March.
+ *
+ *  @author     jbell@paradigm4.com
+ */
+template< class K, class V, class C = std::less<K> >
+struct Keyed
+{
+ const  K    key;                                        // The sort key
+ const  V    value;                                      // The keyed value
+ friend bool operator<(const K& a,const Keyed<K,V,C>& b) {return C()(a,b.key);}
+ friend bool operator<(const Keyed<K,V,C>& a,const K& b) {return C()(a.key,b);}
+};
+
+/**
+ *  Wraps the standard string comparison function as a function object that is
+ *  suitable for use as the comparison for a standard associative container.
+ */
+struct less_strcasecmp : std::binary_function<const char*,const char*,int>
+{
+    bool operator()(const char* a,const char* b) const   {return strcasecmp(a,b) < 0;}
+};
+
+/**
+ *  Wraps the standard string comparison function as a function object that is
+ *  suitable for use as the comparison for a standard associative container.
+ */
+struct less_strcmp : std::binary_function<const char*,const char*,int>
+{
+    bool operator()(const char* a,const char* b) const   {return strcmp(a,b) < 0;}
+};
+
+/**
  *  Cast the pointer 'pb' from type 'base*' to type 'derived'. Equivalent to a
  *  static cast in a release build, but has the advantage that the downcast is
  *  checked with an assertion in a debug build.
@@ -117,28 +171,33 @@ struct null_deleter
 template<class derived,class base>
 inline derived downcast(base* pb)
 {
-    assert(dynamic_cast<derived>(pb) == pb);             // Is the cast safe?
+    assert(dynamic_cast<derived>(pb) == pb);             // Is this cast safe?
 
     return static_cast<derived>(pb);                     // So cast it already
 }
 
-
 /**
- *  Cast the pointer 'pb' from type 'base*' to type 'derived'. Equivalent to a
- *  static cast in a release build, but has the advantage that the downcast is
- *  checked with an assertion in a debug build.
+ *  Cast the pointer 'pb' from type 'base*' to type 'derived', and assert - or
+ *  throw - if the cast fails.
+ *
+ * @throws SystemException if the cast fails (abort()s in a Debug build)
  */
-template<class derived_t, class base_t>
-inline derived_t safe_dynamic_cast(base_t pb)
+template<class derived,class base>
+inline derived safe_dynamic_cast(base* pb)
 {
-    derived_t ptr = dynamic_cast<derived_t>(pb);
-    if (ptr != pb) {
-        assert(false);
-        std::stringstream ss;
-        ss << " invalid cast from " << typeid(pb).name() << " to " << typeid(ptr).name();
-        throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_UNREACHABLE_CODE) << ss.str();
+    void bad_dynamic_cast(const std::type_info&,const std::type_info&) SCIDB_NORETURN;
+
+    if (pb == NULL)                                      // Is the source null
+    {
+        return NULL;                                     // ...so cast is safe
     }
-    return ptr;
+
+    if (derived pd = dynamic_cast<derived>(pb))          // Cast succeeded ok?
+    {
+        return pd;                                       // ...derived pointer
+    }
+
+    bad_dynamic_cast(typeid(base),typeid(derived));      // Report the failure
 }
 
 /**
@@ -161,45 +220,105 @@ inline bool iff(bool a,bool b)
 }
 
 /**
- * @brief Behold the One True TSV Parser.
+ *  Return true if the integer 'n' is a power of two. This is the case exactly
+ *  when the bit representation for 'n' has precisely one bit set.
  *
- * @description
- * This routine parses lines of "tab separated values" text.  It
- * modifies the input line in-place to unescape TSV escape characters.
- * It returns a vector of pointers to individual fields in the
- * modified line.
- *
- * The only possible error is caused by a backslash tab sequence,
- * which is illegal.
- *
- * @note If you choose a field delimiter other than TAB (ascii 0x09),
- * be certain that your data columns do not contain that character, or
- * you will get unexpected results.  Use of non-TAB delimiters is
- * discouraged for this reason.
- *
- * @param line modifiable null-terminated input line
- * @param fields vector of pointers into the modified line
- * @param delim alternate field delimiter
- * @return true iff line was successfully parsed
- *
- * @see http://dataprotocols.org/linear-tsv/
+ *  @see http://en.wikipedia.org/wiki/Bit_manipulation
  */
-extern bool tsv_parse(char *line,
-                      std::vector<char*>& fields,
-                      char delim = '\t');
+inline bool isPowerOfTwo(size_t n)
+{
+#if defined (__GNUC__)
+
+    return __builtin_popcountl(n) == 1;                  // Just one bit set?
+
+#endif
+
+    return n!=0 && (n & (n - 1))==0;                     // Just one bit set?
+}
 
 /**
- * @brief Match an integer, floating point number, or "nan".
- * @note Leading and trailing whitespace in @c val are ignored.
- * @param val NULL-terminated string to search for a number
- * @return true iff an integer, floating point number, or "nan" is found
- * @throws runtime_error on regex compilation failure (should not happen)
+ *  @brief      Backward compatibility interface to the One True TSV Parser.
  *
- * @note The initial call compiles a regular expression and so is not
- * thread-safe.  To get thread safety, call once from main() before
- * launching threads.  Subsequent calls are fine.
+ *  @details    This function parses lines of 'tab separated values' text.  It
+ *              modifies the input line in-place to unescape TSV escape chars,
+ *              and returns a  vector of pointers to  individual fields in the
+ *              modified line.
+ *
+ *              The only possible error is caused by a backslash tab sequence,
+ *              which is illegal.
+ *
+ *  @note       If you choose a field delimiter other than TAB (ascii 0x09) be
+ *              certain that the data columns do not contain that character or
+ *              you will get unexpected results.  Use of non-TAB delimiters is
+ *              discouraged for this reason.
+ *
+ *  @note       You may prefer to use the @c TsvParser class for field-by-field
+ *              parsing rather than line-at-a-time parsing.  This function is
+ *              implemented using @c TsvParser .
+ *
+ *  @param      line    modifiable null-terminated input line
+ *
+ *  @param      fields  vector of pointers into the modified line
+ *
+ *  @param      delim   alternate field delimiter
+ *
+ *  @return     true iff line was successfully parsed
+ *
+ *  @see        scidb::TsvParser
+ *  @see        http://dataprotocols.org/linear-tsv/
+ *
+ *  @author     mjl@paradigm4.com
+ *
  */
-extern bool isnumber(const char* val);
+bool tsv_parse(char* line,std::vector<char*>& fields,char delim = '\t');
+
+/**
+ *  @brief      Match an integer, floating point number, or 'nan'
+ *
+ *  @note       Leading and trailing whitespace in @c val are ignored.
+ *
+ *  @param      val     a NULL-terminated string to search for a number
+ *
+ *  @return     true iff an integer, floating point number, or 'nan' is found
+ *
+ *  @throws     runtime_error on regex compilation failure (should not happen)
+ *
+ *  @note       The initial call compiles a regular expression and thus is not
+ *              thread-safe. To get thread safety call once from main() before
+ *              launching threads. Subsequent calls are fine.
+ *
+ *  @author     mjl@paradigm4.com
+ */
+bool isnumber(const char* val);
+
+/**
+ *  @brief      Test string for whitespaciness
+ *
+ *  @param      val     a NULL-terminated string to test
+ *  @return     true iff argument string is all whitespace
+ */
+inline bool iswhitespace(const char* val)
+{
+    while (::isspace(*val)) {
+        ++val;
+    }
+    return *val == '\0';
+}
+
+/**
+ * Initialize a region of memory to zero when !defined(NDEBUG)
+ * @note valgrind complains about uninitialized alignment padding in various struct's
+ *       which are treated as contiguous memory buffers. This function is handy to
+ *       suppress such complaints.
+ * @param ptr pointer to the memory region
+ * @param size memory region size
+ */
+inline void setToZeroInDebug(void * ptr, size_t size)
+{
+    if (isDebug()) {
+        ::memset(ptr, 0, size);
+    }
+}
 
 /****************************************************************************/
 }

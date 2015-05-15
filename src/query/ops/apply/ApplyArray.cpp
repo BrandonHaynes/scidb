@@ -43,7 +43,7 @@ using namespace std;
 //
 inline bool ApplyChunkIterator::isNull()
 {
-    return !chunk->isRLE() && _nullable && (_mode & IGNORE_NULL_VALUES) && getItem().isNull();
+    return false;
 }
 
 void ApplyChunkIterator::reset()
@@ -140,31 +140,6 @@ void ApplyChunkIterator::operator ++()
     } while (isNull());
 }
 
-bool ApplyChunkIterator::supportsVectorMode() const
-{
-    return _supportsVectorMode;
-}
-
-void ApplyChunkIterator::setVectorMode(bool enabled)
-{
-    if (enabled)
-    {
-        _mode |= VECTOR_MODE;
-    }
-    else
-    {
-        _mode &= ~VECTOR_MODE;
-    }
-    inputIterator->setVectorMode(enabled);
-    for (size_t i = 0, n = _iterators.size(); i < n; i++)
-    {
-        if (_iterators[i])
-        {
-            _iterators[i]->setVectorMode(enabled);
-        }
-    }
-}
-
 ApplyChunkIterator::ApplyChunkIterator(ApplyArrayIterator const& arrayIterator, DelegateChunk const* chunk, int iterationMode) :
     DelegateChunkIterator(chunk, iterationMode & ~(INTENDED_TILE_MODE | IGNORE_NULL_VALUES | IGNORE_DEFAULT_VALUES)),
     _array((ApplyArray&) arrayIterator.array),
@@ -177,7 +152,6 @@ ApplyChunkIterator::ApplyChunkIterator(ApplyArrayIterator const& arrayIterator, 
     _nullable(_array._attributeNullable[_outAttrId]),
     _query(Query::getValidQueryPtr(_array._query))
 {
-    _supportsVectorMode = ! _nullable && _array._expressions[_outAttrId]->supportsVectorMode() && inputIterator->supportsVectorMode();
     for (size_t i = 0, n = _bindings.size(); i < n; i++)
     {
         switch (_bindings[i].kind)

@@ -57,7 +57,7 @@ namespace scidb
 #include "query/BuiltInFunctions.h"
 
 #define BINARY_OP(LN, T, R, PN, CN, TM, RM) \
-    addFunction(FunctionDescription(PN, list_of(TypeId(T))(TypeId(T)), R, &LN##_##T, (size_t)0, true));
+    addFunction(FunctionDescription(PN, list_of(TypeId(T))(TypeId(T)), R, &LN##_##T, (size_t)0));
 
 #define BINARY_BOP(LN, T, R, PN, CN, TM, RM) BINARY_OP(LN, T, R, PN, CN, TM, RM)
 
@@ -72,18 +72,18 @@ namespace scidb
 #define DIVISION_OP(LN, T, R, PN, CN, TM, RM) BINARY_OP(LN, T, R, PN, CN, TM, RM)
 
 #define UNARY_OP(LN, T, R, PN, CN, TM, RM) \
-        addFunction(FunctionDescription(PN, list_of(TypeId(T)), R, &UNARY_##LN##_##T, (size_t)0, true));
+        addFunction(FunctionDescription(PN, list_of(TypeId(T)), R, &UNARY_##LN##_##T, (size_t)0));
 
 #define UNARY_NOT(LN, T, R, PN, CN, TM, RM) UNARY_OP(LN, T, R, PN, CN, TM, RM)
 
 #define FUNCTION_A1(LN, T, R, PN, CN, TM, RM) \
-        addFunction(FunctionDescription(PN, list_of(TypeId(T)), R, &LN##_##T, (size_t)0, true));
+        addFunction(FunctionDescription(PN, list_of(TypeId(T)), R, &LN##_##T, (size_t)0));
 
 #define FUNCTION_A2(LN, T1, T2, R, PN, CN, T1M, T2M, RM) \
-        addFunction(FunctionDescription(PN, list_of(TypeId(T1))(TypeId(T2)), R, &LN##_##T1##_##T2, (size_t)0, true));
+        addFunction(FunctionDescription(PN, list_of(TypeId(T1))(TypeId(T2)), R, &LN##_##T1##_##T2, (size_t)0));
 
 #define CONVERTOR(T, R, TM, RM, COST)                                    \
-    addConverter(T, R, &CONV##_##T##_##TO##_##R, COST, true);
+    addConverter(T, R, &CONV##_##T##_##TO##_##R, COST);
 
 #define CONVERTOR_BOOL(T, R, TM, RM, COST) CONVERTOR(T, R, TM, RM, COST)
 
@@ -92,6 +92,8 @@ namespace scidb
 
 #define CONVERTOR_FROM_STR(T, TM)                                  \
     addConverter(TID_STRING, T, &CONV##_##T##_##FROM_String, EXPLICIT_CONVERSION_COST);
+
+#define CONVERTOR_STR_TO_OCTET(T, TM)   CONVERTOR_FROM_STR(T, TM)
 
 // FunctionLibrary implementation
 FunctionLibrary::FunctionLibrary(): _registeringBuiltInObjects(false)
@@ -139,7 +141,7 @@ void FunctionLibrary::registerBuiltInFunctions()
     addFunction(FunctionDescription("instanceid", vector<TypeId>(), TypeId(TID_INT64), &instanceId, (size_t)0));
 #endif
     addFunction(FunctionDescription("missing", list_of(TID_INT32), TID_VOID, &missing, 0));
-    addFunction(FunctionDescription("is_null", list_of(TID_VOID), TID_VOID, &isNull, 0, false, false, &inferIsNullArgTypes));
+    addFunction(FunctionDescription("is_null", list_of(TID_VOID), TID_VOID, &isNull, 0, false, &inferIsNullArgTypes));
     addFunction(FunctionDescription("is_nan", list_of(TID_DOUBLE), TID_BOOL, &isNan, 0));
     addFunction(FunctionDescription("strchar", list_of(TID_STRING), TID_CHAR, &strchar, (size_t)0));
     addFunction(FunctionDescription("+", list_of(TID_STRING)(TID_STRING), TypeId(TID_STRING), &strPlusStr, (size_t)0));
@@ -158,11 +160,11 @@ void FunctionLibrary::registerBuiltInFunctions()
     addFunction(FunctionDescription(">=", list_of(TID_STRING)(TID_STRING), TypeId(TID_BOOL), &strGreaterOrEq, (size_t)0));
     addFunction(FunctionDescription("strftime", list_of(TID_DATETIME)(TID_STRING), TypeId(TID_STRING), &strFTime, (size_t)0));
     addFunction(FunctionDescription("now", vector<TypeId>(), TypeId(TID_DATETIME), &currentTime, (size_t)0,
-                                    /*vec mode*/ false, /*commulativity*/ false, /*inferFuncArgTypes*/ NULL, /*isDeterministic*/ false));
-    addFunction(FunctionDescription("+", list_of(TID_DATETIME)(TID_INT64), TypeId(TID_DATETIME), &addIntToDateTime, (size_t)0, false, true));
+                                    /*commulativity*/ false, /*inferFuncArgTypes*/ NULL, /*isDeterministic*/ false));
+    addFunction(FunctionDescription("+", list_of(TID_DATETIME)(TID_INT64), TypeId(TID_DATETIME), &addIntToDateTime, (size_t)0));
     addFunction(FunctionDescription("-", list_of(TID_DATETIME)(TID_INT64), TypeId(TID_DATETIME), &subIntFromDateTime, (size_t)0));
     addFunction(FunctionDescription("random", vector<TypeId>(), TypeId(TID_UINT32), &scidb_random, (size_t)0,
-                                    /*vec mode*/ false, /*commulativity*/ false, /*inferFuncArgTypes*/ NULL, /*isDeterministic*/ false));
+                                    /*commulativity*/ false, /*inferFuncArgTypes*/ NULL, /*isDeterministic*/ false));
     addConverter(TID_DATETIME, TID_STRING, &convDateTime2Str, EXPLICIT_CONVERSION_COST);
     addConverter(TID_STRING, TID_DATETIME, &convStr2DateTime, EXPLICIT_CONVERSION_COST);//TRANSFORM_CONVERSION_COST);
 
@@ -178,7 +180,7 @@ void FunctionLibrary::registerBuiltInFunctions()
     addFunction(FunctionDescription("<=", list_of(TID_DATETIMETZ)(TID_DATETIMETZ), TypeId(TID_BOOL), &tzLessOrEq, (size_t)0));
     addFunction(FunctionDescription(">=", list_of(TID_DATETIMETZ)(TID_DATETIMETZ), TypeId(TID_BOOL), &tzGreaterOrEq, (size_t)0));
     addFunction(FunctionDescription("tznow", vector<TypeId>(), TypeId(TID_DATETIMETZ), &currentTimeTz, (size_t)0,
-                                    /*vec mode*/ false, /*commulativity*/ false, /*inferFuncArgTypes*/ NULL, /*isDeterministic*/ false));
+                                    /*commulativity*/ false, /*inferFuncArgTypes*/ NULL, /*isDeterministic*/ false));
 
 addFunction(FunctionDescription("day_of_week", list_of(TID_DATETIME), TypeId(TID_UINT8), &dayOfWeekT, (size_t) 0));
     addFunction(FunctionDescription("hour_of_day", list_of(TID_DATETIME), TypeId(TID_UINT8), &hourOfDayT, (size_t) 0));
@@ -600,14 +602,13 @@ addFunction(FunctionDescription("day_of_week", list_of(TID_DATETIME), TypeId(TID
             &rle_binary_func<BinaryFunctionCall<Double, Double, Double>::Function<&pow>::Op, Double, Double, Double>, 0));
 
     /* Polymorphic functions */
-    addVFunction(FunctionDescription("is_null", list_of(TID_VOID), TID_VOID, &rle_unary_bool_is_null, 0, false, false, &inferIsNullArgTypes));
+    addVFunction(FunctionDescription("is_null", list_of(TID_VOID), TID_VOID, &rle_unary_bool_is_null, 0, false, &inferIsNullArgTypes));
 }
 
 bool FunctionLibrary::_findFunction(const std::string& name,
                                    const std::vector<TypeId>& inputArgTypes,
                                    FunctionDescription& funcDescription,
                                    std::vector<FunctionPointer>& converters,
-                                   bool& supportsVectorMode,
                                    bool tile, ConversionCost& convCost, bool& swapInputs)
 {
     convCost = 0;
@@ -627,8 +628,8 @@ bool FunctionLibrary::_findFunction(const std::string& name,
                 } else {
                     converters.resize(inputTypes.size());
                     ConversionCost cost[3] = {EXPLICIT_CONVERSION_COST, EXPLICIT_CONVERSION_COST, EXPLICIT_CONVERSION_COST };
-                    converters[1] = FunctionLibrary::getInstance()->findConverter(inputArgTypes[1], inputArgTypes[2], supportsVectorMode, tile, false, &cost[1]);
-                    converters[2] = FunctionLibrary::getInstance()->findConverter(inputArgTypes[2], inputArgTypes[1], supportsVectorMode, tile, false, &cost[2]);
+                    converters[1] = FunctionLibrary::getInstance()->findConverter(inputArgTypes[1], inputArgTypes[2], tile, false, &cost[1]);
+                    converters[2] = FunctionLibrary::getInstance()->findConverter(inputArgTypes[2], inputArgTypes[1], tile, false, &cost[2]);
                     if (converters[1]) {
                         if (converters[2] && cost[2] < cost[1]) {
                             converters[1] = NULL;
@@ -651,7 +652,6 @@ bool FunctionLibrary::_findFunction(const std::string& name,
                 outputType = inputArgTypes[1];
             }
             funcDescription = FunctionDescription ("iif", inputTypes, outputType, &iif);
-            supportsVectorMode = false;
             return true;
         }
         else {
@@ -662,7 +662,6 @@ bool FunctionLibrary::_findFunction(const std::string& name,
     if (!tile && lowCaseName == "missing_reason") {
         if (inputArgTypes.size() == 1) {
             funcDescription = FunctionDescription("missing_reason", inputArgTypes, TID_INT32, &missingReason);
-            supportsVectorMode = false;
             return true;
         }
         else {
@@ -674,8 +673,8 @@ bool FunctionLibrary::_findFunction(const std::string& name,
         // Here we have explicit type converter and must try to find converter from input type to given
         const Type& dstType = TypeLibrary::getType(lowCaseName);
         ConversionCost cost = ConversionCost(~0);
-        if (FunctionPointer f = FunctionLibrary::getInstance()->findConverter(inputArgTypes[0], dstType.typeId(), supportsVectorMode, tile, false, &cost)) {
-            funcDescription = FunctionDescription(lowCaseName, inputArgTypes, dstType.typeId(), f, 0, supportsVectorMode);
+        if (FunctionPointer f = FunctionLibrary::getInstance()->findConverter(inputArgTypes[0], dstType.typeId(), tile, false, &cost)) {
+            funcDescription = FunctionDescription(lowCaseName, inputArgTypes, dstType.typeId(), f, 0);
             converters.clear();
             return true;
         }
@@ -691,12 +690,10 @@ bool FunctionLibrary::_findFunction(const std::string& name,
     if (func != funcMap->second.end() && (!swapInputs || func->second.isCommulative()) && (!func->second.getInferFunctionArgTypes())) {
         // This is full matching. Return result.
         funcDescription = func->second;
-        supportsVectorMode &= funcDescription.supportsVectorMode();
         converters.clear();
         return true;
     }
 
-    bool cnvVectorModeForBestMatch = true;
     bool foundMatch = false;
     // We have no found a function with the specified argument types. Trying
     // to find with converters.
@@ -727,14 +724,13 @@ bool FunctionLibrary::_findFunction(const std::string& name,
             std::vector<FunctionPointer> argConverters;
             bool canBeUsed = true;
             ConversionCost totalCost = 0;
-            bool cnvVectorMode = true;
             for (size_t i = 0; i < funcTypes.size(); i++) {
                 if (inputArgTypes[i] != funcTypes[i] && !Type::isSubtype(inputArgTypes[i], funcTypes[i])) {
                     ConversionCost cost = EXPLICIT_CONVERSION_COST;
                     if (argConverters.size() == 0) {
                         argConverters.resize(inputArgTypes.size());
                     }
-                    argConverters[i] = FunctionLibrary::getInstance()->findConverter(inputArgTypes[i], funcTypes[i], cnvVectorMode, tile, false, &cost);
+                    argConverters[i] = FunctionLibrary::getInstance()->findConverter(inputArgTypes[i], funcTypes[i], tile, false, &cost);
                     if (argConverters[i] == NULL) {
                         canBeUsed = false;
                         break;
@@ -753,16 +749,12 @@ bool FunctionLibrary::_findFunction(const std::string& name,
                 } else {
                     const FunctionDescription& fd = func->second;
                     funcDescription = FunctionDescription(fd.getName(), funcTypes, resultType, fd.getFuncPtr(), fd.getScratchSize(),
-                                                          fd.supportsVectorMode(), fd.isCommulative(), inferFunc);
+                                                          fd.isCommulative(), inferFunc);
                 }
                 converters = argConverters;
                 convCost = totalCost;
-                cnvVectorModeForBestMatch = cnvVectorMode;
             }
         }
-    }
-    if (foundMatch) {
-        supportsVectorMode &= funcDescription.supportsVectorMode() & cnvVectorModeForBestMatch;
     }
 
     // Search for commulative functions with less cost
@@ -772,16 +764,14 @@ bool FunctionLibrary::_findFunction(const std::string& name,
         _inputArgTypes[1] = inputArgTypes[0];
         FunctionDescription _funcDescription;
         std::vector<FunctionPointer> _converters;
-        bool _supportsVectorMode;
         ConversionCost _convCost;
         bool _swapInputs = true;
-        if (_findFunction(name, _inputArgTypes, _funcDescription, _converters, _supportsVectorMode, tile, _convCost, _swapInputs))
+        if (_findFunction(name, _inputArgTypes, _funcDescription, _converters, tile, _convCost, _swapInputs))
         {
             if (!foundMatch || _convCost < convCost)
             {
                 funcDescription = _funcDescription;
                 converters = _converters;
-                supportsVectorMode = _supportsVectorMode;
                 convCost = _convCost;
                 swapInputs = true;
                 return true;
@@ -793,8 +783,7 @@ bool FunctionLibrary::_findFunction(const std::string& name,
     return foundMatch;
 }
 
-
-bool FunctionLibrary::findFunction(std::string name, bool tile)
+bool FunctionLibrary::hasFunction(std::string name, bool tile)
 {
     return getFunctionMap(tile).find(name) != getFunctionMap(tile).end();
 }
@@ -807,10 +796,9 @@ inline FunctionLibrary::Converter const* FunctionLibrary::findDirectConverter(Ty
 }
 
 
-FunctionPointer FunctionLibrary::findConverter(
+FunctionPointer FunctionLibrary::_findConverter(
                     TypeId const& srcType,
                     TypeId const& destType,
-                    bool& supportsVectorMode,
                     bool tile,
                     bool raiseException,
                     ConversionCost* cost)
@@ -826,7 +814,6 @@ FunctionPointer FunctionLibrary::findConverter(
         if (cost != NULL) {
             *cost = 0;
         }
-        supportsVectorMode = false;
         return tile ? &rle_unary_null_to_any : &convNullToAny;
     }
     Converter const* cnv = findDirectConverter(srcType, destType, tile);
@@ -881,7 +868,6 @@ FunctionPointer FunctionLibrary::findConverter(
         }
         *cost = cnv->cost;
     }
-    supportsVectorMode &= cnv->supportsVectorMode;
     return cnv->func;
 }
 
@@ -921,19 +907,6 @@ void FunctionLibrary::addVFunction(const FunctionDescription& functionDesc)
     // TODO: implement the check of ability to add function
     _vFunctionMap[functionDesc.getName()][functionDesc.getInputArgs()] = functionDesc;
     _functionLibraries.addObject(functionDesc.getMangleName());
-}
-
-void FunctionLibrary::addConverter( TypeId srcType,
-                                    TypeId destType,
-                                    FunctionPointer func,
-                                    ConversionCost cost,
-                                    bool supportsVectorMode)
-{
-    // TODO: implement the check of ability to add converter
-    Converter& cnv = _sConverterMap[srcType][destType];
-    cnv.func = func;
-    cnv.cost = _registeringBuiltInObjects ? cost : EXPLICIT_CONVERSION_COST;
-    cnv.supportsVectorMode = supportsVectorMode;
 }
 
 void FunctionLibrary::addVConverter( TypeId srcType,

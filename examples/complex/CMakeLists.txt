@@ -27,6 +27,3 @@ set (complex_src
 add_library(complex SHARED ${complex_src})
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libcomplex${CMAKE_SHARED_LIBRARY_SUFFIX}" complex)
 set_target_properties(complex PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
-if (APPLE)
-  set_target_properties(complex PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif (APPLE)

@@ -117,7 +117,9 @@ public:
         Coordinates pos(1,whereToStart);
         shared_ptr<ArrayIterator> aiter = array->getIterator(0);
         aiter->setPosition(pos);
-        shared_ptr<ChunkIterator> citer = aiter->updateChunk().getIterator(query, ChunkIterator::NO_EMPTY_CHECK | ChunkIterator::APPEND_CHUNK);
+        shared_ptr<ChunkIterator> citer = aiter->updateChunk().getIterator(query, ChunkIterator::NO_EMPTY_CHECK |
+                                                                           ChunkIterator::APPEND_EMPTY_BITMAP |
+                                                                           ChunkIterator::APPEND_CHUNK);
         Value v;
         while (pos[0] < numElements)
         {

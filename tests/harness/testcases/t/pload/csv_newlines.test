@@ -8,10 +8,14 @@ create array simp2_reloaded <s1:string null,s2:string null>[i=0:*,100,0]
 --test
 
 # Make sure Bryan's simple #4122 test case works.
+# This produces the following warning, and that's OK:
+#   splitcsv: WARNING: Field count changed from 2 to 1 at input record 2
 --echo First simple test
 --shell --command "printf '\"one\",\n\"two\"\n' | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -x -a simple1 -s '<s1:string null,s2:string null>[i=0:*,100,0]' -t ss"
 scan(simple1)
 
+# This also produces a warning, and that's OK:
+#   splitcsv: WARNING: Field count changed from 2 to 1 at input record 2
 --echo Second simple test
 --shell --command "printf '\"three\n\",\n\"four\nand five\"\n' | loadcsv.py -d ${IQUERY_HOST} -p ${IQUERY_PORT} -x -a simple2 -s '<s1:string null,s2:string null>[i=0:*,100,0]' -t ss"
 scan(simple2)

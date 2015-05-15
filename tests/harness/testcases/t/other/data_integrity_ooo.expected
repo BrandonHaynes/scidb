@@ -1,0 +1,505 @@
+SCIDB QUERY : <create array teeth <val:int64 null> [x=0:*,2,0,y=0:*,2,0]>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{0,2} 37
+{1,2} 14
+{1,3} 20
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt')) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt'),1) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt'),teeth) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt'),teeth)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "save(teeth, '/tmp/$HPID_teeth_di_ooo.binary',-2,'(int64 null)') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.binary',-2,'(int64 null)') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,0} null
+{0,1} 0
+{1,0} 8
+{1,1} 37
+{0,2} 14
+{0,3} 20
+{1,2} 3
+{1,3} 9
+{0,4} 10
+{0,5} 5
+{1,4} 0
+{1,5} 6
+{0,6} null
+{0,7} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.binary',-2,'(int64 null)',0,true) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,0} null
+{0,1} 0
+{1,0} 8
+{1,1} 37
+{0,2} 14
+{0,3} 20
+{1,2} 3
+{1,3} 9
+{0,4} 10
+{0,5} 5
+{1,4} 0
+{1,5} 6
+{0,6} null
+{0,7} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.binary',-2,'(int64 null)',0,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,0} null
+{0,1} 0
+{1,0} 8
+{1,1} 37
+{0,2} 14
+{0,3} 20
+{1,2} 3
+{1,3} 9
+{0,4} 10
+{0,5} 5
+{1,4} 0
+{1,5} 6
+{0,6} null
+{0,7} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "save(teeth, '/tmp/$HPID_teeth_di_ooo.opaque',-2,'opaque') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,0} null
+{0,1} 0
+{1,0} 8
+{1,1} 37
+{0,2} 14
+{0,3} 20
+{1,2} 3
+{1,3} 9
+{0,4} 10
+{0,5} 5
+{1,4} 0
+{1,5} 6
+{0,6} null
+{0,7} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.opaque',-2,'opaque') " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,0} null
+{0,1} 0
+{1,0} 8
+{1,1} 37
+{0,2} 14
+{0,3} 20
+{1,2} 3
+{1,3} 9
+{0,4} 10
+{0,5} 5
+{1,4} 0
+{1,5} 6
+{0,6} null
+{0,7} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.opaque',-2,'opaque',0,true) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,0} null
+{0,1} 0
+{1,0} 8
+{1,1} 37
+{0,2} 14
+{0,3} 20
+{1,2} 3
+{1,3} 9
+{0,4} 10
+{0,5} 5
+{1,4} 0
+{1,5} 6
+{0,6} null
+{0,7} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '/tmp/$HPID_teeth_di_ooo.opaque',-2,'opaque',0,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,0} null
+{0,1} 0
+{1,0} 8
+{1,1} 37
+{0,2} 14
+{0,3} 20
+{1,2} 3
+{1,3} 9
+{0,4} 10
+{0,5} 5
+{1,4} 0
+{1,5} 6
+{0,6} null
+{0,7} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{0,2} 37
+{1,2} 14
+{1,3} 20
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{0,2} 37
+{1,2} 14
+{1,3} 20
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),teeth,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),teeth,false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),teeth, false)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),teeth, false)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0, false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0, false)" 2>&1 | grep 'Error id:' > /dev/null>
+
+SCIDB QUERY : <remove(teeth_shadow)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0, teeth_shadow, false) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <remove(teeth_shadow)>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0, teeth_shadow, false)" 2>&1 | grep 'Error id:' > /dev/null>
+
+SCIDB QUERY : <remove(teeth_shadow)>
+[An error expected at this place for the query "remove(teeth_shadow)". And it failed.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true))" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true))" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <remove(TEETH)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),1, -1,TEETH,false)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <remove(TEETH)>
+[An error expected at this place for the query "remove(TEETH)". And it failed.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),1, -1,TEETH,false)" 2>&1 | grep 'Error id:' > /dev/null>
+
+SCIDB QUERY : <remove(TEETH)>
+[An error expected at this place for the query "remove(TEETH)". And it failed.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),1, -1,TEETH,true) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <remove(TEETH)>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),1, -1,TEETH,true)" 2>&1 | grep 'Error id:' > /dev/null>
+
+SCIDB QUERY : <remove(TEETH)>
+[An error expected at this place for the query "remove(TEETH)". And it failed.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),1, -1,TEETH,true)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <remove(TEETH)>
+[An error expected at this place for the query "remove(TEETH)". And it failed.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "sg(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),1, -1,TEETH,true)" 2>&1 | grep 'Error id:' > /dev/null>
+
+SCIDB QUERY : <remove(TEETH)>
+[An error expected at this place for the query "remove(TEETH)". And it failed.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),teeth,false)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),teeth,false)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),teeth,true) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),teeth,true)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_REDISTRIBUTE::SCIDB_LE_DATA_COLLISION
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),teeth,true)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),teeth,true)" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),teeth, false))" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),teeth, false))" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,false),teeth, true)) " 2>&1 | grep -v 'Warnings during preparing' | grep -v 'not found on instance'>
+Query was executed successfully
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,false),teeth, true))" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_REDISTRIBUTE::SCIDB_LE_DATA_COLLISION
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0,true),teeth, true))" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "consume(redimension(input(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -1, 'text', 0,true),teeth, true))" 2>&1 | grep 'Error id:'>
+Error id: scidb::SCIDB_SE_IMPORT_ERROR::SCIDB_LE_FILE_IMPORT_FAILED
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0, true)" 2>&1 | grep 'Error id:' > /dev/null>
+
+SCIDB QUERY : <scan(teeth)>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <remove(teeth_shadow)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -aq "load(teeth, '${TEST_DATA_DIR}/teeth_di_ooo.txt', -2, 'text', 0, teeth_shadow, true)" 2>&1 | grep 'Error id:' > /dev/null>
+
+SCIDB QUERY : <scan(teeth)>
+{x,y} val
+{0,1} null
+{1,0} 0
+{1,1} 8
+{0,2} 37
+{1,2} 14
+{1,3} 20
+{2,0} 3
+{2,1} 9
+{3,1} 10
+{4,0} 5
+{4,1} 0
+{5,0} 6
+{5,1} null
+{5,3} 24
+
+SCIDB QUERY : <remove(teeth_shadow)>
+[An error expected at this place for the query "remove(teeth_shadow)". And it failed.]
+
+SCIDB QUERY : <remove(teeth)>
+Query was executed successfully
+
+SCIDB QUERY : <remove(TEETH)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+
+SCIDB QUERY : <remove(teeth_shadow)>
+[SciDB query execution failed. But continuing, as it was intended to just run.]
+

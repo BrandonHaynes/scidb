@@ -289,18 +289,17 @@ void HarnessTestExecutor :: copyToLocal (const InfoForExecutor &ir)
 	_ie.logger_name        = ir.logger_name;
 }
 
-int HarnessTestExecutor :: execute (const InfoForExecutor &ir)
+int HarnessTestExecutor :: execute (InfoForExecutor &ir)
 {
 	time_t rawtime;
 	time ( &rawtime );
-	std::string _ctime = ctime (&rawtime);
-	_ctime = _ctime.substr(0,_ctime.size()-1);
+	std::string nowStr(ctime (&rawtime));
+	nowStr = nowStr.substr(0,nowStr.size()-1); // remove newline
 
 	if (strcasecmp (ir.logDestination.c_str (), LOGDESTINATION_CONSOLE) != 0)
 	{
-		const char *underlines30 = "______________________________";  // 30, more than enough
-		cout << "[" << ir.test_sequence_number << "][" << _ctime << "]: " << ir.testID
-		     << " " << underlines30 << " Executing" << std::endl << std::flush;
+		cout << "[" << ir.test_sequence_number << "][" << nowStr << "]: "
+		     << "[start] " << ir.testID << std::endl;
 	}
 
 	copyToLocal (ir);

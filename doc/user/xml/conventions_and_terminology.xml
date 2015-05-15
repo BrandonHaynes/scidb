@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+%myents;
+]>
+<chapter id="ch01">
+  <title>Document Conventions and Terminology</title>
+
+  <para>This document is a Reference Manual, written for scientists and
+  developers in various application areas who want to use SciDB as their
+  scalable data management and analytic platform.</para>
+
+  <section xml:id="ConventionsUsedinthisDocument">
+    <title>Conventions Used in This Document</title>
+
+    <para><indexterm>
+        <primary>document conventions</primary>
+      </indexterm><indexterm>
+        <primary>conventions</primary>
+      </indexterm>Code to be typed in verbatim is shown in
+    <literal>fixed-width font</literal>. Code that is to be replaced with an
+    actual string is shown in<emphasis> italics</emphasis>. Optional arguments
+    are shown in square brackets [].</para>
+
+    <para>AQL commands are shown in <emphasis role="bold">
+        <literal>FIXED-WIDTH BOLD CAPS</literal>
+      </emphasis>. When necessary, a line of code may be preceded by the
+    <literal>AQL%</literal> or <literal>AFL%</literal> prompt to show which
+    language the query is issued from.</para>
+  </section>
+
+  <section xml:id="terminology">
+    <title>Terminology</title>
+
+    <para>The following terms are used to describe the SciDB installation and
+    administration process:</para>
+
+    <variablelist>
+      <?dbfo term-width="1.5in"?>
+
+      <varlistentry>
+        <term>
+          <emphasis>Array</emphasis>
+        </term>
+
+        <listitem>
+          <para><indexterm>
+              <primary>arrays</primary>
+
+              <secondary>definition</secondary>
+            </indexterm>A data structure that is used to store SciDB data. An
+          array has any number of dimensions and attributes. Comparing with
+          the relational model, arrays act like tables, array cells act like
+          rows, dimensions and attributes both act like columns, while the set
+          of all dimensions acts like the primary key.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>Matrix</emphasis>
+        </term>
+
+        <listitem>
+          <para><indexterm>
+              <primary>matrix</primary>
+
+              <secondary>definition</secondary>
+            </indexterm>A SciDB array that has two dimensions and one numeric
+          attribute. Linear algebra is performed on matrices.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>Single server</emphasis>
+        </term>
+
+        <listitem>
+          <para><indexterm>
+              <primary>server</primary>
+
+              <secondary>single</secondary>
+            </indexterm>A configuration that consists of a single machine with
+          a processor that may contain multiple cores, memory and attached
+          storage. A single server may be virtual or physical.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>Virtual server</emphasis>
+        </term>
+
+        <listitem>
+          <para><indexterm>
+              <primary>server</primary>
+
+              <secondary>virtual</secondary>
+            </indexterm>A server that shares hardware rather than having
+          dedicated hardware.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>Coordinator server</emphasis>
+        </term>
+
+        <listitem>
+          <para><indexterm>
+              <primary>coordinator server</primary>
+            </indexterm>In a configuration that has multiple servers, exactly
+          one server functions as the default coordinator, and contains the
+          default <emphasis>coordinator instance</emphasis>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>SciDB instance</emphasis>
+        </term>
+
+        <listitem>
+          <para>An independent SciDB group of processes, that is, a single
+          running SciDB. There may be a many-to-one mapping between SciDB
+          instances and a server.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>Coordinator instance</emphasis>
+        </term>
+
+        <listitem>
+          <para><indexterm>
+              <primary>instances</primary>
+
+              <secondary>coordinator</secondary>
+            </indexterm><indexterm>
+              <primary>coordinator instance</primary>
+            </indexterm>A SciDB instance that coordinates activity of a query.
+          There is a single default coordinator instance for a SciDB cluster;
+          it resides on the coordinator server. A coordinator instance
+          coordinates query activity in addition to participating in query
+          execution.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>Worker instance</emphasis>
+        </term>
+
+        <listitem>
+          <para><indexterm>
+              <primary>instances</primary>
+
+              <secondary>worker</secondary>
+            </indexterm><indexterm>
+              <primary>worker instance</primary>
+            </indexterm>A SciDB instance that participates in query
+          execution.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>Cluster</emphasis>
+        </term>
+
+        <listitem>
+          <para>A group of one or more single servers connected by TCP/IP,
+          working together as a single system. A cluster can be a private grid
+          or a public cloud.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <emphasis>SciDB cluster</emphasis>
+        </term>
+
+        <listitem>
+          <para>A collection of SciDB instances (one default coordinator and
+          zero or more worker instances) form a SciDB cluster.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </section>
+</chapter>

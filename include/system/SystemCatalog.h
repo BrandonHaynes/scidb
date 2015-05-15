@@ -38,10 +38,10 @@
 #include <list>
 #include <assert.h>
 #include <boost/shared_ptr.hpp>
-
-#include "query/TypeSystem.h"
-#include "array/Metadata.h"
-#include "util/Singleton.h"
+#include <pqxx/transaction>
+#include <query/TypeSystem.h>
+#include <array/Metadata.h>
+#include <util/Singleton.h>
 #include <system/Cluster.h>
 
 namespace pqxx
@@ -271,6 +271,16 @@ public:
     void getArrays(std::vector<std::string> &arrays);
 
     /**
+     * Fills vector with array descriptors from the persistent catalog manager.
+     * @param arrayDescs Vector of ArrayDesc objects
+     * @param ignoreOrphanAttributes whether to ignore attributes whose UDT/UDF are not available
+     * @param ignoreVersions whether to ignore version arrays (i.e. of the name <name>@<version>)
+     * @throws scidb::SystemException on error
+     */
+    void getArrays(std::vector<ArrayDesc>& arrayDescs,
+                   bool ignoreOrphanAttributes,
+                   bool ignoreVersions);
+    /**
      * Checks if there is an array with the specified ID in the catalog. First
      * check the local instance's list of arrays. If the array is not present
      * in the local catalog management, check the persistent catalog manager.
@@ -298,17 +308,12 @@ public:
     ArrayID findArrayByName(const std::string &array_name);
 
     /**
-     * Returns array metadata using the array name. If throwException is true then
-     * you will get returned exception in the 4th parameter.
-     * You should check that exception: if you did not expect it - rethrow it.
-     * Otherwise handle it as you need.
+     * Returns array metadata using the array name.
      * @param[in] array_name Array name
      * @param[out] array_desc Array descriptor
-     * @param[in] throwException throw exception if array with specified name is not found
-     * @param[out] exception Returned exception
-     * @return Error code can be read from exception
+     * @exception scidb::SystemException
      */
-    void getArrayDesc(const std::string &array_name, ArrayDesc &array_desc, const bool throwException, boost::shared_ptr<Exception> &exception);
+    void getArrayDesc(const std::string &array_name, ArrayDesc &array_desc);
 
     /**
      * Returns array metadata using the array name.
@@ -316,8 +321,9 @@ public:
      * @param[out] array_desc Array descriptor
      * @param[in] throwException throw exception if array with specified name is not found
      * @return true if array is found, false if array is not found and throwException is false
+     * @exception scidb::SystemException
      */
-    bool getArrayDesc(const std::string &array_name, ArrayDesc &array_desc, const bool throwException = true);
+    bool getArrayDesc(const std::string &array_name, ArrayDesc &array_desc, const bool throwException);
 
     /**
      * Returns array metadata using the array name.
@@ -326,6 +332,7 @@ public:
      * @param[out] array_desc Array descriptor
      * @param[in] throwException throw exception if array with specified name is not found
      * @return true if array is found, false if array is not found and throwException is false
+     * @exception scidb::SystemException
      */
     bool getArrayDesc(const std::string &array_name, VersionID version, ArrayDesc &array_desc, const bool throwException = true);
 
@@ -477,15 +484,6 @@ public:
     void markInstanceOffline(InstanceID instance_id);
 
     /**
-     * Set default compression method for the specified array attribute:
-     * @param arrId array identifier
-     * @param attId attribute identifier
-     * @param compressionMethod default compression for this attribute
-     */
-    void setDefaultCompressionMethod(ArrayID arrId, AttributeID attId,
-            int16_t compressionMethod);
-
-    /**
      * Temporary method for connecting to PostgreSQL database used as metadata
      * catalog
      *
@@ -560,9 +558,18 @@ private:
     void _addArray(ArrayDesc &array_desc, PartitioningSchema ps);
     void _updateArray(const ArrayDesc &array_desc);
     void _getArrays(std::vector<std::string> &arrays);
+    void _getArrays(std::vector<ArrayDesc>& arrayDescs,
+                    bool ignoreOrphanAttributes,
+                    bool ignoreVersions);
     bool _containsArray(const ArrayID array_id);
     ArrayID _findArrayByName(const std::string &array_name);
-    void _getArrayDesc(const std::string &array_name, ArrayDesc &array_desc, const bool throwException, boost::shared_ptr<Exception> &exception);
+    void _getArrayDesc(const std::string &array_name,
+                       ArrayDesc &array_desc,
+                       bool ignoreOrphanAttributes);
+    void _getArrayDesc(const std::string &array_name,
+                       ArrayDesc &array_desc,
+                       bool ignoreOrphanAttributes,
+                       pqxx::basic_transaction* tr);
     boost::shared_ptr<ArrayDesc> _getArrayDesc(const ArrayID id);
     PartitioningSchema _getPartitioningSchema(const ArrayID arrayId);
     bool _deleteArrayByName(const std::string &array_name);
@@ -583,8 +590,6 @@ private:
     void _getClusterInstance(InstanceID instance_id, InstanceDesc &instance);
     void _markInstanceOnline(InstanceID instance_id, const std::string& host, uint16_t port);
     void _markInstanceOffline(InstanceID instance_id);
-    void _setDefaultCompressionMethod(ArrayID arrId, AttributeID attId,
-            int16_t compressionMethod);
     void _addLibrary(const std::string& libraryName);
     void _getLibraries(std::vector< std::string >& libraries);
     void _removeLibrary(const std::string& libraryName);

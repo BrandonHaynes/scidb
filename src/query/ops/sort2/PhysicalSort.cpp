@@ -71,14 +71,45 @@ public:
         return inputBoundaries[0];
     }
 
+    // Note from Donghui:
+    // This function was moved from MergeSortArray.cpp.
+    // Seems to me that it is used *only* to support the sort2() operator.
+    // I think the function is very cryptic. I'll keep the original behavior.
+    // But this function is expected to be removed from the system, after sort2() is removed in the near future.
+    //
+    size_t getArrayLength(DimensionDesc const& dim, size_t instanceId, size_t nInstances)
+    {
+        if (dim.getLength() == 0) {
+            return 0;
+        }
+        uint64_t length = dim.getLength() / (dim.getChunkInterval()*nInstances) * dim.getChunkInterval();
+        uint64_t rest = dim.getLength() % (dim.getChunkInterval()*nInstances);
+        if (rest >= dim.getChunkInterval() * instanceId) {
+            rest -= dim.getChunkInterval() * instanceId;
+            if (static_cast<int64_t>(rest) > dim.getChunkInterval()) {
+                rest = dim.getChunkInterval();
+            }
+            length += rest;
+        }
+        return (size_t)length;
+    }
+
     boost::shared_ptr<Array> execute(std::vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
-        assert (query->getCoordinatorID() == COORDINATOR_INSTANCE);
+        assert (query->isCoordinator());
 
         if (inputArrays.size() > 1) {
             std::auto_ptr<SortContext> ctx ((SortContext*)query->userDefinedContext);
-            boost::shared_ptr<TupleComparator> tcomp(new TupleComparator(ctx->keys, _schema));
-            boost::shared_ptr<Array> result(new MergeSortArray(query, _schema, inputArrays, tcomp));
+            boost::shared_ptr<TupleComparator> tcomp(boost::make_shared<TupleComparator>(ctx->_sortingAttributeInfos, _schema));
+
+            // This vector of stream sizes makes sort2() behave the same as before.
+            size_t nStreams = inputArrays.size();
+            shared_ptr<vector<size_t> > streamSizes = shared_ptr<vector<size_t> >(new vector<size_t>(nStreams));
+            const size_t nInstances = query->getInstancesCount();
+            for (size_t i=0; i<nStreams; ++i) {
+                (*streamSizes)[i] = getArrayLength(_schema.getDimensions()[0], i, nInstances);
+            }
+            boost::shared_ptr<Array> result(boost::make_shared<MergeSortArray>(query, _schema, inputArrays, tcomp, 0, streamSizes));
             ctx.reset();
             return result;
         }

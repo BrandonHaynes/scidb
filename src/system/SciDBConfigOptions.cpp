@@ -36,9 +36,9 @@ void configHook(int32_t configOption)
 {
     switch (configOption)
     {
-        case CONFIG_CONFIGURATION_FILE:
+        case CONFIG_CONFIG:
             Config::getInstance()->setConfigFileName(
-                Config::getInstance()->getOption<string>(CONFIG_CONFIGURATION_FILE));
+                Config::getInstance()->getOption<string>(CONFIG_CONFIG));
             break;
 
         case CONFIG_HELP:
@@ -64,19 +64,25 @@ void initConfig(int argc, char* argv[])
     // boost::bad_any_cast exception when reading the option value
     // (cannot extract 64-bit unsigned size_t into 32-bit signed int).
 
+    // ANOTHER WARNING: Until my advice in ticket #3533 comment:10 is
+    // heeded, you'll have to also add your new option to the
+    // scidb.py.in script template.  And if your boolean option's
+    // default is 0/off/false, yet another scidb.py hoop: see
+    // preallocate-shared-mem for an example.  Mumble....  -mjl
+
     cfg->addOption
         (CONFIG_PRECISION, 'w', "precision", "PRECISION", "", scidb::Config::INTEGER,
                "Precision for printing floating point numbers. Default is 6", 6, false)
-        (CONFIG_CATALOG_CONNECTION_STRING, 'c', "catalog", "CATALOG", "", Config::STRING,
+        (CONFIG_CATALOG, 'c', "catalog", "CATALOG", "", Config::STRING,
             "Catalog connection string. In order to create use utils/prepare-db.sh")
-        (CONFIG_LOG4CXX_PROPERTIES, 'l', "log-properties", "LOG_PROPERTIES", "",
+        (CONFIG_LOGCONF, 'l', "logconf", "LOG_PROPERTIES", "",
             Config::STRING, "Log4cxx properties file.", string(""), false)
         (CONFIG_COORDINATOR, 'k', "coordinator", "COORDINATOR", "", Config::BOOLEAN,
             "Option to start coordinator instance. It will works on default port or on port specified by port option.",
             false, false)
         (CONFIG_PORT, 'p', "port", "PORT", "", Config::INTEGER, "Set port for server. Default - any free port, but 1239 if coodinator.",
                 0, false)
-        (CONFIG_ADDRESS, 'i', "interface", "INTERFACE", "", Config::STRING, "Interface for listening connections.",
+        (CONFIG_INTERFACE, 'i', "interface", "INTERFACE", "", Config::STRING, "Interface for listening connections.",
                 string("0.0.0.0"), false)
         (CONFIG_REGISTER, 'r', "register", "", "", Config::BOOLEAN,
             "Register instance in system catalog.", false, false)
@@ -88,13 +94,13 @@ void initConfig(int argc, char* argv[])
             "Level of redundancy.", 0, false)
         (CONFIG_INITIALIZE, 0, "initialize", "", "", Config::BOOLEAN,
             "Initialize cluster.", false, false)
-        (CONFIG_STORAGE_URL, 's', "storage", "STORAGE", "", Config::STRING, "Storage URL.",
+        (CONFIG_STORAGE, 's', "storage", "STORAGE", "", Config::STRING, "Storage URL.",
                 string("./storage.scidb"), false)
-        (CONFIG_PLUGINS, 'u', "plugins", "PLUGINS", "", Config::STRING, "Plugins folder.",
+        (CONFIG_PLUGINSDIR, 'u', "pluginsdir", "PLUGINS", "", Config::STRING, "Plugins folder.",
             string(SCIDB_INSTALL_PREFIX()) + string("/lib/scidb/plugins"), false)
-        (CONFIG_CACHE_SIZE, 'm', "cache", "CACHE", "", Config::INTEGER,
+        (CONFIG_SMGR_CACHE_SIZE, 'm', "smgr-cache-size", "CACHE", "", Config::INTEGER,
             "Size of storage cache (Mb).", 256, false)
-        (CONFIG_CONFIGURATION_FILE, 'f', "config", "", "", Config::STRING,
+        (CONFIG_CONFIG, 'f', "config", "", "", Config::STRING,
                 "Instance configuration file.", string(""), false)
         (CONFIG_HELP, 'h', "help", "", "", Config::BOOLEAN, "Show this text.",
                 false, false)
@@ -112,25 +118,30 @@ void initConfig(int argc, char* argv[])
          "Size of minimum allocation chunk in storage file.", 512, false)
         (CONFIG_READ_AHEAD_SIZE, 0, "read-ahead-size", "READ_AHEAD_SIZE", "", Config::SIZE,
          "Total size of read ahead chunks (bytes).", 64*MiB, false)
-        (CONFIG_DAEMONIZE, 'd', "daemon", "", "", Config::BOOLEAN, "Run scidb in background.",
+        (CONFIG_DAEMON_MODE, 'd', "daemon-mode", "", "", Config::BOOLEAN, "Run scidb in background.",
                 false, false)
         (CONFIG_MEM_ARRAY_THRESHOLD, 'a', "mem-array-threshold", "MEM_ARRAY_THRESHOLD", "", Config::SIZE,
                 "Maximal size of memory used by temporary in-memory array (MiB)", DEFAULT_MEM_THRESHOLD, false)
-        (CONFIG_TMP_PATH, 0, "tmp-path", "", "TMP_PATH", Config::STRING, "Directory for SciDB temporary files",
-                string("./tmp"), false)
-        (CONFIG_EXEC_THREADS, 't', "threads", "EXEC_THREADS", "", Config::INTEGER,
+        (CONFIG_REDIM_CHUNK_OVERHEAD_LIMIT, 0, "redim-chunk-overhead-limit-mb",
+         "REDIM_CHUNK_OVERHEAD_LIMIT", "", Config::SIZE,
+         "Redimension memory usage for chunk headers will be limited to this "
+         "value in MiB (0 disables check)", 0*MiB, false)
+        (CONFIG_CHUNK_SIZE_LIMIT, 0, "chunk-size-limit-mb",
+         "CHUNK_SIZE_LIMIT", "", Config::SIZE,
+         "Maximum allowable chunk size in MiB (0 disables check)", 0*MiB, false)
+        (CONFIG_RESULT_PREFETCH_THREADS, 't', "result-prefetch-threads", "EXEC_THREADS", "", Config::INTEGER,
                 "Number of execution threads for concurrent processing of chunks of one query", 4, false)
-        (CONFIG_PREFETCHED_CHUNKS, 'q', "prefetch-queue-size", "PREFETCHED_CHUNKS", "", Config::INTEGER,
+        (CONFIG_RESULT_PREFETCH_QUEUE_SIZE, 'q', "result-prefetch-queue-size", "PREFETCHED_CHUNKS", "", Config::INTEGER,
                 "Number of prefetch chunks for each query", 4, false)
-        (CONFIG_MAX_JOBS, 'j', "jobs", "MAX_JOBS", "", Config::INTEGER,
+        (CONFIG_EXECUTION_THREADS, 'j', "execution-threads", "MAX_JOBS", "", Config::INTEGER,
          "Max. number of queries that can be processed in parallel", 5, false)
-        (CONFIG_USED_CPU_LIMIT, 'x', "used-cpu-limit", "USED_CPU_LIMIT", "", Config::INTEGER,
+        (CONFIG_OPERATOR_THREADS, 'x', "operator-threads", "USED_CPU_LIMIT", "", Config::INTEGER,
                 "Max. number of threads for concurrent processing of one chunk", 0, false)
         (CONFIG_MERGE_SORT_BUFFER, 0, "merge-sort-buffer", "MERGE_SORT_BUFFER", "", Config::INTEGER,
                 "Maximal size for in-memory sort buffer (Mb)", 128, false)
         (CONFIG_MERGE_SORT_NSTREAMS, 0, "merge-sort-nstreams", "MERGE_SORT_NSTREAMS", "", Config::INTEGER,
                 "Number of streams to merge at each level of sort", 8, false)
-        (CONFIG_MERGE_PIPELINE_LIMIT, 0, "merge-sort-pipeline-limit", "MERGE_SORT_PIPELINE_LIMIT", "", Config::INTEGER,
+        (CONFIG_MERGE_SORT_PIPELINE_LIMIT, 0, "merge-sort-pipeline-limit", "MERGE_SORT_PIPELINE_LIMIT", "", Config::INTEGER,
          "Max number of outstanding sorted runs before merging", 32, false)
         (CONFIG_NETWORK_BUFFER, 'n', "network-buffer", "NETWORK_BUFFER", "", Config::INTEGER,
                 "Size of memory used for network buffers (Mb)", 512, false)
@@ -140,9 +151,9 @@ void initConfig(int argc, char* argv[])
         (CONFIG_ENABLE_DELTA_ENCODING, 0, "enable-delta-encoding", "ENABLE_DELTA_ENCODING", "", Config::BOOLEAN, "True if system should attempt to compute delta chunk versions", false, false)
         (CONFIG_VERSION, 'V', "version", "", "", Config::BOOLEAN, "Version.",
                 false, false)
-        (CONFIG_STATISTICS_MONITOR, 0, "stat-monitor", "STAT_MONITOR", "", Config::INTEGER,
+        (CONFIG_STAT_MONITOR, 0, "stat-monitor", "STAT_MONITOR", "", Config::INTEGER,
                 "Statistics monitor type: 0 - none, 1 - Logger, 2 - Postgres", 0, false)
-        (CONFIG_STATISTICS_MONITOR_PARAMS, 0, "stat-monitor-params", "STAT_MONITOR_PARAMS", "STAT_MONITOR_PARAMS",
+        (CONFIG_STAT_MONITOR_PARAMS, 0, "stat-monitor-params", "STAT_MONITOR_PARAMS", "STAT_MONITOR_PARAMS",
             Config::STRING, "Parameters for statistics monitor: logger name or connection string", string(""), false)
         (CONFIG_LOG_LEVEL, 0, "log-level", "LOG_LEVEL", "LOG_LEVEL", Config::STRING,
          "Level for basic log4cxx logger. Ignored if log-properties option is used. Default level is ERROR", string("error"), false)
@@ -167,11 +178,11 @@ void initConfig(int argc, char* argv[])
         (CONFIG_LARGE_MEMALLOC_LIMIT, 0, "large-memalloc-limit", "LARGE_MEMALLOC_LIMIT", "", Config::INTEGER, "Maximum number of large  (vs. small) memory allocations. The policy for doing large memory allocations may be different from the (default) policy used for small memory allocations. This parameter limits the number of outstanding allocations performed using the (non-default) large-size allocation policy.", std::numeric_limits<int>::max(), false)
 
         (CONFIG_STRICT_CACHE_LIMIT, 0, "strict-cache-limit", "STRICT_CACHE_LIMIT", "", Config::BOOLEAN, "Block thread if cache is overflown", false, false)
-        (CONFIG_REPLICATION_RECEIVE_QUEUE_SIZE, 0, "replication-receive-queue-size", "REPLICATION_RECEIVE_QUEUE_SIZE", "", Config::INTEGER, "The length of incoming replication queue (across all connections)", 1000, false)
-        (CONFIG_REPLICATION_SEND_QUEUE_SIZE, 0, "replication-send-queue-size", "REPLICATION_SEND_QUEUE_SIZE", "", Config::INTEGER, "The length of outgoing replication queue (across all connections)", 1000, false)
+        (CONFIG_REPLICATION_RECEIVE_QUEUE_SIZE, 0, "replication-receive-queue-size", "REPLICATION_RECEIVE_QUEUE_SIZE", "", Config::INTEGER, "The length of incoming replication queue (across all connections)", 64, false)
+        (CONFIG_REPLICATION_SEND_QUEUE_SIZE, 0, "replication-send-queue-size", "REPLICATION_SEND_QUEUE_SIZE", "", Config::INTEGER, "The length of outgoing replication queue (across all connections)", 4, false)
 
-        (CONFIG_SG_RECEIVE_QUEUE_SIZE, 0, "sg-receive-queue-size", "SG_RECEIVE_QUEUE_SIZE", "", Config::INTEGER, "The length of incoming sg queue (across all connections)", 128, false)
-        (CONFIG_SG_SEND_QUEUE_SIZE, 0, "sg-send-queue-size", "SG_SEND_QUEUE_SIZE", "", Config::INTEGER, "The length of outgoing sg queue (across all connections)", 64, false)
+        (CONFIG_SG_RECEIVE_QUEUE_SIZE, 0, "sg-receive-queue-size", "SG_RECEIVE_QUEUE_SIZE", "", Config::INTEGER, "The length of incoming sg queue (across all connections)", 8, false)
+        (CONFIG_SG_SEND_QUEUE_SIZE, 0, "sg-send-queue-size", "SG_SEND_QUEUE_SIZE", "", Config::INTEGER, "The length of outgoing sg queue (across all connections)", 16, false)
         (CONFIG_ARRAY_EMPTYABLE_BY_DEFAULT, 0, "array-emptyable-by-default", "ARRAY_EMPTYABLE_BY_DEFAULT", "", Config::BOOLEAN, "Be default arrays are emptyable", true, false)
         (CONFIG_LOAD_SCAN_BUFFER, 0, "load-scan-buffer", "LOAD_SCAN_BUFFER", "", Config::INTEGER, "Number of MB for one input buffer used in InputScanner", 1, false)
         (CONFIG_MATERIALIZED_WINDOW_THRESHOLD, 0, "materialized-window-threshhold", "MATERIALIZED_WINDOW_THRESHHOLD", "", Config::INTEGER, "Size in Mebibytes above which we will not materialize the input chunk to a window(...) operation", 128, false)
@@ -181,13 +192,15 @@ void initConfig(int argc, char* argv[])
         (CONFIG_MPI_SHM_TYPE, 0, "mpi-shm-type", "MPI_SHM_TYPE", "", Config::STRING, "MPI shared memory type [SHM | FILE].", string("SHM"), false)
         (CONFIG_CATALOG_RECONNECT_TRIES, 0, "catalog-reconnect-tries", "CONFIG_CATALOG_RECONNECT_TRIES", "", Config::INTEGER, "Count of tries of catalog reconnection", 5, false)
         (CONFIG_QUERY_MAX_SIZE, 0, "query-max-size", "CONFIG_QUERY_MAX_SIZE", "", Config::SIZE, "Max number of bytes in query string", 16*MiB, false)
-        (CONFIG_MAX_REQUESTS, 0, "requests", "MAX_REQUESTS", "", Config::INTEGER,
+        (CONFIG_REQUESTS, 0, "requests", "MAX_REQUESTS", "", Config::INTEGER,
          "Max. number of client query requests queued for execution. Any requests in excess of the limit are returned to the client with an error.", 256, false)
         (CONFIG_ENABLE_CATALOG_UPGRADE, 0, "enable-catalog-upgrade", "ENABLE_CATALOG_UPGRADE", "", Config::BOOLEAN, "Set to true to enable the automatic upgrade of SciDB catalog", false, false)
-        (CONFIG_REDIM_CHUNKSIZE, 0, "redimension-chunksize", "REDIMENSION_CHUNKSIZE", "", Config::SIZE, "Chunksize for internal intermediate array used in operator redimension", 10*KiB, false)
+        (CONFIG_REDIMENSION_CHUNKSIZE, 0, "redimension-chunksize", "REDIMENSION_CHUNKSIZE", "", Config::SIZE, "Chunksize for internal intermediate array used in operator redimension", 10*KiB, false)
         (CONFIG_MAX_OPEN_FDS, 0, "max-open-fds", "MAX_OPEN_FDS", "", Config::INTEGER, "Maximum number of fds that will be opened by the storage manager at once", 256, false)
-        (CONFIG_PREALLOCATE_SHM, 0, "preallocate-shared-mem", "PREALLOCATE_SHM", "", Config::BOOLEAN, "Make sure shared memory backing (e.g. /dev/shm) is preallocated", true, false)
+        (CONFIG_PREALLOCATE_SHARED_MEM, 0, "preallocate-shared-mem", "PREALLOCATE_SHM", "", Config::BOOLEAN, "Make sure shared memory backing (e.g. /dev/shm) is preallocated", true, false)
         (CONFIG_INSTALL_ROOT, 0, "install_root", "INSTALL_ROOT", "", Config::STRING, "The installation directory from which SciDB runs", string(SCIDB_INSTALL_PREFIX()), false)
+        (CONFIG_INPUT_DOUBLE_BUFFERING, 0, "input-double-buffering", "INPUT_DOUBLE_BUFFERING", "", Config::BOOLEAN,
+         "Use double buffering where possible in input and load operators", true, false)
         ;
 
     cfg->addHook(configHook);
@@ -198,14 +211,6 @@ void initConfig(int argc, char* argv[])
     if (!cfg->optionActivated(CONFIG_PORT) && cfg->getOption<bool>(CONFIG_COORDINATOR))
     {
         cfg->setOption(CONFIG_PORT, 1239);
-    }
-
-    // By default, change tmp-path to ./tmp
-    if (!cfg->optionActivated(CONFIG_TMP_PATH)) {
-        const string& storageConfigPath = cfg->getOption<string>(CONFIG_STORAGE_URL);
-        string storageConfigDir = getDir(storageConfigPath);
-        storageConfigDir += "/tmp";
-        cfg->setOption(CONFIG_TMP_PATH, storageConfigDir);
     }
 }
 

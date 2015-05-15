@@ -32,6 +32,7 @@
 #include "array/Array.h"
 // local
 #include "SpAccumulator.h"
+#include "SpgemmTimes.h"
 
 namespace scidb
 {
@@ -60,7 +61,7 @@ template<class IdAdd_tt, class SpAccumulator_tt>
 shared_ptr<scidb::ChunkIterator>
 spAccumulatorFlushToChunk(SpAccumulator_tt& spa, scidb::Coordinate rowNum,
                           shared_ptr<scidb::ArrayIterator>& resultArray, shared_ptr<scidb::ChunkIterator> resultChunkIn, scidb::Coordinates chunkPos,
-                          scidb::TypeEnum scidbTypeEnum, scidb::Type scidbType, shared_ptr<scidb::Query>& query)
+                          scidb::TypeEnum scidbTypeEnum, scidb::Type scidbType, shared_ptr<scidb::Query>& query, SpgemmTimes& times)
 {
     typedef typename SpAccumulator_tt::Val_t Val_t;
 
@@ -71,7 +72,9 @@ spAccumulatorFlushToChunk(SpAccumulator_tt& spa, scidb::Coordinate rowNum,
     if(spa.empty()) return resultChunkIn ;
 
    // sort _indicesUsed, so we can output the row in-order
+    times.blockMultSPAFlushSortStart();
     spa.sort();
+    times.blockMultSPAFlushSortStop();
 
     // now iterate over the row's indices and values, writing only non-zeros values
     Coordinates cellCoords(2);
@@ -79,6 +82,9 @@ spAccumulatorFlushToChunk(SpAccumulator_tt& spa, scidb::Coordinate rowNum,
 
     for (typename SpAccumulator_tt::iterator it = spa.begin(); it != spa.end(); ++it)
     {
+#if DBG_TIMING
+        double topStart=getDbgMonotonicrawSecs() ;
+#endif
         typename SpAccumulator_tt::IdxValPair spaPair = it.consume();
         if (spaPair.value == IdAdd_tt::value()) {
             continue; // 'zeros' can be formed in the accumulator by cancellation, and should not be present in the output.
@@ -94,14 +100,26 @@ spAccumulatorFlushToChunk(SpAccumulator_tt& spa, scidb::Coordinate rowNum,
         bool retSetPosition = resultChunkIn->setPosition(cellCoords);
         SCIDB_ASSERT(retSetPosition);
 
+#if DBG_TIMING
+        times.blockMultSPAFlushTopHalfSecs.back() += (getDbgMonotonicrawSecs() - topStart) ;
+#endif
+
+#if DBG_TIMING
+        double itemStart=getDbgMonotonicrawSecs() ;
+#endif
         // writeItem
         scidb::Value dbVal(scidbType);
-        scidb::Value::setBuiltInValue<Val_t>(dbVal, spaPair.value, scidbTypeEnum);
+        dbVal.set<Val_t>(spaPair.value);
         resultChunkIn->writeItem(dbVal);
+#if DBG_TIMING
+        times.blockMultSPAFlushSetValWriteItemSecs.back() += (getDbgMonotonicrawSecs() - itemStart) ;
+#endif
     }
 
+    times.blockMultSPAFlushClearStart();
     spa.clearIndices();  // _valsUsed was cleared as values were read, this is cleared in O(1) time afterwards
-                             // at this point, the SPA is ready for re-use
+                         // at this point, the SPA is ready for re-use
+    times.blockMultSPAFlushClearStop();
 
     return resultChunkIn;
 }

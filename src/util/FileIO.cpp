@@ -33,12 +33,14 @@
 #include <string.h>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include <boost/scoped_array.hpp>
 #include <util/FileIO.h>
 #include <log4cxx/logger.h>
 #include <system/Exceptions.h>
 #include <system/Config.h>
 #include <system/SciDBConfigOptions.h>
 #include <util/Thread.h>
+#include <smgr/io/Storage.h>
 
 using namespace std;
 
@@ -46,10 +48,6 @@ namespace scidb
 {
     // Logger for operator. static to prevent visibility of variable outside of file
     static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.fileio"));
-
-    #ifdef __APPLE__
-    #define fdatasync(x) fsync(x)
-    #endif
 
     // Number of retries on EAGAIN error. We dont use O_NONBLOCK on files,
     // but we have seen EAGAIN error codes returned. Since the EAGAINs are unexpected
@@ -74,7 +72,7 @@ namespace scidb
             err = errno;
             if (raise) {
                 throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SYSCALL_ERROR)
-                       << "unlink" << rc << err << filePath);
+                       << "unlink" << rc << err << ::strerror(err) << filePath);
             }
         }
         return err;
@@ -89,10 +87,11 @@ namespace scidb
         int rc = ::closedir(dirp);
         if (rc!=0) {
             err = errno;
-            LOG4CXX_ERROR(logger, "closedir("<<dirName<<") failed, errno"<<err);
+            LOG4CXX_ERROR(logger, "closedir("<<dirName<<") failed: " <<
+                          ::strerror(errno) << " (" << errno << ')');
             if (raise) {
                 throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SYSCALL_ERROR)
-                       << "closedir" << rc << err << dirName);
+                       << "closedir" << rc << err << ::strerror(err) << dirName);
             }
         }
         return err;
@@ -110,7 +109,7 @@ namespace scidb
         if (dirp == NULL) {
             int err = errno;
             throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SYSCALL_ERROR)
-                   << "opendir" << "NULL" << err << dirName);
+                   << "opendir" << "NULL" << err << ::strerror(err) << dirName);
         }
 
         boost::function<int()> f = boost::bind(&File::closeDir, dirName, dirp, false);
@@ -132,7 +131,7 @@ namespace scidb
             if (rc != 0) {
                 int err = errno;
                 throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SYSCALL_ERROR)
-                       << "readdir_r" << rc << err << dirName);
+                       << "readdir_r" << rc << err << ::strerror(err) << dirName);
             }
             if (result == NULL) {
                 // EOF
@@ -231,16 +230,18 @@ namespace scidb
                 if (rc == 0 || errno == EAGAIN)
 #endif
                 {
-                    LOG4CXX_DEBUG(logger, "pwrite wrote nothing, fd=" << _fd << " src=" << size_t(src)
+                    LOG4CXX_DEBUG(logger, "pwrite wrote nothing, path=" << _path
+                                  <<" src=" << size_t(src)
                                   <<" size="<<size<<" offs="<<offs<<" rc="<<rc<<" errno="<<errno
                                   <<" retries="<<nRetries);
                     sleep(1);
                     eintrRetries=0;
                     continue;
                 }
-                LOG4CXX_DEBUG(logger, "pwrite failed, fd=" << _fd << " src=" << size_t(src)
+                LOG4CXX_DEBUG(logger, "pwrite failed, path=" << _path << " src=" << size_t(src)
                               <<" size="<<size<<" offs="<<offs<<" rc="<<rc<<" errno="<<errno);
-                throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PWRITE_ERROR) << size << offs << errno;
+                throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PWRITE_ERROR)
+                    << size << offs << _path << ::strerror(errno) << errno;
             } else {
                 nRetries = 0;
                 eintrRetries = 0;
@@ -270,19 +271,29 @@ namespace scidb
         /* Try to write the data, retrying if we are interrupted by signals
          */
         ssize_t totalSize = 0;
+        ssize_t bytesWritten = 0;
         ssize_t rc = 0;
 
+        /* Clone the iovecs in case we need to update the pointers
+         */
+	boost::scoped_array<struct iovec> myiovs(new struct iovec[niovs]);
+        int myniovs = niovs;
         for (int i = 0; i < niovs; i++)
         {
             totalSize +=  iovs[i].iov_len;
+            myiovs[i] = iovs[i];
         }
 
         size_t nRetries = 0;
         size_t eintrRetries = 0;
-        while (true) {
-            rc = ::pwritev(_fd, iovs, niovs, offs);
-            if (rc < totalSize) {
-                if ((rc < 0) && (errno == EINTR) && (++eintrRetries < MAX_EINTR_RETRIES)) {
+        while (totalSize != 0) {
+            rc = ::pwritev(_fd, myiovs.get(), myniovs, offs);
+            if (rc <= 0) {
+                if ((rc < 0) && (errno == EINTR) && (++eintrRetries < MAX_EINTR_RETRIES))
+                {
+                    LOG4CXX_DEBUG(logger, "pwritev error EINTR retry, path=" << _path <<" size="
+                                  <<totalSize<<" offs="<<offs<<" rc="<<rc<<" errno="<<errno
+                                  <<" eintrretries="<<eintrRetries);
                     nRetries = 0;
                     continue;
                 }
@@ -292,26 +303,49 @@ namespace scidb
                 if (rc == 0 || errno == EAGAIN)
 #endif
                 {
-                    LOG4CXX_DEBUG(logger, "pwritev wrote nothing, fd=" << _fd <<" size="
+                    LOG4CXX_DEBUG(logger, "pwritev wrote nothing, path=" << _path <<" size="
                                   <<totalSize<<" offs="<<offs<<" rc="<<rc<<" errno="<<errno
                                   <<" retries="<<nRetries);
                     sleep(1);
                     eintrRetries=0;
                     continue;
                 }
-                LOG4CXX_DEBUG(logger, "pwritev failed, fd=" << _fd <<" size="<<totalSize
+                LOG4CXX_DEBUG(logger, "pwritev failed, path=" << _path <<" size="<<totalSize
                               <<" offs="<<offs<<" rc="<<rc<<" errno="<<errno);
                 throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PWRITE_ERROR)
-                    << totalSize << offs << errno;
+                    << totalSize << offs << _path << ::strerror(errno) << errno;
             } else {
                 nRetries = 0;
                 eintrRetries = 0;
-                break;
+            }
+            totalSize -= rc;
+            bytesWritten += rc;
+            offs += rc;
+
+            if (totalSize > 0)
+            {
+                /* retry request, picking up from where we left off
+                 */
+                int i = 0;
+                int j = 0;
+                ssize_t skip = bytesWritten;
+                while ( skip > 0 && (ssize_t)iovs[i].iov_len < skip)
+                {
+                    skip -= (ssize_t)iovs[i++].iov_len;
+                }
+                assert(niovs > i);
+                myniovs = niovs - i;
+                myiovs[0].iov_base = (char*)iovs[i].iov_base + skip;
+                myiovs[0].iov_len = iovs[i].iov_len - skip;
+                while (++j < myniovs)
+                {
+                    myiovs[j] = iovs[++i];
+                }
             }
         }
         currentStatistics->writtenSize += totalSize;
         currentStatistics->writtenChunks++;
-     }
+    }
 
 
     /* Read data from the file
@@ -346,16 +380,16 @@ namespace scidb
                 if (rc < 0 && errno == EAGAIN)
 #endif
                 {
-                    LOG4CXX_DEBUG(logger, "pread returned nothing, fd=" << _fd << " dst=" << size_t(dst)
-                                  <<" size="<<size<<" offs="<<offs<<" rc="<<rc
-                                  <<" errno="<<errno<<" retries="<<nRetries);
+                    LOG4CXX_DEBUG(logger, "pread received EAGAIN, path=" << _path << " dst=" << size_t(dst)
+                                  <<" size="<<size<<" offs="<<offs<<" retries="<<nRetries);
                     eintrRetries = 0;
                     sleep(1);
                     continue;
                 }
-                LOG4CXX_DEBUG(logger, "pread failed fd=" << _fd << " dst=" << size_t(dst)
+                LOG4CXX_DEBUG(logger, "pread failed path=" << _path << " dst=" << size_t(dst)
                               <<" size="<<size<<" offs="<<offs<<" rc="<<rc<<" errno="<<errno);
-                throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PREAD_ERROR) << size << offs << errno;
+                throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PREAD_ERROR)
+                    << size << offs << _path << rc << ::strerror(errno) << errno;
             } else {
                 nRetries = 0;
                 eintrRetries = 0;
@@ -386,43 +420,72 @@ namespace scidb
         /* Try to read the data, retrying if we are interrupted by signals
          */
         ssize_t totalSize = 0;
+        ssize_t bytesRead = 0;
         ssize_t rc = 0;
 
+        /* Clone the iovecs in case we need to update the pointers
+         */
+	boost::scoped_array<struct iovec> myiovs(new struct iovec[niovs]);
+        int myniovs = niovs;
         for (int i = 0; i < niovs; i++)
         {
             totalSize +=  iovs[i].iov_len;
+            myiovs[i] = iovs[i];
         }
 
         size_t nRetries = 0;
         size_t eintrRetries = 0;
-        while (true) {
-            rc = ::preadv(_fd, iovs, niovs, offs);
-            if (rc < totalSize) {
+        while (totalSize != 0) {
+            rc = ::preadv(_fd, myiovs.get(), myniovs, offs);
+            if (rc <= 0) {
                 if ((rc < 0) && (errno == EINTR) && (++eintrRetries < MAX_EINTR_RETRIES)) {
                     nRetries = 0;
                     continue;
                 }
 #ifdef NDEBUG
-                if ((rc == 0 || errno == EAGAIN) && ++nRetries < MAX_WRITE_RETRIES)
+                if (rc < 0 && errno == EAGAIN && ++nRetries < MAX_READ_RETRIES)
 #else
-                if (rc == 0 || errno == EAGAIN)
+                if (rc < 0 && errno == EAGAIN)
 #endif
                 {
-                    LOG4CXX_DEBUG(logger, "preadv read nothing, fd=" << _fd <<" size="
-                                  <<totalSize<<" offs="<<offs<<" rc="<<rc<<" errno="<<errno
-                                  <<" retries="<<nRetries);
+                    LOG4CXX_DEBUG(logger, "preadv received EAGAIN, path=" << _path <<" size="
+                                  <<totalSize<<" offs="<<offs<<" retries="<<nRetries);
                     sleep(1);
                     eintrRetries=0;
                     continue;
                 }
-                LOG4CXX_DEBUG(logger, "preadv failed, fd=" << _fd <<" size="<<totalSize
+                LOG4CXX_DEBUG(logger, "preadv failed, path=" << _path <<" size="<<totalSize
                               <<" offs="<<offs<<" rc="<<rc<<" errno="<<errno);
                 throw SYSTEM_EXCEPTION(SCIDB_SE_IO, SCIDB_LE_PREAD_ERROR)
-                    << totalSize << offs << errno;
+                    << totalSize << offs << _path << rc << ::strerror(errno) << errno;
             } else {
                 nRetries = 0;
                 eintrRetries = 0;
-                break;
+            }
+
+            totalSize -= rc;
+            bytesRead += rc;
+            offs += rc;
+
+            if (totalSize > 0)
+            {
+                /* retry request, picking up from where we left off
+                 */
+                int i = 0;
+                int j = 0;
+                ssize_t skip = bytesRead;
+                while ( skip > 0 && (ssize_t)iovs[i].iov_len < skip)
+                {
+                    skip -= (ssize_t)iovs[i++].iov_len;
+                }
+                assert(niovs > i);
+                myniovs = niovs - i;
+                myiovs[0].iov_base = (char*)iovs[i].iov_base + skip;
+                myiovs[0].iov_len = iovs[i].iov_len - skip;
+                while (++j < myniovs)
+                {
+                    myiovs[j] = iovs[++i];
+                }
             }
         }
         currentStatistics->readSize += totalSize;
@@ -463,9 +526,9 @@ namespace scidb
                 if (rc < 0 && errno == EAGAIN)
 #endif
                 {
-                    LOG4CXX_DEBUG(logger, "pread returned nothing, fd=" << _fd << " dst=" << size_t(dst)
-                                  <<" size="<<size<<" offs="<<offs<<" rc="<<rc
-                                  <<" errno="<<errno<<" retries="<<nRetries);
+                    LOG4CXX_DEBUG(logger, "pread received EAGAIN, path=" << _path << " dst="
+                                  << size_t(dst) <<" size="<<size<<" offs="<<offs
+                                  <<" retries="<<nRetries);
                     eintrRetries = 0;
                     sleep(1);
                     continue;
@@ -667,7 +730,7 @@ namespace scidb
         if (rc != 0)
         {
             throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_SYSCALL_ERROR)
-                   << "close" << rc << errno << _path);
+                   << "close" << rc << errno << ::strerror(errno) << _path);
         }
     }
     
@@ -715,9 +778,7 @@ namespace scidb
         /* Try to create the temp file
          */
         if (filePath == NULL) {
-#ifndef SCIDB_CLIENT
-            dir = Config::getInstance()->getOption<std::string>(CONFIG_TMP_PATH);
-#endif
+            dir = getTempDir();
             if (dir.length() != 0 && dir[dir.length()-1] != '/') {
                 dir += '/';
             }
@@ -735,7 +796,8 @@ namespace scidb
             {
                 throw USER_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_TOO_MANY_OPEN_FILES);
             }
-            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_OPEN_FILE) << filePath << errno;
+            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_OPEN_FILE)
+                << filePath << ::strerror(errno) << errno;
         }
 
         /* Create the file object and put it on the lru
@@ -776,12 +838,17 @@ namespace scidb
      * is wiped out (in case we crashed previously)
      */
     FileManager::FileManager()
+        : _maxLru(1)
     {
         LOG4CXX_TRACE(logger, "FileManager::FileManager");
 
         /* Try to open the temp dir
          */
-        std::string dir = Config::getInstance()->getOption<std::string>(CONFIG_TMP_PATH);
+        std::string dir = getTempDir();
+        if (dir.length() != 0 && dir[dir.length()-1] != '/') {
+            dir += '/';
+        }
+
         DIR* dirp = ::opendir(dir.c_str());
 
         if (dirp == NULL)
@@ -799,24 +866,17 @@ namespace scidb
         boost::function<int()> f = boost::bind(&File::closeDir, dir.c_str(), dirp, false);
         scidb::Destructor<boost::function<int()> >  dirCloser(f);
 
-        struct dirent entry;
-
         /* For each entry in the temp dir
          */
-        while (true)
+        struct dirent entry;
+        struct dirent *result = NULL;
+        while (::readdir_r(dirp, &entry, &result) == 0 && result)
         {
-            struct dirent *result(NULL);
-
-            int rc = ::readdir_r(dirp, &entry, &result);
-            if (rc != 0 || result == NULL)
-            {
-                return;
-            }
             assert(result == &entry);
 
             LOG4CXX_TRACE(logger, "FileManager::FileManager: found entry " << entry.d_name);
 
-            /* If its a temp file, go ahead and try to remove it
+            /* If it's a temp file, go ahead and try to remove it
              */
             if (strncmp(entry.d_name, "scidb_", 6) == 0)
             {
@@ -825,6 +885,29 @@ namespace scidb
                 File::remove(fullpath.c_str(), false);
             }
         }
+
+        /* Check that the static state has been initialized
+         */
+#ifndef SCIDB_CLIENT
+        Config *cfg = Config::getInstance();
+        assert(cfg);
+
+        int configuredMaxLru = cfg->getOption<int>(CONFIG_MAX_OPEN_FDS);
+        assert(configuredMaxLru > 0);
+
+        /* If the max LRU size read from the configuration is
+         * zero, then set it to one and report an error.
+         */
+        if (configuredMaxLru <= 0) {
+            ostringstream oss;
+            oss << "max-open-fds set to invalid value of " << configuredMaxLru;
+            configuredMaxLru = 1;
+            oss << ", using " << configuredMaxLru << " instead" << endl;
+            LOG4CXX_ERROR(logger, oss.str().c_str());
+        }
+
+        _maxLru = static_cast<uint32_t>(configuredMaxLru);
+#endif
     }
 
     /* Add a new open entry to the lru
@@ -834,7 +917,6 @@ namespace scidb
     {
         ScopedMutexLock scm(_fileLock);
 
-        checkInit();
         checkLimit();
 
         /* Add to the LRU
@@ -902,22 +984,6 @@ namespace scidb
     }
 
 
-    /* Check that the static state has been initialized
-       @pre _fileLock is locked
-     */
-    void
-    FileManager::checkInit()
-    {
-        if (_maxLru == 0)
-        {
-#ifndef SCIDB_CLIENT
-            Config *cfg = Config::getInstance();
-            _maxLru = cfg->getOption<int>(CONFIG_MAX_OPEN_FDS);
-#endif
-        }
-    }
-
-
     /* Check if we have reached the limit of the lru list---
        if so close the lru element
        @pre _fileLock is locked
@@ -945,5 +1011,20 @@ namespace scidb
             victim->_listPos = _closed.begin();
         }
     }
+
+    /* REturn the full path of the temp directory
+     */
+    std::string
+    FileManager::getTempDir()
+    {
+        string storageConfigPath;
+#ifndef SCIDB_CLIENT
+        storageConfigPath = Config::getInstance()->getOption<string>(CONFIG_STORAGE);
+#endif
+        std::string storageConfigDir = getDir(storageConfigPath);
+        std::string tmpDir = storageConfigDir += "/tmp";
+        return tmpDir;
+    }
+
 }
 

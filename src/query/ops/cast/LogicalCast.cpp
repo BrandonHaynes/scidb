@@ -115,8 +115,13 @@ public:
         }
 
         const boost::shared_ptr<ParsingContext> &pc = _parameters[0]->getParsingContext();
-        if (srcAttributes.size() != dstAttributes.size() && srcAttributes.size() != schemaParam.getAttributes(true).size())
-            throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_CAST_ERROR1, pc);
+        if (srcAttributes.size() != dstAttributes.size()
+            && srcAttributes.size() != schemaParam.getAttributes(true).size())
+        {
+            throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_ATTR_COUNT_MISMATCH, pc)
+                << srcArrayDesc << schemaParam;
+        }
+
         for (size_t i = 0, n = srcAttributes.size(); i < n; i++)
         {
             if (srcAttributes[i].getType() != dstAttributes[i].getType())
@@ -142,7 +147,13 @@ public:
         }
 
         if (srcDimensions.size() != dstDimensions.size())
-            throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_OP_CAST_ERROR4, pc);
+        {
+            ostringstream left, right;
+            printDimNames(left, srcDimensions);
+            printDimNames(right, dstDimensions);
+            throw USER_QUERY_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_DIMENSION_COUNT_MISMATCH, pc)
+                << "cast" << left.str() << right.str();
+        }
 
         for (size_t i = 0, n = srcDimensions.size(); i < n; i++) {
             DimensionDesc const& srcDim = srcDimensions[i];

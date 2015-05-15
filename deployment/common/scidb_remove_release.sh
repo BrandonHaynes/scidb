@@ -52,6 +52,18 @@ function ubuntu1204 ()
     apt-get autoremove --purge -y
 }
 
+function ubuntu1404 ()
+{
+    apt-get update
+    if [ "1" == "${with_coordinator}" ]; then
+	apt-get purge -y scidb-${release}-all-coord
+    else
+	apt-get purge -y scidb-${release}-all
+    fi
+    apt-get purge -y scidb-${release}-dev-tools
+    apt-get autoremove --purge -y
+}
+
 OS=`./os_detect.sh`
 release=${1}
 with_coordinator=${2}
@@ -66,4 +78,8 @@ fi
 
 if [ "${OS}" = "Ubuntu 12.04" ]; then
     ubuntu1204
+fi
+
+if [ "${OS}" = "Ubuntu 14.04" ]; then
+    ubuntu1404
 fi

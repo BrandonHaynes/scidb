@@ -12,11 +12,9 @@ CREATE array Dorfishness < dorfishness : int64 > [ name(string)=10,11,0, chin(st
 
 --test
 
-echo ('iquery -o lcsv+ -aq \'scan ( Dorfishness )\'')
---shell --command " iquery -o lcsv+ -aq 'scan ( Dorfishness )' " --store
+--shell --store --command " iquery -o lcsv+ -aq 'scan ( Dorfishness )' "
 
-echo ('iquery -o lsparse -aq \'scan ( Dorfishness )\'')
---shell --command " iquery  -o lsparse -aq 'scan ( Dorfishness )' " --store
+--shell --store --command " iquery  -o lsparse -aq 'scan ( Dorfishness )' "
 
 
 --cleanup

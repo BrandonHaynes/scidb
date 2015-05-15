@@ -27,10 +27,10 @@
  * @author apoliakov@paradigm4.com
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "network/NetworkManager.h"
-#include "array/DelegateArray.h"
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <network/NetworkManager.h>
+#include <array/DelegateArray.h>
 #include "../redimension/RedimensionCommon.h"
 
 using namespace std;
@@ -51,22 +51,7 @@ public:
     //True if this is a no-op (just a metadata change, doesn't change chunk sizes or overlap)
     bool isNoop(ArrayDesc const& inputSchema) const
     {
-        Dimensions const& source = inputSchema.getDimensions();
-        Dimensions const& result = _schema.getDimensions();
-        for (size_t i = 0, count = source.size(); i < count; ++i)
-        {
-            int64_t sourceInterval = source[i].getChunkInterval();
-            int64_t resultInterval = result[i].getChunkInterval();
-            int64_t sourceOverlap = source[i].getChunkOverlap();
-            int64_t resultOverlap = result[i].getChunkOverlap();
-
-            if (sourceInterval != resultInterval ||
-                sourceOverlap != resultOverlap)
-            {
-                return false;
-            }
-        }
-        return true;
+        return samePartitioning(_schema, inputSchema);
     }
 
     virtual bool changesDistribution(vector<ArrayDesc> const& inputSchemas) const
@@ -125,11 +110,12 @@ public:
                                                  aggregates,
                                                  query,
                                                  timing,
-                                                 false);
+                                                 AUTO);
         return res;
     }
 };
 
+// Note that the name "physicalRepart" is known in QueryPlan.h.
 DECLARE_PHYSICAL_OPERATOR_FACTORY(PhysicalRepart, "repart", "physicalRepart")
 
 }  // namespace scidb

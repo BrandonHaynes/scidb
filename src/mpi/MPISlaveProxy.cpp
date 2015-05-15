@@ -204,7 +204,7 @@ void MpiSlaveProxy::sendCommand(mpi::Command& cmd, boost::shared_ptr<MpiOperator
     scidb::MessagePtr msgPtr(cmdPtr);
     boost::asio::const_buffer binary(NULL,0);
     try {
-        scidb::sendAsync(_connection, scidb::mtMpiSlaveCommand, msgPtr, binary);
+        scidb::sendAsyncClient(_connection, scidb::mtMpiSlaveCommand, msgPtr, binary);
 
     } catch (const scidb::SystemException& e) {
         LOG4CXX_ERROR(logger, "MpiSlaveProxy::sendCommand: "

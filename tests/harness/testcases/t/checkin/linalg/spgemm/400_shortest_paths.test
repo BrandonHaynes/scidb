@@ -12,21 +12,35 @@ create array GRAPH_WEIGHTS_6_9 <w:float>[v0=0:5,10,0, v1=0:5,10,0]
 
 # csv to .scidb
 #--shell --command "csv2scidb < ${TEST_DATA_DIR}/graph_triplets6_9.csv > /tmp/graph_triplets6_9.scidb.txt"
+# Note: load() supports direct loading of CSV in 14.12 and later.
 --shell --store --command "iquery -c $IQUERY_HOST -p $IQUERY_PORT -naq "load(GRAPH_TRIPLETS_6_9, '${TEST_DATA_DIR}/graph_triplets6_9.scidb.txt')""
 # turn list of triplets into adjacency matrix
 store(redimension(GRAPH_TRIPLETS_6_9, GRAPH_WEIGHTS_6_9),GRAPH_WEIGHTS_6_9)
 
 --stop-igdata
 
-# now call bellmanFord, finding the distances from the 0 vertex
+--test
+# now call bellmanFord, finding the distances from vertex 0
+
 --justrun "remove(SHORTEST_PATHS_VEC)"
---shell --command "bellman_ford_example.sh GRAPH_WEIGHTS_6_9 SHORTEST_PATHS_VEC 0"
+--shell --command "bellman_ford_example.sh GRAPH_WEIGHTS_6_9 SHORTEST_PATHS_VEC 0 rightReplicate=true"
+--echo "shortest paths from vertex 0"
+scan(SHORTEST_PATHS_VEC)
+
+--justrun "remove(SHORTEST_PATHS_VEC)"
+--shell --command "bellman_ford_example.sh GRAPH_WEIGHTS_6_9 SHORTEST_PATHS_VEC 0 rightReplicate=false"
 --echo "shortest paths from vertex 0"
 scan(SHORTEST_PATHS_VEC)
 
 # and again from vertex 2
+
 --justrun "remove(SHORTEST_PATHS_VEC)"
---shell --command "bellman_ford_example.sh GRAPH_WEIGHTS_6_9 SHORTEST_PATHS_VEC 2"
+--shell --command "bellman_ford_example.sh GRAPH_WEIGHTS_6_9 SHORTEST_PATHS_VEC 2 rightReplicate=true"
+--echo "shortest paths from vertex 2"
+scan(SHORTEST_PATHS_VEC)
+
+--justrun "remove(SHORTEST_PATHS_VEC)"
+--shell --command "bellman_ford_example.sh GRAPH_WEIGHTS_6_9 SHORTEST_PATHS_VEC 2 rightReplicate=true"
 --echo "shortest paths from vertex 2"
 scan(SHORTEST_PATHS_VEC)
 

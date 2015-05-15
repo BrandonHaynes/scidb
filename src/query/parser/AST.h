@@ -205,7 +205,10 @@ enum child
 
  // list
     listArg0                            = 0,
-    listArg1
+    listArg1,
+    listArg2,
+    listArg3,
+    listArg4
 };
 
 enum order
@@ -248,6 +251,7 @@ class Node
             cnodes            getList()            const {return cnodes(_size,(Node**)(this+1));}
             cnodes            getList(child c)     const {return get(c)->getList();}
             Node*             get(child c)         const {return getList()[c];}
+            Node*             get(child a,child b) const {return get(a)->get(b);}
             string            dump()               const;
 
  public:                   // Operations
@@ -260,6 +264,7 @@ class Node
             nodes             getList()                  {return nodes(_size,(Node**)(this+1));}
             nodes             getList(child c)           {return get(c)->getList();}
             Node*&            get(child c)               {return getList()[c];}
+            Node*&            get(child a,child b)       {return get(a)->get(b);}
             Node*             set(child c,Node* n)       {getList()[c] = n;return this;}
 
  protected:                // Construction

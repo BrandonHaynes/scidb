@@ -290,7 +290,7 @@ SCIDB QUERY : <join(Media_B,Media_C)>
 {3,3} 12,12
 
 SCIDB QUERY : <join(subarray(Media,1,1,2,2),two_dimension)>
-[An error expected at this place for the query "join(subarray(Media,1,1,2,2),two_dimension)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2.]
+[An error expected at this place for the query "join(subarray(Media,1,1,2,2),two_dimension)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH.]
 
 SCIDB QUERY : <join(Media,Media_D)>
 {I,J} val,salary

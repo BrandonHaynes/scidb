@@ -31,25 +31,37 @@
 #include "boost/make_shared.hpp"
 #include <log4cxx/logger.h>
 
-#include "query/Operator.h"
-#include "network/NetworkManager.h"
-#include "network/BaseConnection.h"
-#include "network/MessageUtils.h"
-#include "system/SystemCatalog.h"
-#include "array/DBArray.h"
-#include "array/DelegateArray.h"
-#include "query/QueryProcessor.h"
+#include <array/DBArray.h>
+#include <array/DelegateArray.h>
+#include <array/TransientCache.h>
+#include <query/Operator.h>
+#include <query/QueryProcessor.h>
+#include <network/NetworkManager.h>
+#include <network/BaseConnection.h>
+#include <network/MessageUtils.h>
+#include <system/SystemCatalog.h>
 #include <smgr/io/Storage.h>
 
 using namespace boost;
 using namespace std;
-
 
 namespace scidb
 {
 
 // Logger for network subsystem. static to prevent visibility of variable outside of file
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.ops.sg"));
+
+/**
+ * Record the array 't' in the transient array cache. Implements a callback
+ * that is suitable for use as a query finalizer.
+ */
+static void recordTransient(const MemArrayPtr& t,const QueryPtr& query)
+{
+    if (query->wasCommitted())                           // Was committed ok?
+    {
+        transient::record(t);                            // ...record in cache
+    }
+}
 
 /**
  * Physical implementation of SCATTER/GATHER operator.
@@ -69,22 +81,45 @@ private:
     {
     }
 
+    std::string getArrayNameForStore() const
+    {
+        std::string arrayName;
+        if (_parameters.size() >= 3 &&
+            !static_cast<OperatorParamReference*>(_parameters[2].get())->getObjectName().empty()) {
+            arrayName = _schema.getName();
+        }
+        assert(arrayName.empty() ||
+               ArrayDesc::makeUnversionedName(arrayName) ==
+               static_cast<OperatorParamReference*>(_parameters[2].get())->getObjectName());
+
+        return arrayName;
+    }
+
+    PartitioningSchema getPartitioningSchema() const
+    {
+        assert(_parameters[0]);
+        OperatorParamPhysicalExpression* pExp = static_cast<OperatorParamPhysicalExpression*>(_parameters[0].get());
+        PartitioningSchema ps = static_cast<PartitioningSchema>(pExp->getExpression()->evaluate().getInt32());
+        return ps;
+    }
+
+    InstanceID getInstanceId() const
+    {
+        InstanceID instanceId = ALL_INSTANCE_MASK;
+        if (_parameters.size() >=2 )
+        {
+            OperatorParamPhysicalExpression* pExp = static_cast<OperatorParamPhysicalExpression*>(_parameters[1].get());
+            instanceId = static_cast<InstanceID>(pExp->getExpression()->evaluate().getInt64());
+        }
+        return instanceId;
+    }
+
     void preSingleExecute(boost::shared_ptr<Query> query)
     {
-        if (_parameters.size() < 3)
-        {
+        if (getArrayNameForStore().empty()) {
             return;
         }
-        bool storeResult = true;
-        if (_parameters.size() >= 4)
-        {
-            storeResult = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[3])->getExpression()->evaluate().getBool();
-        }
-
-        if (storeResult)
-        {
-            preSingleExecuteForStore(query);
-        }
+        preSingleExecuteForStore(query);
     }
 
     void preSingleExecuteForStore(boost::shared_ptr<Query>& query)
@@ -94,9 +129,10 @@ private:
         assert(membership);
         if ((membership->getViewId() != query->getCoordinatorLiveness()->getViewId()) ||
             (membership->getInstances().size() != query->getInstancesCount())) {
-            throw USER_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_QUORUM2);
+            throw SYSTEM_EXCEPTION(SCIDB_SE_EXECUTION, SCIDB_LE_NO_QUORUM2);
         }
         string const& arrayName = _schema.getName();
+        assert(arrayName == getArrayNameForStore());
         _lock = boost::shared_ptr<SystemCatalog::LockDesc>(new SystemCatalog::LockDesc(arrayName,
                                                                                        query->getQueryID(),
                                                                                        Cluster::getInstance()->getLocalInstanceId(),
@@ -106,7 +142,7 @@ private:
         query->pushErrorHandler(ptr);
 
         bool rc = false;
-        PartitioningSchema ps = (PartitioningSchema)((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[0])->getExpression()->evaluate().getInt32();
+        PartitioningSchema ps = getPartitioningSchema();
 
         Dimensions const& dims =  _schema.getDimensions();
         size_t nDims = dims.size();
@@ -173,7 +209,8 @@ private:
     ArrayDistribution getOutputDistribution(const std::vector<ArrayDistribution> & inputDistributions,
                                                  const std::vector< ArrayDesc> & inputSchemas) const
     {
-        PartitioningSchema ps = (PartitioningSchema)((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[0])->getExpression()->evaluate().getInt32();
+        PartitioningSchema ps = getPartitioningSchema();
+
         DimensionVector offset = getOffsetVector(inputSchemas);
 
         boost::shared_ptr<DistributionMapper> distMapper;
@@ -212,82 +249,113 @@ private:
 
     boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
-        uint32_t psRaw = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[0])->getExpression()->evaluate().getUint32();
-        PartitioningSchema ps = (PartitioningSchema)psRaw;
-
-        InstanceID instanceID = ALL_INSTANCES_MASK;
-        std::string arrayName = "";
+        const PartitioningSchema ps = getPartitioningSchema();
+        const InstanceID instanceID = getInstanceId();
         DimensionVector offsetVector = getOffsetVector(vector<ArrayDesc>());
         shared_ptr<Array> srcArray = inputArrays[0];
-
         boost::shared_ptr <DistributionMapper> distMapper;
-
         if (!offsetVector.isEmpty())
         {
             distMapper = DistributionMapper::createOffsetMapper(offsetVector);
         }
+        const std::string arrayName = getArrayNameForStore();
 
-        bool storeResult=false;
-
-        if (_parameters.size() >=2 )
-        {
-            instanceID = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[1])->getExpression()->evaluate().getInt32();
-        }
-
-        if (_parameters.size() >= 3)
-        {
-            storeResult=true;
-            arrayName = _schema.getName();
-        }
-
+        bool enforceDataIntegrity=false;
         if (_parameters.size() >= 4)
         {
-            storeResult = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[3])->getExpression()->evaluate().getBool();
-            if (! storeResult)
-            {
-                arrayName = "";
-            }
+            assert(_parameters[3]->getParamType() == PARAM_PHYSICAL_EXPRESSION);
+            OperatorParamPhysicalExpression* paramExpr = static_cast<OperatorParamPhysicalExpression*>(_parameters[3].get());
+            enforceDataIntegrity = paramExpr->getExpression()->evaluate().getBool();
+            assert(paramExpr->isConstant());
         }
 
-        if (storeResult)
+        const bool storeResult = !arrayName.empty();
+
+        if (!storeResult) {
+
+            return redistributeToRandomAccess(srcArray, query, ps,
+                                              instanceID, distMapper, 0,
+                                              shared_ptr<PartitioningSchemaData>(),
+                                              enforceDataIntegrity);
+        }
+
+        // storing directly into a DB array
+
+        assert(!arrayName.empty());
+
+        VersionID version    = ArrayDesc::getVersionFromName (arrayName);
+        string baseArrayName = ArrayDesc::makeUnversionedName(arrayName);
+
+        if (!_lock)
         {
-            assert(!arrayName.empty());
+            _lock = boost::shared_ptr<SystemCatalog::LockDesc>(new SystemCatalog::LockDesc(baseArrayName,
+                                                                                           query->getQueryID(),
+                                                                                           Cluster::getInstance()->getLocalInstanceId(),
+                                                                                           SystemCatalog::LockDesc::WORKER,
+                                                                                           SystemCatalog::LockDesc::WR));
+            _lock->setArrayVersion(version);
+            shared_ptr<Query::ErrorHandler> ptr(new UpdateErrorHandler(_lock));
+            query->pushErrorHandler(ptr);
 
-            VersionID version    = ArrayDesc::getVersionFromName (arrayName);
-            string baseArrayName = ArrayDesc::makeUnversionedName(arrayName);
-
-            if (!_lock)
-            {
-                _lock = boost::shared_ptr<SystemCatalog::LockDesc>(new SystemCatalog::LockDesc(baseArrayName,
-                                                                                               query->getQueryID(),
-                                                                                               Cluster::getInstance()->getLocalInstanceId(),
-                                                                                               SystemCatalog::LockDesc::WORKER,
-                                                                                               SystemCatalog::LockDesc::WR));
-                _lock->setArrayVersion(version);
-                shared_ptr<Query::ErrorHandler> ptr(new UpdateErrorHandler(_lock));
-                query->pushErrorHandler(ptr);
-
-                Query::Finalizer f = bind(&UpdateErrorHandler::releaseLock,
-                                          _lock, _1);
-                query->pushFinalizer(f);
-                SystemCatalog::ErrorChecker errorChecker = bind(&Query::validate, query);
-                bool rc = SystemCatalog::getInstance()->lockArray(_lock, errorChecker);
-                if (!rc) {
-                    throw USER_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_CANT_INCREMENT_LOCK)
-                        << baseArrayName;
-                }
-            }
-            if (srcArray->getArrayDesc().getAttributes().size() != _schema.getAttributes().size())
-            {
-                srcArray = boost::shared_ptr<Array>(new NonEmptyableArray(srcArray));
+            Query::Finalizer f = bind(&UpdateErrorHandler::releaseLock,
+                                      _lock, _1);
+            query->pushFinalizer(f);
+            SystemCatalog::ErrorChecker errorChecker = bind(&Query::validate, query);
+            bool rc = SystemCatalog::getInstance()->lockArray(_lock, errorChecker);
+            if (!rc) {
+                throw SYSTEM_EXCEPTION(SCIDB_SE_SYSCAT, SCIDB_LE_CANT_INCREMENT_LOCK)
+                << baseArrayName;
             }
         }
-        boost::shared_ptr<Array> res = redistribute(srcArray, query, ps, arrayName, instanceID, distMapper);
-        if (storeResult)
+        if (srcArray->getArrayDesc().getAttributes().size() != _schema.getAttributes().size())
         {
-            getInjectedErrorListener().check();
+            srcArray = boost::shared_ptr<Array>(new NonEmptyableArray(srcArray));
         }
-        return res;
+
+        boost::shared_ptr<Array> outputArray;
+        if (true) {
+            // This is the deprecated behavior as of 14.10
+            outputArray = redistribute(srcArray, query, ps, arrayName, instanceID, distMapper);
+        } else {
+            // This is the behavior to replace the deprecated above,
+            // it needs to be complimeted by data collision checks, see #4332
+            ArrayID outputArrayId(INVALID_ARRAY_ID);
+
+            if (_schema.isTransient()) {
+                outputArray.reset(new MemArray(_schema,query));
+                outputArrayId = _schema.getUAId();
+                query->pushFinalizer(bind(&recordTransient,outputArray,_1));
+            } else  {
+                // open persistent array
+                outputArray = DBArray::newDBArray(arrayName, query);
+                outputArrayId = outputArray->getHandle();
+                assert(outputArrayId >0);
+                query->getReplicationContext()->enableInboundQueue(outputArrayId, outputArray);
+            }
+
+            // redistribute:
+            set<Coordinates, CoordinatesLess> newChunkCoordinates;
+            redistributeToArray(srcArray, outputArray,  &newChunkCoordinates,
+                                query, ps, instanceID, distMapper, 0,
+                                shared_ptr<PartitioningSchemaData>(),
+                                enforceDataIntegrity);
+
+            if (!_schema.isTransient()) {
+                // insert tombstones:
+                StorageManager::getInstance().removeDeadChunks(outputArray->getArrayDesc(), newChunkCoordinates, query);
+                // stop replication
+                query->getReplicationContext()->replicationSync(outputArrayId);
+                query->getReplicationContext()->removeInboundQueue(outputArrayId);
+                // commit to disk
+                StorageManager::getInstance().flush();
+            }
+
+            PhysicalBoundaries bounds = PhysicalBoundaries::createFromChunkList(outputArray, newChunkCoordinates);
+            SystemCatalog::getInstance()->updateArrayBoundaries(_schema, bounds);
+        }
+        getInjectedErrorListener().check();
+
+        return outputArray;
     }
 };
 

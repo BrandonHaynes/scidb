@@ -32,6 +32,7 @@ if (NOT WITHOUT_SERVER)
     )
 
     configure_file(test/multi_query_test.py "${GENERAL_OUTPUT_DIRECTORY}/mu_driver.py" COPYONLY)
+    configure_file(test/mu_random.py "${GENERAL_OUTPUT_DIRECTORY}/mu_random.py" COPYONLY)
 
     file(GLOB network_include "*.h" "proto/*.proto")
 

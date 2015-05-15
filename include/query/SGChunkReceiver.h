@@ -186,8 +186,6 @@ public:
             size_t decompressedSize,
             AttributeID attributeID,
             size_t count,
-            bool rle,
-            bool sparse,
             Coordinates& coordinates
             );
 
@@ -222,8 +220,6 @@ private:
             size_t decompressedSize,
             AttributeID attributeID,
             size_t count,
-            bool rle,
-            bool sparse,
             Coordinates& coordinates,
             boost::shared_ptr<Array>,
             boost::shared_ptr<ArrayIterator>,
@@ -244,8 +240,6 @@ private:
             size_t decompressedSize,
             AttributeID attributeID,
             size_t count,
-            bool rle,
-            bool sparse,
             Coordinates& coordinates,
             boost::shared_ptr<Array> outputArray,
             boost::shared_ptr<ArrayIterator> outputIter,

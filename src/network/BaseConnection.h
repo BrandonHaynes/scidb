@@ -35,8 +35,10 @@
 #ifndef BASECONNECTION_H_
 #define BASECONNECTION_H_
 
-#include "stdint.h"
-#include "boost/asio.hpp"
+#include <stdint.h>
+#include <boost/asio.hpp>
+#include <boost/exception/diagnostic_information.hpp>
+#include <boost/exception_ptr.hpp>
 #include <log4cxx/logger.h>
 #include <vector>
 
@@ -110,12 +112,20 @@ enum MessageType
 
 struct MessageHeader
 {
-   uint16_t netProtocolVersion;         /** < Version of network protocol */
-   uint16_t messageType;                /** < Type of message */
-   uint32_t recordSize;                 /** < The size of structured part of message to know what buffer size we must allocate */
-   uint32_t binarySize;                 /** < The size of unstructured part of message to know what buffer size we must allocate */
-   InstanceID sourceInstanceID;         /** < The source instance number */
-   uint64_t queryID;                    /** < Query ID */
+    uint16_t netProtocolVersion;         /** < Version of network protocol */
+    uint16_t messageType;                /** < Type of message */
+    uint32_t recordSize;                 /** < The size of structured part of message to know what buffer size we must allocate */
+    uint32_t binarySize;                 /** < The size of unstructured part of message to know what buffer size we must allocate */
+    InstanceID sourceInstanceID;         /** < The source instance number */
+    uint64_t queryID;                    /** < Query ID */
+
+    MessageHeader()
+        : netProtocolVersion(0),
+          messageType(0),
+          recordSize(0),
+          binarySize(0),
+          sourceInstanceID(0),
+          queryID(0) {}
 };
 
 
@@ -307,6 +317,7 @@ boost::shared_ptr<MessageDesc_tt> BaseConnection::receive()
     }
     catch (const boost::exception &e)
     {
+        LOG4CXX_TRACE(BaseConnection::logger, "BaseConnection::receive: exception: "<< boost::diagnostic_information(e));
         throw SYSTEM_EXCEPTION(SCIDB_SE_NETWORK, SCIDB_LE_CANT_SEND_RECEIVE);
     }
     return resultDesc;

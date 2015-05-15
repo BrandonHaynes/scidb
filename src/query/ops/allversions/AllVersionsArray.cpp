@@ -64,7 +64,7 @@ AllVersionsChunkIterator::AllVersionsChunkIterator(DelegateChunk const* chunk, i
 void AllVersionsChunk::setInputChunk(ConstChunk const& inputChunk, VersionID version)
 {
     DelegateChunk::setInputChunk(inputChunk);
-    isClone = !inputChunk.isSparse();
+    isClone = true;
     currVersion = version;
     prependVersion(firstPos, inputChunk.getFirstPosition(false), version);
     prependVersion(lastPos, inputChunk.getLastPosition(false), version);

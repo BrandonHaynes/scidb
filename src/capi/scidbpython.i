@@ -47,6 +47,8 @@ using namespace std;
 using namespace boost;
 #include "log4cxx/logger.h"
 #include "query/TypeSystem.h"
+//Igor1: my comment
+#include "query/Value.h"
 #include "array/Metadata.h"
 #include "network/BaseConnection.h"
 #include "system/Exceptions.h"
@@ -141,11 +143,17 @@ namespace scidb {
 
 using namespace std;
 using namespace boost;
+// SWIG does not understand the GCC function attribute syntax, so disable this macro temporarily
+#pragma push_macro("SCIDB_FORCEINLINE")
+#undef SCIDB_FORCEINLINE
+#define SCIDB_FORCEINLINE 
+%include "query/Value.h"
 %include "query/TypeSystem.h"
+#undef SCIDB_FORCEINLINE
+#pragma pop_macro("SCIDB_FORCEINLINE")
+
 %include "array/Metadata.h"
 %include "network/BaseConnection.h"
-%include "query/TypeSystem.h"
-
 %include "array/Array.h"
 %include "array/MemChunk.h"
 %include "array/StreamArray.h"

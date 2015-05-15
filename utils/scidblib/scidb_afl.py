@@ -56,7 +56,18 @@ def execute_it_return_out_err(cmd):
     p = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
     return p.communicate()
 
-def afl(iquery_cmd, query, want_output=False, tolerate_error=False):
+def verbose_afl_result_line_start(want_re=False):
+    """The beginning of a result line, if afl() or time_afl() is called with verbose=True.
+    
+    @param want_re  whether a regular expression is needed.
+    @return the line start string (if want_re=False), or pattern (if want_re=True)
+    """
+    if want_re:
+        return r'^\s\s---\sExecuted\s'
+    else:
+        return '  --- Executed '
+ 
+def afl(iquery_cmd, query, want_output=False, tolerate_error=False, verbose=False):
     """Execute an AFL query.
 
     @param iquery_cmd     the iquery command.
@@ -75,9 +86,11 @@ def afl(iquery_cmd, query, want_output=False, tolerate_error=False):
     if not tolerate_error and len(err_data)>0:
         raise scidblib.AppError('The AFL query, ' + query + ', failed with the following error:\n' +
                         err_data)
+    if verbose:
+        print verbose_afl_result_line_start() + '%s.' % query
     return (out_data, err_data)
 
-def time_afl(iquery_cmd, query):
+def time_afl(iquery_cmd, query, verbose=False):
     """Execute an AFL query, and return the execution time.
 
     @param iquery_cmd the iquery command.
@@ -88,7 +101,10 @@ def time_afl(iquery_cmd, query):
     full_command = '/usr/bin/time -f \"%e\" ' + iquery_cmd + ' -naq \"' + query + "\" 1>/dev/null"
     out_data, err_data = execute_it_return_out_err(full_command)
     try:
-        return float(err_data)
+        t = float(err_data)
+        if verbose:
+            print verbose_afl_result_line_start() + '%s in %f seconds.' % (query, t)
+        return t
     except ValueError:
         raise scidblib.AppError('Timing the AFL query ' + query + ', failed with the following error:\n' +
                         err_data)

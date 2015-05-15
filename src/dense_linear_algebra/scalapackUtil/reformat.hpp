@@ -233,7 +233,10 @@ inline void ReformatToScalapack::operator()(double val, size_t scidbRow, size_t 
         }
 
         // write _data in column-major layout required by ScaLAPACK
-        _data[ localRow + (localCol * _desc.LLD) ] = val ;      // PDELSET: $ A( IIA+(JJA-1)*DESCA( LLD_ ) ) = ALPHA
+        // to include a 1000 * (2^31/1000+1) test case
+        ssize_t columnOffset = ssize_t(localCol) * _desc.LLD;
+        ASSERT_EXCEPTION(columnOffset >= 0, "bad offset");
+        _data[ localRow + columnOffset ] = val ; // PDELSET: $ A( IIA+(JJA-1)*DESCA( LLD_ ) ) = ALPHA
 
         // NOTE: localCol varies faster than localRow in Scidb, so writing
         //       in column-major order will have extraordinarily high
@@ -300,8 +303,8 @@ public:
     {
         // I make it work in the local-only case by using a space for the
         // first two parameters.  This only permits it to work in the local process,
-        // and not in SPMD style. Otherwise it might have been more like
-        // the line that preceds it.  But we are going to let SciDB do any post-operator
+        // and not in SPMD style.  Otherwise it might have been more like
+        // the line that precedes it.  But we are going to let SciDB do any post-operator
         // redistribution to other instances, since it uses a scheme that differs from
         // ScaLAPACK
 

@@ -10,7 +10,7 @@ Query was executed successfully
 SCIDB QUERY : <store(redimension(tempBFlat,tempB),tempB)>
 {row,col} value
 
-SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -nq "load tempBFlat from '/tmp/bInsert.scidb'">
+SCIDB QUERY : <iquery -c $IQUERY_HOST -p $IQUERY_PORT -nq "load tempBFlat from '/tmp/bInsert.csv' as 'csv'">
 Query was executed successfully
 
 SCIDB QUERY : <insert into tempB select * from tempA>

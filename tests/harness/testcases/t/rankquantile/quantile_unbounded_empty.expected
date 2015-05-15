@@ -1,0 +1,32 @@
+Query was executed successfully
+
+Query was executed successfully
+
+{quantile} percentage,v_quantile
+
+[An error expected at this place for the query "quantile(unbounded_empty,2,v,i)". And it failed.]
+
+{quantile} percentage,v_quantile
+
+[An error expected at this place for the query "quantile(redimension(unbounded_empty,unbounded_empty),2,v,i)". And it failed.]
+
+{quantile} percentage,v_quantile
+
+{i,quantile} percentage,v_quantile
+{0,0} 0,null
+{0,1} 0.5,null
+{0,2} 1,null
+{1,0} 0,null
+{1,1} 0.5,null
+{1,2} 1,null
+{2,0} 0,null
+{2,1} 0.5,null
+{2,2} 1,null
+{3,0} 0,null
+{3,1} 0.5,null
+{3,2} 1,null
+
+Query was executed successfully
+
+Query was executed successfully
+

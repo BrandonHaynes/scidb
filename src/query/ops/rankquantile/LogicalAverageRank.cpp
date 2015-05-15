@@ -161,7 +161,10 @@ public:
                 }
 
                 if (j >= dims.size())
-                    throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_DIMENSION_NOT_EXIST) << dimName;
+                {
+                    throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_DIMENSION_NOT_EXIST)
+                        << dimName << "input" << dims;
+                }
             }
         }
 

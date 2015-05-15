@@ -54,14 +54,18 @@ struct ArenaTests : public CppUnit::TestFixture
                     void      setUp();
                     void      tearDown();
 
+                    void      test();
                     void      testOptions();
                     void      testFinalizer();
                     void      testGlobalNew();
                     void      testRootArena();
                     void      testLimitedArena();
                     void      testScopedArena();
+                    void      testLeaArena();
                     void      testSharedPtr();
                     void      testLimiting();
+                    void      testStringConcat();
+                    void      testManualAuto();
                     void      anExample();
 
                     void      arena     (Arena&);
@@ -69,6 +73,7 @@ struct ArenaTests : public CppUnit::TestFixture
                     void      allocator (Arena&);
                     void      alignment (Arena&);
                     void      containers(Arena&);
+                    void      randomized(Arena&);
                     void      direct    (Arena&,size_t);
     template<class> void      opnew     ();
     template<class> void      opnew     (Arena&);
@@ -81,17 +86,27 @@ struct ArenaTests : public CppUnit::TestFixture
     static          void      custom(void*){}
 
     CPPUNIT_TEST_SUITE(ArenaTests);
+    CPPUNIT_TEST      (test);
     CPPUNIT_TEST      (testOptions);
     CPPUNIT_TEST      (testFinalizer);
     CPPUNIT_TEST      (testGlobalNew);
     CPPUNIT_TEST      (testRootArena);
     CPPUNIT_TEST      (testLimitedArena);
     CPPUNIT_TEST      (testScopedArena);
+    CPPUNIT_TEST      (testLeaArena);
     CPPUNIT_TEST      (testSharedPtr);
     CPPUNIT_TEST      (testLimiting);
+    CPPUNIT_TEST      (testStringConcat);
+    CPPUNIT_TEST      (testManualAuto);
     CPPUNIT_TEST      (anExample);
     CPPUNIT_TEST_SUITE_END();
 };
+
+/**
+ *  An empty test placeholder that does nothing at all.
+ */
+void ArenaTests::test()
+{}
 
 /**
  *  A quick example of how we use the 'named parameter idiom' to initialize an
@@ -99,8 +114,8 @@ struct ArenaTests : public CppUnit::TestFixture
  */
 void ArenaTests::testOptions()
 {
-    cout << Options("A").pagesize(1*KiB).locking(false) << endl;
-    cout << Options("B").resetting(true).locking(true) << endl;
+    cout << Options("A").pagesize(1*KiB).threading(false) << endl;
+    cout << Options("B").resetting(true).threading(true)  << endl;
 }
 
 /**
@@ -142,10 +157,13 @@ void ArenaTests::allocator(Arena& a)
     assert(!(i != j));                                   // operator!=()
 
     int x = 3; int const y = 3;
-    assert(&x == i.address(x));                          // address()
-    assert(&y == i.address(y));                          // address() const
-    x = y;v = v;                                         // Silence warnings
+
+    v = v;                                               // operator=()
     i = j = d;                                           // operator=()
+
+    CPPUNIT_ASSERT(i==j && j==d);                        // operator==()
+    CPPUNIT_ASSERT(&x == i.address(x));                  // address()
+    CPPUNIT_ASSERT(&y == i.address(y));                  // address() const
 }
 
 /**
@@ -190,9 +208,20 @@ void ArenaTests::testScopedArena()
 {
     arena(*newArena(Options("scoped 1").resetting(true)));
     arena(*newArena(Options("scoped 2").resetting(true).pagesize(0)));
-    arena(*newArena(Options("scoped 3").resetting(true).pagesize(0).debugging(true)));
-    arena(*newArena(Options("scoped 4").resetting(true).pagesize(100)));
-    arena(*newArena(Options("scoped 5").resetting(true).pagesize(100).debugging(true)));
+    arena(*newArena(Options("scoped 3").resetting(true).pagesize(0) .debugging(true)));
+    arena(*newArena(Options("scoped 4").resetting(true).pagesize(96)                .threading(true)));
+    arena(*newArena(Options("scoped 5").resetting(true).pagesize(96).debugging(true).threading(true)));
+}
+
+/**
+ *  Put class LeaArena through its paces.
+ */
+void ArenaTests::testLeaArena()
+{
+    arena(*newArena(Options("lea 1").resetting(true).recycling(true).pagesize(0)));
+    arena(*newArena(Options("lea 2").resetting(true).recycling(true).pagesize(96)));
+    arena(*newArena(Options("lea 3").resetting(true).recycling(true).pagesize(10*KiB)));
+    arena(*newArena(Options("lea 4").resetting(true).recycling(true).pagesize(64*MiB)));
 }
 
 /**
@@ -243,8 +272,9 @@ void ArenaTests::arena(Arena& a)
     allocator       (a);
     alignment       (a);
     containers      (a);
+    randomized      (a);
 
-    std::cout << std::endl;
+    std::cout << a << std::endl;
 }
 
 /**
@@ -401,6 +431,42 @@ void ArenaTests::containers(Arena& a)
 }
 
 /**
+ *  Randomly allocate and recycle a large number of blocks of arbitrary sizes
+ *  from the arena 'a'.
+ *
+ *  Paul suggested the technique used here of multiplying and dividing by two
+ *  primes as a cheap means of determinstically synthesizing a random-ish list
+ *  of trials.
+ */
+void ArenaTests::randomized(Arena& a)
+{
+    std::vector<void*> v;                                // Live allocations
+
+    for (size_t i=0; i!=100000; ++i)                     // For each 'trial'
+    {
+        size_t n = (i * 7561) % 17;                      // ...pseudo random
+
+        if (n % 2 == 0)                                  // ...is even?
+        {
+            v.push_back(a.allocate(n));                  // ....allocate
+        }
+
+        if (n % 5 == 0 && !v.empty())                    // ...try freeing?
+        {
+            n %= v.size();                               // ....item to free
+            a.recycle(v[n]);                             // ....so recycle it
+            v.erase  (v.begin() + n);                    // ....drop from list
+        }
+    }
+
+    while (!v.empty())                                   // For all remaining
+    {
+        a.recycle(v.back());                             // ...recycle block
+        v.pop_back();                                    // ...and remove it
+    }
+}
+
+/**
  *  Check that the given container works ok.  Not a very extensive test, but
  *  verifies that the various constructors are working correctly when passed
  *  an arena both implicitly and explicitly.
@@ -442,10 +508,10 @@ void ArenaTests::alignment(Arena& a)
 {
     struct {void operator()(const void* p)               // Local function
     {
-        CPPUNIT_ASSERT(reinterpret_cast<uintptr_t>(p) % arena::alignment == 0);
+        CPPUNIT_ASSERT(reinterpret_cast<uintptr_t>(p) % sizeof(alignment_t) == 0);
     }}  aligned;                                         // The local function
 
-    for (size_t i=1; i!=arena::alignment + 1; ++i)       // For various sizes
+    for (size_t i=1; i!=sizeof(alignment_t) + 1; ++i)    // For various sizes
     {
        {void* p = a.malloc(i)  ;          aligned(p);a.free(p,i);}
        {void* p = a.calloc(i)  ;          aligned(p);a.free(p,i);}
@@ -507,6 +573,59 @@ void ArenaTests::testLimiting()
     }
 
     a->recycle(a->allocate(10));                         // This succeeds too
+}
+
+/**
+ *  Check that managed string concatenation is working correctly.
+ *
+ *  Managed string concatentation broke due to bug #9064 in Boost 1.54:
+ *
+ *      https://svn.boost.org/trac/boost/ticket/9064
+ *
+ *  This bug was fixed in Boost 1.55.
+ */
+void ArenaTests::testStringConcat()
+{
+    using namespace managed;                             // Arena-aware cntnrs
+
+    ArenaPtr a(getArena());                              // The current arena
+
+    string s(a,"s");                                     // A managed string
+    string t(s + s);                                     // Crashed in v1.54
+    cout << "test string concatenation: " << t << endl;  // Check it works ok
+}
+
+/**
+ *  Test the ability of newScalar() and newVector() to optionally register (or
+ *  skip registration of) a finalizer that will be automatically applied to an
+ *  allocation when it is ventually destroyed.
+ */
+void ArenaTests::testManualAuto()
+{
+    using std::string;                                   // For string object
+
+    ArenaPtr A(getArena());                              // The current arena
+    Arena&   a(*A);                                      // A reference to it
+    size_t   n(a.allocated());                           // Record allocations
+
+    destroy(a,newScalar<int>    (a, 3           )  );    // Default = automatic
+    destroy(a,newVector<int>    (a, 3           )  );    // Default = automatic
+    destroy(a,newScalar<string> (a,"3",manual   ),1);    // Manual    scalar
+    destroy(a,newScalar<string> (a,"3",automatic)  );    // Automatic scalar
+    destroy(a,newVector<string> (a, 3 ,manual   ),3);    // Manual    vector
+    destroy(a,newVector<string> (a, 3 ,automatic)  );    // Automatic vector
+
+ /* Check that the automatic cleanup of a partiallly constructed vector of
+    elements works in both manual and automatic finalization mode...*/
+
+    try{newVector<Throws1>(a,3);}           catch(int){} //
+    try{newVector<Throws2>(a,3);}           catch(int){} //
+    try{newVector<Throws1>(a,3,manual);}    catch(int){} //
+    try{newVector<Throws2>(a,3,manual);}    catch(int){} //
+    try{newVector<Throws1>(a,3,automatic);} catch(int){} //
+    try{newVector<Throws2>(a,3,automatic);} catch(int){} //
+
+    CPPUNIT_ASSERT(a.allocated() == n);                  // We cleaned up ok?
 }
 
 /**

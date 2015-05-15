@@ -32,6 +32,7 @@
 #include <array/Array.h>
 #include <array/MemArray.h>
 #include <array/TupleArray.h>
+#include <util/Arena.h>
 
 #include <stdio.h>
 #include <ctype.h>
@@ -56,9 +57,12 @@ public:
      * Class will sort Arrays into a 1-d output array based on sort keys
      * provided
      * @param[in] inputSchema schema of array to sort
+     * @param[in] arena parent mem arena for SortArray's mem usage
+     * @param[in] preservePositions  whether the cell positions of all records need to be preserved.
      * @param[in] chunkSize optional chunk size for ouput
      */
-    SortArray(const ArrayDesc& inputSchema, size_t chunkSize = 0)
+    SortArray(const ArrayDesc& inputSchema, arena::ArenaPtr const& arena, bool preservePositions, size_t chunkSize = 0)
+        : _inputSchema(inputSchema), _arena(arena), _preservePositions(preservePositions)
     {
         calcOutputSchema(inputSchema, chunkSize);
     }
@@ -77,11 +81,31 @@ public:
                                                boost::shared_ptr<TupleComparator> tcomp);
 
     /**
+     * @return the array descriptor from the input array.
+     */
+    const ArrayDesc& getInputArrayDesc()
+    {
+        return _inputSchema;
+    }
+
+    /**
      * @return the array descriptor for the output array
      */
     const ArrayDesc& getOutputArrayDesc()
     {
         return *_outputSchema;
+    }
+
+    /**
+     * @return whether the SortArray needs to preserve the cell positions of all records.
+     * @note The output array schema depends on this!
+     *       In particular, to preserve positions, there output schema has two more attributes:
+     *       - chunk_pos: an integer that corresponds to the chunk number. @see ArrayCoordinatesMapper::chunkPos2pos, pos2chunkPos.
+     *       - cell_pos:  an integer that corresponds to the cell position inside a chunk. @see ArrayCoordinatesMapper::coord2pos, pos2coord.
+     */
+    bool preservePositions() const
+    {
+        return _preservePositions;
     }
 
 private:
@@ -163,7 +187,9 @@ private:
      */
     void calcOutputSchema(const ArrayDesc& inputSchema, size_t chunkSize);
 
-    boost::shared_ptr<Array> _input;                 // array to sort
+    ArrayDesc const _inputSchema;
+    arena::ArenaPtr const _arena;                    // parent memory arena
+    boost::shared_ptr<Array> _input;           // array to sort
     boost::shared_ptr<ArrayDesc> _outputSchema;      // shape of output
     boost::shared_ptr<TupleComparator> _tupleComp;   // comparison to use between cells
 
@@ -186,6 +212,11 @@ private:
     std::vector< boost::shared_ptr<Job> > _waitingJobs;
     std::vector< boost::shared_ptr<Job> > _stoppedJobs;
     boost::shared_ptr<Job> _failedJob;
+
+    /**
+     * Whether the cell positions of all records need to be preserved.
+     */
+    bool _preservePositions;
 };
 
 } //namespace scidb

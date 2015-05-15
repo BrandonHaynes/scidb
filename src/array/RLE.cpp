@@ -20,11 +20,11 @@
 * END_COPYRIGHT
 */
 
-#include "array/Array.h"
-#include "query/TypeSystem.h"
-#include "system/Config.h"
-#include "system/SciDBConfigOptions.h"
-#include "system/Utils.h"
+#include <array/Array.h>
+#include <query/TypeSystem.h>
+#include <system/Config.h>
+#include <system/SciDBConfigOptions.h>
+#include <system/Utils.h>
 
 using namespace boost;
 using namespace std;
@@ -35,21 +35,15 @@ namespace scidb
     const uint64_t RLE_EMPTY_BITMAP_MAGIC = 0xEEEEAAAA00EEBAACLL;
     const uint64_t RLE_PAYLOAD_MAGIC = 0xDDDDAAAA000EAAACLL;
 
-    bool checkChunkMagic(ConstChunk const& chunk)
+    void checkChunkMagic(ConstChunk const& chunk)
     {
-        if (chunk.isRLE()) {
-            PinBuffer scope(chunk);
-            if (chunk.getAttributeDesc().isEmptyIndicator())  {
-                return *(uint64_t*)chunk.getData() == RLE_EMPTY_BITMAP_MAGIC;
-            } else {
-                return *(uint64_t*)chunk.getData() == RLE_PAYLOAD_MAGIC;
-            }
-        }
-        return true;
-    }
+        PinBuffer scope(chunk);
+        uint64_t* magic = static_cast<uint64_t*>(chunk.getData());
 
-    size_t ConstRLEEmptyBitmap::packedSize() const {
-        return sizeof(Header) + _nSegs*sizeof(Segment);
+        SCIDB_ASSERT(magic != 0);
+        SCIDB_ASSERT(*magic == (chunk.getAttributeDesc().isEmptyIndicator() ?
+                          RLE_EMPTY_BITMAP_MAGIC :
+                          RLE_PAYLOAD_MAGIC));
     }
 
     void ConstRLEEmptyBitmap::pack(char* dst) const {
@@ -70,13 +64,13 @@ namespace scidb
     ConstRLEEmptyBitmap::ConstRLEEmptyBitmap(ConstChunk const& bitmapChunk) : _chunk(NULL)
     {
         _chunkPinned = bitmapChunk.pin();
-        char* src = (char*)bitmapChunk.getData();
+        char const* src = (char const*)bitmapChunk.getConstData();
         if (src != NULL) {
-            Header* hdr = (Header*)src;
+            Header const* hdr = (Header const*)src;
             assert(hdr->_magic == RLE_EMPTY_BITMAP_MAGIC);
             _nSegs = hdr->_nSegs;
             _nNonEmptyElements = hdr->_nNonEmptyElements;
-            _seg = (Segment*)(hdr+1);
+            _seg = (Segment const*)(hdr+1);
             _chunk = &bitmapChunk;
         } else {
             _nSegs = 0;
@@ -100,148 +94,6 @@ namespace scidb
             _nNonEmptyElements = 0;
         }
     }
-
-    boost::shared_ptr<RLEEmptyBitmap> ConstRLEEmptyBitmap::merge(ConstRLEEmptyBitmap const& other)
-    {
-        RLEEmptyBitmap* result = new RLEEmptyBitmap();
-        result->reserve(_nSegs);
-        Segment segm;
-        size_t i = 0, j = 0;
-        while (i < _nSegs && j < other._nSegs) {
-            if (_seg[i]._lPosition + _seg[i]._length <= other._seg[j]._lPosition) {
-                i += 1;
-            } else if (other._seg[j]._lPosition + other._seg[j]._length <= _seg[i]._lPosition) {
-                j += 1;
-            } else {
-                position_t start = _seg[i]._lPosition < other._seg[j]._lPosition ? other._seg[j]._lPosition : _seg[i]._lPosition;
-                segm._lPosition = start;
-                segm._pPosition = _seg[i]._pPosition + (start - _seg[i]._lPosition);
-                if (_seg[i]._lPosition + _seg[i]._length < other._seg[j]._lPosition + other._seg[j]._length) {
-                    assert(_seg[i]._lPosition + _seg[i]._length > start);
-                    segm._length = _seg[i]._lPosition + _seg[i]._length - start;
-                    i += 1;
-                } else {
-                    assert(other._seg[j]._lPosition + other._seg[j]._length > start);
-                    segm._length = other._seg[j]._lPosition + other._seg[j]._length - start;
-                    j += 1;
-                }
-                result->addSegment(segm);
-            }
-        }
-        return shared_ptr<RLEEmptyBitmap>(result);
-    }
-
-    boost::shared_ptr<RLEEmptyBitmap> ConstRLEEmptyBitmap::join(ConstRLEEmptyBitmap const& other)
-    {
-        RLEEmptyBitmap* result = new RLEEmptyBitmap();
-        result->reserve(_nSegs);
-        Segment segm;
-        size_t i = 0, j = 0;
-        segm._pPosition = 0;
-        segm._lPosition = 0;
-        segm._length = 0;
-        while (i < _nSegs || j < other._nSegs) {
-            if (i < _nSegs && _seg[i]._lPosition <= segm._lPosition + segm._length) {
-                if (_seg[i]._lPosition + _seg[i]._length > segm._lPosition + segm._length) {
-                    segm._length = _seg[i]._lPosition + _seg[i]._length - segm._lPosition;
-                }
-                i += 1;
-            } else if (j < other._nSegs && other._seg[j]._lPosition <= segm._lPosition + segm._length) {
-                if (other._seg[j]._lPosition + other._seg[j]._length > segm._lPosition + segm._length) {
-                    segm._length = other._seg[j]._lPosition + other._seg[j]._length - segm._lPosition;
-                }
-                j += 1;
-            }  else {
-                if (segm._length != 0)  {
-                    result->addSegment(segm);
-                    segm._pPosition += segm._length;
-                }
-                if (j == other._nSegs || (i < _nSegs && _seg[i]._lPosition < other._seg[j]._lPosition)) {
-                    segm._lPosition = _seg[i]._lPosition;
-                    segm._length = _seg[i]._length;
-                    i += 1;
-                } else {
-                    segm._lPosition = other._seg[j]._lPosition;
-                    segm._length = other._seg[j]._length;
-                    j += 1;
-                }
-            }
-        }
-        if (segm._length != 0)  {
-            result->addSegment(segm);
-        }
-        return shared_ptr<RLEEmptyBitmap>(result);
-    }
-
-
-    shared_ptr<RLEEmptyBitmap> ConstRLEEmptyBitmap::merge(ValueMap& vm)
-    {
-        shared_ptr<RLEEmptyBitmap> result (new RLEEmptyBitmap());
-        result->reserve(vm.size());
-        Segment segm;
-        segm._pPosition = 0;
-        segm._length = 0;
-        segm._lPosition = -1;
-        for (ValueMap::const_iterator i = vm.begin(); i != vm.end(); ++i) {
-            assert(i->first >= segm._lPosition + segm._length);
-            if (i->first != segm._lPosition + segm._length) { // hole
-                if (segm._length != 0) {
-                    result->addSegment(segm);
-                    segm._length = 0;
-                }
-                segm._lPosition = i->first;
-                segm._pPosition = getValueIndex(segm._lPosition);
-                assert(segm._pPosition != -1);
-            }
-            segm._length += 1;
-        }
-        if (segm._length != 0) {
-            result->addSegment(segm);
-        }
-        return result;
-    }
-
-    shared_ptr<RLEEmptyBitmap> ConstRLEEmptyBitmap::merge(uint8_t const* mergeBits)
-    {
-        shared_ptr<RLEEmptyBitmap> result (new RLEEmptyBitmap());
-        Segment segm;
-        segm._pPosition = 0;
-        segm._length = 0;
-        segm._lPosition = -1;
-
-        ConstRLEEmptyBitmap::iterator iter = getIterator();
-        size_t bitNum = 0;
-        while (!iter.end())
-        {
-            bool isSet = mergeBits[bitNum >> 3] & (1 << (bitNum & 7));
-            if (isSet)
-            {
-                if(segm._length==0)
-                {
-                    segm._lPosition = iter.getLPos();
-                    segm._pPosition = iter.getPPos();
-                }
-                segm._length++;
-            }
-            else
-            {
-                if(segm._length!=0)
-                {
-                    result->addSegment(segm);
-                    segm._length=0;
-                }
-            }
-            ++iter;
-            bitNum++;
-        }
-
-        if (segm._length!=0)
-        {
-            result->addSegment(segm);
-        }
-        return result;
-    }
-
 
     ostream& operator<<(ostream& stream, ConstRLEEmptyBitmap const& map)
     {
@@ -365,12 +217,12 @@ namespace scidb
         }
 
       public:
-        BitmapReplicator(Segment* sourceArray, size_t sourceCount) :
-            _resultBitmap(new RLEEmptyBitmap()),
+        BitmapReplicator(Segment const* sourceArray, size_t sourceCount) :
             _sourceArray(sourceArray),
             _sourceCount(sourceCount),
             _sourceIndex(0)
         {
+            _resultBitmap = boost::make_shared<RLEEmptyBitmap>();
             _resultSegment._lPosition = static_cast<position_t>(-1);
             _resultSegment._pPosition = static_cast<position_t>(-1);
             _resultSegment._length = 0;
@@ -451,8 +303,8 @@ namespace scidb
         boost::shared_ptr<RLEEmptyBitmap> result()
         {
             _flush();
-            boost::shared_ptr<RLEEmptyBitmap> result = _resultBitmap;
-            _resultBitmap.reset();
+            boost::shared_ptr<RLEEmptyBitmap> result;
+            _resultBitmap.swap(result);
             return result;
         }
     };
@@ -471,6 +323,7 @@ namespace scidb
         Cut()
         {
         }
+        friend boost::shared_ptr<Cut> boost::make_shared<Cut>();
 
         position_t init(Coordinates const& lowerOrigin,
                         Coordinates const& upperOrigin,
@@ -487,7 +340,7 @@ namespace scidb
             ++index;
             position_t multiplier = 1;
             if (index < lowerOrigin.size()) {
-                _nested = boost::shared_ptr<Cut>(new Cut());
+                _nested = boost::make_shared<Cut>();
                 multiplier = _nested->init(lowerOrigin, upperOrigin,
                                            lowerResult, upperResult,
                                            index);
@@ -814,7 +667,7 @@ namespace scidb
         if (_currLPos >= _cs->_lPosition + _cs->_length) {
             position_t ppos = getPPos();
             size_t l = 0, r = _bm->_nSegs;
-            ConstRLEEmptyBitmap::Segment* seg = _bm->_seg;
+            ConstRLEEmptyBitmap::Segment const* seg = _bm->_seg;
             while (l < r) {
                 size_t m = (l + r) >> 1;
                 if (seg[m]._pPosition + seg[m]._length <= ppos) {
@@ -867,7 +720,13 @@ namespace scidb
         Dimensions const& dims = array.getDimensions();
         size_t nDims = dims.size();
         Value buf;
-        RLEPayload::append_iterator appender(value.getTile(TID_INT64));
+
+        if (value.getTile() == 0)
+        {
+            value = Value(TypeLibrary::getType(TID_INT64),Value::asTile);
+        }
+
+        RLEPayload::append_iterator appender(value.getTile());
         if (array.getEmptyBitmapAttribute() != NULL) {
             Coordinates origin(nDims);
             Coordinates currPos(nDims);
@@ -936,22 +795,22 @@ namespace scidb
             uint64_t offset = 0;
             Coordinates pos = tilePos;
             if (withOverlap) {
-                start = max(dims[dim].getStart(), Coordinate(chunkPos[dim] - dims[dim].getChunkOverlap()));
+                start = max(dims[dim].getStartMin(), Coordinate(chunkPos[dim] - dims[dim].getChunkOverlap()));
                 end = min(dims[dim].getEndMax(), Coordinate(chunkPos[dim] + dims[dim].getChunkInterval() + dims[dim].getChunkOverlap() - 1));
                 for (size_t i = nDims; i-- != 0; ) {
                     if (pos[i] > dims[i].getEndMax()) {
                         for (size_t j = 0; j < nDims; j++) {
-                            pos[j] = max(dims[j].getStart(), Coordinate(chunkPos[j] - dims[j].getChunkOverlap()));
+                            pos[j] = max(dims[j].getStartMin(), Coordinate(chunkPos[j] - dims[j].getChunkOverlap()));
                         }
                         if (i != 0) {
                             pos[i-1] += 1;
                         }
-                    } else if (pos[i] < dims[i].getStart()) {
-                        pos[i] = dims[i].getStart();
+                    } else if (pos[i] < dims[i].getStartMin()) {
+                        pos[i] = dims[i].getStartMin();
                     }
                 }
                 for (size_t i = dim; ++i < nDims;) {
-                    Coordinate rowStart = max(dims[i].getStart(), Coordinate(chunkPos[i] - dims[i].getChunkOverlap()));
+                    Coordinate rowStart = max(dims[i].getStartMin(), Coordinate(chunkPos[i] - dims[i].getChunkOverlap()));
                     Coordinate rowEnd = min(dims[i].getEndMax(), Coordinate(chunkPos[i] + dims[i].getChunkInterval() + dims[i].getChunkOverlap() - 1));
                     uint64_t rowLen = rowEnd - rowStart + 1;
                     interval *= rowLen;
@@ -1027,10 +886,6 @@ namespace scidb
             getValueByIndex(value, _seg[r]._valueIndex + (_seg[r]._same ? 0 : pos - _seg[r]._pPosition));
         }
         return true;
-    }
-
-    size_t ConstRLEPayload::packedSize() const {
-        return sizeof(Header) + (_nSegs+1)*sizeof(Segment) + _dataSize;
     }
 
     void ConstRLEPayload::pack(char* dst) const
@@ -1579,19 +1434,19 @@ namespace scidb
                 headItems = _dataSize*8;
                 _valuesCount += payload._valuesCount;
             }
-            Segment* s = &_container[headSegments];
-            Segment* end = &_container[_container.size()];
-            while (s < end) {
-                if (!s->_null) {
-                    s->_valueIndex += headItems;
+            for(size_t i=headSegments; i < _container.size(); ++i) {
+                Segment& s = _container[i];
+                if (!s._null) {
+                    s._valueIndex += headItems;
                 }
-                s->_pPosition += lastHeadPosition;
-                s += 1;
+                s._pPosition += lastHeadPosition;
             }
         }
+        assert(_container.size()>0);
         _seg = &_container[0];
         _nSegs = _container.size() - 1;
-        this->_payload = &_data[0];
+
+        this->_payload = !_data.empty() ? &_data[0] : NULL;
         _dataSize += payload._dataSize;
     }
 
@@ -1845,7 +1700,10 @@ namespace scidb
     void RLEPayloadAppender::append(Value const& v)
     {
         assert(!_finalized);
-        if(_nextSeg == 0 || _payload._container[_nextSeg-1]._null != v.isNull() || (v.isNull() && _payload._container[_nextSeg-1]._valueIndex != v.getMissingReason()))
+        if (_nextSeg == 0 ||
+            _payload._container[_nextSeg-1]._null != v.isNull() ||
+            (v.isNull() &&
+             _payload._container[_nextSeg-1]._valueIndex != v.getMissingReason()))
         {
             _payload._container.resize(_nextSeg+1);
             _payload._container[_nextSeg]._pPosition = _nextPPos;
@@ -1870,7 +1728,10 @@ namespace scidb
         }
         else if (!v.isNull())
         {
-            bool valuesEqual = v.size() == _payload._elemSize && memcmp(&_payload._data[(_nextValIndex-1) * _payload._elemSize], v.data(), _payload._elemSize) == 0;
+            bool valuesEqual =
+                v.size() == _payload._elemSize &&
+                memcmp(&_payload._data[(_nextValIndex-1) * _payload._elemSize],
+                       v.data(), _payload._elemSize) == 0;
             if (valuesEqual && !_payload._container[_nextSeg-1]._same)
             {
                 _payload._container.resize(_nextSeg+1);
@@ -1888,6 +1749,7 @@ namespace scidb
                 _payload._data.resize((_nextValIndex + 1) * _payload._elemSize);
                 memcpy(&_payload._data[(_nextValIndex) * _payload._elemSize], v.data(), _payload._elemSize);
                 _nextValIndex++;
+
                 if (_payload._container[_nextSeg-1]._pPosition == _nextPPos-1)
                 {
                     _payload._container[_nextSeg-1]._same = false;
@@ -1909,25 +1771,12 @@ namespace scidb
     //
     // Yet another appender: correct handling of boolean and varying size types
     //
-    inline void RLEPayload::append_iterator::init()
-    {
-        valueIndex = 0;
-        segLength = 0;
-        segm._pPosition = 0;
-        prevVal = new Value();
-    }
-
-    RLEPayload::append_iterator::append_iterator(size_t bitSize)
-    {
-        result = new RLEPayload(bitSize);
-        init();
-    }
-
     RLEPayload::append_iterator::append_iterator(RLEPayload* dstPayload)
+    : result(dstPayload), valueIndex(0), segLength(0)
     {
-        result = dstPayload;
+        assert(dstPayload);
         dstPayload->clear();
-        init();
+        segm._pPosition = 0;
     }
 
     void RLEPayload::append_iterator::flush()
@@ -1984,20 +1833,20 @@ uint64_t RLEPayload::append_iterator::add(iterator& ii, uint64_t limit, bool set
                     if (count > 1) {
                         ii += count-1;
                     }
-                    ii.getItem(*prevVal);
+                    ii.getItem(prevVal);
                     ii += 1;
                 } else {
                     ii += count;
                 }
             } else {
                 if (segm._same) {
-                    ii.getItem(*prevVal);
+                    ii.getItem(prevVal);
                     ii += count;
-                    result->appendValue(varPart, *prevVal, valueIndex++);
+                    result->appendValue(varPart, prevVal, valueIndex++);
                 } else {
                     for (uint64_t i = 0; i < count; i++) {
-                        ii.getItem(*prevVal);
-                        result->appendValue(varPart, *prevVal, valueIndex++);
+                        ii.getItem(prevVal);
+                        result->appendValue(varPart, prevVal, valueIndex++);
                         ++ii;
                     }
                 }
@@ -2018,7 +1867,7 @@ uint64_t RLEPayload::append_iterator::add(iterator& ii, uint64_t limit, bool set
             segm._null = true;
             segm._same = true;
             segm._valueIndex = v.getMissingReason();
-        } else if (segLength != 0 && !segm._null && v == *prevVal) {
+        } else if (segLength != 0 && !segm._null && v == prevVal) {
             if (segm._same) {
                 segLength += count;
             } else {
@@ -2050,13 +1899,12 @@ uint64_t RLEPayload::append_iterator::add(iterator& ii, uint64_t limit, bool set
             }
             segLength += count;
             result->appendValue(varPart, v, valueIndex++);
-            *prevVal = v;
+            prevVal = v;
         }
     }
 
     RLEPayload::append_iterator::~append_iterator()
     {
-        delete prevVal;
     }
 
     void ConstRLEPayload::getSizeOfVarPartForOneDatum(char* const address, size_t& sizeHeader, size_t& sizeDatum)
@@ -2113,7 +1961,4 @@ uint64_t RLEPayload::append_iterator::add(iterator& ii, uint64_t limit, bool set
         }
         memcpy(&varPart[offs], value.data(), len);
     }
-
-
 }
-

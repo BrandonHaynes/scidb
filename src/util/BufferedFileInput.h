@@ -69,46 +69,30 @@ namespace scidb
  *
  * Double buffering is used to allow a buffer of data to be processed while the other buffer is being loaded.
  *
+ * TO-DO:
+ *  1. Fix timing problem that can result in premature EOFs.
+ *  2. Add line-oriented API to replace getline(3) calls in TSV and CSV loaders.
+ *  3. Move initial I/O out of constructor... defer until first read.
  */
 class BufferedFileInput
 {
-public:
-    /*
-     * The method to return the size (in bytes) of one buffer
+public: // public data structure.
+    /**
+     * The state of the BufferedFileInput object.
      */
-    static int64_t bufferSize() {
-        int64_t size = Config::getInstance()->getOption<int>(CONFIG_LOAD_SCAN_BUFFER) * MiB;
-        if (size <= 0)
-            size = KiB;
-        return size;
-    }
+    enum State
+    {
+        UNINITIALIZED,  // Right after construction, the object is UNINITIALIZED.
+        SERVING,        // When the first call to myGetc() is made, the object is SERVING.
+        TERMINATED      // When the object is TERMINATED, it cannot serve any further calls.
+    };
 
-private:
-    // the file pointer
-    FILE* _f;
-
-    // which buffer is being used?
-    short _which;
-
-    // buffer size in bytes
-    int64_t _bufferSize;
-
-    // the query
-    boost::weak_ptr<Query> _query;
-
-    // the error check, used both in Constructor and myGetcNonInlinedPart
-    Event::ErrorChecker _ec;
-
-#ifndef NDEBUG
-    // _NoMoreCalls is used only in debug mode, to assert that, once myGetc() returns EOF,
-    // no more calls to either myGetc() or myUngetc() can be made.
-    bool _NoMoreCalls;
-#endif
-
+private: // private structures.
     /*
      * A single buffer.
      */
-    class Buffer {
+    class Buffer
+    {
     public:
         // whether data have been loaded to the buffer
         // The other fields are meaningless if loaded==false.
@@ -143,17 +127,12 @@ private:
         // whether the scanner is waiting
         bool _scannerIsWaiting;
 
-        // whether error has occurred when the loader reads the file.
-        // The flag is set true in the loader thread, so that the scanner can pick it up and throw.
-        bool _readFileError;
+        // Whether error has occurred when the loader reads the file.
+        // Values are 0: no error, > 0: errno.
+        // This is set in the loader thread, so that the scanner can pick it up and throw.
+        int _readFileError;
 
-        /*
-         * Constructor
-         */
-        Buffer(): _loaded(false), _buffer(new char[BufferedFileInput::bufferSize()]), _loaderIsWaiting(false),
-                _scannerIsWaiting(false), _readFileError(false)
-        {
-        }
+        Buffer();
     };
 
     /*
@@ -162,25 +141,43 @@ private:
      */
     class FillBufferJob : public Job
     {
+    private:
         Buffer* _buffers;
         FILE* _f;
         int64_t _bufferSize;
-        bool* _pTerminated;
+        BufferedFileInput::State* _pState;
 
-      public:
-        /*
-         * Constructor
-         */
-        FillBufferJob(boost::shared_ptr<Query> const& query, Buffer* buffers, FILE* f, int64_t bufferSize, bool* pTerminated)
-        : Job(query), _buffers(buffers), _f(f), _bufferSize(bufferSize), _pTerminated(pTerminated)
-        {
-        }
-
-        /*
-         * run
-         */
+    public:
+        FillBufferJob(
+                boost::shared_ptr<Query> const& query,
+                Buffer* buffers,
+                FILE* f,
+                int64_t bufferSize,
+                BufferedFileInput::State* pState);
         virtual void run();
     };
+
+private: // private members.
+    // the state.
+    State _state;
+
+    // the file pointer
+    FILE* _f;
+
+    // which of the two buffers can be used to support the next call to myGetc()?
+    short _which;
+
+    // buffer size in bytes
+    int64_t _bufferSize;
+
+    // the query
+    boost::weak_ptr<Query> _query;
+
+#ifndef NDEBUG
+    // _debugOnlyNoMoreCalls is used only in debug mode, to assert that, once myGetc() returns EOF,
+    // no more calls to either myGetc() or myUngetc() can be made.
+    bool _debugOnlyNoMoreCalls;
+#endif
 
     // the two buffers
     Buffer _buffers[2];
@@ -189,11 +186,33 @@ private:
     // It is stored so that the destructor will wait for the job to finishes
     boost::shared_ptr<FillBufferJob> _fillBufferJob;
 
-    // In case of destructing, 'terminated' is set true.
-    // All the Event::wait() calls should quit if it is true.
-    bool _terminated;
+    /*
+     * The non-inlined part of myGetc().
+     * The reason to separate the inlined part and non-inlined part is to ensure fast execution in normal case,
+     * without enlengthening the executable size unnecessarily.
+     *
+     * @return  the next character; or EOF if end of file has reached.
+     */
+    char myGetcNonInlinedPart();
 
-public:
+    /**
+     * The initialize routine which must be called before myGetc() or myUngetc() may be used.
+     * @return whether the initialization is successful.
+     */
+    bool initialize();
+
+    /*
+     * The method to return the size (in bytes) of one buffer
+     */
+    static int64_t bufferSize() {
+        int64_t size = Config::getInstance()->getOption<int>(CONFIG_LOAD_SCAN_BUFFER) * MiB;
+        if (size <= 0) {
+            size = KiB;
+        }
+        return size;
+    }
+
+public: // public members.
     /*
      * Constructor.
      */
@@ -211,8 +230,14 @@ public:
      * @return  the next character; or EOF if end of file has reached.
      *
      */
-    inline char myGetc() {
-        assert(!_NoMoreCalls);
+    inline char myGetc()
+    {
+        assert(!_debugOnlyNoMoreCalls);
+        if (_state==UNINITIALIZED) {
+            if (! initialize()) {
+                return EOF;
+            }
+        }
 
         Buffer& theBuffer = _buffers[_which];
         int64_t index = theBuffer._index;
@@ -228,19 +253,13 @@ public:
     }
 
     /*
-     * The non-inlined part of myGetc().
-     * The reason to separate the inlined part and non-inlined part is to ensure fast execution in normal case,
-     * without enlengthening the executable size unnecessarily.
-     *
-     * @return  the next character; or EOF if end of file has reached.
-     */
-    char myGetcNonInlinedPart();
-
-    /*
      * myUngetc: return a char back to the stream.
      */
-    inline void myUngetc(char c) {
-        assert(!_NoMoreCalls);
+    inline void myUngetc(char c)
+    {
+        assert(!_debugOnlyNoMoreCalls);
+        ASSERT_EXCEPTION(_state!=UNINITIALIZED, "No one should call myUngetc() before myGetc() in BufferedFileInput.");
+
         Buffer& theBuffer = _buffers[_which];
         int64_t index = theBuffer._index;
         assert(index>=0);

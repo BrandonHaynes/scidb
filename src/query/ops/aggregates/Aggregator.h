@@ -24,14 +24,17 @@
  * AggPartitioningOperator.h
  *
  *  Created on: Jul 25, 2011
- *      Author: poliocough@gmail.com
+ *      Author: poliocough@gmail.com, genius
  */
 
 #ifndef _AGGREGATOR_H
 #define _AGGREGATOR_H
 
+/****************************************************************************/
+
 #include "query/Operator.h"
 #include "util/arena/Vector.h"
+#include "util/arena/UnorderedMap.h"
 #include "array/Metadata.h"
 #include "array/MemArray.h"
 #include "array/TileIteratorAdaptors.h"
@@ -41,15 +44,18 @@
 #include "array/DelegateArray.h"
 #include "system/Sysinfo.h"
 
-#include <boost/unordered_map.hpp>
+#include <boost/scope_exit.hpp>
 #include <boost/foreach.hpp>
 #include <log4cxx/logger.h>
 
-namespace scidb
-{
+/****************************************************************************/
+namespace scidb {
+/****************************************************************************/
 
-// Logger for operator. static to prevent visibility of variable outside of file
+using namespace arena;
 static log4cxx::LoggerPtr aggLogger(log4cxx::Logger::getLogger("scidb.qproc.aggregator"));
+
+/****************************************************************************/
 
 class FinalResultChunkIterator : public DelegateChunkIterator
 {
@@ -60,9 +66,6 @@ private:
 public:
     FinalResultChunkIterator (DelegateChunk const* sourceChunk, int iterationMode, AggregatePtr const& agg):
        DelegateChunkIterator(sourceChunk, iterationMode), _agg(agg->clone()), _outputValue(_agg->getResultType())
-    {}
-
-    virtual ~FinalResultChunkIterator()
     {}
 
     virtual Value &getItem()
@@ -108,9 +111,6 @@ public:
         _coords.resize(sourceChunk->getArrayDesc().getDimensions().size());
         reset();
     }
-
-    virtual ~FinalResultMapCreator()
-    {}
 
     Value& getItem()
     {
@@ -172,9 +172,6 @@ public:
         _agg(agg->clone()), _outputValue(_agg->getResultType())
     {}
 
-    virtual ~EmptyFinalResultChunkIterator()
-    {}
-
     virtual Value &getItem()
     {
         inputIterator->setPosition(getPosition());
@@ -183,8 +180,6 @@ public:
         return _outputValue;
     }
 };
-
-
 
 class FinalResultArray : public DelegateArray
 {
@@ -228,9 +223,6 @@ public:
         }
     }
 
-    virtual ~FinalResultArray()
-    {}
-
     virtual DelegateChunk* createChunk(DelegateArrayIterator const* iterator, AttributeID attrID) const
     {
         return new DelegateChunk(*this, *iterator, attrID, false);
@@ -271,18 +263,17 @@ public:
     }
 };
 
-
 struct AggregationFlags
 {
-    int iterationMode;
-    bool countOnly;
+    int               iterationMode;
+    bool              countOnly;
     std::vector<bool> shapeCountOverride;
     std::vector<bool> nullBarrier;
 };
 
 /**
- * The aggregator computes a distributed aggregation to the input array, based on several parameters.
- * The pieces of the puzzle are:
+ * The aggregator computes a distributed aggregation to the input array, based
+ * on several parameters. The pieces of the puzzle are:
  *  - one or more AGGREGATE_CALLs in the given parameters
  *  - input schema
  *  - output schema
@@ -293,18 +284,48 @@ class AggregatePartitioningOperator : public PhysicalOperator
   protected:
      std::vector <AggIOMapping> _ioMappings;
      std::vector <AggregatePtr> _aggs;
+     size_t              const  _inDims;
+     size_t              const  _outDims;
+
+  protected:
+    struct hash_t
+    {
+                      hash_t(size_t n) : size(n)                               {}
+        size_t        operator()(const Coordinate* p)                    const {return boost::hash_range(p,p + size);}
+        bool          operator()(const Coordinate* p,const Coordinate* q)const {return std::equal(p,p+size,q);}
+        size_t  const size; // The common coordinate vector length
+    };
+
+    typedef mgd::unordered_map<const Coordinate*,Value*,hash_t,hash_t>  StateMap;
+
+    StateMap newStateMap(Arena& a)
+    {
+        return StateMap(&a,11,StateMap::hasher(_outDims),StateMap::key_equal(_outDims));
+    }
+
+    Coordinate* newOutCoords(Arena& a)
+    {
+        return newVector<Coordinate>(a,_outDims,manual);
+    }
+
+    Value* newStateVector(Arena& a,count_t c)
+    {
+        return newVector<Value>(a,c,manual);
+    }
+
+    void destroyState(Value& v)
+    {
+        v.~Value();
+    }
 
   public:
-    typedef mgd::vector<Coordinates> CoordsVector;
-
     AggregatePartitioningOperator(const std::string& logicalName,
                                   const std::string& physicalName,
                                   const Parameters& parameters,
                                   const ArrayDesc& schema)
-         : PhysicalOperator(logicalName, physicalName, parameters, schema)
-    {}
-
-    virtual ~AggregatePartitioningOperator()
+         : PhysicalOperator(logicalName, physicalName, parameters, schema),
+           _inDims (0),                           // set in iniitializeOp()
+           _outDims(schema.getDimensions().size())
     {}
 
     virtual bool changesDistribution(std::vector<ArrayDesc> const&) const
@@ -314,7 +335,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
 
     virtual ArrayDistribution getOutputDistribution(
             std::vector<ArrayDistribution> const&,
-            std::vector< ArrayDesc> const&) const
+            std::vector<ArrayDesc> const&) const
     {
         return ArrayDistribution(psHashPartitioned);
     }
@@ -322,6 +343,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
     virtual void initializeOperator(ArrayDesc const& inputSchema)
     {
         assert(_aggs.empty());
+        const_cast<size_t&>(_inDims) = inputSchema.getDimensions().size();
         _aggs.resize(_schema.getAttributes().size());
         AggIOMapping countMapping;
 
@@ -409,7 +431,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
         }
     }
 
-    virtual void transformCoordinates(Coordinates const & inPos, Coordinates & outPos) = 0;
+    virtual void transformCoordinates(CoordinateCRange,CoordinateRange) = 0;
 
     ArrayDesc createStateDesc()
     {
@@ -431,19 +453,18 @@ class AggregatePartitioningOperator : public PhysicalOperator
         return ArrayDesc(_schema.getName(), outAttrs, _schema.getDimensions(), _schema.getFlags());
     }
 
-
-    inline void initializeOutput( boost::shared_ptr<ArrayIterator>& stateArrayIterator,
-                                  boost::shared_ptr<ChunkIterator>& stateChunkIterator,
-                                  Coordinates const& outPos)
+    void initializeOutput(boost::shared_ptr<ArrayIterator>& stateArrayIterator,
+                          boost::shared_ptr<ChunkIterator>& stateChunkIterator,
+                          Coordinates const& outPos)
     {
         Chunk& stateChunk = stateArrayIterator->newChunk(outPos);
         boost::shared_ptr<Query> query(stateArrayIterator->getQuery());
         stateChunkIterator = stateChunk.getIterator(query);
     }
 
-    inline void setOutputPosition(  boost::shared_ptr<ArrayIterator>& stateArrayIterator,
-                                    boost::shared_ptr<ChunkIterator>& stateChunkIterator,
-                                    Coordinates const& outPos)
+    void setOutputPosition(boost::shared_ptr<ArrayIterator>& stateArrayIterator,
+                           boost::shared_ptr<ChunkIterator>& stateChunkIterator,
+                           Coordinates const& outPos)
     {
         if (stateChunkIterator.get() == NULL)
         {
@@ -536,7 +557,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
         {
             result.iterationMode |= ConstChunkIterator::IGNORE_NULL_VALUES;
         }
-        if (!readZeroes && inputAttributeDesc.getDefaultValue().isDefault(inputAttributeDesc.getType()))
+        if (!readZeroes && isDefaultFor(inputAttributeDesc.getDefaultValue(),inputAttributeDesc.getType()))
         {
             result.iterationMode |= ConstChunkIterator::IGNORE_DEFAULT_VALUES;
         }
@@ -585,7 +606,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
         {
             result.iterationMode |= ConstChunkIterator::IGNORE_NULL_VALUES;
         }
-        if (!readZeroes && inputAttributeDesc.getDefaultValue().isDefault(inputAttributeDesc.getType()))
+        if (!readZeroes && isDefaultFor(inputAttributeDesc.getDefaultValue(),inputAttributeDesc.getType()))
         {
             result.iterationMode |= ConstChunkIterator::IGNORE_DEFAULT_VALUES;
         }
@@ -637,7 +658,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
                     ConstChunk const& chunk = inArrayIterator->getChunk();
                     uint64_t itemCount = 0;
                     uint64_t noNullCount = 0;
-                    
+
                     uint64_t chunkCount = chunk.getNumberOfElements(false);
                     boost::shared_ptr <ConstChunkIterator> inChunkIterator =
                         chunk.getConstIterator(aggFlags.iterationMode);
@@ -671,8 +692,8 @@ class AggregatePartitioningOperator : public PhysicalOperator
             }
         }
 
-        Coordinates outPos(_schema.getDimensions().size());
-        for(size_t i =0, n=outPos.size(); i<n; i++)
+        Coordinates outPos(_outDims);
+        for(size_t i =0; i<_outDims; i++)
         {
             outPos[i]=_schema.getDimensions()[i].getStartMin();
         }
@@ -718,21 +739,18 @@ class AggregatePartitioningOperator : public PhysicalOperator
                         for (size_t i=0; i<nAggs; i++)
                         {
                             AggregatePtr agg = mapping.getAggregate(i);
-                            if (states[i].getMissingReason() == 0) {
-                                agg->initializeState(states[i]);
-                            }
-                            agg->accumulatePayload(states[i], tile);
+                            agg->accumulateIfNeeded(states[i], tile);
                         }
                     }
-                    
+
                     ++(*inChunkIterator);
                 }
             }
             ++(*inArrayIterator);
         }
 
-        Coordinates outPos(_schema.getDimensions().size());
-        for(size_t i =0, n=outPos.size(); i<n; i++)
+        Coordinates outPos(_outDims);
+        for(size_t i =0; i<_outDims; i++)
         {
             outPos[i]=_schema.getDimensions()[i].getStartMin();
         }
@@ -750,46 +768,45 @@ class AggregatePartitioningOperator : public PhysicalOperator
     }
 
     /**
-     * In a CoordsVector, search the interval [start, end) for the first
-     * entry that doesn't match *start .
+     *  Search within the interval [start, end) of the given range of points
+     *  for the first entry that doesn't match *i .
      */
-    static size_t findEndOfRun(
-        const AggregatePartitioningOperator::CoordsVector& cv,
-        size_t start)
+    size_t findEndOfRun(PointerRange<Coordinate* const> cv,size_t i)
     {
-        const Coordinates& runValue = cv[start];
-        size_t end = cv.size();
-        assert(start <= end);
-        for (size_t result = start; result < end; ++result) {
-            if (cv[result] != runValue) {
-                return result;
+        assert(i <= cv.size());
+
+        const Coordinate* const runValue = cv[i];
+
+        for (size_t n=cv.size(); i!=n; ++i)
+        {
+            if (!std::equal(cv[i],cv[i]+_outDims,runValue))
+            {
+                return i;
             }
         }
-        return end;
+
+        return cv.size();
     }
 
     /**
      * For each position in tile, compute corresponding output coordinates.
      */
     void computeOutputCoordinates(
-        boost::shared_ptr<BaseTile> const& coordsTile,
-        CoordsVector& outCoordsVector)
+            boost::shared_ptr<BaseTile> const& tile,
+            PointerRange<Coordinate* const>     range)
     {
-        const size_t N = coordsTile->size();
-        outCoordsVector.clear();
-        outCoordsVector.reserve(N);
+        assert(range.size() == tile->size());
 
         // The positions tile returned from ...::getData() uses ArrayEncoding.
         Tile<Coordinates, ArrayEncoding>* cTile =
-            safe_dynamic_cast<Tile<Coordinates, ArrayEncoding>* >(coordsTile.get());
+            safe_dynamic_cast<Tile<Coordinates, ArrayEncoding>* >(tile.get());
 
-        Coordinates inCoords;
-        Coordinates outCoords(_schema.getDimensions().size());
-        for (size_t i = 0; i < N; ++i)
+        Coordinates in(_inDims);
+
+        for (size_t i=0,N=range.size(); i!=N; ++i)
         {
-            cTile->at(i, inCoords);
-            transformCoordinates(inCoords, outCoords);
-            outCoordsVector.push_back(outCoords);
+            cTile->at           (i, CoordinateRange(in));
+            transformCoordinates(in,CoordinateRange(_outDims,range[i]));
         }
     }
 
@@ -801,7 +818,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
         size_t attSize)
     {
         const size_t VALUES_PER_TILE =
-            Sysinfo::INTEL_L1_DATA_CACHE_BYTES / attSize;
+            Sysinfo::getCPUCacheSize(Sysinfo::CPU_CACHE_L1) / attSize;
 
         // Each aggregate will have its own array and chunk iterator.
         // (Note that the index into the AggIOMapping is *not*
@@ -810,39 +827,35 @@ class AggregatePartitioningOperator : public PhysicalOperator
         // that mapping.getOutputAttributeId(x) == x.)
         //
         const size_t N_AGGS = mapping.size();
-        mgd::vector <boost::shared_ptr<ArrayIterator> > stateArrayIters(N_AGGS);
-        mgd::vector <boost::shared_ptr<ChunkIterator> > stateChunkIters(N_AGGS);
+        mgd::vector <boost::shared_ptr<ArrayIterator> > stateArrayIters(_arena,N_AGGS);
+        mgd::vector <boost::shared_ptr<ChunkIterator> > stateChunkIters(_arena,N_AGGS);
         for (size_t i = 0; i < N_AGGS; ++i)
         {
             stateArrayIters[i] = stateArray->getIterator(mapping.getOutputAttributeId(i));
         }
 
-        // Intermediate states for the aggregator functions are keyed by
-        // Coordinates.
-        //
-        typedef mgd::vector<Value> States;
-        typedef boost::unordered_map<Coordinates, States>  StateMap;
-        StateMap outStateMap;
-
         // Tiles to hold the input data, the input positions that
         // correspond to each of these data values, and a tile's worth
         // of positions in the OUTPUT, which correspond to each
         // position in the INPUT.
-        // 
+        //
         boost::shared_ptr<BaseTile> dataTile;
         boost::shared_ptr<BaseTile> inPositionsTile;
-        CoordsVector outCoordinates;
-
-        // Need to enforce IGNORE_NULL_VALUES ourselves because this
-        // iteration mode is broken (yet the dead code somehow remains
-        // to confuse the hell out of us).
-        //
-        bool noNulls =
-            aggFlags.iterationMode & ChunkIterator::IGNORE_NULL_VALUES;
 
         // Input phase.  For each input chunk...
         boost::shared_ptr<ConstArrayIterator> inArrayIterator =
             inputArray->getConstIterator(mapping.getInputAttributeId());
+
+        // Build a local 'scoped' arena from which to allocate all the storage
+        // for our local data structures; we flush at the end of processing a
+        // chunk..
+        ArenaPtr localArena = newArena(Options("Aggregator")
+                                  .parent   (_arena)     // Attach to existing
+                                  .recycling(false)      // ...no don't bother
+                                  .resetting(true)       // ...scoped arena
+                                  .threading(false)      // ...single threaded
+                                  .pagesize (64*MiB));   // ...adjust to taste
+
         while (!inArrayIterator->end())
         {
             // Obtain tile mode input chunk iterator.
@@ -853,7 +866,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
             boost::shared_ptr<Query> query(Query::getValidQueryPtr(_query));
             boost::shared_ptr<ConstChunkIterator> inChunkIterator =
                 boost::make_shared<TileConstChunkIterator<boost::shared_ptr<ConstChunkIterator> > >(
-                    rawInChunkIterator, query); 
+                    rawInChunkIterator, query);
 
             // Empty chunk?  Next!
             if (inChunkIterator->end()) {
@@ -863,104 +876,120 @@ class AggregatePartitioningOperator : public PhysicalOperator
 
             // For each tile in the chunk...
             Coordinates cursor = inChunkIterator->getPosition();
-            while (!cursor.empty())
+
+            // place the state map in its own nested scope to ensure that:
+            // a) it is destroyed before we reset the 'local' arena
+            // b) the boost scope exit mechanism can destroy each of the state
+            //    values that it holds
             {
-                // Get tile data and positions, and compute output positions.
-                cursor = inChunkIterator->getData(cursor, VALUES_PER_TILE, dataTile, inPositionsTile);
-                if (!dataTile || dataTile->empty()) {
-                    assert(cursor.empty());
-                    break;
-                }
-                const size_t TILE_SIZE = dataTile->size();
-                computeOutputCoordinates(inPositionsTile, outCoordinates);
+                StateMap outStateMap(newStateMap(*localArena));
 
-                // For each run of identical output coordinates...
-                size_t runIndex = 0;
-                size_t endOfRun = 0;
-                while (endOfRun < TILE_SIZE)
+                BOOST_SCOPE_EXIT(&outStateMap,&localArena,N_AGGS)
                 {
-                    // Next run.
-                    runIndex = endOfRun;
-                    endOfRun = findEndOfRun(outCoordinates, runIndex);
-
-                    // Find the States vector for this output position.
-                    const Coordinates& outCoords = outCoordinates[endOfRun - 1];
-                    StateMap::iterator states = outStateMap.find(outCoords);
-                    if (states == outStateMap.end())
+                    BOOST_FOREACH(const StateMap::value_type& v,outStateMap)
                     {
-                        // Need a new States vector with one entry per aggregate.
-                        states = outStateMap.insert(std::make_pair(outCoords, States(N_AGGS))).first;
+                        destroy(*localArena,v.second,N_AGGS);
+                    }
+                }   BOOST_SCOPE_EXIT_END
 
-                        // We also need to initialize each state entry from the state chunk iterator,
-                        // since prior calls might have placed intermediate state there.
-                        for (size_t ag = 0; ag < N_AGGS; ++ag)
+                while (!cursor.empty())
+                {
+                    // Get tile data and positions, and compute output positions.
+                    cursor = inChunkIterator->getData(cursor, VALUES_PER_TILE, dataTile, inPositionsTile);
+
+                    if (!dataTile || dataTile->empty()) {
+                        assert(cursor.empty());
+                        break;
+                    }
+
+                    const size_t TILE_SIZE = dataTile->size();
+
+                    mgd::vector<Coordinate*> outCoordinates(_arena,TILE_SIZE);
+
+                    for (size_t i=0; i!=TILE_SIZE; ++i)
+                    {
+                        outCoordinates[i] = newOutCoords(*localArena);
+                    }
+
+                    computeOutputCoordinates(inPositionsTile,outCoordinates);
+
+                    // For each run of identical output coordinates...
+                    size_t runIndex = 0;
+                    size_t endOfRun = 0;
+                    while (endOfRun < TILE_SIZE)
+                    {
+                        // Next run.
+                        runIndex = endOfRun;
+                        endOfRun = findEndOfRun(outCoordinates,runIndex);
+
+                        // Find the States vector for this output position:
+                        const Coordinate* const outCoords(outCoordinates[endOfRun - 1]);
+                        Coordinates       const outCoordsV(outCoords,outCoords+_outDims); // because set Postion needs a vector
+
+                        StateMap::iterator states = outStateMap.find(outCoords);
+
+                        if (states == outStateMap.end())
                         {
-                            setOutputPosition(stateArrayIters[ag], stateChunkIters[ag], outCoords);
-                            Value& state = states->second[ag];
-                            state = stateChunkIters[ag]->getItem();
-                            if (state.getMissingReason() == 0)
+                            // Need a new States vector with one entry per aggregate.
+                            states = outStateMap.insert(std::make_pair(outCoords, newStateVector(*localArena,N_AGGS))).first;
+
+                            // We also need to initialize each state entry from the state chunk iterator,
+                            // since prior calls might have placed intermediate state there.
+                            for (size_t ag = 0; ag < N_AGGS; ++ag)
                             {
-                                // Looks like we are the first to want to write to this position, so
-                                // initialize it per its corresponding aggregator.
-                                mapping.getAggregate(ag)->initializeState(state);
+                                setOutputPosition(stateArrayIters[ag], stateChunkIters[ag], outCoordsV);
+                                Value& state = states->second[ag];
+                                state = stateChunkIters[ag]->getItem();
+                            }
+                        }
+
+                        // Aggregate this run of data into the States vector.
+                        for (size_t i=runIndex; i < endOfRun; ++i)
+                        {
+                            Value v;
+                            dataTile->at(i, v);
+
+                            for (size_t ag = 0; ag < N_AGGS; ++ag)
+                            {
+                                Value& state = states->second[ag];
+                                mapping.getAggregate(ag)->accumulateIfNeeded(state, v);
                             }
                         }
                     }
+                }
 
-                    // Aggregate this run of data into the States vector.
-                    for (size_t i = runIndex; i < endOfRun; ++i)
+                // Output phase.  Write out chunk's accumulated aggregate results.
+
+                Coordinates coords(_outDims); // <-because SetPosition() still needs a vector...
+
+                BOOST_FOREACH(const StateMap::value_type& kv,outStateMap)
+                {
+                    coords.assign(kv.first,kv.first + _outDims);
+
+                    for (size_t ag=0; ag != N_AGGS; ++ag)
                     {
-                        Value v;
-                        dataTile->at(i, v);
-
-                        // IGNORE_NULL_VALUES logic: generic prohibition.
-                        bool isNull = v.isNull();
-                        if (isNull && noNulls)
-                                continue;
-
-                        for (size_t ag = 0; ag < N_AGGS; ++ag)
-                        {
-                            // IGNORE_NULL_VALUES logic: per-aggregate prohibition.
-                            if (isNull && aggFlags.nullBarrier[ag])
-                                continue;
-
-                            Value& state = states->second[ag];
-                            mapping.getAggregate(ag)->accumulate(state, v);
-                        }
+                        setOutputPosition(stateArrayIters[ag],
+                                          stateChunkIters[ag],
+                                          coords);
+                        stateChunkIters[ag]->writeItem(kv.second[ag]);
                     }
                 }
             }
 
-            // Output phase.  Write out chunk's accumulated aggregate results.
-            for (StateMap::const_iterator pos = outStateMap.begin();
-                 pos != outStateMap.end();
-                 ++pos)
-            {
-                const Coordinates& coords = pos->first;
-                for (size_t ag = 0; ag < N_AGGS; ++ag)
-                {
-                    const Value& state = pos->second[ag];
-                    boost::shared_ptr<ArrayIterator>& aIter = stateArrayIters[ag];
-                    boost::shared_ptr<ChunkIterator>& cIter = stateChunkIters[ag];
+            localArena->reset();             // toss memory backing the state map
 
-                    setOutputPosition(aIter, cIter, coords);
-                    cIter->writeItem(state);
-                }
-            }
-
-            outStateMap.clear();
             ++(*inArrayIterator);
         }
 
-        // Finally, flush the chunk iterators.
-        for (size_t i = 0; i < N_AGGS; ++i)
+        // Finally, for each aggregate, flush its chunk iterator:
+        for (size_t i=0; i!=N_AGGS; ++i)
         {
-            ChunkIterator* cIter = stateChunkIters[i].get();
-            if (cIter)
+            if (ChunkIterator* cIter = stateChunkIters[i].get())
+            {
                 cIter->flush();
+            }
         }
     }
-
 
     void grandAggregate(Array* stateArray,
                         boost::shared_ptr<Array> & inputArray,
@@ -974,7 +1003,6 @@ class AggregatePartitioningOperator : public PhysicalOperator
         null.setNull(0);
         std::vector<Value> states(nAggs,null);
         int64_t chunkCount = 0;
-        bool noNulls = aggFlags.iterationMode & ChunkIterator::IGNORE_NULL_VALUES;
 
         while (!inArrayIterator->end())
         {
@@ -986,23 +1014,11 @@ class AggregatePartitioningOperator : public PhysicalOperator
                 while (!inChunkIterator->end())
                 {
                     Value &v = inChunkIterator->getItem();
-                    if (noNulls && v.isNull())
-                    {
-                        ++(*inChunkIterator);
-                        continue;
-                    }
-                    
+
                     for (size_t i =0; i<nAggs; i++)
                     {
-                        if ( !(aggFlags.nullBarrier[i] && v.isNull()) )
-                        {
-                            AggregatePtr agg = mapping.getAggregate(i);
-                            if(states[i].getMissingReason()==0)
-                            {
-                                agg->initializeState(states[i]);
-                            }
-                            agg->accumulate(states[i], v);
-                        }
+                        AggregatePtr agg = mapping.getAggregate(i);
+                        agg->accumulateIfNeeded(states[i], v);
                     }
                     ++(*inChunkIterator);
                 }
@@ -1010,7 +1026,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
             ++(*inArrayIterator);
         }
 
-        Coordinates outPos(_schema.getDimensions().size());
+        Coordinates outPos(_outDims);
         for(size_t i =0, n=outPos.size(); i<n; i++)
         {
             outPos[i]=_schema.getDimensions()[i].getStartMin();
@@ -1026,10 +1042,6 @@ class AggregatePartitioningOperator : public PhysicalOperator
             if(aggFlags.shapeCountOverride[i])
             {
                 AggregatePtr agg = mapping.getAggregate(i);
-                if (states[i].getMissingReason()==0)
-                {
-                    agg->initializeState(states[i]);
-                }
                 ((CountingAggregate*)agg.get())->overrideCount(states[i], chunkCount);
             }
             stateChunkIterator->writeItem(states[i]);
@@ -1045,8 +1057,6 @@ class AggregatePartitioningOperator : public PhysicalOperator
         boost::shared_ptr<ConstArrayIterator> inArrayIterator =
             inputArray->getConstIterator(mapping.getInputAttributeId());
         size_t const nAggs = mapping.size();
-
-        bool noNulls = aggFlags.iterationMode & ChunkIterator::IGNORE_NULL_VALUES;
 
         std::vector <boost::shared_ptr<ArrayIterator> > stateArrayIterators(nAggs);
         for (size_t i =0; i<nAggs; i++)
@@ -1071,16 +1081,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
                         size_t const aggNum = mapping.getOutputAttributeId(i);
                         setOutputPosition(stateArrayIterators[i], stateChunkIterators[i], outPos);
                         Value& state = stateChunkIterators[i]->getItem();
-                        if (state.getMissingReason()==0)
-                        {
-                            _aggs[aggNum]->initializeState(state);
-                        }
-                        if (v.isNull() && (noNulls || aggFlags.nullBarrier[i]))
-                        {
-                            stateChunkIterators[i]->writeItem(state);
-                            continue;
-                        }
-                        _aggs[aggNum]->accumulate(state, v);
+                        _aggs[aggNum]->accumulateIfNeeded(state, v);
                         stateChunkIterators[i]->writeItem(state);
                     }
                     ++(*inChunkIterator);
@@ -1120,7 +1121,7 @@ class AggregatePartitioningOperator : public PhysicalOperator
         initializeOperator(inArrayDesc);
 
         ArrayDesc stateDesc = createStateDesc();
-        boost::shared_ptr<MemArray> stateArray (new MemArray(stateDesc,query));
+        boost::shared_ptr<MemArray> stateArray (make_shared<MemArray>(stateDesc,query));
         boost::shared_ptr<Array> inputArray = ensureRandomAccess(inputArrays[0], query);
 
         if (_schema.getSize()==1)
@@ -1168,20 +1169,29 @@ class AggregatePartitioningOperator : public PhysicalOperator
             }
         }
 
-        boost::shared_ptr<Array> mergedArray = redistributeAggregate(stateArray, query, _aggs);
+        shared_ptr<Array> input(stateArray);
+        boost::shared_ptr<Array> mergedArray = redistributeToRandomAccess(input,
+                                                                          query,
+                                                                          _aggs,
+                                                                          psHashPartitioned,
+                                                                          ALL_INSTANCE_MASK,
+                                                                          shared_ptr<DistributionMapper>(),
+                                                                          0,
+                                                                          shared_ptr<PartitioningSchemaData>());
         stateArray.reset();
 
-        boost::shared_ptr<Array> finalResultArray (new FinalResultArray(
+        boost::shared_ptr<Array> finalResultArray (make_shared<FinalResultArray>(
                                                 _schema, mergedArray, _aggs, _schema.getEmptyBitmapAttribute()));
         if (_tileMode)
         {
-            return boost::shared_ptr<Array> (new MaterializedArray(
-                                          finalResultArray, query, MaterializedArray::RLEFormat));
+            return make_shared<MaterializedArray>(finalResultArray, query, MaterializedArray::RLEFormat);
         }
         return finalResultArray;
     }
 };
 
-}  // namespace scidb
-
+/****************************************************************************/
+}
+/****************************************************************************/
 #endif
+/****************************************************************************/

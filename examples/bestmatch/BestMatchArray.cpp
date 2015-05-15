@@ -94,7 +94,6 @@ namespace scidb
         match = array.findBestMatch(currPos);
         Address addr(attr, currPos);
         chunk.initialize(&array, &array.getArrayDesc(), addr, 0);
-        chunk.setSparse(srcChunk.isSparse());
 
         boost::shared_ptr<Query> emptyQuery;
         boost::shared_ptr<ChunkIterator> dst = chunk.getIterator(emptyQuery, ChunkIterator::SEQUENTIAL_WRITE|ChunkIterator::NO_EMPTY_CHECK);

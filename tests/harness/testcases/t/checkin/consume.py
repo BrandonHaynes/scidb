@@ -38,19 +38,19 @@ ERROR_MSG = 'Error id:'
 
 
 def loadLibQueries():
-    
+
     libs = [
         'dense_linear_algebra',
         ]
     queries = ['load_library(\'' + x + '\'' + ')' for x in libs]
     return queries
-    
+
 def getPluginOpTestQueries(dbq):
     matchBuild = dbq.build(t=['float'],c=[1000,1000],o=[10,10],i='1.0')
     gemmBuild = dbq.build(r=[(0,9)],c=[32,32])
     gesvdBuild = dbq.build(r=[(0,9)],c=[32,32],i='random()%1.0')
     mpiRankBuild = dbq.build(r=[(0,63)],c=[32,32,],i='random()%1.0') #mpirank(build(<v:double>[i=0:64-1,32,0, j=0:64-1,32,0],0))
-    
+
     queries = [
     #bestmatch - no test yet (causes problems because test array is large)
     #bestmatch - no test yet (causes problems because test array is large)
@@ -59,28 +59,28 @@ def getPluginOpTestQueries(dbq):
     'gemm(' + gemmBuild + ',' + gemmBuild + ',' + gemmBuild + ')',
     'gesvd(' + gesvdBuild + ',\'values\')'
     ]
-    
+
     return queries
 
 # Auxiliary queries which create arrays for the operators which require stored array
 # names.
 def getArrayCreateQueries(dbq):
     # dbq - object for "rolling" schema and build query statements.
-    
+
     # Default build query and schema "roller": makes the strings.
     # The default build query (called as is - dbq.build()), will produce this:
     #  'build(<attr1:double>[i=0:9,4,0,j=0:9,4,0],random())'
     # The default schema (if called as is - dbq.schema()), will produce this:
     # '<attr1:double>[i=0:9,4,0,j=0:9,4,0]'
     # See definition of the class on explanation of parameters.
-    
+
     a1a2a3_0_3 = dbq.schema(a=['attr3'],d=['attr1','attr2'],r=[(0,3)])
     reshapeSch = dbq.schema(r=[(0,4),(0,19)],c=[6,6])
     inputSch = dbq.schema(a=['a','b'],d=['x','y'],t=['int32'],r=[(0,3)])
     defSchema = dbq.schema()
     int64_i_0_11 = functools.partial(dbq.build, t=['int64'],d=['i'],r=[(0,11)])
     dbl_i_0_11 = functools.partial(dbq.build, t=['double'],d=['i'],r=[(0,11)])
-    
+
     ARRAY_CREATE_QUERIES = [
         'create array array_for_redimension_test ' + a1a2a3_0_3,
         'create array array_for_remove_test '      + a1a2a3_0_3,
@@ -94,14 +94,14 @@ def getArrayCreateQueries(dbq):
 
 def getOpTestQueries(dbq):
     # dbq - object for "rolling" schema and build query statements.
-    
+
     # Default build query and schema "roller": makes the strings.
     # The default build query (called as is - dbq.build()), will produce this:
     #  'build(<attr1:double>[i=0:9,4,0,j=0:9,4,0],random())'
     # The default schema (if called as is - dbq.schema()), will produce this:
     # '<attr1:double>[i=0:9,4,0,j=0:9,4,0]'
     # See definition of the class on explanation of parameters.
-    
+
     # Skipped operators:
     # 1) cancel: returns DDL error when passed to consume
     # 2) consume: seems to error out when passed to itself
@@ -111,19 +111,18 @@ def getOpTestQueries(dbq):
     # 6) remove: throws DDL errors when passed to consume
     # 7) rename: throws DDL errors when passed to consume
     # 8) unload_library: did not attempt to implement (likely not needed)
-    
+
     # Default build statement: build(<attr1:double>[i=0:99,4,0,j=0:99,4,0],random())
     defBuild = dbq.build()
-    
+
     # Default array schema: <attr1:double>[i=0:99,4,0,j=0:99,4,0]
     defSchema = dbq.schema()
-    
+
     int64_i_0_11 = functools.partial(dbq.build, t=['int64'],d=['i'],r=[(0,11)])
     dbl_i_0_11 = functools.partial(dbq.build, t=['double'],d=['i'],r=[(0,11)])
-    
+
     # Main set of queries of all operators which will be "fed" to consume operator.
     OP_TEST_QUERIES = [
-         'adddim('                 + defBuild + ',attr2)',
          'aggregate('              + dbq.build(t=['int64'],r=[(0,9)],i='random()%5') + ',sum(attr1))',
          'allversions(array_for_redimension_test)',
          'attributes(array_for_redimension_test)',
@@ -142,10 +141,8 @@ def getOpTestQueries(dbq):
          'cross_join('             + dbq.build(r=[(0,19)])+ ',' + dbq.build(a=['attr2'],d=['x','y'],r=[(0,19)]) + ')',
          'cross_join('             + dbq.build(r=[(0,19)]) + ',' + dbq.build(a=['attr2'],d=['x','y'],r=[(0,19)]) + ',j,y)',
          'cumulate('               + dbq.build(r=[(0,49)]) + ',sum(attr1),j)',
-         'deldim('                 + dbq.build(r=[(0,0),(0,199)]) + ')',
          'dimensions(array_for_repart_test),1', # test consume operator second option
          'diskinfo()',
-         'echo(\'test,test,test\')',
          'explain_logical(\''      + defBuild + '\',\'afl\')',
          'explain_physical(\''     + defBuild + '\',\'afl\')',
          'filter('                 + dbq.build(i='random()/2147483647.0') + ',attr1<0.5)',
@@ -160,9 +157,7 @@ def getOpTestQueries(dbq):
          'aggregate('              + defBuild + ',max(attr1))',
          'merge(filter(build('     + defSchema + ',1),i=j),filter(build(' + dbq.schema(a=['attr2'])+ ',1),i=0))',
          'aggregate('              + defBuild + ',min(attr1))',
-         'mstat()',
          'normalize('              + dbq.build(d=['i']) + ')',
-         'old_unpack('             + defBuild + ',x)',
          'project(join(normalize(' + dbq.build(d=['i']) + '),normalize(' + dbq.build(a=['attr2'],d=['i']) + ')),attr1)',
          'quantile('               + dbq.build(d=['i'],r=[(0,999)]) + ',2)',
          'rank('                   + dbq.build(i='random()%5') + ',attr1,j)',
@@ -217,12 +212,12 @@ class myTestCase(testCase):
             # Register the cleaner that will remove any data files created by this test.
             self.registerCleaner(DataDirCleaner(dataPath))
         except:
-            pass # Somehow, we could not get to the scidb data folder: 
+            pass # Somehow, we could not get to the scidb data folder:
                  # we will leave some junk files in there.
-            
+
         self.__iquery = scidbIquery() # Iquery wrapper class.
         self.exitCode = 0 # Exit code for test harness
-        
+
     #-------------------------------------------------------------------------
     # runQueries: executes a list of queries
     def runQueries(self,queries,stopOnError=False):
@@ -231,7 +226,7 @@ class myTestCase(testCase):
             queryException = False
             queryOk = False
             startTime = time.time()
-            
+
             try:
                 exitCode,\
                 stdoutData,\
@@ -252,10 +247,10 @@ class myTestCase(testCase):
                 print stderrData
                 exitStatus = 1
                 queryOk = False
-                
+
             if ((not queryOk) and stopOnError):
                 break
-                
+
             if (queryOk):
                 print 'Time = {0}, sucess: {1}'.format(queryTime,q)
         return exitStatus
@@ -263,10 +258,10 @@ class myTestCase(testCase):
     # test: main entry point into the test.
     # Important: this function gets called by the superclass function runTest.
     # RunTest wraps this function in a "try: except: finally:" clause to
-    # ensure the cleanup function is called.  Cleanup performs all of the 
+    # ensure the cleanup function is called.  Cleanup performs all of the
     # actions of the registered cleaner classes (see constructor).
     def test(self):
-        
+
         # Default build query and schema "roller": makes the strings.
         # The default build query (called as is - dbq.build()), will produce this:
         #  'build(<attr1:double>[i=0:9,4,0,j=0:9,4,0],random())'
@@ -274,7 +269,7 @@ class myTestCase(testCase):
         # '<attr1:double>[i=0:9,4,0,j=0:9,4,0]'
         # See definition of the class on explanation of parameters.
         dbq = defaultBuildQuery()
-        
+
         self.exitCode = self.runQueries(self.queries,self.stopOnError)
 
 

@@ -128,7 +128,7 @@ SCIDB QUERY : <cross_join(d1,b)>
 {4,1,4} 104,0.25
 
 SCIDB QUERY : <cross_join(d1,b,y,k)>
-[An error expected at this place for the query "cross_join(d1,b,y,k)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+[An error expected at this place for the query "cross_join(d1,b,y,k)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH.]
 
 SCIDB QUERY : <cross_join(subarray(d1,0,-2,4,1),subarray(b,1,4),y,k)>
 {x,y} a1,sum
@@ -152,7 +152,7 @@ SCIDB QUERY : <cross_join(subarray(d1,0,-2,4,1),subarray(b,1,4),y,k)>
 {4,3} 104,0.25
 
 SCIDB QUERY : <cross_join(d2,b,x,k)>
-[An error expected at this place for the query "cross_join(d2,b,x,k)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+[An error expected at this place for the query "cross_join(d2,b,x,k)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH.]
 
 SCIDB QUERY : <cross_join(d2,repart(subarray(b,1,4),<sum: double>[k=0:3,3,2]),x,k)>
 {x,y} a1,sum

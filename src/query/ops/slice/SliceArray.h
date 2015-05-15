@@ -64,7 +64,6 @@ class SliceChunk : public ConstChunk
     Coordinates const& getFirstPosition(bool withOverlap) const;
     Coordinates const& getLastPosition(bool withOverlap) const;
     boost::shared_ptr<ConstChunkIterator> getConstIterator(int iterationMode) const;
-    bool isSparse() const;
     void setInputChunk(ConstChunk const* inputChunk);
     Array const& getArray() const;
 

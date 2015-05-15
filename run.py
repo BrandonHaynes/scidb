@@ -36,6 +36,7 @@ import time
 import traceback
 import copy
 import argparse
+import re
 
 _DBG = os.environ.get("SCIDB_DBG",False)
 
@@ -96,6 +97,81 @@ def confirm(prompt=None, resp=False):
         if ans == 'n' or ans == 'N':
             return False
     return False
+
+def parse_test_timing_file(timing_file):
+    """ Read the file with test timing info and convert the data
+        into a list.  Timing file is obtained from the harness test
+        log.  Resulting list returned from the function contains
+        tuples - [test_name,time].
+        
+        @param timing_file path to the file with test time
+        @return list of tuples each containing a test name and its
+                running time
+    """
+    contents = '' # Pull in the full content of the file
+    with open(timing_file,'r') as fd:
+        contents = fd.read()
+
+    # Split the file content into individual lines.
+    test_lines = [line.strip() for line in contents.split('\n')]
+    
+    # Remove blank lines
+    while ('' in test_lines):
+        test_lines.remove('')
+        
+    # Pick out the timing information and record it in a list.
+    tests = []
+    for test_line in test_lines:
+        m = re.compile('(\[end\]\s+t\.)(.+)').search(test_line)
+        if (m is None):
+            continue
+        
+        test_info = m.group(2).split(' ')
+        test_info = [test_info[0],float(test_info[2])]
+        tests.append(test_info)
+        
+    # Sort the list by test time in acending order.
+    tests = sorted(tests,key=lambda x: x[1])
+    
+    # Return the result.
+    return tests
+    
+def find_long_tests(test_timing_list, cutoff):
+    """ Find tests whose running time is greater than
+        some cutoff value.
+        @param test_timing_list list with test names and their 
+               running times
+        @param cutoff floating point number for running time cutoff
+        
+        @return list of test names whose running time is greater
+                than the specified cutoff.
+    """
+    for i in xrange(len(test_timing_list)):
+        if (test_timing_list[i][1] <= cutoff):
+            continue
+        break
+    long_test_info = test_timing_list[i:]
+    long_tests = [test_info[0] for test_info in long_test_info]
+    
+    return long_tests
+    
+def make_new_skip_file(old_skip_file, new_skip_file, skip_tests):
+    """ Append the specified list of test names to the existing disable
+        test file and save it with a new file name.
+        
+        @param old_skip_file path to the disabled tests file
+        @param new_skip_file path to the new disabled tests file
+        @param skip_tests list of tests to skip
+    """
+    # Read the contents of the old file.
+    contents = ''
+    with open(old_skip_file,'r') as fd:
+        contents = fd.read()
+
+    # Append the tests to skip and write the whole new contents into
+    # the new file.
+    with open(new_skip_file,'w') as fd:
+        contents = fd.write(contents + '\n' + '\n'.join(skip_tests))        
 
 # Parse a config file
 def parseOptions(filename, section_name):
@@ -471,23 +547,6 @@ def removeAlternatives(scidbEnv):
     altdir=os.path.join(scidbEnv.install_path,"alternatives*")
     rm_rf(altdir, scidbEnv.args.force, throw=False)
 
-def installAlternatives(scidbEnv, link, name, path, priority):
-    # For local run as user there is no access to the default alternatives directories
-    # (/etc/alternatives, /var/lib/alternatives)
-    # so create our own in the stage/install area
-    altdir=os.path.join(scidbEnv.install_path,"alternatives")
-    if not os.access(altdir, os.R_OK):
-        mkdir_p(altdir)
-    admindir=os.path.join(scidbEnv.install_path,"alternatives_state")
-    if not os.access(admindir, os.R_OK):
-        mkdir_p(admindir)
-    if not os.access(path, os.R_OK):
-        raise Exception("Invalid path %s" % path)
-
-    cmdList=[ "update-alternatives", "--altdir", altdir, "--admindir", admindir,
-              "--install", link, name, path, priority]
-    ret = executeIt(cmdList)
-
 def install(scidbEnv):
     configFile = getConfigFile(scidbEnv)
 
@@ -496,6 +555,16 @@ def install(scidbEnv):
 
     db_name=os.environ.get("SCIDB_NAME","mydb")
     pg_user=os.environ.get("SCIDB_PG_USER","postgres")
+
+    #
+    # This section is for update-alternatives
+    # It MUST be kept in sync with the scidb.spec file
+    #
+    if scidbEnv.args.light:
+        # remove all links to the "alternative" libraries
+        # thus, allow for the scidb libraries to be loaded again
+        printInfo("Removing linker metadata for alternative plugins/libraries, please confirm");
+        removeAlternatives(scidbEnv)
 
     curr_dir=os.getcwd()
     os.chdir(scidbEnv.build_path)
@@ -509,23 +578,6 @@ def install(scidbEnv):
     ret = executeIt(cmdList)
 
     os.chdir(curr_dir)
-    #
-    # This section is for update-alternatives
-    # It MUST be kept in sync with the scidb.spec file
-    #
-    if scidbEnv.args.light:
-        # remove all links to the "alternative" libraries
-        # thus, allow for the scidb libraries to be loaded again after
-        # installAlternatives() is run
-        printInfo("Removing linker metadata for alternative plugins/libraries, please confirm");
-        removeAlternatives(scidbEnv)
-
-    link=os.path.join(scidbEnv.install_path,"lib/scidb/plugins/libdense_linear_algebra.so")
-    path=os.path.join(scidbEnv.install_path,"lib/scidb/plugins/libdense_linear_algebra-scidb.so")
-    installAlternatives(scidbEnv, link, 'dense_linear_algebra', path, '10')
-    link=os.path.join(scidbEnv.install_path,"lib/scidb/plugins/liblinear_algebra.so")
-    path=os.path.join(scidbEnv.install_path,"lib/scidb/plugins/liblinear_algebra-scidb.so")
-    installAlternatives(scidbEnv, link, 'linear_algebra', path, '10')
 
     if scidbEnv.args.light:
         return
@@ -542,7 +594,7 @@ def install(scidbEnv):
         data_path=os.environ.get("SCIDB_DATA_PATH", data_path)
         instance_num=int(os.environ.get("SCIDB_INSTANCE_NUM","4"))
         port=int(os.environ.get("SCIDB_PORT","1239"))
-        host=os.environ.get("SCIDB_HOST","localhost")
+        host=os.environ.get("SCIDB_HOST","127.0.0.1")
         no_watchdog=os.environ.get("SCIDB_NO_WATCHDOG","false")
         no_watchdog=(no_watchdog in ['true', 'True', 'on', 'On'])
         generateConfigFile(scidbEnv, db_name, host, port, data_path, instance_num, no_watchdog, configFile)
@@ -590,7 +642,7 @@ def pluginInstall(scidbEnv):
     pluginBuildPath=getPluginBuildPath(scidbEnv.build_path, scidbEnv.args.name)
 
     if not os.access(pluginBuildPath, os.R_OK):
-        raise Exception("Invalid plugin %s build directory %s" % (scidbEnv.args.name, pluginBuildDir))
+        raise Exception("Invalid plugin %s build directory %s" % (scidbEnv.args.name, pluginBuildPath))
 
     pluginInstallPath = os.path.join(scidbEnv.install_path,"lib","scidb","plugins")
     if not os.access(pluginInstallPath, os.R_OK):
@@ -602,16 +654,6 @@ def pluginInstall(scidbEnv):
     ret = executeIt(cmdList, cwd=pluginBuildPath)
 
     os.chdir(curr_dir)
-    #
-    # This section is for update-alternatives
-    # It MUST be kept in sync with the p4.spec file
-    #
-    link=os.path.join(scidbEnv.install_path,"lib/scidb/plugins/libdense_linear_algebra.so")
-    path=os.path.join(scidbEnv.install_path,"lib/scidb/plugins/libdense_linear_algebra-p4.so")
-    installAlternatives(scidbEnv, link, 'dense_linear_algebra', path, '20')
-    link=os.path.join(scidbEnv.install_path,"lib/scidb/plugins/liblinear_algebra.so")
-    path=os.path.join(scidbEnv.install_path,"lib/scidb/plugins/liblinear_algebra-p4.so")
-    installAlternatives(scidbEnv, link, 'linear_algebra', path, '20')
 
 def start(scidbEnv):
     db_name=os.environ.get("SCIDB_NAME","mydb")
@@ -707,8 +749,27 @@ def runTests(scidbEnv, testsPath, srcTestsPath, commands=[]):
         'xargs','--null','rm','-f',';'
         ])
     #...........................................................
+    if (scidbEnv.args.cutoff > 0.0): # User specified a running time cutoff.
+        # Take the default timing file.
+        timing_file = os.path.join(testsPath,'testcases','test_time.txt')
+
+        # If user specified a custom timing file, take its path instead.
+        if (scidbEnv.args.timing_file != ''):
+            timing_file = scidbEnv.args.timing_file
+
+        # Get the list of tests' timing info and pare it down based
+        # on the specified cutoff value.
+        all_tests = parse_test_timing_file(timing_file)
+        long_tests = find_long_tests(all_tests,scidbEnv.args.cutoff)
+
+        # Emit the new disabled tests file for the harness.
+        base_path,skip_ext = os.path.splitext(skipTests)
+        new_skip_tests = base_path + '_timed' + skip_ext
+        make_new_skip_file(skipTests,new_skip_tests,long_tests)
+
+        skipTests = new_skip_tests
+
     cmdList.extend(["PATH=%s:${PATH}"%(binPath),
-                    "LD_LIBRARY_PATH=%s:${LD_LIBRARY_PATH}"%(libPath),
                     testBin,
                     "--port=${IQUERY_PORT}",
                     "--connect=${IQUERY_HOST}",
@@ -746,7 +807,7 @@ def pluginTests(scidbEnv):
     pluginBuildPath=getPluginBuildPath(scidbEnv.build_path, scidbEnv.args.name)
 
     if not os.access(pluginBuildPath, os.R_OK):
-        raise Exception("Invalid plugin %s build directory %s" % (scidbEnv.args.name, pluginBuildDir))
+        raise Exception("Invalid plugin %s build directory %s" % (scidbEnv.args.name, pluginBuildPath))
 
     pluginInstallPath = os.path.join(scidbEnv.install_path,"lib","scidb","plugins")
     if not os.access(pluginInstallPath, os.R_OK):
@@ -935,7 +996,7 @@ SCIDB_MAKE_JOBS - number of make jobs to spawn (the -j parameter of make)""")
 Re-create SciDB Postgres user. Install and initialize SciDB.
 Environment variables:
 SCIDB_NAME      - the name of the SciDB database to be installed, default = mydb
-SCIDB_HOST      - coordinator host DNS/IP, default = localhost
+SCIDB_HOST      - coordinator host DNS/IP, default = 127.0.0.1
 SCIDB_PORT      - coordinator TCP port, default = 1239
 SCIDB_PG_USER   - OS user under which the Postgres DB is running, default = postgres
 SCIDB_DATA_PATH - the common directory path prefix used to create SciDB instance directories (aka base-path).
@@ -994,6 +1055,8 @@ SCIDB_NAME - the name of the SciDB database to be tested, default = mydb"""+
     group.add_argument('--test-id', help="run a specific scidbtestharness test")
     group.add_argument('--suite-id', default='checkin', help="run a specific scidbtestharness test suite, default is \'checkin\'")
     subParser.add_argument('--record', action='store_true', help="record the expected output")
+    subParser.add_argument('-c', '--cutoff', default=-1.0, type=float, help="threshold for the running time of the test: tests whose running time is greater will be skipped.")
+    subParser.add_argument('--timing-file', default='', help="path to the file containing test names and their running times (obtained from the harness tests log).")
     subParser.set_defaults(func=tests)
 
 
@@ -1015,6 +1078,8 @@ SCIDB_PLUGIN_TESTS - the subdirectory wrt the plugin build path where the the sc
     group.add_argument('--test-id', help="run a specific scidbtestharness test")
     group.add_argument('--suite-id', default='checkin', help="run a specific scidbtestharness test suite, default is \'checkin\'")
     subParser.add_argument('--record', action='store_true', help="record the expected output")
+    subParser.add_argument('-c', '--cutoff', default=-1.0, type=float, help="threshold for the running time of the test: tests whose running time is greater will be skipped.")
+    subParser.add_argument('--timing-file', default='', help="path to the file containing test names and their running times (obtained from the harness tests log).")
     subParser.set_defaults(func=pluginTests)
 
 

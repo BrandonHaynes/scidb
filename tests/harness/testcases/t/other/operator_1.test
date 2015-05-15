@@ -67,9 +67,7 @@ project(thin(Test2,1,2,1,2),a)
 project(slice(Test2,x,2),a)
 project(apply(Test2,b,a+10),b,a)
 
-project(adddim(Test1,timestamp),a,b)
-project(store(adddim(Test1,timestamp),ZZZ),b,a)
-project(deldim(ZZZ),b)
+project(store(redimension(apply(Test1,timestamp,0),<a:double NULL, b: string> [timestamp=0:0,1,0,x=0:9,2,0]),ZZZ),b,a)
 project(redimension(Test22,Test4),y)
 
 

@@ -15,21 +15,48 @@ create array spC <v:double>[row=1:10,2,0, col=1:10,2,0]
 #
 #[jhm] the +y term clouds the test. Its a diagonal so x-1 would be more clear,
 store( filter(build(spA, x+y), x=y), spA )
-spgemm(spA, spA)
-spgemm(spA, spA, 'min.+')
-spgemm(spA, spA, 'max.+')
+spgemm(spA, spA, 'rightReplicate=true')
+spgemm(spA, spA, 'rightReplicate=false')
+
+spgemm(spA, spA, 'min.+', 'rightReplicate=true')
+spgemm(spA, spA, 'min.+', 'rightReplicate=false')
+
+spgemm(spA, spA, 'max.+', 'rightReplicate=true')
+spgemm(spA, spA, 'max.+', 'rightReplicate=false')
+
 
 # [jhm] what is the purpose of making a copy of spA ?
 store( spA, spB)
-spgemm(spA, spB)
-spgemm(spA, spB, 'min.+')
-spgemm(spA, spB, 'max.+')
+
+spgemm(spA, spB, 'rightReplicate=true')
+spgemm(spA, spB, 'rightReplicate=false')
+
+spgemm(spA, spB, 'rightReplicate=true')
+spgemm(spA, spB, 'rightReplicate=false')
+
+
+spgemm(spA, spB, 'min.+', 'rightReplicate=true')
+spgemm(spA, spB, 'min.+', 'rightReplicate=false')
+
+spgemm(spA, spB, 'min.+', 'rightReplicate=true')
+spgemm(spA, spB, 'min.+', 'rightReplicate=false')
+
+
+spgemm(spA, spB, 'max.+', 'rightReplicate=true')
+spgemm(spA, spB, 'max.+', 'rightReplicate=false')
+
+spgemm(spA, spB, 'max.+', 'rightReplicate=true')
+spgemm(spA, spB, 'max.+', 'rightReplicate=false')
 
 #
 # t2
 #
 store( filter(build(spC, row-1), row=col), spC )
-spgemm(spC, spC)
+spgemm(spC, spC, 'rightReplicate=true')
+spgemm(spC, spC, 'rightReplicate=false')
+
+spgemm(spC, spC, 'rightReplicate=true')
+spgemm(spC, spC, 'rightReplicate=false')
 
 --cleanup
 remove(spA)

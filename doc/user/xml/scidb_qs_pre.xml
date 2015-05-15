@@ -6,7 +6,7 @@
 ]>
 <article>
   <info>
-    <title>SciDB Quick Start</title>
+    <title>Quick Start AMI for SciDB, SciDB-R, and SciDB-Py</title>
 
     <author>
       <personname>
@@ -75,21 +75,16 @@
     you remain a Python programmer while including the powerful SciDB database
     capabilities.</para>
 
-    <para>This document describes how to use a Virtual Machine (VM) with both
-    SciDB and the packages for SciDB-R and SciDB-Py. Virtual Machine images
-    described in this document are preloaded with two SciDB-Py demos:
-    Introduction to SciDB-Py and MODIS. Introduction to SciDB-Py gives a brief
-    overview of the Python-scidb interface while MODIS showcases the usage of
-    SciDB-Py to work with a sizeable data set. You can use these images to
-    quickly and easily get started using SciDB and the SciDB package for R or
-    Python.</para>
+    <para>This document describes how to use an Amazon Machine Image (AMI)
+    with both SciDB and the packages for SciDB-R and SciDB-Py. You can use
+    this image to quickly and easily get started using SciDB and the SciDB
+    package for R or Python.</para>
 
-    <para>Note that both the VirtualBox and AMI SciDB installations are
-    small-scale. That is, as configured, they are useful as an introduction to
-    SciDB, and for small amounts of data. They do, however, contain a complete
-    version of SciDB. In fact, for the AMI, you could simply adjust the
-    settings in the config.ini file and then use SciDB on a large-scale EC2
-    cluster.</para>
+    <para>Note that the AMI SciDB installation is small-scale. That is, as
+    configured, it is useful as an introduction to SciDB, and for small
+    amounts of data. It does, however, contain a complete version of SciDB. In
+    fact, you could simply adjust the settings in the config.ini file and then
+    use SciDB on a large-scale EC2 cluster.</para>
 
     <para>All of the information for downloading and installing the individual
     packages listed above is available on our <ulink
@@ -113,12 +108,6 @@
 
     <para>For more information:<itemizedlist>
         <listitem>
-          <para>Consult <ulink
-          url="https://www.virtualbox.org/">https://www.virtualbox.org/</ulink>
-          for more information about VirtualBox.</para>
-        </listitem>
-
-        <listitem>
           <para>See the <ulink url="https://github.com/Paradigm4/SciDBR">R
           project page on github</ulink> for help from the user community
           about the SciDB package for R.</para>
@@ -135,37 +124,19 @@
     <email>support@scidb.org</email> for help getting started.</para>
   </section>
 
-  <section>
-    <title>Download and start the image</title>
+  <section id="AMI">
+    <title>Launch an AMI Instance with SciDB 14.8</title>
 
-    <para>Paradigm4 provides both a VirtualBox image and an Amazon Machine
-    Image. Use whichever you prefer.</para>
+    <para>The provided Amazon Machine Image includes SciDB &scidb_version; and
+    the latest R and Python packages. All packages are available with
+    SSL/TLS-encryption. A list of available web-based tools is reported to you
+    when you log in.</para>
 
-    <para>The provided VMs include SciDB &scidb_version; and the latest R and
-    Python packages. All packages are available with SSL/TLS-encryption. A
-    list of available web-based tools is reported to you when you log
-    in.</para>
+    <para>Additionally, the image contains the following authenticated web
+    tools: RStudio, IPython Notebook, and a simple SciDB web console.</para>
 
-    <para>Additionally, each image contains the following:<itemizedlist>
-        <listitem>
-          <para>authenticated web tools: RStudio, IPython Notebook, and a
-          simple SciDB web console</para>
-        </listitem>
-
-        <listitem>
-          <para>a brief text document describing the VM configuration process
-          in the <code>/home/scidb</code> directory</para>
-        </listitem>
-
-        <listitem>
-          <para>a reduced-sized MODIS example, loaded and runnable from both
-          Python and R (as well as some other examples)</para>
-        </listitem>
-      </itemizedlist></para>
-
-    <para>To log onto the VirtualBox image or AMI, from either the command
-    prompt or from one of the web interfaces, use the following
-    credentials:<itemizedlist>
+    <para>To log onto the AMI, from either the command prompt or from one of
+    the web interfaces, use the following credentials:<itemizedlist>
         <listitem>
           <para>User name <literal>scidb</literal></para>
         </listitem>
@@ -175,385 +146,262 @@
         </listitem>
       </itemizedlist></para>
 
-    <section id="virtualBox">
-      <title>Use a VirtualBox Image</title>
+    <para>We have created an Amazon Machine Image (AMI) that contains a saved
+    Virtual Machine with SciDB and R installed. You can use Amazon's EC2
+    service to instantly launch this machine, log into it and use the SciDB-R
+    package. It requires an Amazon Web Services account and Amazon will charge
+    you a small hourly fee for using their EC2 service. Consult <ulink
+    url="http://aws.amazon.com">http://aws.amazon.com/</ulink> for more
+    information.</para>
 
-      <para>The VirtualBox Image is running on CentOS 6.</para>
+    <para>The operating system for the AMI is Ubuntu 12.04.</para>
 
-      <procedure>
-        <step>
-          <para>Download the &scidb_version; image provided by Paradigm4 in
-          the following folder:</para>
+    <para>To work with the AMI, perform the following steps:</para>
 
-          <para>
-            <ulink
-            url="https://downloads.paradigm4.com/QuickStart/">https://downloads.paradigm4.com/QuickStart/</ulink>
-          </para>
+    <procedure>
+      <step>
+        <para>Find, configure, and launch the AMI image.</para>
 
-          <para>Download the .ova file to a partition with at least 8GB of
-          available space.</para>
-        </step>
+        <substeps>
+          <step>
+            <para>If you do not already have an Amazon AWS account, create one
+            at <ulink
+            url="http://aws.amazon.com">http://aws.amazon.com/</ulink>.</para>
+          </step>
 
-        <step>
-          <para>Open VirtualBox and click <emphasis role="bold">File
-          </emphasis>| <emphasis role="bold">Import Appliance</emphasis> and
-          select the downloaded file.</para>
-        </step>
+          <step>
+            <para>On the Amazon Web Services page, select <emphasis
+            role="bold">My Account/Console</emphasis> &gt; <emphasis
+            role="bold">AWS Management Console</emphasis>, then enter your
+            username and password.</para>
+          </step>
 
-        <step>
-          <para>Start the VirtualBox image.</para>
-        </step>
-      </procedure>
+          <step>
+            <para>Click <emphasis role="bold">EC2</emphasis>.</para>
+          </step>
 
-      <para>By default, the VM is configured to use "bridged" networking.
-      Bridged networking presents the VM as a new computer to whatever network
-      the host machine is connected to, with DHCP network configuration. The
-      VM may or may not be able to obtain an IP address with this
-      approach.</para>
+          <step>
+            <para>Make sure that your region is set to <emphasis
+            role="bold">US East / N. Virginia</emphasis>. If you need to
+            change your region, use the drop-down menu from the top navigation
+            bar, next to your username.</para>
+          </step>
 
-      <para>If the VM can obtain IP addresses, you will see them listed after
-      you start the image. The start screen lists the following
-      information:</para>
+          <step>
+            <para>Click <emphasis role="bold">Instances</emphasis>, then
+            <emphasis role="bold">Launch Instance</emphasis>.</para>
+          </step>
 
-      <screen>Welcome to the SciDB VM!
+          <step>
+            <para>From the <emphasis role="bold">Quick Start </emphasis>menu,
+            select <emphasis role="bold">Community AMIs</emphasis>.</para>
+          </step>
 
-A simple SciDB web interface is available by directing your browser to:
-https://192.168.56.101:8083
-:
-:</screen>
+          <step>
+            <para>In the search box, enter <literal>SciDB_14.8</literal> (the
+            name of the SciDB image) into the text field and hit <emphasis
+            role="bold">Enter</emphasis>. This should return the details for
+            the SciDB_14.8 image.</para>
+          </step>
 
-      <para>Note that your URL may be different. If you see valid IP
-      addresses, you can continue to section 4.</para>
+          <step>
+            <para>Click <emphasis role="bold">Select</emphasis>.</para>
+          </step>
 
-      <note>
-        <para><emphasis role="bold">Note: </emphasis>You can always log in to
-        a text console in the VM and use SciDB from the command prompt,
-        whether or not the networking is configured correctly.</para>
-      </note>
-
-      <para>However, if the VM is not able to obtain IP addresses using
-      bridged networking, you will not see the welcome message. In this case,
-      perform the following steps to set up a Host-only Network for
-      VirtualBox.</para>
-
-      <procedure>
-        <step>
-          <para>Power off the VM.</para>
-        </step>
-
-        <step>
-          <para>From the VirtualBox menu, select <emphasis role="bold">File
-          </emphasis>| <emphasis role="bold">Preferences</emphasis>.</para>
-        </step>
-
-        <step>
-          <para>Select <emphasis role="bold">Network</emphasis> and add a
-          Host-only Network if you do not already have one. You can use all of
-          the default settings.</para>
-        </step>
-
-        <step>
-          <para>Click <emphasis role="bold">OK</emphasis>.</para>
-        </step>
-
-        <step>
-          <para>Select your SciDB VM, and click <emphasis
-          role="bold">Settings</emphasis>.</para>
-        </step>
-
-        <step>
-          <para>Select <emphasis role="bold">Network</emphasis>, and for
-          <literal>Adapter 1</literal>, change from <emphasis
-          role="bold">Bridged Adapter</emphasis> to <emphasis
-          role="bold">Host-only Adapter</emphasis>.</para>
-        </step>
-
-        <step>
-          <para>The name will be populated with the Host-only Network adapter
-          that you added in step 3. Click <emphasis role="bold">OK</emphasis>
-          and then restart the VM.</para>
-        </step>
-      </procedure>
-
-      <para>SciDB is configured to start as a service inside the VM. When
-      SciDB startup is successful, three access methods are presented by the
-      VM in a startup text message:<itemizedlist>
-          <listitem>
-            <para>Access RStudio from a web browser on your computer.</para>
-          </listitem>
-
-          <listitem>
-            <para>Access IPython Notebook from a web browser on your
-            computer.</para>
-          </listitem>
-
-          <listitem>
-            <para>Access a simple SciDB web console from a web browser on your
-            computer.</para>
-          </listitem>
-
-          <listitem>
-            <para>Log onto a VM shell and work from the command line.</para>
-          </listitem>
-        </itemizedlist></para>
-
-      <para>To continue, see <xref linkend="GUI"/>.</para>
-    </section>
-
-    <section id="AMI">
-      <title>Use an Amazon Machine Image</title>
-
-      <para>We have created an Amazon Machine Image (AMI) that contains a
-      saved Virtual Machine with SciDB and R installed. You can use Amazon's
-      EC2 service to instantly launch this machine, log into it and use the
-      SciDB-R package. It requires an Amazon Web Services account and Amazon
-      will charge you a small hourly fee for using their EC2 service. Consult
-      <ulink url="http://aws.amazon.com">http://aws.amazon.com/</ulink> for
-      more information.</para>
-
-      <para>The operating system for the AMI is Ubuntu 12.04.</para>
-
-      <para>To work with the AMI, perform the following steps:</para>
-
-      <procedure>
-        <step>
-          <para>Create the AMI image.</para>
-
-          <substeps>
-            <step>
-              <para>If you do not already have an Amazon AWS account, create
-              one at <ulink
-              url="http://aws.amazon.com">http://aws.amazon.com/</ulink>.</para>
-            </step>
-
-            <step>
-              <para>On the Amazon Web Services page, select <emphasis
-              role="bold">My Account/Console</emphasis> &gt; <emphasis
-              role="bold">AWS Management Console</emphasis>.</para>
-            </step>
-
-            <step>
-              <para>Click <emphasis role="bold">EC2</emphasis>.</para>
-            </step>
-
-            <step>
-              <para>Make sure that your region is set to <emphasis
-              role="bold">US East / N. Virginia</emphasis>. If you need to
-              change your region, use the drop-down menu from the top
-              navigation bar, next to your username.</para>
-            </step>
-
-            <step>
-              <para>Click <emphasis role="bold">Instances</emphasis>, then
-              <emphasis role="bold">Launch Instance</emphasis>.</para>
-            </step>
-
-            <step>
-              <para>From the <emphasis role="bold">Quick Start
-              </emphasis>menu, select <emphasis role="bold">Community
-              AMIs</emphasis>.</para>
-            </step>
-
-            <step>
-              <para>In the search box, enter <literal>ami-9f132cf6</literal>
-              (the name of the SciDB image) into the text field and hit
-              <emphasis role="bold">Enter</emphasis>. This should return the
-              details for the ami-9f132cf6 image.</para>
-            </step>
-
-            <step>
-              <para>Click <emphasis role="bold">Select</emphasis>.</para>
-            </step>
-
-            <step>
-              <para>Change the instance type and storage. For exploring some
-              of sample data that comes pre-loaded in the AMI, the default
-              image type and storage is inadequate.<itemizedlist>
-                  <listitem>
-                    <para>From the screen <emphasis role="bold">Step 2: Choose
-                    an Instance Type</emphasis>: click <emphasis
-                    role="bold">All instance types</emphasis> menu, and select
-                    <emphasis role="bold">m3.2xlarge</emphasis>.</para>
-                  </listitem>
-
-                  <listitem>
-                    <para>From the screen <emphasis role="bold">Step 4: Add
-                    Storage</emphasis>: change the size from the default (16
-                    GB) to 200.</para>
-                  </listitem>
-                </itemizedlist></para>
-            </step>
-
-            <step>
-              <para>Click <emphasis role="bold">Review and Launch</emphasis>.
-              You can edit your AMI. You need to open some ports, and you may
-              want to use key pairs:</para>
-
-              <itemizedlist>
+          <step>
+            <para>Change the instance type and storage.<itemizedlist>
                 <listitem>
-                  <para><emphasis role="bold">Edit Security Groups:
-                  </emphasis>For your security group, create rules permitting
-                  incoming TCP connections for ports 22 (SSH), 8083 (SciDB web
-                  console), 8787 (RStudio), and 8888 (IPython). The listed
-                  ports use SSL-encrypted communication and require user
-                  authentication. For each port, in the <emphasis
-                  role="bold">Source </emphasis>field, select <emphasis
-                  role="bold">Anywhere </emphasis>(which allows connections
-                  from IP address).</para>
+                  <para>From the screen <emphasis role="bold">Step 2: Choose
+                  an Instance Type</emphasis>: click <emphasis role="bold">All
+                  instance types</emphasis> menu, and select <emphasis
+                  role="bold">m3.2xlarge</emphasis>.</para>
                 </listitem>
 
                 <listitem>
-                  <para><emphasis role="bold">Edit Tags: (Optional)
-                  </emphasis>If desired, you may create a Key Pair or use an
-                  existing one. This will allow logging into the instance as
-                  the <emphasis role="bold">scidb</emphasis> user using PKI
-                  rather than a password.</para>
-
-                  <para>If you do not create any tags, you will be asked to
-                  <emphasis role="bold">Proceed without a key pair</emphasis>,
-                  and acknowledge that users can only connect to this AMI if
-                  they know a valid user name and password.</para>
+                  <para>From the screen <emphasis role="bold">Step 4: Add
+                  Storage</emphasis>: change the size from the default (16
+                  GiB) to 200.</para>
                 </listitem>
-              </itemizedlist>
-            </step>
-          </substeps>
-        </step>
+              </itemizedlist></para>
+          </step>
 
-        <step>
-          <para>Once you have configured your image, launch and log onto the
-          image.</para>
+          <step>
+            <para>Click <emphasis role="bold">Review and Launch</emphasis>.
+            You can edit your AMI. You need to open some ports, and you may
+            want to use key pairs:</para>
 
-          <substeps>
-            <step>
-              <para>Click <emphasis role="bold">Launch</emphasis>. You are
-              asked to confirm your key pair (or to proceed without one), and
-              then the instance is launched.</para>
-            </step>
-
-            <step>
-              <para>Click <emphasis role="bold">View Instances </emphasis>to
-              return to your AWS console page, where your instances are
-              listed.</para>
-            </step>
-
-            <step>
-              <para>Wait a few minutes for the image to come fully online.
-              When you see <literal>running</literal> in the <emphasis
-              role="bold">State </emphasis>column, click the Instance.</para>
-            </step>
-
-            <step>
-              <para>The instance details are displayed in the the lower
-              portion of the page. Below the instance name is the public DNS
-              for the instance. For example:</para>
-
-              <screen>ec2-54-242-36-232.compute-1.amazonaws.com</screen>
-
-              <para>Note that this is an example: your public DNS will be
-              different.</para>
-            </step>
-
-            <step>
-              <para>Open a terminal window from your computer to SSH into the
-              AMI as the scidb user.<screen>ssh scidb@ec2-54-242-36-232.compute-1.amazonaws.com</screen>Again,
-              the URL is an example only. When asked for the scidb password,
-              enter <emphasis role="bold">paradigm4</emphasis>.</para>
-            </step>
-          </substeps>
-
-          <note>
-            <para><emphasis role="bold">Note: </emphasis>The standard EC2
-            approach of using a PEM key pair to log in as the scidb user is
-            always supported as well.</para>
-          </note>
-        </step>
-
-        <step>
-          <para>The supplied database is <emphasis
-          role="bold">mydb</emphasis>, and should be running when you log on.
-          The database is configured as a 4-instance cluster. You can, of
-          course, log on and modify the configuration to suit your needs, by
-          performing the following steps:<orderedlist>
+            <itemizedlist>
               <listitem>
-                <para>Stop the database:<screen>scidb.py stopall mydb</screen></para>
+                <para><emphasis role="bold">Edit Security Groups:
+                </emphasis>For your security group, create rules permitting
+                incoming TCP connections for ports 22 (SSH), 8083 (SciDB web
+                console), 8787 (RStudio), and 8888 (IPython). The listed ports
+                use SSL-encrypted communication and require user
+                authentication. For each port, in the <emphasis
+                role="bold">Source </emphasis>field, select <emphasis
+                role="bold">Anywhere </emphasis>(which allows connections from
+                IP address).</para>
               </listitem>
 
               <listitem>
-                <para>Edit the
-                <code>/opt/scidb/&scidb_version;/etc/config.ini</code> file to
-                reflect the desired configuration.</para>
+                <para><emphasis role="bold">Edit Tags: (Optional)
+                </emphasis>If desired, you may create a Key Pair or use an
+                existing one. This will allow logging into the instance as the
+                <emphasis role="bold">scidb</emphasis> user using PKI rather
+                than a password.</para>
+
+                <para>If you do not create any tags, you will be asked to
+                <emphasis role="bold">Proceed without a key pair</emphasis>,
+                and acknowledge that users can only connect to this AMI if
+                they know a valid user name and password.</para>
               </listitem>
+            </itemizedlist>
+          </step>
+        </substeps>
+      </step>
 
-              <listitem>
-                <para>Run the following command to initialize the
-                database:<screen>scidb.py initall-force mydb</screen><emphasis
-                role="bold">WARNING: </emphasis>This command will delete all
-                of the data from the database.</para>
-              </listitem>
+      <step>
+        <para>Once you have configured your image, launch and log onto the
+        image.</para>
 
-              <listitem>
-                <para>Run the following command to start the database:<screen>scidb.py startall mydb</screen></para>
-              </listitem>
-            </orderedlist></para>
-        </step>
+        <substeps>
+          <step>
+            <para>Click <emphasis role="bold">Launch</emphasis>. You are asked
+            to confirm your key pair (or to proceed without one), and then the
+            instance is launched.</para>
+          </step>
 
-        <step>
-          <para>In addition to using SciDB from the command line, you can
-          access a GUI for SciDB or for RStudio or IPython Notebook. Point
-          your browser to one of the following URLs (assuming the same
-          "base-URL" listed in step 2.d):<itemizedlist>
-              <listitem>
-                <para>To use SciDB:
-                https://ec2-54-242-36-232.compute-1.amazonaws.com:8083</para>
-              </listitem>
+          <step>
+            <para>Click <emphasis role="bold">View Instances </emphasis>to
+            return to your AWS console page, where your instances are
+            listed.</para>
+          </step>
 
-              <listitem>
-                <para>To use SciDB-R:
-                http://ec2-54-242-36-232.compute-1.amazonaws.com:8787</para>
-              </listitem>
+          <step>
+            <para>Wait a few minutes for the image to come fully online. When
+            you see <literal>running</literal> in the <emphasis
+            role="bold">State </emphasis>column, click the Instance.</para>
+          </step>
 
-              <listitem>
-                <para>To use SciDB-Py:
-                https://ec2-54-242-36-232.compute-1.amazonaws.com:8888</para>
-              </listitem>
-            </itemizedlist>When asked to log on, remember that the username is
-          <emphasis role="bold">scidb </emphasis>and the password is <emphasis
-          role="bold">paradigm4</emphasis>.</para>
-        </step>
-      </procedure>
+          <step>
+            <para>The instance details are displayed in the the lower portion
+            of the page. Alongside the instance name is the public DNS for the
+            instance. For example:</para>
 
-      <note>
-        <para><emphasis role="bold">Note: </emphasis>If you have problems
-        connecting to the running AMI, reboot the AMI machine through the
-        Amazon Web interface.</para>
-      </note>
+            <screen>ec2-54-242-36-232.compute-1.amazonaws.com</screen>
 
-      <para>To continue, see <xref linkend="GUI"/>.</para>
-    </section>
+            <para>Note that this is an example: your public DNS will be
+            different. For the rest of this guide, whenever a command calls
+            for your public DNS, it will be shown like this:</para>
+
+            <screen>&lt;<emphasis>your-instance_name</emphasis>&gt;</screen>
+          </step>
+
+          <step>
+            <para>Open a terminal window from your computer to SSH into the
+            AMI as the scidb user.<screen>ssh scidb@&lt;<emphasis>your-instance-name</emphasis>&gt;</screen>When
+            asked for the scidb password, enter <emphasis
+            role="bold">paradigm4</emphasis>.</para>
+          </step>
+        </substeps>
+
+        <note>
+          <para><emphasis role="bold">Note: </emphasis>The standard EC2
+          approach of using a PEM key pair to log in as the scidb user is also
+          supported.</para>
+        </note>
+      </step>
+
+      <step>
+        <para>The supplied database is <emphasis role="bold">mydb</emphasis>,
+        and should be running when you log on. The database is configured as a
+        4-instance cluster. You can, of course, log on and modify the
+        configuration to suit your needs, by performing the following
+        steps:<orderedlist>
+            <listitem>
+              <para>Stop the database:<screen>scidb.py stopall mydb</screen></para>
+            </listitem>
+
+            <listitem>
+              <para>Edit the
+              <code>/opt/scidb/&scidb_version;/etc/config.ini</code> file to
+              reflect the desired configuration.</para>
+            </listitem>
+
+            <listitem>
+              <para>Run the following command to initialize the
+              database:<screen>scidb.py initall-force mydb</screen><emphasis
+              role="bold">WARNING: </emphasis>This command will delete all of
+              the data from the database.</para>
+            </listitem>
+
+            <listitem>
+              <para>Run the following command to start the database:<screen>scidb.py startall mydb</screen></para>
+            </listitem>
+          </orderedlist></para>
+      </step>
+
+      <step>
+        <para>In addition to using SciDB from the command line, you can access
+        a GUI for SciDB or for RStudio or IPython Notebook. Point your browser
+        to one of the following URLs (assuming the same "base-URL" listed in
+        step 2.d):<itemizedlist>
+            <listitem>
+              <para>To use SciDB:
+              https://&lt;<emphasis>your-instance-name</emphasis>&gt;:8083</para>
+
+              <para>You might encounter a message indicating "This connection
+              is untested." Proceed by clicking "I understand the risks," then
+              click the "Add Exception" button, then the "Confirm Security
+              Exception' button. Then login with username <emphasis
+              role="bold">scidb</emphasis> and password <emphasis
+              role="bold">paradigm4</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>To use SciDB-R:
+              http://&lt;<emphasis>your-instance-name</emphasis>&gt;:8787</para>
+
+              <para>Login with username <emphasis role="bold">scidb</emphasis>
+              and password <emphasis role="bold">paradigm4</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>To use SciDB-Py:
+              https://&lt;<emphasis>your-instance-name</emphasis>&gt;:8888</para>
+
+              <para>You might encounter a message indicating "This connection
+              is untested." Proceed by clicking "I understand the risks," then
+              click the "Add Exception" button, then the "Confirm Security
+              Exception' button. Then enter the password <emphasis
+              role="bold">paradigm4</emphasis>.</para>
+            </listitem>
+          </itemizedlist></para>
+      </step>
+    </procedure>
+
+    <note>
+      <para>If you have problems connecting to the running AMI, reboot the AMI
+      machine through the Amazon Web interface.</para>
+    </note>
+
+    <para>To continue, see <xref linkend="GUI"/>.</para>
   </section>
 
   <section id="GUI">
     <title>Connect to R, Python or SciDB</title>
 
-    <para>Once you have downloaded the VirtualBox image, or created your own
-    AMI from the template, you can proceed to connect to SciDB, IPython
-    Notebook or RStudio.</para>
+    <para>Once you have launched the AMI, you can proceed to connect to SciDB,
+    IPython Notebook or RStudio.</para>
 
     <section id="RStudioConnect">
-      <title>Connect to RStudio or IPython Notebook</title>
+      <title>Connect to RStudio</title>
 
-      <para>Depending on whether you are using a VirtualBox image or an Amazon
-      Machine image, you can access RStudio:<itemizedlist>
+      <para>You can access RStudio:<itemizedlist>
           <listitem>
-            <para>VirtualBox Image: you should have noted the URL for RStudio
-            when you started the VM. For example, <emphasis
-            role="bold">http://192.168.56.101:8787</emphasis></para>
-          </listitem>
-
-          <listitem>
-            <para>AMI: use the public DNS for the AMI, and append <emphasis
+            <para>Use the public DNS for the AMI, and append <emphasis
             role="bold">:8787</emphasis> for the port. For example: <emphasis
-            role="bold">ec2-54-242-36-232.compute-1.amazonaws.com:8787</emphasis></para>
+            role="bold"><emphasis>&lt;your-instance-name&gt;</emphasis>:8787</emphasis></para>
           </listitem>
         </itemizedlist></para>
 
@@ -563,19 +411,23 @@ scidbconnect()
 iquery("store(build(&lt;v:double&gt;[i=0:9,10,0,j=0:9,10,0],random()%100),B)")
 scidblist()</programlisting></para>
 
+      <para>For more information, see <ulink
+      url="http://github.com/paradigm4/SciDBR">http://github.com/paradigm4/SciDBR</ulink>.</para>
+    </section>
+
+    <section id="iPythonConnect">
+      <title>Connect to IPython Notebook</title>
+
       <para>To access IPython Notebook:<itemizedlist>
           <listitem>
-            <para>VirtualBox Image: you should have noted the URL for Python
-            when you started the VM. For example, <emphasis
-            role="bold">https://192.168.56.101:8888</emphasis></para>
-          </listitem>
-
-          <listitem>
-            <para>AMI: use the public DNS for the AMI, and append <emphasis
+            <para>Use the public DNS for the AMI, and append <emphasis
             role="bold">:8888</emphasis> for the port. For example: <emphasis
-            role="bold">ec2-54-242-36-232.compute-1.amazonaws.com:8888</emphasis></para>
+            role="bold"><emphasis>&lt;your-instance_name&gt;</emphasis>:8888</emphasis></para>
           </listitem>
         </itemizedlist></para>
+
+      <para>For more information, see <ulink
+      url="http://github.com/paradigm4/SciDB-py">http://github.com/paradigm4/SciDB-py</ulink>.</para>
     </section>
 
     <section id="SciDBConnect">
@@ -589,18 +441,11 @@ scidblist()</programlisting></para>
       </para>
 
       <para>You can access a SciDB web console to view logs and run queries
-      from your browser. Depending on whether you are using a VirtualBox image
-      or an Amazon Machine image, do one of the following:<itemizedlist>
+      from your browser. Do the following:<itemizedlist>
           <listitem>
-            <para>VirtualBox Image: you should have noted the SciDB web URL
-            when you started the VM. For example, <emphasis
-            role="bold">https://192.168.56.101:8083</emphasis></para>
-          </listitem>
-
-          <listitem>
-            <para>AMI: connect to a secure HTTP service running on the public
-            DNS for the AMI on port 8083. For example: <emphasis
-            role="bold">https://ec2-54-242-36-232.compute-1.amazonaws.com:8083</emphasis></para>
+            <para>Connect to a secure HTTP service running on the public DNS
+            for the AMI on port 8083. For example: <emphasis
+            role="bold">https://<emphasis>&lt;your-instance_name&gt;</emphasis>:8083</emphasis></para>
           </listitem>
         </itemizedlist></para>
 
@@ -614,14 +459,18 @@ scidblist()</programlisting></para>
           <listitem>
             <para>Enter a valid AFL query in the text box and press <emphasis
             role="bold">Execute query and return result</emphasis> to run the
-            query and view its output,</para>
+            query and view its output,<note>
+                <para>Although customary iquery syntax requires a semi-colon
+                at the end of each AFL or AQL statement, you should exclude it
+                here.</para>
+              </note></para>
           </listitem>
 
           <listitem>
             <para>Enter a query and press <emphasis role="bold">Execute
             query</emphasis> to run the query without viewing output. Note
             that non-operators like <command>remove</command> and DDL
-            operators like <command>rename</command> only work with the
+            operators like <command>rename</command> work only with the
             <emphasis role="bold">Execute query</emphasis> button.</para>
           </listitem>
 
@@ -638,45 +487,15 @@ scidblist()</programlisting></para>
       </note>
 
       <para>
-        <emphasis role="bold">Log on to the VM Shell</emphasis>
+        <emphasis role="bold">Log onto the AMI Shell</emphasis>
       </para>
 
-      <para>Start the VirtualBox image, or SSH into the AMI. At the command
-      prompt, enter your credentials:<itemizedlist>
-          <listitem>
-            <para>User name: <literal>scidb</literal></para>
-          </listitem>
-
-          <listitem>
-            <para>Password: <literal>paradigm4</literal></para>
-          </listitem>
-        </itemizedlist></para>
+      <para>SSH into the AMI with username "scidb" and password
+      "paradigm4".</para>
 
       <para>For more information on SciDB, see the <emphasis>SciDB User's
       Guide</emphasis>.</para>
-
-      <note>
-        <para><emphasis role="bold">Tip: </emphasis>if you are using the
-        VirtualBox image from the command prompt, and you are having trouble
-        cutting and pasting information, you can SSH into the VirtualBox
-        image. For example, if the URL for the image (displayed upon starting
-        the image) is <emphasis
-        role="bold">https://192.168.56.101:8083</emphasis>, you could open a
-        Linux prompt and type the following command:<programlisting>$ ssh scidb@192.168.56.101</programlisting></para>
-
-        <para>When prompted for the password, enter
-        <literal>paradigm4</literal>. You can now work from your Linux
-        desktop.</para>
-      </note>
     </section>
-  </section>
-
-  <section>
-    <title>Sample Data</title>
-
-    <para>The virtual machine image contains some sample data. The <emphasis
-    role="bold">XLDB_Examples</emphasis> folder contains scripts that were
-    used to create and load the sample arrays.</para>
   </section>
 
   <section id="terminology">
@@ -1211,9 +1030,9 @@ Convertible, 26.8</screen></para>
   <section>
     <title>Quick Reference</title>
 
-    <para>This section presents a cheat sheet that covers the most useful
-    SciDB operators. The examples are run from inside an AFL iquery session
-    (run <command>iquery -a </command>from your Linux command prompt).</para>
+    <para>This section presents a crib sheet that covers the most useful SciDB
+    operators. The examples are run from inside an AFL iquery session (run
+    <command>iquery -a </command>from your Linux command prompt).</para>
 
     <section id="community">
       <title>Community Edition</title>
@@ -1495,6 +1314,12 @@ AFL% apply( join(foo, cast(foo2, &lt;v2:double&gt;[x2=1:10,10,0])), z, x2*(v-v2)
 --afl store(build(left,random()%100+1),right); --show-query=no --show-output=no
 --afl gemm(left, right, build(&lt;val:double&gt;[x=0:9,32,0,y=0:9,32,0], 0)); --show-output=no</programlisting></para>
 
+      <para><emphasis role="bold">SPGEMM: Multiplication of sparse
+      matrices</emphasis><screen>spgemm(input1, input2 [, 'ring_spec'])</screen>Where
+      ring_spec is one of 'min.+', 'max.+' or 'count-mults' (the default). The
+      second dimension of input1 must match the first dimension of input2 in
+      length and chunk size. <programlisting>AFL% spgemm(left, right, 'min.+');</programlisting></para>
+
       <para><emphasis role="bold">GESVD: Singular value decomposition of a
       dense matrix</emphasis><screen>gesvd(input, 'left|values|right')</screen>Input
       must have square chunk size of at least 32x32 and at most 1024x1024.
@@ -1504,16 +1329,10 @@ AFL% apply( join(foo, cast(foo2, &lt;v2:double&gt;[x2=1:10,10,0])), z, x2*(v-v2)
     </section>
 
     <section id="enterprise">
-      <title>Paradigm4 Extensions</title>
+      <title>Enterprise Edition</title>
 
       <para>The following operators are available in the proprietary,
       enterprise version of SciDB.</para>
-
-      <para><emphasis role="bold">SPGEMM: Multiplication of sparse
-      matrices</emphasis><screen>spgemm(input1, input2 [, 'ring_spec'])</screen>Where
-      ring_spec is one of 'min.+', 'max.+' or 'count-mults' (the default). The
-      second dimension of input1 must match the first dimension of input2 in
-      length and chunk size. <programlisting>AFL% spgemm(left, right, 'min.+');</programlisting></para>
 
       <para><emphasis role="bold">TSVD: Truncated singular value decomposition
       of sparse matrices</emphasis><screen>tsvd(input, inputT, n [, tol [, maxit [, initialVector [, left, right]]]])</screen>Both

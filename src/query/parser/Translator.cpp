@@ -60,7 +60,6 @@ class Translator
 
  private:
             LQPNPtr           passAFLOperator           (const Node*);
-            LQPNPtr           passCreateArrayStatement  (const Node*);
             LQPNPtr           passSelectStatement       (const Node*);
             LQPNPtr           passJoins                 (const Node*);
             LQPNPtr           passIntoClause            (const Node*,LQPNPtr&);
@@ -78,7 +77,7 @@ class Translator
  private:
     shared_ptr<OperatorParamAggregateCall>
                               passAggregateCall               (const Node*,const vector<ArrayDesc>&);
-            Value             passConstantExpression          (const Node*,TypeId);
+            Value             passConstantExpression          (const Node*,const TypeId&);
             int64_t           passIntegralExpression          (const Node*);
             void              passSchema                      (const Node*,ArrayDesc &,const string&);
             void              passReference                   (const Node*,chars&,chars&);
@@ -258,7 +257,7 @@ int64_t Translator::estimateChunkInterval(cnodes nodes)
     return r;
 }
 
-Value Translator::passConstantExpression(const Node* ast,TypeId targetType)
+Value Translator::passConstantExpression(const Node* ast,const TypeId& targetType)
 {
     Expression pExpr;
     try
@@ -290,83 +289,84 @@ int64_t Translator::passIntegralExpression(const Node* ast)
 
 void Translator::passDimensions(const Node* ast,Dimensions& dimensions,const string& arrayName,set<string> &usedNames)
 {
-    dimensions.reserve(ast->getSize());
+    dimensions.reserve(ast->getSize());                  // Reserve memory
 
-    BOOST_FOREACH (const Node* d,ast->getList())
+    BOOST_FOREACH (const Node* d,ast->getList())         // For each dimension
     {
-        assert(d->is(dimension));
+        assert(d->is(dimension));                        // ...is a dimension
 
-        string  const dim_n  = d->get(dimensionArgName)->getString();
-        int64_t       dim_l  = 0;
-        int64_t       dim_h  = INFINITE_LENGTH;
-        int64_t       dim_i  = 0;
-        int64_t       dim_o  = 0;
+        string  const nm = d->get(dimensionArgName)->getString();
+        int64_t       lo = 0;                            // ...lower bound
+        int64_t       hi = INFINITE_LENGTH;              // ...upper bound
+        int64_t       ci = 0;                            // ...chunk interval
+        int64_t       co = 0;                            // ...chunk overlap
 
-        if (!usedNames.insert(dim_n).second)             // Already in use?
+        if (!usedNames.insert(nm).second)                // ...already used?
         {
-            fail(SYNTAX(SCIDB_LE_DUPLICATE_DIMENSION_NAME,d->get(dimensionArgName)) << dim_n);
+            fail(SYNTAX(SCIDB_LE_DUPLICATE_DIMENSION_NAME,d->get(dimensionArgName)) << nm);
         }
 
         if (const Node* n = d->get(dimensionArgLoBound))
         {
-            dim_l = passIntegralExpression(n);
+            lo = passIntegralExpression(n);
         }
 
         if (const Node* n = d->get(dimensionArgHiBound))
+        if (!n->is(asterisk))
         {
-            dim_h = passIntegralExpression(n);
+            hi = passIntegralExpression(n);
         }
 
         if (const Node* n = d->get(dimensionArgChunkInterval))
         {
-            dim_i = passIntegralExpression(n);
+            ci = passIntegralExpression(n);
         }
         else
         {
-            dim_i = estimateChunkInterval(ast->getList());
+            ci = estimateChunkInterval(ast->getList());
         }
 
         if (const Node* n = d->get(dimensionArgChunkOverlap))
         {
-            dim_o = passIntegralExpression(n);
+            co = passIntegralExpression(n);
         }
 
-        if (dim_l == MAX_COORDINATE)
+        if (lo == MAX_COORDINATE)
         {
             fail(SYNTAX(SCIDB_LE_DIMENSION_START_CANT_BE_UNBOUNDED,getChildSafely(d,dimensionArgLoBound)));
         }
 
-        if (dim_l<=MIN_COORDINATE || dim_l> MAX_COORDINATE)
+        if (lo<=MIN_COORDINATE || MAX_COORDINATE<lo)
         {
             fail(SYNTAX(SCIDB_LE_INCORRECT_DIMENSION_BOUNDARY,getChildSafely(d,dimensionArgLoBound)) << MIN_COORDINATE << MAX_COORDINATE);
         }
 
-        if (dim_h<=MIN_COORDINATE || dim_h> MAX_COORDINATE)
+        if (hi<=MIN_COORDINATE || MAX_COORDINATE<hi)
         {
             fail(SYNTAX(SCIDB_LE_INCORRECT_DIMENSION_BOUNDARY,getChildSafely(d,dimensionArgHiBound))<< MIN_COORDINATE << MAX_COORDINATE);
         }
 
-        if (dim_h<dim_l && dim_h+1 != dim_l)
+        if (hi<lo && hi+1!=lo)
         {
             fail(SYNTAX(SCIDB_LE_HIGH_SHOULDNT_BE_LESS_LOW,getChildSafely(d,dimensionArgHiBound)));
         }
 
-        if (dim_i <= 0)
+        if (ci <= 0)
         {
             fail(SYNTAX(SCIDB_LE_INCORRECT_CHUNK_SIZE,getChildSafely(d,dimensionArgChunkInterval)) << numeric_limits<int64_t>::max());
         }
 
-        if (dim_o < 0)
+        if (co < 0)
         {
             fail(SYNTAX(SCIDB_LE_INCORRECT_OVERLAP_SIZE,getChildSafely(d,dimensionArgChunkOverlap)) << numeric_limits<int64_t>::max());
         }
 
-        if (dim_o > dim_i)
+        if (co > ci)
         {
             fail(SYNTAX(SCIDB_LE_OVERLAP_CANT_BE_LARGER_CHUNK,getChildSafely(d,dimensionArgChunkOverlap)));
         }
 
-        dimensions.push_back(DimensionDesc(dim_n,dim_l,dim_h,dim_i,dim_o));
+        dimensions.push_back(DimensionDesc(nm,lo,hi,ci,co));
     }
 }
 
@@ -395,8 +395,7 @@ void Translator::passSchema(const Node* ast,ArrayDesc& schema,const string& arra
 
         usedNames.insert(attName);
 
-        AttributeDesc::AttributeFlags attFlags = (AttributeDesc::AttributeFlags)0;
-        attFlags = (AttributeDesc::AttributeFlags)(attTypeNullable ? attFlags | AttributeDesc::IS_NULLABLE : 0);
+        int16_t const attFlags = attTypeNullable ? AttributeDesc::IS_NULLABLE : 0;
 
         try
         {
@@ -494,9 +493,9 @@ LQPNPtr Translator::passAFLOperator(const Node *ast)
     cnodes astParameters = ast->getList(applicationArgOperands);
     const string opAlias = getString(ast,applicationArgAlias);
 
-    vector<LQPNPtr > opInputs;
-    vector<ArrayDesc>                         inputSchemas;
-    shared_ptr<LogicalOperator>               op;
+    vector<LQPNPtr >            opInputs;
+    vector<ArrayDesc>           inputSchemas;
+    shared_ptr<LogicalOperator> op;
 
     try
     {
@@ -508,6 +507,8 @@ LQPNPtr Translator::passAFLOperator(const Node *ast)
         {
             fail(CONV_TO_USER_QUERY_EXCEPTION(e,newParsingContext(ast)));
         }
+
+        throw;
     }
 
     const OperatorParamPlaceholders& opPlaceholders = op->getParamPlaceholders();
@@ -1170,30 +1171,27 @@ bool Translator::resolveDimension(const vector<ArrayDesc> &inputSchemas, const s
     size_t _inputNo = 0;
     BOOST_FOREACH(const ArrayDesc &schema, inputSchemas)
     {
-        size_t _dimensionNo = 0;
-        BOOST_FOREACH(const DimensionDesc& dimension, schema.getDimensions())
+        ssize_t _dimensionNo = schema.findDimension(name, alias);
+        if (_dimensionNo >= 0)
         {
-            if (dimension.hasNameAndAlias(name, alias))
+            if (found)
             {
-                if (found)
-                {
-                    const string fullName = str(format("%s%s") % (alias != "" ? alias + "." : "") % name );
-                    fail(SYNTAX(SCIDB_LE_AMBIGUOUS_DIMENSION, parsingContext) << fullName);
-                }
-                found = true;
-
-                inputNo = _inputNo;
-                dimensionNo = _dimensionNo;
+                const string fullName = str(format("%s%s") % (alias != "" ? alias + "." : "") % name );
+                fail(SYNTAX(SCIDB_LE_AMBIGUOUS_DIMENSION, parsingContext) << fullName);
             }
-            ++_dimensionNo;
+            found = true;
+
+            inputNo = _inputNo;
+            dimensionNo = _dimensionNo;
         }
+        
         ++_inputNo;
     }
 
     if (!found && throwException)
     {
         const string fullName = str(format("%s%s") % (alias != "" ? alias + "." : "") % name );
-        fail(SYNTAX(SCIDB_LE_DIMENSION_NOT_EXIST, parsingContext) << fullName);
+        fail(SYNTAX(SCIDB_LE_DIMENSION_NOT_EXIST, parsingContext) << fullName << "input" << "?");
     }
 
     return found;
@@ -2181,7 +2179,7 @@ Node* Translator::decomposeExpression(
             const Node* funcArgs = funcNode->get(applicationArgOperands);
 
             bool isAggregate = AggregateLibrary::getInstance()->hasAggregate(funcName);
-            bool isScalar    = FunctionLibrary::getInstance()->findFunction(funcName, false);
+            bool isScalar    = FunctionLibrary::getInstance()->hasFunction(funcName, false);
 
             if (isAggregate && isScalar)
             {
@@ -2886,11 +2884,9 @@ LQPNPtr Translator::passSelectList(
                             SCIDB_UNREACHABLE();
                         }
 
-                        const TypeId &tid = AggregateLibrary::getInstance()->createAggregate(aggName, aggParamType)->getResultType().typeId();
-                        LOG4CXX_TRACE(logger, "It has type " << tid);
                         redimensionAttrs.push_back(AttributeDesc(redimensionAttrs.size(),
                                                                  aggAlias,
-                                                                 tid,
+                                                                 AggregateLibrary::getInstance()->createAggregate(aggName, aggParamType)->getResultType().typeId(),
                                                                  AttributeDesc::IS_NULLABLE,
                                                                  0));
                         usedNames.insert(aggAlias);
@@ -3282,7 +3278,7 @@ LQPNPtr Translator::fitInput(LQPNPtr &input,const ArrayDesc& destinationSchema)
                 needRepart = true;
 
             //... but if length or type of dimension differ we cant cast and repart
-            if (inDim.getStart() != destDim.getStart()
+            if (inDim.getStartMin() != destDim.getStartMin()
                 || !(inDim.getEndMax() == destDim.getEndMax()
                     || (inDim.getEndMax() < destDim.getEndMax()
                         && ((inDim.getLength() % inDim.getChunkInterval()) == 0

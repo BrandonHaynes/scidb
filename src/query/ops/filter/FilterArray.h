@@ -98,13 +98,8 @@ class NewBitmapChunkIterator : public FilterChunkIterator
 {
 public:
     virtual  Value& getItem();
-    virtual bool supportsVectorMode() const;
-    virtual void setVectorMode(bool enabled);
 
     NewBitmapChunkIterator(FilterArrayIterator const& arrayIterator, DelegateChunk const* chunk, int iterationMode);
-
-private:
-    bool _supportsVectorMode;
 };
 
 

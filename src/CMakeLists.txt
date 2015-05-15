@@ -28,7 +28,7 @@ add_subdirectory("util")
 add_subdirectory("mpi")
 add_subdirectory("dense_linear_algebra")
 add_subdirectory("linear_algebra")
-add_subdirectory("clients/java")
+add_subdirectory("jdbc")
 
 if (NOT WITHOUT_SERVER)
     add_subdirectory("array")

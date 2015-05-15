@@ -1,0 +1,150 @@
+Query was executed successfully
+
+Query was executed successfully
+
+[Query was executed successfully, ignoring data output by this query.]
+
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <join(aa, bb)>
+{x,y} v,s
+{5,2} 7,'odd'
+{5,3} 8,'odd'
+{5,4} 9,'odd'
+{5,5} 10,'odd'
+{5,6} 11,'odd'
+{5,7} 12,'odd'
+{6,2} 8,'even'
+{6,3} 9,'even'
+{6,4} 10,'even'
+{6,5} 11,'even'
+{6,6} 12,'even'
+{6,7} 13,'even'
+{7,2} 9,'odd'
+{7,3} 10,'odd'
+{7,4} 11,'odd'
+{7,5} 12,'odd'
+{7,6} 13,'odd'
+{7,7} 14,'odd'
+{8,2} 10,'even'
+{8,3} 11,'even'
+{8,4} 12,'even'
+{8,5} 13,'even'
+{8,6} 14,'even'
+{8,7} 15,'even'
+{9,2} 11,'odd'
+{9,3} 12,'odd'
+{9,4} 13,'odd'
+{9,5} 14,'odd'
+{9,6} 15,'odd'
+{9,7} 16,'odd'
+{10,2} 12,'even'
+{10,3} 13,'even'
+{10,4} 14,'even'
+{10,5} 15,'even'
+{10,6} 16,'even'
+{10,7} 17,'even'
+{11,2} 13,'odd'
+{11,3} 14,'odd'
+{11,4} 15,'odd'
+{11,5} 16,'odd'
+{11,6} 17,'odd'
+{11,7} 18,'odd'
+{12,2} 14,'even'
+{12,3} 15,'even'
+{12,4} 16,'even'
+{12,5} 17,'even'
+{12,6} 18,'even'
+{12,7} 19,'even'
+{13,2} 15,'odd'
+{13,3} 16,'odd'
+{13,4} 17,'odd'
+{13,5} 18,'odd'
+{13,6} 19,'odd'
+{13,7} 20,'odd'
+{14,2} 16,'even'
+{14,3} 17,'even'
+{14,4} 18,'even'
+{14,5} 19,'even'
+{14,6} 20,'even'
+{14,7} 21,'even'
+{15,2} 17,'odd'
+{15,3} 18,'odd'
+{15,4} 19,'odd'
+{15,5} 20,'odd'
+{15,6} 21,'odd'
+{15,7} 22,'odd'
+
+SCIDB QUERY : <join(bb, aa)>
+{z,w} s,v
+{5,2} 'odd',7
+{5,3} 'odd',8
+{5,4} 'odd',9
+{5,5} 'odd',10
+{5,6} 'odd',11
+{5,7} 'odd',12
+{6,2} 'even',8
+{6,3} 'even',9
+{6,4} 'even',10
+{6,5} 'even',11
+{6,6} 'even',12
+{6,7} 'even',13
+{7,2} 'odd',9
+{7,3} 'odd',10
+{7,4} 'odd',11
+{7,5} 'odd',12
+{7,6} 'odd',13
+{7,7} 'odd',14
+{8,2} 'even',10
+{8,3} 'even',11
+{8,4} 'even',12
+{8,5} 'even',13
+{8,6} 'even',14
+{8,7} 'even',15
+{9,2} 'odd',11
+{9,3} 'odd',12
+{9,4} 'odd',13
+{9,5} 'odd',14
+{9,6} 'odd',15
+{9,7} 'odd',16
+{10,2} 'even',12
+{10,3} 'even',13
+{10,4} 'even',14
+{10,5} 'even',15
+{10,6} 'even',16
+{10,7} 'even',17
+{11,2} 'odd',13
+{11,3} 'odd',14
+{11,4} 'odd',15
+{11,5} 'odd',16
+{11,6} 'odd',17
+{11,7} 'odd',18
+{12,2} 'even',14
+{12,3} 'even',15
+{12,4} 'even',16
+{12,5} 'even',17
+{12,6} 'even',18
+{12,7} 'even',19
+{13,2} 'odd',15
+{13,3} 'odd',16
+{13,4} 'odd',17
+{13,5} 'odd',18
+{13,6} 'odd',19
+{13,7} 'odd',20
+{14,2} 'even',16
+{14,3} 'even',17
+{14,4} 'even',18
+{14,5} 'even',19
+{14,6} 'even',20
+{14,7} 'even',21
+{15,2} 'odd',17
+{15,3} 'odd',18
+{15,4} 'odd',19
+{15,5} 'odd',20
+{15,6} 'odd',21
+{15,7} 'odd',22
+
+Query was executed successfully
+
+Query was executed successfully
+

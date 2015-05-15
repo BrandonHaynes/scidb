@@ -25,14 +25,30 @@
  *
  *  Created on: Jun 15, 2012
  *      Author: dzhang
- *  Iterators over the chunk-start coordinates in a multi-dim region.
+ *  Iterators over all logical chunkPos in a multi-dim region.
+ *
+ *********************************************************************************************************************
+ *  THE REQUEST TO JUSTIFY LOGICAL-SPACE ITERATION
+ *  - The request:
+ *    (a) All tools that iterate over the logical chunk/cell space,
+ *        such as RegionCoordinatesIterator, should be accompanied with
+ *        a warning, and a pointer to this note.
+ *        E.g. see the comment for class RegionCoordinatesIterator.
+ *    (b) All usages of such tools should be accompanied with a comment
+ *        describing why it is ok to iterate over the logical space.
+ *  - Requester: Donghui Zhang, 12/8/2014.
+ *  - Rationale:
+ *    Iterating over the logical space is dangerous. Say you have an extremely sparse array with only a few chunks, but
+ *    with billions of logical chunks in the space. If you use a tool to iterate over the logical space, replying on some
+ *    kind of probing to decide whether each chunkPos is valid, your algorithm may end up taking too long to run.
+ *********************************************************************************************************************
  */
 
 #ifndef REGIONCOORDINATESITERATOR_H_
 #define REGIONCOORDINATESITERATOR_H_
 
-#include <array/Array.h>
 #include <vector>
+#include <array/Array.h>
 
 namespace scidb
 {
@@ -51,7 +67,10 @@ struct RegionCoordinatesIteratorParam
 };
 
 /**
- * RegionCoordinatesIterator iterates through all the chunk-start coordinates, in a region described by a pair of Coordinates.
+ * RegionCoordinatesIterator iterates over all the chunk-start coordinates, in a region described by a pair of Coordinates.
+ *
+ *  @note Use with caution! This class iterates over the logical space.
+ *  @see THE REQUEST TO JUSTIFY LOGICAL-SPACE ITERATION in RegionCoordinatesIterator.h.
  */
 class RegionCoordinatesIterator: public ConstIterator
 {
@@ -244,7 +263,7 @@ public:
     }
 
     /**
-     * Reset iteratot to the first coordinates.
+     * Reset iterator to the first coordinates.
      */
     virtual void reset() {
         _current = _low;

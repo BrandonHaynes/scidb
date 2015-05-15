@@ -34,6 +34,29 @@ SCIDB QUERY : <scan(SHORTEST_PATHS_VEC)>
 
 SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
 [Query was executed successfully. It was only intended to just run.]
+"shortest paths from vertex 0"
+SCIDB QUERY : <scan(SHORTEST_PATHS_VEC)>
+{v1,dummy} multiply
+{0,0} 0
+{1,0} 12
+{2,0} 5
+{3,0} 13
+{4,0} 13
+{5,0} 16
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+[Query was executed successfully. It was only intended to just run.]
+"shortest paths from vertex 2"
+SCIDB QUERY : <scan(SHORTEST_PATHS_VEC)>
+{v1,dummy} multiply
+{1,0} 7
+{2,0} 0
+{3,0} 8
+{4,0} 8
+{5,0} 11
+
+SCIDB QUERY : <remove(SHORTEST_PATHS_VEC)>
+[Query was executed successfully. It was only intended to just run.]
 "shortest paths from vertex 2"
 SCIDB QUERY : <scan(SHORTEST_PATHS_VEC)>
 {v1,dummy} multiply

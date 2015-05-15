@@ -175,7 +175,7 @@ bool ReplicationManager::sendItem(RepItems& ri)
         shared_ptr<Query> q(Query::getValidQueryPtr(item->getQuery()));
 
         boost::shared_ptr<MessageDesc> chunkMsg(item->getChunkMsg());
-        NetworkManager::getInstance()->sendMessage(item->getInstanceId(), chunkMsg,
+        NetworkManager::getInstance()->sendPhysical(item->getInstanceId(), chunkMsg,
                                                    NetworkManager::mqtReplication);
         LOG4CXX_TRACE(logger, "ReplicationManager::sendItem: successful replica chunk send to instance="
                       << item->getInstanceId()

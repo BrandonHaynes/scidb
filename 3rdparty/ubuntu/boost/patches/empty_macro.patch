@@ -1,0 +1,7 @@
+--- a/boost/preprocessor/tuple/elem.hpp
++++ b/boost/preprocessor/tuple/elem.hpp
+@@ -17,0 +18,4 @@
++# if defined(__GCC__)
++#  pragma GCC system_header // Suppresses warnings about empty macro arguments by making this file a "system header"
++# endif
++#

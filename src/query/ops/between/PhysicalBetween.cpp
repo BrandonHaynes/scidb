@@ -50,13 +50,13 @@ public:
         for (size_t i = 0; i < nDims; i++)
         {
             Value const& coord = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[i])->getExpression()->evaluate();
-            if ( coord.isNull() || coord.getInt64() < dims[i].getStart())
+            if ( coord.isNull() || coord.get<int64_t>() < dims[i].getStartMin())
             {
-                result[i] = dims[i].getStart();
+                result[i] = dims[i].getStartMin();
             }
             else
             {
-                result[i] = coord.getInt64();
+                result[i] = coord.get<int64_t>();
             }
         }
         return result;

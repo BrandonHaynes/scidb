@@ -98,14 +98,36 @@ namespace scidb
                 ival.setInt32(psHashPartitioned);
                 sgParams[0] = boost::shared_ptr<OperatorParam>(
                     new OperatorParamLogicalExpression(node->getParsingContext(),
-                                                       boost::shared_ptr<LogicalExpression>(new Constant(node->getParsingContext(), ival, TID_INT32)),
+                                                       boost::shared_ptr<LogicalExpression>(new Constant(node->getParsingContext(),
+                                                                                                         ival, TID_INT32)),
                                                        TypeLibrary::getType(TID_INT32), true));
-                ival.setInt32(-1);
+                ival.setInt64(-1);
                 sgParams[1] = boost::shared_ptr<OperatorParam>(
                     new OperatorParamLogicalExpression(node->getParsingContext(),
-                                                       boost::shared_ptr<LogicalExpression>(new Constant(node->getParsingContext(), ival, TID_INT32)),
+                                                       boost::shared_ptr<LogicalExpression>(new Constant(node->getParsingContext(),
+                                                                                                         ival, TID_INT32)),
                                                        TypeLibrary::getType(TID_INT32), true));
                 sgParams[2] = paramArrayRef;
+
+                // propagate the strict flag to SG
+                ssize_t strictIndex = -1;
+                if (inputOperator->getParameters().size() >= 6 &&
+                    inputOperator->getParameters()[5]->getParamType() == PARAM_LOGICAL_EXPRESSION) {
+                    strictIndex = 5;
+
+                } else if (inputOperator->getParameters().size() >= 7 ) {
+                    assert(inputOperator->getParameters()[6]->getParamType() == PARAM_LOGICAL_EXPRESSION);
+                    strictIndex = 6;
+                }
+                if (strictIndex>0) {
+                    sgParams.push_back(inputOperator->getParameters()[strictIndex]);
+                    if (isDebug()) {
+                        OperatorParamLogicalExpression* lExp =
+                           static_cast<OperatorParamLogicalExpression*>(inputOperator->getParameters()[strictIndex].get());
+                        SCIDB_ASSERT(lExp->isConstant());
+                        assert(lExp->getExpectedType()==TypeLibrary::getType(TID_BOOL));
+                    }
+                }
 
                 boost::shared_ptr< LogicalOperator> sgOperator = olib->createLogicalOperator("sg");
                 sgOperator->setParameters(sgParams);

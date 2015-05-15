@@ -1,0 +1,73 @@
+--setup
+--start-query-logging
+--start-igdata 
+
+load_library('linear_algebra')
+
+# until it has unused vertices remove, the input
+# twitter_combined_uniq.csv has: vertices from 12 to 568770231 vertex range, and 2420766 edges.
+#
+# so here are cut down versions instead, to use like:
+# 
+#MAXVERT=568770231 FILE=twitter_combined_unique.csv   1,768,149; sparsity = 321
+# MAXVERT=62185119 FILE=twitter_combined_unique_1000k.csv  sparsity =62
+#  MAXVERT=6210882 FILE=twitter_combined_unique_100k.csv   sparsity =62
+#    MAXVERT=12830 FILE=twitter_combined_unique_10k.csv    sparsity = 1.2
+#      MAXVERT=422 FILE=twitter_combined_unique_1k.csv    truncated to square: <100 NZ's
+#CSVNAME="twitter_combined_unique_10k.csv"
+#MAXVERT=12830
+#CSIZE=$((MAXVERT/4))
+
+# csv to .scidb
+--shell --command "csv2scidb < /public/data/p4linalg/twitter_combined_unique.csv > /tmp/510_twitter.scidb.txt"
+
+# load
+--justrun "remove(GRAPH_PAIRS)"
+create array GRAPH_PAIRS <v0:int64, v1:int64>[dummy=0:*,100000,0]
+load(GRAPH_PAIRS, '/tmp/510_twitter.scidb.txt') 
+
+# turn list of triplets into adjacency matrix
+--justrun "remove(TRANSPOSE_GRAPH_EDGES)"
+create array TRANSPOSE_GRAPH_EDGES <e:int8>[v1=0:568770231,(568770231+1)/4+1,0, v0=0:568770231,(568770231+1)/4+1,0]
+store(redimension(apply(GRAPH_PAIRS, e, int8(1)), TRANSPOSE_GRAPH_EDGES),TRANSPOSE_GRAPH_EDGES)
+# @@@@@ ************ or use subsets like the following
+#store(redimension(filter(apply(GRAPH_PAIRS, e, int8(1)), v0<=62185119 and v1<=62185119), TRANSPOSE_GRAPH_EDGES), TRANSPOSE_GRAPH_EDGES)
+#store(redimension(filter(apply(GRAPH_PAIRS, e, int8(1)), v0<=6210882  and v1<=6210882),  TRANSPOSE_GRAPH_EDGES), TRANSPOSE_GRAPH_EDGES)
+#store(redimension(filter(apply(GRAPH_PAIRS, e, int8(1)), v0<=12830    and v1<=12830),   TRANSPOSE_GRAPH_EDGES), TRANSPOSE_GRAPH_EDGES)
+#store(redimension(filter(apply(GRAPH_PAIRS, e, int8(1)), v0<=422      and v1<=1000),    TRANSPOSE_GRAPH_EDGES), TRANSPOSE_GRAPH_EDGES)
+
+# and switch to weights (probabilities of transition) of  1/(num edges in column)
+# by dividing 1 by the sum of the column
+--justrun "remove(TRANSITION_PROBABILITY_COLS)"
+store(substitute(project(apply(cross_join(TRANSPOSE_GRAPH_EDGES as E, aggregate(TRANSPOSE_GRAPH_EDGES, sum(e), v0) as SUM, E.v0, SUM.v0), prob, float(float(E.e)/SUM.e_sum)), prob), build(<v:float>[dc=0:0,1,0],NaN)), TRANSITION_PROBABILITY_COLS)
+
+--stop-igdata
+
+--test
+
+# now the test: run the pagerank algorithm, outputting to RANK_VEC
+
+--justrun "remove(RANK_VEC)"
+--shell --command "pagerank_example.sh TRANSITION_PROBABILITY_COLS RANK_VEC"
+
+# show the raw pagerank vector we got back
+# well, just the first 1000, since there are 163,000 of them
+--echo "pagerank, as scanned by the .test script"
+filter(scan(RANK_VEC),vtx<1000)
+
+# RANK_VEC contains the page's component of the perron vector, which is the pagerank statistic
+#         (minus a scalar related to the page rank of the pages with no outgoing links,
+#          which keeps the perron vector sparse when there are lots of such pages, as in the twitter data)
+# but this is not the ordinal rank of the pages.  we get that by sorting 
+--echo "pagerank, sorted by the .test script"
+# we print [i]<q, vtx> by turning a dimension to an attribute with the following apply()
+# we filter, because otherwise there are 163,000 lines of output
+filter(sort(apply(RANK_VEC, vtx, vtx), q desc, vtx asc), n <= 1000)
+
+--cleanup
+remove(GRAPH_PAIRS)
+remove(TRANSPOSE_GRAPH_EDGES)
+remove(TRANSITION_PROBABILITY_COLS)
+remove(RANK_VEC)
+
+

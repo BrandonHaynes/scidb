@@ -38,6 +38,7 @@
 
 namespace scidb
 {
+class Query;
 // A "proc" means a node in a systolic array of processes.
 // These correspond to pairs of (SciDB instanceID, MPI slave rank)
 
@@ -57,7 +58,7 @@ typedef uint32_t procNum_t ;     // instanceID == MPI rank number in our scheme
 
                                  // the max to that even though unsigned so that
                                  // negative int -> unsinged is easy to catch
-                                 // in a single range check. 
+                                 // in a single range check.
                                  // all arithmetic is unsigned, but
                                  // the MPI & ScaLAPACK were compiled with
                                  // TODO JHM; this will be integrated after
@@ -84,9 +85,9 @@ std::ostream& operator<<(std::ostream& os, const RowCol<int_tt>& val) {
 }
 
 
-typedef RowCol<procNum_t> procRowCol_t ; 
+typedef RowCol<procNum_t> procRowCol_t ;
 
-// 
+//
 // optimal grid construction is O(P) = sqrt(P), P=number of instances
 //
 class ProcGrid {

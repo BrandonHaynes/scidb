@@ -1,0 +1,9 @@
+SCIDB QUERY : <store(apply(apply(apply(apply(build(<a1:string NULL>[dim1=14:46,30,28],iif(random()%10>5,'u',null)),a2,iif(random()%10>5,int32(random()%10),null)),a3,int16(random()%10)),a4,double(random()%10)),a5,uint16(random()%10)),AA)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <redimension(AA,<a1:string NULL,a2:int32 NULL DEFAULT 1403566409,a3:int16 DEFAULT 19922,a4:double DEFAULT 0.176252178103,a5:uint16,a6:string NULL>[dim1=14:46,30,28],max(a1) as a6)>
+[Query was executed successfully, ignoring data output by this query.]
+
+SCIDB QUERY : <remove(AA)>
+Query was executed successfully
+

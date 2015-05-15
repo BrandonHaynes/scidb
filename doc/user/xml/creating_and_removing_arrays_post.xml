@@ -73,9 +73,9 @@
     deleted. However, temporary arrays are not generally written to disk. This
     means that temporary arrays become corrupted if a SciDB instance fails. In
     fact, whenever the SciDB cluster is restarted, all temporary arrays are
-    marked as unavailable. In addition, temporary arrays do not have versions.
-    That is, any update to a temporary array will overwrite existing attribute
-    values.</para>
+    marked as unavailable (but not deleted; you must delete them explicitly).
+    In addition, temporary arrays do not have versions. That is, any update to
+    a temporary array will overwrite existing attribute values.</para>
 
     <para>The array attributes describe the types of data contained in each
     cell of the array. Each attribute is defined as follows:<programlisting><emphasis>attribute</emphasis> ::= <emphasis>attribute_name</emphasis> <emphasis role="bold">:</emphasis> <emphasis>attribute_type nullable default</emphasis>
@@ -243,39 +243,39 @@
 
         <step>
           <para>Create an array to hold the values.<para><programlisting>AFL% store(build(&lt;val:double&gt;[i=0:9,10,0], random()%2000/2000.0), B);
-       </programlisting><screen>[(0.836),(0.6215),(0.1635),(0.913),(0.456),(0.123),(0.006),(0.413),(0.994),(0.905)]
+       </programlisting><screen>[(0.995),(0.314),(0.414),(0.6935),(0.6325),(0.2965),(0.942),(0),(0.724),(0.16)]
 </screen></para></para>
         </step>
 
         <step>
           <para>Combine <literal>A</literal> and <literal>B</literal> into a
           single array.<para><programlisting>AFL% store(join(A,B), test);  </programlisting><screen>{i} index,val
-{0} 0,0.836
-{1} 50,0.6215
-{2} 100,0.1635
-{3} 150,0.913
-{4} 200,0.456
-{5} 250,0.123
-{6} 300,0.006
-{7} 350,0.413
-{8} 400,0.994
-{9} 450,0.905
+{0} 0,0.995
+{1} 50,0.314
+{2} 100,0.414
+{3} 150,0.6935
+{4} 200,0.6325
+{5} 250,0.2965
+{6} 300,0.942
+{7} 350,0
+{8} 400,0.724
+{9} 450,0.16
 </screen></para></para>
         </step>
 
         <step>
           <para>Finally, redimension <literal>test</literal> into a sparse
           array.<para><programlisting>AFL% redimension(test, &lt;val:double&gt;[index=0:*, 50,0]);  </programlisting><screen>{index} val
-{0} 0.836
-{50} 0.6215
-{100} 0.1635
-{150} 0.913
-{200} 0.456
-{250} 0.123
-{300} 0.006
-{350} 0.413
-{400} 0.994
-{450} 0.905
+{0} 0.995
+{50} 0.314
+{100} 0.414
+{150} 0.6935
+{200} 0.6325
+{250} 0.2965
+{300} 0.942
+{350} 0
+{400} 0.724
+{450} 0.16
 </screen></para></para>
         </step>
       </procedure>
@@ -617,16 +617,16 @@ or
         </indexterm>There is another function, <literal>missing</literal>,
       that returns the missing reason code from an integer array. Suppose, for
       example, that you have an array that contains integers where the values
-      represent missing reason codes:<para><screen>[(-1),(47),(23),(0),(127),(-1)]
+      represent missing reason codes:<para><screen>[(1),(47),(23),(0),(127),(100)]
 </screen>Now
       run <literal>missing</literal> against the values in the
       array:<para><programlisting>AFL% apply(arrayB,MRcode, missing(val));  </programlisting><screen>{i} val,MRcode
-{0} -1,&lt;void&gt;
+{0} 1,?1
 {1} 47,?47
 {2} 23,?23
 {3} 0,null
 {4} 127,?127
-{5} -1,&lt;void&gt;
+{5} 100,?100
 </screen></para></para></para>
 
       <para>We can see that the function,

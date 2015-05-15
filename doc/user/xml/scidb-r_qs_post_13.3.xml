@@ -171,7 +171,7 @@
 
           <para>
             <ulink
-            url="https://downloads.paradigm4.com/QuickStart/13.3/SciDB13.3-CentOS6.3-VirtualBox4.1.12-withR.ova">https://downloads.paradigm4.com/QuickStart/&scidb_version;/SciDB&scidb_version;-CentOS6.3-VirtualBox4.1.12-withR.ova</ulink>
+            url="http://downloads.paradigm4.com/QuickStart/13.3/SciDB13.3-CentOS6.3-VirtualBox4.1.12-withR.ova">http://downloads.paradigm4.com/QuickStart/&scidb_version;/SciDB&scidb_version;-CentOS6.3-VirtualBox4.1.12-withR.ova</ulink>
           </para>
 
           <para>Download the .ova file to a partition with at least 8GB of

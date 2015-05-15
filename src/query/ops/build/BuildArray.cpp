@@ -27,11 +27,11 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/MemArray.h"
-#include "network/NetworkManager.h"
-#include "query/ops/build/BuildArray.h"
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/MemArray.h>
+#include <network/NetworkManager.h>
+#include "BuildArray.h"
 
 
 namespace scidb {
@@ -137,7 +137,9 @@ namespace scidb {
         return *chunk;
     }
 
-    BuildChunkIterator::BuildChunkIterator(BuildArray& outputArray, ConstChunk const* aChunk, AttributeID attr, int mode)
+    BuildChunkIterator::BuildChunkIterator(BuildArray& outputArray,
+                                           ConstChunk const* aChunk,
+                                           AttributeID attr, int mode)
     : iterationMode(mode),
         array(outputArray),
         firstPos(aChunk->getFirstPosition((mode & IGNORE_OVERLAPS) == 0)),
@@ -200,8 +202,8 @@ namespace scidb {
         Dimensions const& dims = array._desc.getDimensions();
         for (size_t i = 0, n = dims.size(); i < n; i++) {
             firstPosWithOverlap[i] = firstPos[i] - dims[i].getChunkOverlap();
-            if (firstPosWithOverlap[i] < dims[i].getStart()) {
-                firstPosWithOverlap[i] = dims[i].getStart();
+            if (firstPosWithOverlap[i] < dims[i].getStartMin()) {
+                firstPosWithOverlap[i] = dims[i].getStartMin();
             }
             lastPos[i] = firstPos[i] + dims[i].getChunkInterval() - 1;
             lastPosWithOverlap[i] = lastPos[i] + dims[i].getChunkOverlap();
@@ -261,7 +263,7 @@ namespace scidb {
                     hasCurrent = false;
                     return;
                 }
-                currPos[i] = dims[i].getStart();
+                currPos[i] = dims[i].getStartMin();
                 i -= 1;
             }
             if (array._desc.getHashedChunkNumber(currPos) % array.nInstances == array.instanceID) {
@@ -275,7 +277,7 @@ namespace scidb {
     {
         Query::getValidQueryPtr(array._query);
         for (size_t i = 0, n = currPos.size(); i < n; i++) {
-            if (pos[i] < dims[i].getStart() || pos[i] > dims[i].getEndMax()) {
+            if (pos[i] < dims[i].getStartMin() || pos[i] > dims[i].getEndMax()) {
                 return hasCurrent = false;
             }
         }
@@ -290,7 +292,7 @@ namespace scidb {
         Query::getValidQueryPtr(array._query);
         size_t nDims = currPos.size(); 
         for (size_t i = 0; i < nDims; i++) {
-            currPos[i] = dims[i].getStart();
+            currPos[i] = dims[i].getStartMin();
         }
         currPos[nDims-1] -= dims[nDims-1].getChunkInterval();
         nextChunk();
@@ -334,8 +336,13 @@ namespace scidb {
         return boost::shared_ptr<ConstArrayIterator>(new BuildArrayIterator(*(BuildArray*)this, attr));
     }
 
-    BuildArray::BuildArray(boost::shared_ptr<Query>& query, ArrayDesc const& desc, boost::shared_ptr< Expression> expression)
-    : _desc(desc), _expression(expression), _bindings(_expression->getBindings()), _converter(NULL),
+    BuildArray::BuildArray(boost::shared_ptr<Query>& query,
+                           ArrayDesc const& desc,
+                           boost::shared_ptr< Expression> expression)
+    : _desc(desc),
+      _expression(expression),
+      _bindings(_expression->getBindings()),
+      _converter(NULL),
       nInstances(0),
       instanceID(INVALID_INSTANCE)
     {

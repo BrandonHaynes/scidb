@@ -29,6 +29,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/foreach.hpp>
+#include <array/StreamArray.h>
 #include <util/CoordinatesToKey.h>
 #include <query/Operator.h>
 #include <util/SchemaUtils.h>
@@ -113,10 +114,10 @@ public:
             }
 
             if (isState) {
-                _aggregate->merge(state, v);
+                _aggregate->mergeIfNeeded(state, v);
             }
             else {
-                _aggregate->tryAccumulate(state, v);
+                _aggregate->accumulateIfNeeded(state, v);
             }
             _hash[pos] = state;
         }
@@ -555,7 +556,11 @@ public:
 
         // Generate allEdges, by putting together every instance's localEdges.
         //
-        myVars._allEdges = redistribute(myVars._localEdges, query, psReplication);
+        myVars._allEdges = redistributeToRandomAccess(myVars._localEdges, query, psReplication,
+                                                      ALL_INSTANCE_MASK,
+                                                      shared_ptr<DistributionMapper>(),
+                                                      0,
+                                                      shared_ptr<PartitioningSchemaData>());
 
         // Generate a map of vector<chunkPos> for chunks in _allEdges, but not in _localEdges.
         // The key of the map is chunkPos, with the coordinate in aggrDim replaced with 0.

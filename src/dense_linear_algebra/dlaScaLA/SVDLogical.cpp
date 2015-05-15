@@ -31,10 +31,6 @@
 #include "DLAErrors.h"
 #include "scalapackUtil/ScaLAPACKLogical.hpp"
 
-
-
-using namespace scidb;
-
 namespace scidb
 {
 
@@ -153,7 +149,7 @@ ArrayDesc SVDLogical::inferSchema(std::vector<ArrayDesc> schemas, boost::shared_
                                                                                   "i"); // conventional subscript for sigma
         // nRow out is in the same space as nRow in
         outDims[0] = DimensionDesc(distinctNames.first,
-                                   dims[0].getStart(),
+                                   dims[0].getStartMin(),
                                    dims[0].getCurrStart(),
                                    dims[0].getCurrEnd(),
                                    dims[0].getEndMax(),
@@ -197,7 +193,7 @@ ArrayDesc SVDLogical::inferSchema(std::vector<ArrayDesc> schemas, boost::shared_
 
         // nCol out is in the same space as nCol in
         outDims[1] = DimensionDesc(distinctNames.second,
-                                dims[1].getStart(),
+                                dims[1].getStartMin(),
                                 dims[1].getCurrStart(),
                                 dims[1].getCurrEnd(),
                                 dims[1].getEndMax(),

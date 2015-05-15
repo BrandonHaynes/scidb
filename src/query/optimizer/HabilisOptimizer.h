@@ -265,7 +265,12 @@ private:
     void
     tw_rewriteStoringSG(PhysNodePtr root);
 
-    void
+    /**
+     * Insert repart operators where chunksizes or overlaps don't match.
+     * @param root root of physical plan.
+     * @return true IFF a transformation was performed
+     */
+    bool
     tw_insertRepartNodes(PhysNodePtr root);
 
     void

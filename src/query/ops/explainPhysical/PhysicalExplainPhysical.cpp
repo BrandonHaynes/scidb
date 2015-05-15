@@ -49,9 +49,7 @@ class PhysicalExplainPhysical: public PhysicalOperator
 public:
     PhysicalExplainPhysical(const string& logicalName, const string& physicalName, const Parameters& parameters, const ArrayDesc& schema):
         PhysicalOperator(logicalName, physicalName, parameters, schema)
-    {
-        _result = boost::shared_ptr<Array>(new TupleArray(_schema, vector<boost::shared_ptr<Tuple> >()));
-    }
+    {}
 
     virtual ArrayDistribution getOutputDistribution(const std::vector<ArrayDistribution> & inputDistributions,
                                                  const std::vector< ArrayDesc> & inputSchemas) const
@@ -75,7 +73,7 @@ public:
 
         boost::shared_ptr<QueryProcessor> queryProcessor = QueryProcessor::create();
         boost::shared_ptr<Query> innerQuery = Query::createFakeQuery(
-                         query->mapLogicalToPhysical(query->getCoordinatorID()),
+                         query->getPhysicalCoordinatorID(),
                          query->mapLogicalToPhysical(query->getInstanceID()),
                          query->getCoordinatorLiveness());
 
@@ -93,15 +91,19 @@ public:
         //TODO: Maybe here it's better to print every plan
         innerQuery->getCurrentPhysicalPlan()->toString(planString);
 
-        vector< boost::shared_ptr<Tuple> > tuples(1);
-        Tuple& tuple = *new Tuple(1);
-        tuples[0] = boost::shared_ptr<Tuple>(&tuple);
+        boost::shared_ptr<TupleArray> tuples(boost::make_shared<TupleArray>(_schema, _arena));
+        Value tuple[1];
         tuple[0].setData(planString.str().c_str(), planString.str().length() + 1);
-        _result = boost::shared_ptr<Array>(new TupleArray(_schema, tuples));
+        tuples->appendTuple(tuple);
+        _result = tuples;
     }
 
    boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
    {
+       if (!_result)
+       {
+           _result = boost::make_shared<MemArray>(_schema, query);
+       }
        return _result;
    }
 

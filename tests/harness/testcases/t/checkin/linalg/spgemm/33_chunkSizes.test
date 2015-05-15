@@ -24,7 +24,8 @@ repart(store( filter(build(V_c1, 1+4*i+2*j), true), V_c1 ), FMT3)
 
 # regular
 repart(gemm(V_c1, V_c1, build(V_c1,0)),FMT3)
-repart(spgemm(V_c1, V_c1),FMT3)
+repart(spgemm(V_c1, V_c1, 'rightReplicate=true'),FMT3)
+repart(spgemm(V_c1, V_c1, 'rightReplicate=false'),FMT3)
 
 --cleanup
 remove(FMT3)

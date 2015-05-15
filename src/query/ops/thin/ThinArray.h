@@ -44,6 +44,11 @@ class ThinArrayIterator;
 class ThinChunk;
 class ThinChunkIterator;
 
+Coordinate computeLastCoordinate(uint64_t dimensionLength,
+                                 Coordinate dimensionStart,
+                                 Coordinate thinStartingPoint,
+                                 Coordinate stepInterval);
+
 class ThinChunkIterator : public ConstChunkIterator
 {  
     ThinArray const& array;
@@ -78,11 +83,9 @@ class ThinChunk : public DelegateChunk
 
     ThinArray const& array;
     MemChunk chunk;
-    bool sparse;
     ConstChunk const* srcChunk;
 
   public:
-    virtual bool isSparse() const;
     virtual boost::shared_ptr<ConstChunkIterator> getConstIterator(int iterationMode) const;
     
     void initialize(Coordinates const& pos);
@@ -100,6 +103,7 @@ class ThinArrayIterator : public DelegateArrayIterator
     virtual ConstChunk const& getChunk();
     virtual Coordinates const& getPosition();
     virtual bool setPosition(Coordinates const& pos);
+    virtual bool end();
 
 	ThinArrayIterator(ThinArray const& array, AttributeID attrID, boost::shared_ptr<ConstArrayIterator> inputIterator);
 };

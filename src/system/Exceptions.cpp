@@ -60,8 +60,16 @@ Exception::Exception(const char* file, const char* function, int32_t line,
     _stringified_long_error_code(stringified_long_error_code),
     _query_id(query_id)
 {
-    _formatter = boost::format(ErrorsLibrary::getInstance()->getLongErrorMessage(_errors_namespace,
-                                                                                 _long_error_code));
+}
+
+format& Exception::getMessageFormatter() const
+{
+    if (_formatter.size() == 0) {
+        _formatter = boost::format(ErrorsLibrary::getInstance()->getLongErrorMessage(_errors_namespace,
+                                                                                     _long_error_code));
+    }
+    assert(_formatter.size() != 0);
+    return _formatter;
 }
 
 const string& Exception::getErrorsNamespace() const
@@ -130,11 +138,14 @@ std::string Exception::getErrorMessage() const
 {
     try
     {
-        return boost::str(_formatter);
+        return boost::str(getMessageFormatter());
     }
     catch(...)
     {
-        return "!!!Can not format error message. Check arguments count!!!";
+        string s("!!!Cannot format error message. Check argument count for ");
+        s += getErrorId();
+        s += "!!!";
+        return s;
     }
 }
 

@@ -28,21 +28,24 @@
 
 // C++
 #include <limits>
-#include <limits>
 #include <sstream>
 
 // boost
 #include <boost/unordered_map.hpp>
 
 // scidb
-#include <query/Operator.h>
-#include <util/Platform.h>
 #include <array/Tile.h>
 #include <array/TileIteratorAdaptors.h>
+#include <util/Network.h>
+#include <query/Operator.h>
 #include <system/Sysinfo.h>
+#include <system/Config.h>
+#include <util/Platform.h>
+
+// scidb or p4
+#include "../LAErrors.h"
 
 // local
-#include "../LAErrors.h"
 #include "CSRBlock.h"
 #include "CSRBlockVector.h"
 #include "SpAccumulator.h"
@@ -50,53 +53,13 @@
 #include "SpgemmBlock.h"
 #include "SpgemmBlock_impl.h"
 #include "spgemmSemiringTraits.h"
+#include "SpgemmTimes.h"
 
 
 namespace scidb
 {
 using namespace boost;
 using namespace scidb;
-
-// for performance analysis
-struct SpgemmTimes {
-    SpgemmTimes() : totalSecs(0.0) {;}
-    std::vector<double>     redistributeLeftSecs;  //
-    std::vector<double>     redistributeRightSecs;  // per psByCol rotation
-    std::vector<double>     loadLeftSecs;           // per psByCol rotation
-    std::vector<double>     loadLeftCopySecs;       // per psByCol rotation
-    std::vector<double>     loadRightSecs;          // per psByCol rotation
-    std::vector<double>     blockFindSecs;            // per psByCol rotation
-    std::vector<double>     blockMultSecs;            // per psByCol rotation
-    std::vector<double>     flushSecs;              // per psByCol Rotation
-    double                  totalSecs;
-};
-
-/**
-* print a SpgemmTimes on an ostream
-* @param os    -- the ostream to print on
-* @param times -- the SpgemmTimes structure
-* @return      -- the ostream, os, that was passed in
-*/
-std::ostream& operator<<(ostream& os, const SpgemmTimes& times)
-{
-    os << "spgemm(): " << std::endl;
-    for(size_t ii=0; ii<times.redistributeRightSecs.size(); ++ii) {
-        os << "round: " << ii << "--------------" << std::endl ;
-        os << "redistributeLeftSecs: " << times.redistributeLeftSecs[ii] << std::endl ;
-        os << "redistributeRightSecs: " << times.redistributeRightSecs[ii] << std::endl ;
-        os << "loadLeftSecs:          " << times.loadLeftSecs[ii] << std::endl ;
-        os << "  loadLeftCopySecs:    " << times.loadLeftCopySecs[ii] << std::endl ;
-        os << "loadRightSecs:         " << times.loadRightSecs[ii] << std::endl ;
-        os << "blockFindSecs:         " << times.blockFindSecs[ii] << std::endl ;
-        os << "blockMultSecs:         " << times.blockMultSecs[ii] << std::endl ;
-        os << "flushSecs:             " << times.flushSecs[ii] << std::endl ;
-    }
-    os << "--------------------------------" << std::endl ;
-    os << " totalSecs: " << times.totalSecs << std::endl ;
-
-    return os;
-}
-
 
 class PhysicalSpgemm : public  PhysicalOperator
 {
@@ -133,9 +96,11 @@ private:
      * same args as execute(), but templated on the a class corresponding to the semiring (arithmetic rules for + and *)
      * that will be used during the sparse multiplication.
      */
-    typedef enum dummy { SRING_PLUS_STAR, SRING_MIN_PLUS, SRING_MAX_PLUS, SRING_COUNT_MULTS } sringEnum_t ;
+    typedef enum dummy1 { SRING_PLUS_STAR, SRING_MIN_PLUS, SRING_MAX_PLUS, SRING_COUNT_MULTS } sringEnum_t ;
+    typedef enum dummy2 { RIGHT_REPLICATE_FALSE, RIGHT_REPLICATE_TRUE, RIGHT_REPLICATE_EITHER } rightReplicateEnum_t ;
     template<class SemiringTraits_tt>
     boost::shared_ptr<Array> executeTraited(std::vector< boost::shared_ptr< Array> >& inputArrays,
+                                            rightReplicateEnum_t rightReplicate,
                                             boost::shared_ptr<Query>& query);
 
     /**
@@ -176,16 +141,20 @@ private:
                             std::set<Coordinate>* rowsInUseOptional, const shared_ptr<Query>& query);
 
     /**
-     * convenience routine for performance timing
-     * @return the floating-point equivalent of clock_gettime(CLOCK_MONOTONIC_RAW,)
+     * determine whether the array is small enough that we can increase parallelism by replication
+     * (particularly useful for the right array when it has fewer column-chunks then there are processors)
+     * @param array             the array in question
+     * @param query             the standard query argument
      */
-    double getMonotonicrawSecs();
+    template<class Value_tt>
+    bool shouldReplicate(shared_ptr<Array> array, boost::shared_ptr<Query>&query) const;
 
     /**
-     *
-     * @return the floating-point equivalent of clock_gettime(CLOCK_THREAD_CPUTIME_ID,)
+     * get the count of non-empty cells across all instances. used by shouldReplicate()
+     * @param array             the array in question
+     * @param query             the standard query argument
      */
-    double getThreadSecs();
+    size_t  getArrayCellCountTotal(shared_ptr<Array> array, boost::shared_ptr<Query>& query) const;
 };
 
 
@@ -194,13 +163,17 @@ boost::shared_ptr< Array> PhysicalSpgemm::execute(std::vector< boost::shared_ptr
     assert(inputArrays.size()==2); // should not happen to developer, else inferSchema() did not raise an exception as it should have
 
     sringEnum_t sringE= SRING_PLUS_STAR ; // the standard ring (TYPE, +,*) over all supported types is the default.
-    // get string from the optional 3rd argument, if present.
-    // it holds the name of alternative ring arithmetic to use
+    rightReplicateEnum_t rightReplicate= RIGHT_REPLICATE_EITHER ;      // code makes the best choice
+                                                                        // (..._{TRUE,FALSE} are for testing
+
+    // get string from the optional 3rd and 4th arguments, if present.
+    // they hold the name of alternative ring arithmetic to use,
+    // and/or test overrides to force code paths for testing purposes
     std::string namedOptionStr;
-    if (_parameters.size() >= 1) {
-        assert(_parameters[0]->getParamType() == PARAM_PHYSICAL_EXPRESSION);
+    for(size_t p=0; p < _parameters.size(); p++) {
+        assert(_parameters[p]->getParamType() == PARAM_PHYSICAL_EXPRESSION);
         typedef boost::shared_ptr<OperatorParamPhysicalExpression> ParamType_t ;
-        ParamType_t& paramExpr = reinterpret_cast<ParamType_t&>(_parameters[0]);
+        ParamType_t& paramExpr = reinterpret_cast<ParamType_t&>(_parameters[p]);
         assert(paramExpr->isConstant());
         namedOptionStr = paramExpr->getExpression()->evaluate().getString();
 
@@ -222,6 +195,10 @@ boost::shared_ptr< Array> PhysicalSpgemm::execute(std::vector< boost::shared_ptr
             else
                 throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_OPERATION_FAILED)
                        << "PhysicalSpgemm::execute(): the 'count-mults' option supports only float or double attributes");
+        } else if (namedOptionStr == "rightReplicate=true") {
+            rightReplicate= RIGHT_REPLICATE_TRUE ;
+        } else if (namedOptionStr == "rightReplicate=false") {
+            rightReplicate= RIGHT_REPLICATE_FALSE ;
         } else {
             throw (SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_OPERATION_FAILED)
                    << "PhysicalSpgemm::execute(): no such option '" << namedOptionStr << "'");
@@ -233,30 +210,30 @@ boost::shared_ptr< Array> PhysicalSpgemm::execute(std::vector< boost::shared_ptr
     case TE_FLOAT:
         switch (sringE) {
         case SRING_PLUS_STAR:
-            return executeTraited<SemiringTraitsPlusStarZeroOne<float> >(inputArrays, query);
+            return executeTraited<SemiringTraitsPlusStarZeroOne<float> >(inputArrays, rightReplicate, query);
         case SRING_MIN_PLUS:
-            return executeTraited<SemiringTraitsMinPlusInfZero <float> >(inputArrays, query);
+            return executeTraited<SemiringTraitsMinPlusInfZero <float> >(inputArrays, rightReplicate, query);
         case SRING_MAX_PLUS:
-            return executeTraited<SemiringTraitsMaxPlusMInfZero <float> >(inputArrays, query);
+            return executeTraited<SemiringTraitsMaxPlusMInfZero <float> >(inputArrays, rightReplicate, query);
         case SRING_COUNT_MULTS:
-            return executeTraited<SemiringTraitsCountMultiplies <float> >(inputArrays, query);
+            return executeTraited<SemiringTraitsCountMultiplies <float> >(inputArrays, rightReplicate, query);
         default:
             assert(false);
         }
     case TE_DOUBLE:
         switch (sringE) {
         case SRING_PLUS_STAR:
-            return executeTraited<SemiringTraitsPlusStarZeroOne<double> >(inputArrays, query);
+            return executeTraited<SemiringTraitsPlusStarZeroOne<double> >(inputArrays, rightReplicate, query);
         case SRING_MIN_PLUS:
-            return executeTraited<SemiringTraitsMinPlusInfZero <double> >(inputArrays, query);
+            return executeTraited<SemiringTraitsMinPlusInfZero <double> >(inputArrays, rightReplicate, query);
         case SRING_MAX_PLUS:
-            return executeTraited<SemiringTraitsMaxPlusMInfZero <double> >(inputArrays, query);
+            return executeTraited<SemiringTraitsMaxPlusMInfZero <double> >(inputArrays, rightReplicate, query);
         case SRING_COUNT_MULTS:
-            return executeTraited<SemiringTraitsCountMultiplies <double> >(inputArrays, query);
+            return executeTraited<SemiringTraitsCountMultiplies <double> >(inputArrays, rightReplicate, query);
         default:
             assert(false);
         }
-    //case TE_BOOL:    // Someday.  Lets get the packing issues right first.
+    //case TE_BOOL:    // TODO.  Also note that block structures can be specialized to not store a value, will cut memory bandwidth in half.
     default:
         SCIDB_UNREACHABLE();
     }
@@ -266,8 +243,12 @@ boost::shared_ptr< Array> PhysicalSpgemm::execute(std::vector< boost::shared_ptr
 
 
 template<class SemiringTraits_tt>
-boost::shared_ptr<Array> PhysicalSpgemm::executeTraited(std::vector< boost::shared_ptr< Array> >& inputArrays, boost::shared_ptr<Query>& query)
+boost::shared_ptr<Array> PhysicalSpgemm::executeTraited(std::vector< boost::shared_ptr< Array> >& inputArrays,
+                                                        rightReplicateEnum_t rightReplicate,
+                                                        boost::shared_ptr<Query>& query)
 {
+    typedef typename SemiringTraits_tt::Value_t Value_t;
+
     SpgemmTimes times;
 
     // Create a result array.
@@ -282,24 +263,97 @@ boost::shared_ptr<Array> PhysicalSpgemm::executeTraited(std::vector< boost::shar
     // warning: distribution of columns is NOT optimal for large instanceCounts (where communication limits even weak scaling),
     //          or for small matrices with a chunk size that is smaller than necessary.
     // redistribute the left array, so that chunks in the same row are distributed to the same instance.
-    double timeOrigin = getMonotonicrawSecs(); // TODO: refactor as getSecs(MONOTONIC_RAW) etc
-    shared_ptr<Array> leftArray = redistribute(inputArrays[0], query, psByRow);
-    times.redistributeLeftSecs.push_back(getMonotonicrawSecs()-timeOrigin) ;
+    times.totalSecsStart();
+    times.redistLeftStart();
+    shared_ptr<Array> leftArray = redistributeToRandomAccess(inputArrays[0], query, psByRow,
+                                                             ALL_INSTANCE_MASK,
+                                                             shared_ptr<DistributionMapper>(),
+                                                             0,
+                                                             shared_ptr<PartitioningSchemaData>());
+
+
+
+    times.redistLeftStop();
 
     shared_ptr<Array> rightArray = inputArrays[1];
     const size_t instanceCount = query->getInstancesCount();
-    for (size_t i=0; i<instanceCount; ++i) {
-        // next subset of the columns of rightArray
-        double timeLocal= getMonotonicrawSecs();
-        rightArray = redistribute(rightArray, query, psByCol, "", ALL_INSTANCES_MASK, shared_ptr<DistributionMapper>(), i);
-        times.redistributeRightSecs.push_back(getMonotonicrawSecs()-timeLocal) ;
 
-        // do the sub-calculation for that column subset
+    // should the right array be replicated [faster especially for a vector]
+    // or is it so large we can't afford to replicate it and must rotate it instead?
+    // [a much better solution a 2D distribution as in multiple papers by Buluc & Gilbert]
+
+    // if the API forces replication, or permits it, and it is the "right thing to do"
+    if(getenv("SPGEMM_STDERR_TIMINGS")) {
+        std::cerr << "RRR: decision --------------------------------------------" << std::endl;
+        std::cerr << "RRR: rightReplicate " << rightReplicate << std::endl;
+    }
+    bool doReplicate = (rightReplicate == RIGHT_REPLICATE_TRUE ||
+                       (rightReplicate != RIGHT_REPLICATE_FALSE && shouldReplicate<Value_t>(rightArray, query)));
+    if (doReplicate) {
+
+        // the array can be replicated totally to the instances.
+        // the multiplication always happens in full parallelism
+        // [when the matrix is too large to replicate, have to use the rotation method below]
+        //  and in addition to having to synchronize and rotate between rounds,
+        //  there may be too few column-chunks to keep all instances busy, so parallelism
+        //  suffers.  Worst case would be a single right-hand column which is the standard
+        //  matrix * vector case. ]
+        if(DBG_TIMING && getenv("SPGEMM_STDERR_TIMINGS")) {
+            std::cerr << "RRR: @@@@@ REPLICATING @@@@@" << std::endl;
+        }
+
+        times.nextRound(); // call it a single "round"
+        times.roundSubtotalStart();
+        times.redistRightStart();
+        rightArray = redistributeToRandomAccess(rightArray, query, psReplication,
+                                                ALL_INSTANCE_MASK,
+                                                shared_ptr<DistributionMapper>(),
+                                                0,
+                                                shared_ptr<PartitioningSchemaData>());
+
+        times.redistRightStop();
+
+        // do the calculation on all columns
         spGemmColumnSubset<SemiringTraits_tt>(leftArray, rightArray, resultArrayIter, query, times);
+        times.roundSubtotalStop();
+
+        if(DBG_TIMING && getenv("SPGEMM_STDERR_TIMINGS")) {
+            std::cerr << "round " << 0 << " complete in " << times.roundSubtotalSecs.back() << " s" << std::endl;
+        }
+    } else {
+        if(DBG_TIMING && getenv("SPGEMM_STDERR_TIMINGS")) {
+            std::cerr << "RRR: @@@@@ ROTATING @@@@@" << std::endl;
+        }
+
+        // do it by rotating the right columns
+        for (size_t i=0; i<instanceCount; ++i) {
+            // next subset of the columns of rightArray
+
+            times.nextRound();
+            times.roundSubtotalStart();
+            times.redistRightStart();
+            rightArray = redistributeToRandomAccess(rightArray, query, psByCol,
+                                                    ALL_INSTANCE_MASK,
+                                                    shared_ptr<DistributionMapper>(),
+                                                    i,
+                                                    shared_ptr<PartitioningSchemaData>());
+
+            times.redistRightStop();
+
+            // do the sub-calculation for that column subset
+            spGemmColumnSubset<SemiringTraits_tt>(leftArray, rightArray, resultArrayIter, query, times);
+            times.roundSubtotalStop();
+
+            if(DBG_TIMING && getenv("SPGEMM_STDERR_TIMINGS")) {
+                std::cerr << "round " << i << " complete in " << times.roundSubtotalSecs.back() << " s" << std::endl;
+            }
+        }
     }
 
-    times.totalSecs = getMonotonicrawSecs() - timeOrigin;
-    if(getenv("SPGEMM_STDERR_TIMINGS")) {
+    times.totalSecsStop();
+
+    if(DBG_TIMING && getenv("SPGEMM_STDERR_TIMINGS")) {
+        std::cerr << "spgemm leftarray nRows: " << leftArray->getArrayDesc().getDimensions()[0].getLength() << std::endl;
         std::cerr << times << std::flush;
     }
     if(getenv("SPGEMM_CLIENT_WARNING_TIMINGS")) {
@@ -322,13 +376,6 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
     typedef SpgemmBlock<Value_t> RightBlock_t;
     typedef boost::unordered_map<Coordinate, shared_ptr<RightBlock_t> > RightBlockMap_t; // a map of a column of right blocks
 
-    times.loadRightSecs.push_back(0) ;
-    times.loadLeftSecs.push_back(0) ;
-    times.loadLeftCopySecs.push_back(0) ;
-    times.blockFindSecs.push_back(0) ;
-    times.blockMultSecs.push_back(0) ;
-    times.flushSecs.push_back(0) ;
-
     // method invariants:
     size_t leftChunkRowSize = leftArray->getArrayDesc().getDimensions()[0].getChunkInterval();
     size_t leftChunkColSize = leftArray->getArrayDesc().getDimensions()[1].getChunkInterval();
@@ -347,7 +394,7 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
 
     // get positions of all left and right chunks
     vector<Coordinates> leftChunkPositions;
-    getChunkPositions<CoordinatesComparatorRMO>(leftArray, leftChunkPositions);
+    getChunkPositions<CoordinatesComparator>(leftArray, leftChunkPositions);
     vector<Coordinates> rightChunkPositions;
     getChunkPositions<CoordinatesComparatorCMO>(rightArray, rightChunkPositions);
 
@@ -357,15 +404,14 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
 
     Coordinate lastColMonotonic = std::numeric_limits<Coordinate>::min();
     while (itChunkPositionsRight != rightChunkPositions.end()) {
-        double timeRightStart=getMonotonicrawSecs() ;
+        times.loadRightStart();
 
         // PART 1: load a column of right chunks into memory blocks (owned by rightBlockMap)
         RightBlockMap_t rightBlockMap;
 
         // for chunks in a single column
         Coordinate chunkCol = (*itChunkPositionsRight)[1]; // stay in this column
-        assert(lastColMonotonic <= chunkCol);
-        lastColMonotonic = chunkCol;                        // to support the above assertion
+        SCIDB_ASSERT(lastColMonotonic <= chunkCol);
 
         while (true) {
             bool success = arrayIterRight->setPosition(*itChunkPositionsRight);
@@ -375,14 +421,14 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
             // for a right-hand-side chunk, based on the pattern of non-zeros of the chunk
             // (e.g. nnz count, number of rows/cols occupied, etc).
             ConstChunk const& curChunk = arrayIterRight->getChunk();
-            size_t nnzEstimate = curChunk.count();
+            size_t nnzMax = curChunk.count();
 
             ssize_t chunkRows = curChunk.getLastPosition(false)[0] - curChunk.getFirstPosition(false)[0] + 1;
             ssize_t chunkCols = curChunk.getLastPosition(false)[1] - curChunk.getFirstPosition(false)[1] + 1;
 
             shared_ptr<RightBlock_t> rightBlock =
                 SpgemmBlockFactory<SemiringTraits_tt>((*itChunkPositionsRight)[0], (*itChunkPositionsRight)[1],
-                                                      chunkRows, chunkCols, nnzEstimate);
+                                                      chunkRows, chunkCols, nnzMax);
 
             // copy chunk to the SpgemmBlock
             copyChunkToBlock<SemiringTraits_tt, RightBlock_t>(curChunk, rightBlock, NULL, query);
@@ -396,8 +442,7 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
                 break;
             }
         }
-        double copyRightSecs = getMonotonicrawSecs() - timeRightStart;
-        times.loadRightSecs.back() += copyRightSecs;
+        times.loadRightStop();
 
         // PART 2: for each column of right chunks, above, go through every row of left chunks
         //         to multiply the left row of chunks by the colunn of right chunks
@@ -406,7 +451,7 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
         shared_ptr<ConstArrayIterator> leftArrayIt = leftArray->getConstIterator(0);
         vector<Coordinates>::iterator leftPosIt = leftChunkPositions.begin();
         while(leftPosIt != leftChunkPositions.end()) {
-            double timeLeftStart=getMonotonicrawSecs() ;
+            double timeLeftStart=getDbgMonotonicrawSecs() ;
             // part 2A: load a row of right chunks into memory blocks (owned by leftBlockList)
             //          while also finding the set of rows occupied by these blocks (leftRowsInUse)
             typedef pair<Coordinate, shared_ptr<LeftBlock_t> > ColBlockPair_t ;
@@ -422,14 +467,16 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
             Coordinate chunkRow = (*leftPosIt)[0]; // stay in this row-of-chunks
             while (true) {
                 // copy chunk to block
-                shared_ptr<LeftBlock_t> leftBlock = make_shared<LeftBlock_t>((*leftPosIt)[0], (*leftPosIt)[1],
-                                                                             leftChunkRowSize, leftChunkColSize, 0);
                 bool success = leftArrayIt->setPosition(*leftPosIt);
                 SCIDB_ASSERT(success);
-                double timeLeftCopyStart=getMonotonicrawSecs() ;
-                copyChunkToBlock<SemiringTraits_tt, LeftBlock_t>(leftArrayIt->getChunk(), leftBlock, &leftRowsInUse, query);
-                double chunkCopySecs = getMonotonicrawSecs() - timeLeftCopyStart;
-                times.loadLeftCopySecs.back() += chunkCopySecs;
+                ConstChunk const& curChunk = leftArrayIt->getChunk();
+                size_t nnzMax = curChunk.count();
+
+                shared_ptr<LeftBlock_t> leftBlock = make_shared<LeftBlock_t>((*leftPosIt)[0], (*leftPosIt)[1],
+                                                                             leftChunkRowSize, leftChunkColSize, nnzMax);
+                times.loadLeftCopyStart();
+                copyChunkToBlock<SemiringTraits_tt, LeftBlock_t>(curChunk, leftBlock, &leftRowsInUse, query);
+                times.loadLeftCopyStop();
 
                 if (!leftBlock->empty()) {
                     leftBlockList.push_back(std::pair<Coordinate, shared_ptr<LeftBlock_t> >((*leftPosIt)[1], leftBlock));
@@ -441,10 +488,9 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
                 }
             }
 
-            double leftCopySecs = getMonotonicrawSecs() - timeLeftStart;
-            times.loadLeftSecs.back() += leftCopySecs ;
-            double timeBlockFindStart=getMonotonicrawSecs() ;
+            times.loadLeftSecs.back() += getDbgMonotonicrawSecs() - timeLeftStart;
 
+            times.blockMultSubtotalStart();
             // part 2B: for every row in the blocks in leftBlockList, multiply by the corresponding block in rightBlockMap
             //          while accumulating the resulting row in the SPA
             //
@@ -459,36 +505,36 @@ void PhysicalSpgemm::spGemmColumnSubset(shared_ptr<Array>& leftArray, shared_ptr
                 for(LeftBlockListIt_t leftBlocksIt=leftBlockList.begin(); leftBlocksIt != leftBlockList.end(); ++leftBlocksIt) {
                     Coordinate leftBlockCol = (*leftBlocksIt).first ;
                     // find the corresponding right chunk
+                    times.blockMultFindRightStart();
                     typename RightBlockMap_t::iterator rightBlocksIt = rightBlockMap.find(leftBlockCol); // same rightBlockRow as leftBlockCol
+                    times.blockMultFindRightStop();
+
                     if (rightBlocksIt != rightBlockMap.end()) { // if a matching rightBlock was found
                         LeftBlock_t&  leftBlock  = *(leftBlocksIt->second);
                         RightBlock_t& rightBlock = *(rightBlocksIt->second);
                         // leftBlock[leftRow,:] * rightBlock[:,:]
-                        double timeBlockMultStart=getMonotonicrawSecs() ;
+                        times.blockMultStart();
                         spGemm<SemiringTraits_tt>(leftRow, leftBlock, rightBlock, sparseRowAccumulator);
-                        times.blockMultSecs.back() += (getMonotonicrawSecs() - timeBlockMultStart);
+                        times.blockMultStop();
                     }
                 } // end for each block along that row in the left row-of-chunks
                 // the result row is totally accumulated in the SPA
+                times.blockMultSPAFlushStart();
                 currentResultChunk = spAccumulatorFlushToChunk<IdAdd_t>(sparseRowAccumulator, leftRow,
                                                                resultArray, currentResultChunk, resultChunkPos,
-                                                               _typeEnum, _type, query);
+                                                               _typeEnum, _type, query, times);
+                times.blockMultSPAFlushStop();
             } // end- for every row used in the left row of chunks
-            double multSecs = getMonotonicrawSecs() - timeBlockFindStart;
-            times.blockFindSecs.back() += (multSecs - times.blockMultSecs.back());
+            times.blockMultSubtotalStop();
 
             if (currentResultChunk) {          // at least one of the rows in the output chunk had a non-zero
-                double timeFlushStart = getMonotonicrawSecs();
+                times.flushStart();
                 currentResultChunk->flush();
-                double flushSecs = getMonotonicrawSecs() - timeFlushStart;
-                times.flushSecs.back() += flushSecs;
+                times.flushStop();
             }
         } // end every row of chunks in left array
     } // end every column of chunks in right array
 
-    // the time inside the block multiply was counted twice.
-    // we correct it now by subtracting the blockMult time from the blockFind time
-    times.blockFindSecs.back() -= times.blockMultSecs.back();
 } // end method
 
 
@@ -525,7 +571,7 @@ void PhysicalSpgemm::copyChunkToBlock(ConstChunk const& chunk,
     assert(itChunk->getLogicalPosition()>=0);
 
     // use about 1/2 of L1, the other half is for the destination
-    const size_t MAX_VALUES_TO_GET = Sysinfo::INTEL_L1_DATA_CACHE_BYTES/2/sizeof(Value_t);
+    const size_t MAX_VALUES_TO_GET = Sysinfo::getCPUCacheSize(Sysinfo::CPU_CACHE_L1)/2/sizeof(Value_t);
 
     // for all non-zeros in chunk:
     Coordinates coords(2);
@@ -579,24 +625,58 @@ void PhysicalSpgemm::copyChunkToBlock(ConstChunk const& chunk,
     }
 }
 
-double PhysicalSpgemm::getMonotonicrawSecs()
+template<class Value_tt>
+bool PhysicalSpgemm::shouldReplicate(shared_ptr<Array> array, boost::shared_ptr<Query>&query) const
 {
-    struct timespec ts;
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
-        assert(false);
-        throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_GET_SYSTEM_TIME);
+    size_t rightTotalElements = getArrayCellCountTotal(array, query);
+    size_t rightTotalBytes = rightTotalElements * sizeof(Value_tt);
+
+    //
+    // get configuration variable for how large an array can be before we spill it to disk
+    //
+    Config *cfg = Config::getInstance();
+    size_t maxArrayReplicateSize = cfg->getOption<size_t>(CONFIG_MEM_ARRAY_THRESHOLD) * 1024*1024; // see SciDBConfigOptions.cpp
+    if(DBG_TIMING && getenv("SPGEMM_STDERR_TIMINGS")) {
+        std::cerr << "RRR: rightTotalBytes " << rightTotalBytes
+                  << " <=  maxArrayReplicateSize " << maxArrayReplicateSize << std::endl;
     }
-    return double(ts.tv_sec + 1e-9 * ts.tv_nsec);
+
+    return rightTotalBytes <= maxArrayReplicateSize;
 }
 
-double PhysicalSpgemm::getThreadSecs()
+//
+// find the total number of bytes in an array, across all instances
+//
+size_t  PhysicalSpgemm::getArrayCellCountTotal(shared_ptr<Array> array, boost::shared_ptr<Query>& query) const
 {
-    struct timespec ts;
-    if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) != 0) {
-        assert(false);
-        throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_CANT_GET_SYSTEM_TIME);
+    size_t rightLocalElements = array->count();
+
+    size_t rightTotalElements = rightLocalElements; // start with our own number of bytes
+
+    // send rightLocalElements to all other instances
+    InstanceID myInstanceID = query->getInstanceID();
+    const size_t instancesCount = query->getInstancesCount();
+
+    shared_ptr<SharedBuffer> outBuf(make_shared<MemoryBuffer>(static_cast<void*>(NULL), 2*sizeof(size_t)));
+    size_t* sPtr = static_cast<size_t*> (outBuf->getData());
+    *sPtr = sizeof(size_t);
+    ++sPtr;
+    *sPtr = rightLocalElements;
+    for (size_t i=0; i < instancesCount; i++ ) {
+        if (i == myInstanceID) { continue; }
+        BufSend(i, outBuf, query);
     }
-    return double(ts.tv_sec + 1e-9 * ts.tv_nsec);
+    // receive rightLocalElements from all other instances
+    for (size_t i=0; i < instancesCount; i++ ) {
+        if (i == myInstanceID) { continue; }
+        shared_ptr<SharedBuffer> inBuf = BufReceive(i, query);
+        size_t* sPtr = reinterpret_cast<size_t*>(inBuf->getData());
+        assert((*sPtr) == sizeof(size_t));
+        sPtr++;
+        rightTotalElements += *sPtr;
+    }
+
+    return rightTotalElements;
 }
 
 

@@ -112,6 +112,7 @@ fi
 MAT_IN=$1
 RESULTNAME=$2
 IDX_STARTVERT=$3
+TEST_RIGHT_REPLICATE=$4 # for test purposes only, of the form "rightReplicate=true" (or false)
 
 # argument checks:
 NROW=`nRow $MAT_IN`
@@ -125,6 +126,11 @@ fi
 if [ "`nRowStart $MAT_IN`" -ne "0" -o "`nColStart $MAT_IN`" -ne "0" ]; then
     echo "${0}: MAT_IN $MAT_IN must have its dimensions start at 0" >&2
     exit 1
+fi
+
+TEST__STR=""
+if [ "$TEST_RIGHT_REPLICATE" != "" ] ; then
+    TEST_STR=", '${TEST_RIGHT_REPLICATE}'"
 fi
 
 ################################################################################
@@ -281,7 +287,7 @@ CHECK_ITERS=10  # after every X (>=1) iterations, check for convergence
 DIFF_COUNT=99 # aribtrary
 for (( II=1; II<=$NUM_V0_USED; II++  )) ; do
     dbg "bellman-ford iteration II=$II ----------------------"
-    $IQUERY -naq "store(spgemm($MAT_DZ,$VEC_SHORTEST,'min.+'), $VEC_SHORTEST_NEXT)" # TODO: this should be timed
+    $IQUERY -naq "store(spgemm($MAT_DZ,$VEC_SHORTEST,'min.+' ${TEST_STR}), $VEC_SHORTEST_NEXT)" # TODO: this should be timed
     STATUS=$?
     if [ "$STATUS" -ne "0" ] ; then
         echo "error in spgemm query" >&2

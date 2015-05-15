@@ -1,8 +1,5 @@
-SCIDB QUERY : <echo ('python basic.py')>
-{i} text
-{0} 'python basic.py'
-
-SCIDB QUERY : <cd ${TESTDIR}; PYTHONPATH=${PYTHONPATH}:${TEST_BIN_DIR} python basic.py ${IQUERY_HOST} ${IQUERY_PORT}>
+python basic.py
+SCIDB QUERY : <cd ${TESTDIR}; PYTHONPATH=${PYTHONPATH}:${SCIDB_INSTALL_PATH}/lib python basic.py ${IQUERY_HOST} ${IQUERY_PORT}>
 Reading file querylist.csv
 Query 1 (aql): "select * from list('types') where library='scidb' order by name"
 Getting iterator for attribute 0, chunk 0.

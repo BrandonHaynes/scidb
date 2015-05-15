@@ -69,3 +69,22 @@ diff -ruN a/script/utils.py b/script/utils.py
  
  import select
  
+--- a/script/scalapack.py	2014-11-27 07:08:45.072140874 -0500
++++ b/script/scalapack.py	2014-11-27 07:06:51.532142101 -0500
+@@ -143,6 +143,16 @@
+ 
+         self.write_slmakeinc()
+ 
++        print 'Patching pxerbla.f'
++        comm = "sed -i '/WRITE/ s/^/*/' PBLAS/SRC/PTZBLAS/pxerbla.f"
++        sys.stdout.flush()
++        (output, error, retz) = runShellCommand(comm)
++        if retz:
++            print '\n\nScaLAPACK: error patching pxerbla.f'
++            print 'error is:\n','*'*40,'\n',comm,'\n',error,'\n','*'*40
++            writefile(os.path.join(savecwd,'log/scalog'), output+error)
++            sys.exit()
++
+         print 'Compiling BLACS, PBLAS and ScaLAPACK...',
+         sys.stdout.flush()
+         comm = self.make+" lib"

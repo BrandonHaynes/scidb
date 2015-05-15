@@ -1,0 +1,1573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"docbookV4.5/docbookx.dtd" [
+<!ENTITY % myents SYSTEM "scidb_ug.ent">
+<!ENTITY scidb_version "14.8">
+<!ENTITY scidb_revision "7896">
+<!ENTITY scidb_year "2014">
+]>
+<chapter id="installationChapter">
+  <title>SciDB Installation and Administration</title>
+
+  <para><indexterm>
+      <primary>platforms</primary>
+    </indexterm><indexterm>
+      <primary>SciDB</primary>
+
+      <secondary>platforms</secondary>
+    </indexterm>SciDB is supported on the following platforms:</para>
+
+  <itemizedlist>
+    <listitem>
+      <para>Ubuntu 12.04 or 14.04</para>
+    </listitem>
+
+    <listitem>
+      <para>CentOS 6</para>
+    </listitem>
+
+    <listitem>
+      <para>Red Hat Enterprise Linux (RHEL) 6</para>
+    </listitem>
+  </itemizedlist>
+
+  <note>
+    <para>SciDB requires a 64-bit (x86_64 or amd64) platform.</para>
+  </note>
+
+  <para>A complete SciDB installation is a multi-database environment that
+  includes the core SciDB engine, Postgres, the open source SQL database
+  engine which is used for system catalog data, as well as ScaLAPACK/MPI which
+  is used as a computational engine for dense linear algebra.</para>
+
+  <note>
+    <para>SciDB installation must be done by an account with root
+    privileges.</para>
+  </note>
+
+  <para><indexterm>
+      <primary>SciDB</primary>
+
+      <secondary>contact</secondary>
+    </indexterm><indexterm>
+      <primary>support</primary>
+    </indexterm>To report issues, contact
+  <email>support@paradigm4.com</email>.</para>
+
+  <!--
+  <para>Installation and Administration is broken down into the following
+  topics:<itemizedlist>
+      <listitem>
+        <para><link linkend="quickInstallation">Quick Install</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="upgradingSciDB">Upgrading SciDB</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="PlatformPrep">Preparing the Platform</link>—if
+        you are doing a new, manual installation, start here.</para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="PackageInstall">Installing Packages</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="ConfiguringSciDB">Configuring SciDB</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="InitializingandStartingSciDB">Initializing and
+        Starting SciDB</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link linkend="tuningSciDB">Tuning your SciDB
+        Installation</link></para>
+      </listitem>
+    </itemizedlist></para>
+-->
+
+  <section id="installationResources">
+    <title>Installation Resources</title>
+
+    <para>The linchpin of the SciDB installation procedure is the Cluster
+    Installl script, located at <ulink
+    url="https://github.com/Paradigm4/deployment">https://github.com/Paradigm4/deployment</ulink>.
+    In addition, these other resources are available:<itemizedlist>
+        <listitem>
+          <para>Configurator (generates a config.ini file from your
+          interactive input): <ulink
+          url="https://github.com/Paradigm4/configurator">https://github.com/Paradigm4/configurator</ulink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>A how-to video on installing SciDB is available here: <ulink
+          url="http://www.paradigm4.com/scidb-installation-video/">http://www.paradigm4.com/scidb-installation-video/</ulink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>A backup-and-restore script, useful if you are upgrading from
+          a previous version of SciDB. The script is available on your SciDB
+          cluster (provided your existing installation is version 14.3;
+          previous versions did not include this script) in
+          /opt/scidb/14.3/bin/scidb_backup.py.</para>
+        </listitem>
+
+        <listitem>
+          <para>An appendix describing the detailed steps which are
+          automatically performed by the Cluster Install script. If local
+          policies prevent you from running the cluster install script, you
+          can use this appendix as a guide to manual installation. See <xref
+          linkend="troubleInstall"/>.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>See the remainder of the chapter for more details about the
+    installation process and files.</para>
+
+    <note>
+      <para>Previous versions (14.3 and 14.8) included a script to help you
+      install without root privileges—on CentOS/RHEL only. However, we are not
+      aware of anyone actively using that script, so in this release it is not
+      supported. If you need such a script, contact us at
+      support@paradigm4.com.</para>
+    </note>
+  </section>
+
+  <section id="firstTimeInstallation">
+    <title>First-Time Installation</title>
+
+    <indexterm>
+      <primary>SciDB</primary>
+
+      <secondary>installing for the first time</secondary>
+    </indexterm>
+
+    <indexterm>
+      <primary>install SciDB</primary>
+    </indexterm>
+
+    <para>If you are installing SciDB for the first time on a cluster, the
+    process is straightforward:</para>
+
+    <procedure>
+      <step>
+        <para>Prepare the platform. This includes creating or adjusting user
+        accounts and configuring storage for the SciDB database files. For
+        details, see <xref linkend="PlatformPrep"/>.</para>
+      </step>
+
+      <step>
+        <para>Prepare a configuration file for SciDB. See <xref
+        linkend="ConfiguringSciDB"/>.</para>
+      </step>
+
+      <step>
+        <para>Run the cluster install script. The cluster install script, and
+        a README file with instructions for running it, are here: <ulink
+        url="https://github.com/Paradigm4/deployment">https://github.com/Paradigm4/deployment</ulink></para>
+      </step>
+    </procedure>
+
+    <section xml:id="PlatformPrep">
+      <title>Preparing the Platform</title>
+
+      <para>Before installing SciDB, the following steps are required to
+      prepare a cluster for running SciDB. Many of these steps must be
+      executed as the Linux 'root' account.</para>
+
+      <section xml:id="linuxAccounts">
+        <title>Prepare Accounts</title>
+
+        <para>Before you install SciDB, you need to ensure that you have a
+        user account under which SciDB processes -- on all servers of the
+        cluster -- will run. This will also be the owner of all data and log
+        files created by SciDB, and it is the account that initializes,
+        starts, and stops the SciDB cluster. This account must have
+        passwordless SSH access configured between the default coordinator
+        server and all other servers in the cluster. Throughout this
+        documentation, this account is referred to as the scidb account,
+        although strictly speaking, it can be any account with the appropriate
+        settings.</para>
+
+        <para>In addition to setting up the scidb account, you may need to
+        perform these tasks depending on your operating system:<itemizedlist>
+            <listitem>
+              <para>Ubuntu does not enable root login by default. To enable
+              root login on Ubuntu, run the following command:<programlisting>sudo passwd</programlisting>Sudo
+              will prompt you for your password, and then ask you to supply a
+              new password for root.</para>
+            </listitem>
+
+            <listitem>
+              <para>For CentOS and RHEL, you should create a user account
+              (<command>adduser</command>), and provide sudo access for this
+              account. For details, see your OS documentation. If you need to
+              install <command>sudo</command>, execute the following command
+              (as root):<programlisting>yum install sudo</programlisting></para>
+            </listitem>
+          </itemizedlist></para>
+      </section>
+
+      <section xml:id="DataDir">
+        <title>Configure Storage</title>
+
+        <note>
+          <para>This action must be performed by a user with sudo privileges
+          on each server in the cluster. Once created, the base path should be
+          owned by the account used by SciDB.</para>
+        </note>
+
+        <para><indexterm>
+            <primary>configuration</primary>
+          </indexterm><indexterm>
+            <primary>storage</primary>
+
+            <secondary>configuring</secondary>
+          </indexterm>On each server, create a directory on the local file
+        system to serve as the data directory for each instance. This must be
+        accessible via the same path name on every server.</para>
+      </section>
+    </section>
+
+    <section xml:id="ConfiguringSciDB">
+      <title>Configuring SciDB</title>
+
+      <para>This section shows a configuration file: the result of using the
+      configurator (<ulink
+      url="https://github.com/Paradigm4/configurator">https://github.com/Paradigm4/configurator</ulink>)
+      utility. The configurator will place the file wherever you choose. Then,
+      the Cluster Install script will move the file to its proper location on
+      the default coordinator server -- in
+      <literal>/opt/scidb/&scidb_version;/etc/config.ini.</literal></para>
+
+      <para>The configuration 'test1' below is an example of the configuration
+      for a single-node, four-instance system:<programlisting>[test1]
+server-0=localhost,3
+db_user=test1user
+db_passwd=test1passwd
+install_root=/opt/scidb/&scidb_version;
+metadata=/opt/scidb/&scidb_version;/share/scidb/meta.sql
+pluginsdir=/opt/scidb/&scidb_version;/lib/scidb/plugins
+logconf=/opt/scidb/&scidb_version;/share/scidb/log4cxx.properties
+base-path=/home/scidb/data
+base-port=1239
+network-buffer=1024
+mem-array-threshold=1024
+smgr-cache-size=1024
+execution-threads=16
+result-prefetch-queue-size=4
+result-prefetch-threads=4</programlisting></para>
+    </section>
+
+    <section xml:id="runClusterInstall">
+      <title>Running Cluster Install</title>
+
+      <para>The Cluster Install script, and a README file with instructions
+      for running it, are here: <ulink
+      url="https://github.com/Paradigm4/deployment">https://github.com/Paradigm4/deployment</ulink></para>
+    </section>
+
+    <section xml:id="StartingSciDB">
+      <title>Starting SciDB</title>
+
+      <para>You start SciDB from the server containing the default coordinator
+      instance.</para>
+
+      <para>As the scidb user, run the following command to start a SciDB
+      database. The command starts the set of local SciDB instances specified
+      in your config.ini file.</para>
+
+      <note>
+        <simpara>For the following command, replace
+        <replaceable>scidb_cluster_name</replaceable> with the name of your
+        actual cluster. (In the sample configuration of the preceding section,
+        the value of <replaceable>scidb_cluster_name</replaceable> is
+        'test1'.</simpara>
+
+        <simpara>Also note that the cluster install script automatically
+        performs the first two steps of this procedure.</simpara>
+      </note>
+
+      <programlisting>scidb.py startall <replaceable>scidb_cluster_name</replaceable></programlisting>
+
+      <note>
+        <para>Initialization may fail if you are using the Lustre file system.
+        To correct the problem, use the <code>-o localflock</code> option when
+        mounting the file system.</para>
+      </note>
+    </section>
+  </section>
+
+  <!--  <?hard-pagebreak ?> -->
+
+  <section id="upgradingSciDB">
+    <title>Upgrading SciDB</title>
+
+    <para><indexterm>
+        <primary>SciDB</primary>
+
+        <secondary>upgrading</secondary>
+      </indexterm><indexterm>
+        <primary>upgrade SciDB</primary>
+      </indexterm><indexterm>
+        <primary>versions</primary>
+
+        <secondary>SciDB</secondary>
+      </indexterm>This section describes the process for installing SciDB 14.8
+    on a cluster where a previous version of SciDB is already installed. This
+    section uses the following conventions:<itemizedlist>
+        <listitem>
+          <para>To represent your current version: <emphasis
+          role="bold">scidbOldVersion</emphasis>.</para>
+        </listitem>
+
+        <listitem>
+          <para>To represent the new version that you are installing:
+          <emphasis role="bold">scidbNewVersion</emphasis>.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>For example, if you are upgrading from 14.3 to 14.8:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">scidbOldVersion</emphasis> = 14.3</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">scidbNewVersion</emphasis> = 14.8</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>If you are installing SciDB 14.8 on a cluster with a previous
+    version of SciDB, perform the following steps:</para>
+
+    <procedure>
+      <step>
+        <para><emphasis role="bold">Backup.</emphasis> If your existing
+        installation is 14.3, you should back up your data using the script,
+        <code>scidb_backup.py</code>. This file is in the /opt/scidb/14.3/bin
+        folder. (If your existing installation is a version earlier than 14.3,
+        you must perform manual backup. See <xref linkend="manualBackup"/>.)
+        First, confirm that you have enough storage space, because the
+        following command will backup all your SciDB arrays. From the
+        <emphasis role="bold">scidb</emphasis> user account, run the backup
+        script. As an example, the following command creates a folder,
+        <emphasis role="bold">./mySavedArrays</emphasis>, and saves all of
+        your arrays, using the OPAQUE format, into that
+        folder:<programlisting>$ /opt/scidb/14.3/bin/scidb_backup.py -s opaque mySavedArrays</programlisting>For
+        usage details of the backup script, see <xref
+        linkend="scidbBackupScript"/>.</para>
+
+        <note>
+          <para>If your existing installation is earlier than 14.3, do not use
+          the OPAQUE format for this step. OPAQUE is guaranteed to work only
+          between consecutive releases of SciDB.</para>
+        </note>
+      </step>
+
+      <step>
+        <para>Stop SciDB.</para>
+      </step>
+
+      <step>
+        <para>If you want to use the SciDB configuration from your existing
+        installation as the basis for the 14.8 configuration file, make a
+        backup copy of it somewhere. By default, the file is in the following
+        location:<screen>opt/scidb/<emphasis role="bold">scidbOldVersion</emphasis>/etc/config.ini</screen></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">OPTIONAL.</emphasis> You can run multiple
+        versions of SciDB. <!--
+For details, see <xref linkend="multipleSciDBs"/>.
+--> However, if you need only the latest version of SciDB, you can remove the
+        previous version. If you installed to the default location, run the
+        following command to remove the old version:<programlisting>sudo rm -Rf /opt/scidb/<emphasis
+              role="bold">scidbOldVersion</emphasis>/</programlisting></para>
+      </step>
+
+      <step>
+        <para>Remove any older version of SciDB. For CentOS and RHEL, remove
+        scidb.list.* and p4.list.* from /etc/yum.repos.d, then perform the
+        following command. <programlisting>yum list | grep scidb |awk '{print $1}' | grep '[a-zA-Z]' | xargs sudo rpm -e</programlisting>
+        For Ubuntu, remove scidb.list.* and p4.list.* from
+        /etc/apt/sources.list.d, then perform the following
+        command.<programlisting>dpkg --list | grep scidb |awk '{print $2}' | xargs sudo dpkg --purge </programlisting></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Upgrade. </emphasis>Perform the following
+        steps to upgrade to version 14.8 of SciDB.<orderedlist
+            numeration="loweralpha">
+            <listitem>
+              <para>Set up your configuration file. If you are starting from
+              the configuration file you saved in step 3, be sure to change
+              all occurrences of <emphasis
+              role="bold">scidbOldVersion</emphasis> to <emphasis
+              role="bold">scidbNewVersion</emphasis>. After you edit the file,
+              make a note of where you save it.</para>
+
+              <para>Typically, the following settings are
+              affected:<programlisting>install_root=/opt/scidb/14.3
+pluginsdir=/opt/scidb/14.3/lib/scidb/plugins
+logconf=/opt/scidb/14.3/share/scidb/log4cxx.properties</programlisting></para>
+
+              <para>Also, be sure to add the following setting to the
+              configuration file (if it does not already
+              exist):<programlisting>enable-catalog-upgrade=true</programlisting>For
+              more details about the configuration file, see <xref
+              linkend="ConfiguringSciDB"/>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Run the cluster install procedure, available at <ulink
+              url="https://github.com/Paradigm4/deployment">https://github.com/Paradigm4/deployment</ulink>.
+              On the command line that invokes cluster install, include the
+              configuration file (the one you saved in step 5a) as a
+              parameter. See the cluster install README file for
+              details.</para>
+            </listitem>
+
+            <listitem>
+              <para>Restart SciDB. Use the following command:</para>
+
+              <programlisting>scidb.py initall <replaceable>scidb_cluster_name</replaceable></programlisting>
+
+              <note>
+                <para>If you get an error that says SciDB needs to upgrade the
+                system catalog, and that the action failed, make sure to set
+                the <code>enable-catalog-upgrade</code> parameter to <emphasis
+                role="bold">true</emphasis>, as detailed in step <emphasis
+                role="bold">5a</emphasis>.</para>
+              </note>
+            </listitem>
+          </orderedlist></para>
+      </step>
+
+      <step>
+        <para><emphasis role="bold">Restore. </emphasis>After you have the new
+        version of SciDB running, restore any data that you backed up in step
+        1. For example, if you used the command in step 1 to backup your
+        arrays, you would run the following command to restore
+        them:<programlisting>$ /opt/scidb/14.8/bin/scidb_backup.py -r opaque mySavedArrays</programlisting></para>
+      </step>
+    </procedure>
+  </section>
+
+  <section id="scidbBackupScript">
+    <title>SciDB Backup Script</title>
+
+    <para>This section describes the scidb backup-and-restore script,
+    <code>scidb_backup.py</code>. Note the following:<itemizedlist>
+        <listitem>
+          <para>SciDB must be running.</para>
+        </listitem>
+
+        <listitem>
+          <para>You must run the script from the <emphasis
+          role="bold">scidb</emphasis> user account on the server containing
+          the default coordinator instance.</para>
+        </listitem>
+
+        <listitem>
+          <para>The script saves or restores SciDB arrays into individual
+          files (one per array), into a folder that you specify.</para>
+        </listitem>
+
+        <listitem>
+          <para>By default, the save is done onto the default coordinator
+          instance only—you can perform a parallel save by specifying the
+          <code>--parallel</code> option.</para>
+        </listitem>
+
+        <listitem>
+          <para>If you use the <code>--parallel</code> option, the script
+          saves arrays into multiple sub-folders, one per SciDB instance. For
+          example, if you have a 2-server, 4-instance cluster, and you specify
+          the backup folder, the following folders are created:<itemizedlist>
+              <listitem>
+                <para>On the coordinator: <emphasis
+                role="bold">backup.0</emphasis> and <emphasis
+                role="bold">backup.1</emphasis></para>
+              </listitem>
+
+              <listitem>
+                <para>On the second server: <emphasis
+                role="bold">backup.2</emphasis> and <emphasis
+                role="bold">backup.3</emphasis></para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+
+        <listitem>
+          <para>When restoring, you must use the same options you used for the
+          backup. For example, if you backed up using the text format and the
+          parallel option, then you must use the text format and parallel
+          option when you restore your arrays.</para>
+        </listitem>
+
+        <listitem>
+          <para>The script backs up persistent arrays only -- not temporary
+          arrays and not result arrays.</para>
+        </listitem>
+
+        <listitem>
+          <para>By default, all persistent arrays are saved. Use the
+          <code>-f</code> option to filter the arrays to save. You specify a
+          Python regex pattern against which to match the array names to
+          save.</para>
+        </listitem>
+
+        <listitem>
+          <para>Use the <code>-h</code> option to display usage details for
+          the script.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>The script takes the following arguments:<itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">-h</emphasis>: Displays the usage
+          details.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-s
+          </emphasis><emphasis>format</emphasis>: Indicates a backup (rather
+          than restore) operation. The switch must be followed by the save
+          format. The value must be one of the following: <emphasis
+          role="bold">opaque</emphasis>, <emphasis
+          role="bold">binary</emphasis>,or <emphasis
+          role="bold">text</emphasis>.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-r
+          </emphasis><emphasis>format</emphasis>: Indicates a restore (rather
+          than backup) operation. The switch must be followed by the format
+          used to save the arrays: <emphasis role="bold">opaque</emphasis>,
+          <emphasis role="bold">binary</emphasis>, or <emphasis
+          role="bold">text</emphasis>.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-d</emphasis>: Deletes all of the array
+          data, on all hosts, for the base folder specified.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">--port
+          </emphasis><emphasis>port</emphasis>: The port that the SciDB
+          cluster is running on. The default is 1239, so this parameter is
+          optional if you are running your cluster on the default port.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-a</emphasis>: Saves all versions of the
+          arrays. By default, only the latest version of each array is
+          saved.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-f
+          </emphasis><emphasis>pattern</emphasis>: A regular expression
+          pattern. The pattern is matched against, and only array names that
+          match are saved.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-p</emphasis>: Specifies a parallel save
+          or restore. If you use this option when saving, you must also use it
+          when restoring.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">-z</emphasis>: Compresses data files
+          (using gzip) when saving array data, and then uncompresses the data
+          when restoring.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>Take special care when choosing formats for backup. <itemizedlist>
+        <listitem>
+          <para>The OPAQUE save/load format is the most efficient way to back
+          up your array data. It is guaranteed to work between 14.3 and 14.8.
+          For example, if you save your arrays (in Opaque format) from version
+          14.3, you can use Opaque load to load them directly into version
+          14.8, without needing to perform a redimension. Make sure to reload
+          the saved array into the a SciDB installation with identical
+          database configuration parameters.</para>
+        </listitem>
+
+        <listitem>
+          <para>Next best is to use binary save/load. This is faster than
+          using text files, but has some intermediate steps (you need to
+          unpack before saving, and redimension after restoring). The script
+          <code>scidb_backup.py</code> can automate all of these steps.</para>
+        </listitem>
+
+        <listitem>
+          <para>You can use the SciDB text format to save and restore arrays
+          between versions. It is the slowest method, but on the other hand,
+          you can backup and restore multidimensional arrays without needing
+          to perform any intermediate steps.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>For example, to perform a parallel, binary save of all versions of
+    arrays that start with 'A', and also compress the data, you could run the
+    following command:<programlisting>$ scidb_backup.py -s binary -p -a -f "A.*" -z myBackup_A</programlisting></para>
+  </section>
+
+  <section id="manualBackupAndRestore">
+    <title>Manually Restoring Arrays</title>
+
+    <para>This section shows how to perform backup and restore manually --
+    that is, without using the scidb_backup.py script.</para>
+
+    <section id="manualBackup">
+      <title>Manual Backup</title>
+
+      <para>Here's an example of manual backup, performed with an earlier
+      verson of SciDB.</para>
+
+      <procedure>
+        <step>
+          <para>Assume you have the following array in SciDB, in version
+          13.12.<programlisting>AFL% show(notFlat)
+ 
+notFlat
+
+&lt; exposure:string,
+measuredIntensity:int64 NULL DEFAULT null &gt;
+
+[elevation=0:999,100,0,
+elapsedTime=0:15,16,0]
+</programlisting><programlisting>{elevation,elapsedTime} exposure,measuredIntensity
+{21,6} 'Low',35
+{29,2} 'Medium',89
+{51,4} 'Medium',null
+{89,1} 'Medium',95
+{191,3} 'High',99
+{222,5} 'Low',41
+{238,5} 'High',97
+{288,3} 'Medium',null
+{320,1} 'High',100
+{378,0} 'Low',100
+{390,7} 'Low',29
+{490,3} 'Low',60
+{549,2} 'Low',71
+{583,0} 'Medium',100
+{629,0} 'High',100
+{632,7} 'High',null
+{670,5} 'Medium',80
+{787,7} 'Medium',77
+{800,4} 'Low',50
+{834,6} 'High',null
+{838,1} 'Low',85
+{850,6} 'Medium',78
+{890,2} 'High',99
+{999,4} 'High',98
+</programlisting></para>
+        </step>
+
+        <step>
+          <para>Unpack this data into a 1-dimensional array, and then save
+          it.<programlisting>AFL% save(unpack(notFlat,myDim), 
+'notFlat_saved.bin', -2, 
+'(int64,int64,string, int64 null)');
+</programlisting>This saves the array data into a file describing a 1-D binary
+          array on the coordinator instance.</para>
+        </step>
+
+        <step>
+          <para>To restore, you will need to recreate the 1-D intermediate
+          array. The following query returns the schema you will
+          need.<programlisting>AFL% show('unpack(notFlat,myDim)','afl');:</programlisting><programlisting>&lt; elevation:int64,
+elapsedTime:int64,
+exposure:string,
+measuredIntensity:int64 NULL DEFAULT null &gt;
+
+[myDim=0:*,16000,0]</programlisting></para>
+        </step>
+      </procedure>
+    </section>
+
+    <section id="manualRestore">
+      <title>Manual Restore</title>
+
+      <para>This section provides guidelines on restoring your array data. It
+      continues the example begun in the previous section, <xref
+      linkend="manualBackup"/>.</para>
+
+      <para>After you upgrade, perform the following steps to reload the array
+      that you saved in the previous section.</para>
+
+      <procedure>
+        <step>
+          <para>Create the intermediate 1-D array, using the schema you
+          displayed earlier.<programlisting>AFL% CREATE ARRAY restored_1D_Array &lt;elevation:int64,
+      elapsedTime:int64,exposure:string,measuredIntensity:int64 NULL DEFAULT null&gt;
+     [myDim=0:*,16000,0]  </programlisting></para>
+        </step>
+
+        <step>
+          <para>Now, load the saved data into the new 1-D
+          array.<programlisting>AFL% load(restored_1D_Array, 'notFlat_saved.bin', -2,
+      '(int64, int64, string, int64 null)'); </programlisting></para>
+        </step>
+
+        <step>
+          <para>Next, recreate the target array, making sure to match the
+          schema of the original.<programlisting>AFL% create array restoredFinal&lt;exposure:string,measuredIntensity:int64
+      NULL DEFAULT null&gt; [elevation=0:999,100,0,elapsedTime=0:15,16,0];  </programlisting></para>
+        </step>
+
+        <step>
+          <para>Finally, redimension the 1-D array into the target
+          array.<programlisting>AFL% store(redimension(restored_1D_Array, restoredFinal),
+           restoredFinal);
+
+{elevation,elapsedTime} exposure,measuredIntensity
+{21,6} 'Low',35
+{29,2} 'Medium',89
+{51,4} 'Medium',null
+{89,1} 'Medium',95
+{191,3} 'High',99
+{222,5} 'Low',41
+{238,5} 'High',97
+{288,3} 'Medium',null
+{320,1} 'High',100
+{378,0} 'Low',100
+{390,7} 'Low',29
+{490,3} 'Low',60
+{549,2} 'Low',71
+{583,0} 'Medium',100
+{629,0} 'High',100
+{632,7} 'High',null
+{670,5} 'Medium',80
+{787,7} 'Medium',77
+{800,4} 'Low',50
+{834,6} 'High',null
+{838,1} 'Low',85
+{850,6} 'Medium',78
+{890,2} 'High',99
+{999,4} 'High',98</programlisting></para>
+        </step>
+      </procedure>
+    </section>
+  </section>
+
+  <section id="installReference">
+    <title>Installation Reference</title>
+
+    <para>This section contains reference details about available SciDB
+    packages, configuration files and scripts:<itemizedlist>
+        <listitem>
+          <para><link linkend="scidbPackageList">SciDB Packages</link></para>
+        </listitem>
+
+        <listitem>
+          <para><link linkend="configParameters">SciDB Configuration
+          Parameters</link></para>
+        </listitem>
+
+        <listitem>
+          <para><link linkend="saltyConfig">Cluster Configuration
+          Example</link></para>
+        </listitem>
+
+        <listitem>
+          <para><link linkend="LoggingConfiguration">Logging
+          Configuration</link></para>
+        </listitem>
+
+        <listitem>
+          <para><link linkend="sciDBLogs">SciDB Logs</link></para>
+        </listitem>
+
+        <listitem>
+          <para><link linkend="scidb.pyParameters">SciDB Python Script
+          Parameters</link></para>
+        </listitem>
+      </itemizedlist></para>
+
+    <section id="scidbPackageList">
+      <title>SciDB Packages</title>
+
+      <para>SciDB currently provides the following packages.<itemizedlist>
+          <listitem>
+            <para>The <code>scidb</code> package contains the server
+            binaries.</para>
+          </listitem>
+
+          <listitem>
+            <para>The <code>libscidbclient-&scidb_version;</code> and
+            <code>libscidbclient-&scidb_version;-python</code> packages
+            contain the SciDB client library and the SciDB connector for
+            python applications.</para>
+          </listitem>
+
+          <listitem>
+            <para>The <code>scidb-&scidb_version;-plugins </code>package
+            contains plugins that can be added to SciDB to extend its
+            capabilities. This package contains the
+            <code>dense_linear_algebra</code> plugin.</para>
+          </listitem>
+
+          <listitem>
+            <para>The <code>scidb-&scidb_version;-utils</code> package
+            contains SciDB server utilities.</para>
+          </listitem>
+
+          <listitem>
+            <para>The <code>scidb-&scidb_version;-dev</code> contains
+            development header files for developers creating SciDB extensions
+            (types, operators, and aggregates).</para>
+          </listitem>
+
+          <listitem>
+            <para>The <code>libscidbclient-&scidb_version;-dbg,
+            libscidbclient-&scidb_version;-python-dbg,
+            scidb-&scidb_version;-dbg, scidb-&scidb_version;-dev-tools-dbg,
+            scidb-&scidb_version;-plugins-dbg</code>, and
+            <code>scidb-&scidb_version;-utils-dbg</code> packages contain
+            debugging symbols.</para>
+          </listitem>
+        </itemizedlist></para>
+    </section>
+
+    <?hard-pagebreak ?>
+
+    <section id="configParameters">
+      <title>SciDB Configuration Parameters</title>
+
+      <para>The install package contains a sample configuration file,
+      <literal>sample_config.ini</literal> with examples which must be
+      customized and copied to <literal>config.ini</literal>.</para>
+
+      <para><indexterm>
+          <primary>configuration</primary>
+
+          <secondary>parameters</secondary>
+        </indexterm>The following table describes the basic configuration file
+      settings for SciDB:</para>
+
+      <informaltable frame="all">
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="12*"/>
+
+          <colspec colname="c2" colwidth="88*"/>
+
+          <tbody>
+            <row>
+              <entry nameend="c2" namest="c1"><para><emphasis
+              role="bold"><emphasis role="bold">Basic
+              Configuration</emphasis></emphasis></para></entry>
+            </row>
+
+            <row>
+              <entry><para><emphasis role="bold"><emphasis
+              role="bold">Key</emphasis></emphasis></para></entry>
+
+              <entry><para><emphasis role="bold"><emphasis
+              role="bold">Value</emphasis></emphasis></para></entry>
+            </row>
+
+            <row>
+              <entry><para>Cluster name</para></entry>
+
+              <entry><para>Name of the SciDB cluster. The cluster name must
+              appear as a section heading in the config.ini file, e.g.
+              <emphasis>[cluster1]</emphasis></para><para>To avoid possible
+              problems, we recommend that you use all lowercase for the
+              cluster name.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>server-N, w</para></entry>
+
+              <entry><para>The host name or IP address of server N, where N =
+              0, 1, 2, ..., followed by a comma, followed by the number of
+              worker instances <code>w</code> to launch on the server. The
+              coordinator is always on server-0 and launches at least one
+              instance that serves as database coordinator.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><indexterm>
+                  <primary>Postgres</primary>
+
+                  <secondary>db_user</secondary>
+                </indexterm>db_user</para></entry>
+
+              <entry><para>User name to use in the catalog connection string.
+              This example uses <emphasis>test1user</emphasis></para><para>To
+              avoid possible problems, we recommend that you use all lowercase
+              for the <literal>db_user</literal> parameter.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><indexterm>
+                  <primary>Postgres</primary>
+
+                  <secondary>db_passwd</secondary>
+                </indexterm>db_passwd</para></entry>
+
+              <entry><para>Password to use in the catalog connection string.
+              This example uses
+              <emphasis>test1passwd</emphasis></para><para>To avoid possible
+              problems, we recommend that you use all lowercase for the
+              <literal>db_passwd</literal> parameter.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>base-path</para></entry>
+
+              <entry><para>The root data directory for each SciDB instance.
+              Each SciDB instance uses an enumerated data directory below the
+              base-path. The <code>list('instances')</code> command shows all
+              instances and their data directories for a running SciDB
+              cluster.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>install_root</para></entry>
+
+              <entry><para>Full path to the SciDB installation directory,
+              <code>/opt/scidb/14.12</code>.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>metadata</para></entry>
+
+              <entry><para>Full path to the SciDB metadata definition
+              file.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>pluginsdir</para></entry>
+
+              <entry><para>Full path to the SciDB plugins directory that
+              contains all server plugins.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>logconf</para></entry>
+
+              <entry><para>Full path to the <emphasis
+              role="bold">log4xx</emphasis> logging configuration
+              file.</para></entry>
+            </row>
+
+            <row>
+              <entry>requests</entry>
+
+              <entry>The maximum number of client query requests queued for
+              execution. Any requests in excess of the limit are returned to
+              the client with an error. The default value is 1,000.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+
+      <para><indexterm>
+          <primary>configuration</primary>
+
+          <secondary>parameters</secondary>
+        </indexterm>The following table describes the cluster configuration
+      file parameters and how to set them:</para>
+
+      <informaltable frame="all">
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="20*"/>
+
+          <colspec colname="c2" colwidth="60*"/>
+
+          <tbody>
+            <row>
+              <entry nameend="c2" namest="c1"><para><emphasis
+              role="bold"><emphasis role="bold">Cluster
+              Configuration</emphasis></emphasis></para></entry>
+            </row>
+
+            <row>
+              <entry><para><emphasis role="bold"><emphasis
+              role="bold">Key</emphasis></emphasis></para></entry>
+
+              <entry><para><emphasis role="bold"><emphasis
+              role="bold">Value</emphasis></emphasis></para></entry>
+            </row>
+
+            <row>
+              <entry><para>base-port (optional)</para></entry>
+
+              <entry><para><indexterm>
+                  <primary>port numbers</primary>
+                </indexterm>Base port number. Connections to the coordinator
+              (and therefore to the system) are via this port number, while
+              worker instances communicate via base-port + instance number.
+              The default port number for the SciDB coordinator is
+              1239.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><indexterm>
+                  <primary>data-dir-prefix</primary>
+                </indexterm><indexterm>
+                  <primary>storage</primary>
+
+                  <secondary>assigning</secondary>
+                </indexterm>data-dir-prefix (optional)</para></entry>
+
+              <entry><para>The SciDB administrator can provide file system
+              directories for reference to multiple disks that are connected
+              to a single server. The advantage to using the data-dir-prefix
+              parameter is that you can arbitrarily assign physical storage to
+              SciDB instances.</para><para>For example, if a server has 4
+              disks and 8 instances, your configuration could be as
+              follows:</para><para><literallayout>data-dir-prefix-0-0=/datadisk1/myserver.000.0
+data-dir-prefix-0-1=/datadisk2/myserver.000.1
+data-dir-prefix-0-2=/datadisk3/myserver.000.2
+data-dir-prefix-0-3=/datadisk4/myserver.000.3
+data-dir-prefix-0-4=/datadisk1/myserver.000.4
+data-dir-prefix-0-5=/datadisk2/myserver.000.5
+data-dir-prefix-0-6=/datadisk3/myserver.000.6
+data-dir-prefix-0-7=/datadisk4/myserver.000.7</literallayout></para><para>You
+              do not need to specify this parameter for each instance. For any
+              instance that you omit, SciDB creates a folder using the default
+              naming scheme.</para><para>If a server has multiple storage
+              disks, and you want to assign more than one instance to each
+              disk, then you must set the data-dir-prefix parameter for the
+              instances on that server.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>pg-port (optional)</para></entry>
+
+              <entry><para>The listening port of Postgres—the port on which
+              Postgres accepts incoming connections. Default:
+              5432.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>redundancy (optional)</para></entry>
+
+              <entry><para><indexterm>
+                  <primary>replication</primary>
+                </indexterm><indexterm>
+                  <primary>redundancy</primary>
+                </indexterm><indexterm>
+                  <primary>fault tolerance</primary>
+                </indexterm>Indicates the number of replications of array
+              data. The value of this parameter specifies the number of
+              <emphasis role="bold">extra</emphasis> copies of array data to
+              store.</para><para>Setting this parameter to a positive value is
+              the first step in creating a fault tolerant SciDB cluster.
+              Default: 0 (meaning only one copy of data is
+              stored).</para><para>The number of copies of your data equals 1
+              + the redundancy value. Maximum value for the redundancy
+              parameter is one less than the number of instances in your SciDB
+              cluster.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>ssh-port (optional)</para></entry>
+
+              <entry><para>The port that ssh uses for communications within
+              the cluster. Default:22.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>key-file-list (optional)</para></entry>
+
+              <entry><para><indexterm>
+                  <primary>ssh</primary>
+                </indexterm><indexterm>
+                  <primary>key file</primary>
+                </indexterm>Comma-separated list of filenames that include
+              keys for ssh authentication. Default: /home/scidb/.ssh/id_rsa
+              and id_dsa.</para><para>If you do not use the default name and
+              path for the key, then you must set a value for this
+              parameter.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>tmp-path (optional)</para></entry>
+
+              <entry><para>Full path to temporary directory. Default is a
+              directory within <code>base-path.</code></para></entry>
+            </row>
+
+            <row>
+              <entry><para>no-watchdog (optional)</para></entry>
+
+              <entry><para><indexterm>
+                  <primary>watchdog process</primary>
+                </indexterm><indexterm>
+                  <primary>processes, SciDB instances</primary>
+                </indexterm>Set this to true if you do not want automatic
+              restart of the SciDB server on a software crash. Default:
+              false.</para><para>By default, each SciDB instance spawns two
+              Linux processes; one for the instance itself, and one as a
+              watchdog. The watchdog process detects if the instance process
+              fails. If it detects a failure, then it forks a new, replacement
+              process, which brings the instance back online.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+
+      <para><indexterm>
+          <primary>configuration</primary>
+
+          <secondary>tuning</secondary>
+        </indexterm><indexterm>
+          <primary>optimization</primary>
+        </indexterm>The following table describes the configuration file
+      elements for tuning your system performance:</para>
+
+      <informaltable frame="all">
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="30*"/>
+
+          <colspec colname="c2" colwidth="60*"/>
+
+          <tbody>
+            <row>
+              <entry nameend="c2" namest="c1"><para><emphasis
+              role="bold"><emphasis role="bold">Performance
+              Configuration</emphasis></emphasis></para></entry>
+            </row>
+
+            <row>
+              <entry><para><emphasis role="bold"><emphasis
+              role="bold">Key</emphasis></emphasis></para></entry>
+
+              <entry><para><emphasis role="bold"><emphasis
+              role="bold">Value</emphasis></emphasis></para></entry>
+            </row>
+
+            <row>
+              <entry><para>mem-array-threshold (optional)</para></entry>
+
+              <entry><para>Maximum size in MB of temporary data to be cached
+              in memory, before writing to temporary disk files. Default: 1024
+              MB.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>smgr-cache-size (optional)</para></entry>
+
+              <entry><para>Size of memory in MB allocated to the global shared
+              cache of array chunks. Only chunks belonging to stored arrays
+              are written to this cache. Default: 256 MB</para></entry>
+            </row>
+
+            <row>
+              <entry><para>max-memory-limit (optional)</para></entry>
+
+              <entry><para>The hard-limit maximum amount of memory in MB that
+              the SciDB instance shall be allowed to allocate. If the instance
+              requests more memory from the operating system the allocation
+              will fail with an exception. Default: No limit.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>merge-sort-buffer (optional)</para></entry>
+
+              <entry><para>Size of memory buffer used in merge sort, in MB.
+              Default: 512 MB.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>execution-threads (optional)</para></entry>
+
+              <entry><para>Size of thread pool available for query execution.
+              Shared pool of threads used by all queries for network IO and
+              some query execution tasks. Default: 4.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>operator-threads (optional)</para></entry>
+
+              <entry><para>Number of threads used per operator per query.
+              Limit the number of threads allocated per (multi-threaded)
+              operator in a query. If operator-threads is unspecified, SciDB
+              automatically detects the number of CPU cores and uses that
+              value. If you are running multiple instances on each server,
+              operator-threads must be set lower than the number of CPU cores
+              since multiple SciDB instances share the same set of CPU cores.
+              Default: Number of CPU cores.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>result-prefetch-threads (optional)</para></entry>
+
+              <entry><para>Per-query threads available for prefetch. Default:
+              4.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>result-prefetch-queue-size
+              (optional)</para></entry>
+
+              <entry><para>Per-query number of result chunks to prefetch.
+              Default: 4.</para></entry>
+            </row>
+
+            <row>
+              <entry><para>small-memalloc-size (optional)</para></entry>
+
+              <entry><para>Small allocation threshold size in bytes for glibc
+              malloc. All memory allocations larger than this size will be
+              treated as "large" and pass through to Linux mmap.
+              M_MMAP_THRESHOLD setting for malloc. Default: 268,435,456 bytes
+              (256 MB)</para></entry>
+            </row>
+
+            <row>
+              <entry><para>large-memalloc-limit (optional)</para></entry>
+
+              <entry><para>Threshold limit on the maximum number of
+              simultaneous large allocations for glibc malloc. M_MMAP_MAX
+              setting for malloc. Default: 65,536.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+
+      <para>In the example above, <code>db_user</code> is set to<emphasis>
+      test1user</emphasis> and <code>db_passwd</code> is set to
+      <emphasis>test1passwd</emphasis>.</para>
+    </section>
+
+    <section id="saltyConfig">
+      <title>Cluster Configuration Example</title>
+
+      <para><indexterm>
+          <primary>configuration</primary>
+
+          <secondary>example</secondary>
+        </indexterm><indexterm>
+          <primary>data-dir-prefix</primary>
+        </indexterm><indexterm>
+          <primary>config.ini</primary>
+        </indexterm>The following SciDB cluster configuration is called
+      'salty.' This cluster consists of 2 identical servers. Each server has
+      the the following characteristics:<itemizedlist>
+          <listitem>
+            <para>x86_64 4-core processor</para>
+          </listitem>
+
+          <listitem>
+            <para>2 physical disks: each disk has 1 TB direct attached
+            storage</para>
+          </listitem>
+
+          <listitem>
+            <para>8 GB of RAM</para>
+          </listitem>
+
+          <listitem>
+            <para>1Gbps Ethernet</para>
+          </listitem>
+
+          <listitem>
+            <para>Linux OS from the list of supported distributions.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>The following configuration file applies to such a cluster called
+      <literal>salty</literal>.<programlisting>[salty]
+server-0=p4xen1.local.paradigm4.com,3
+server-1=p4xen2.local.paradigm4.com,4
+db_user=salty
+db_passwd=salty
+install_root=/opt/scidb/&scidb_version;
+pluginsdir=/opt/scidb/&scidb_version;/lib/scidb/plugins
+logconf=/opt/scidb/&scidb_version;/share/scidb/log4cxx.properties
+base-path=/home/scidb/DB-salty
+# note that this cluster does not use the default base-port, 1239,
+# so you may need to open port 1600 on your firewall.
+base-port=1600
+
+# Specifying values for the data-dir-prefix
+# parameter is optional. See below for details.
+
+# server-0
+# Port numbers: 1600 - 1603
+data-dir-prefix-0-0=/datadisk1/salty.000.0
+data-dir-prefix-0-1=/datadisk2/salty.000.1
+data-dir-prefix-0-2=/datadisk1/salty.000.2
+data-dir-prefix-0-3=/datadisk2/salty.000.3
+
+# server-1
+# Port numbers: 1601 - 1604
+data-dir-prefix-1-1=/datadisk1/salty.001.1
+data-dir-prefix-1-2=/datadisk2/salty.001.2
+data-dir-prefix-1-3=/datadisk1/salty.001.3
+data-dir-prefix-1-4=/datadisk2/salty.001.4
+</programlisting></para>
+
+      <para>Note the following about this cluster:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Each datadisk <replaceable>n</replaceable> is mounted on a
+          physical disk. Each SciDB server uses two physical disks and has
+          four instances. Thus each instance has its own processor and shares
+          a disk with one other instance.</para>
+        </listitem>
+
+        <listitem>
+          <para>This SciDB cluster has a total of 8 instances, split evenly
+          among the 8 cores and 4 disks.</para>
+        </listitem>
+
+        <listitem>
+          <para>The names of the disks are local per server; thus server-0 and
+          server-1 can both separate disks, both named datadisk1.</para>
+        </listitem>
+
+        <listitem>
+          <para><indexterm>
+              <primary>port numbers</primary>
+            </indexterm>The port numbers for each instance on a server are
+          incremental. The port numbers in the above example are listed in the
+          comments for each server. Thus, instance number 3 on each server
+          uses the same port, 1603. Note that only the coordinator instance
+          uses the base port, 1600.</para>
+        </listitem>
+
+        <listitem>
+          <para><indexterm>
+              <primary>data-dir-prefix</primary>
+            </indexterm>In this example, we specified data-dir-prefix values
+          for each instance in the cluster. Once you create the folders, the
+          <command>scidb.py initall</command> command creates symbolic links
+          from the base-path to the directories that you specified for the
+          data-dir-prefix parameter in the config.ini file. Note the
+          following:<itemizedlist>
+              <listitem>
+                <para>Specifying values for data-dir-prefix is optional. If
+                you do not specify a data-dir-prefix value for an instance,
+                then SciDB creates a folder using the default naming
+                scheme—this will be a sub-folder of the base-path.</para>
+              </listitem>
+
+              <listitem>
+                <para>If you <emphasis role="bold">do</emphasis> specify a
+                data-dir-prefix value for an instance, then you must ensure
+                that the specified folder exists, and that it is completely
+                empty. Otherwise, you will get errors when you try to start
+                SciDB.</para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section id="LoggingConfiguration">
+      <title>Logging Configuration</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>x86 6-core processor</para>
+        </listitem>
+      </itemizedlist>
+
+      <para><indexterm>
+          <primary>configuration</primary>
+
+          <secondary>logging</secondary>
+        </indexterm>SciDB uses Apache's log4cxx (<ulink
+      url="http://logging.apache.org/log4cxx/">http://logging.apache.org/log4cxx/</ulink>).</para>
+
+      <para>The logging configuration file, specified by the
+      <literal>logconf</literal> variable in <literal>config.ini</literal>,
+      contains the following Apache log4cxx logger settings:<programlisting>###
+# Levels: TRACE &lt; DEBUG &lt; INFO &lt; WARN &lt; ERROR &lt; FATAL
+###
+
+log4j.rootLogger=ERROR, file
+
+log4j.appender.file=org.apache.log4j.RollingFileAppender
+log4j.appender.file.File=scidb.log
+log4j.appender.file.MaxFileSize=10000KB
+log4j.appender.file.MaxBackupIndex=2
+log4j.appender.file.layout=org.apache.log4j.PatternLayout
+log4j.appender.file.layout.ConversionPattern=%d [%t] [%-5p]: %m%n</programlisting></para>
+    </section>
+
+    <section id="sciDBLogs">
+      <title>SciDB Logs</title>
+
+      <para><indexterm>
+          <primary>logs</primary>
+        </indexterm>SciDB logs are written to the file
+      <literal>scidb.log</literal> in the appropriate directories for each
+      instance: <replaceable>base-path</replaceable>/000/0 for the coordinator
+      and
+      <replaceable>base-path</replaceable>/<replaceable>M</replaceable>/<replaceable>N</replaceable>
+      for the server <replaceable>M</replaceable> instance
+      <replaceable>N</replaceable>. Consider an installation with four
+      servers, S1, S2, S3, and S4, and 8 instances per server.<itemizedlist>
+          <listitem>
+            <para>S1 is the server containing the default coordinator
+            instance, and contains 1 default coordinator instance and 7 worker
+            instances in the following directories:
+            <replaceable>base-path</replaceable>/000/0,
+            <replaceable>base-path</replaceable>/000/1,
+            <replaceable>base-path</replaceable>/000/2, ...
+            <replaceable>base-path</replaceable>/000/7</para>
+          </listitem>
+
+          <listitem>
+            <para>S2 is server, and contains 8 worker instances in the
+            following directories: <replaceable>base-path</replaceable>/001/1,
+            <replaceable>base-path</replaceable>/001/2, ...
+            <replaceable>base-path</replaceable>/001/8</para>
+          </listitem>
+
+          <listitem>
+            <para>S3 is server, and contains 8 worker instances in the
+            following directories: <replaceable>base-path</replaceable>/002/1,
+            <replaceable>base-path</replaceable>/002/2, ...
+            <replaceable>base-path</replaceable>/002/8</para>
+          </listitem>
+
+          <listitem>
+            <para>S4 is server, and contains 8 worker instances in the
+            following directories: <replaceable>base-path</replaceable>/003/1,
+            <replaceable>base-path</replaceable>/003/2, ...
+            <replaceable>base-path</replaceable>/003/8</para>
+          </listitem>
+        </itemizedlist></para>
+    </section>
+
+    <section id="scidb.pyParameters">
+      <title>SciDB Python Script Parameters</title>
+
+      <para><indexterm>
+          <primary>scidb.py script</primary>
+        </indexterm>The syntax for the <literal>scidb.py</literal> script is
+      as follows: <programlisting>scidb.py <replaceable>command</replaceable> <replaceable>scidb_cluster_name</replaceable> [ <replaceable>conffile</replaceable> ]</programlisting></para>
+
+      <para>The options for the <replaceable>command</replaceable> argument
+      are:</para>
+
+      <informaltable frame="all">
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="30*"/>
+
+          <colspec colname="c2" colwidth="50*"/>
+
+          <tbody>
+            <row>
+              <entry><para><code>init_syscat</code></para></entry>
+
+              <entry><para>Initialize the SciDB system catalog. <emphasis
+              role="bold"> Warning</emphasis>: This will remove any existing
+              SciDB arrays from the current namespace and recreate the system
+              catalog entries for this database. This must be run as user
+              'postgres' since it requires administrative privileges to the
+              Postgres database.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>initall</code> and
+              <code>initall-force</code></para></entry>
+
+              <entry><para>Initialize the SciDB instances. This initializes
+              SciDB on coordinator and worker instances and register them in
+              the system catalog. <emphasis role="bold"> Warning</emphasis>:
+              This will delete all data and log files corresponding to these
+              instances.</para><para>initall-force forces initialization
+              without prompting the user.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>startall</code></para></entry>
+
+              <entry><para>Start the SciDB database service.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>stopall</code></para></entry>
+
+              <entry><para>Stop the SciDB database service.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>status</code></para></entry>
+
+              <entry><para>Show the status of the SciDB
+              service.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>dbginfo</code></para></entry>
+
+              <entry><para>Collect debugging information by getting all logs,
+              cores, and install files.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>dbginfo-lt</code></para></entry>
+
+              <entry><para>Collect only stack and log information for
+              debugging.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>version</code></para></entry>
+
+              <entry><para><indexterm>
+                  <primary>versions</primary>
+
+                  <secondary>SciDB</secondary>
+                </indexterm>Display SciDB version number
+              information.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>check-pids</code></para></entry>
+
+              <entry><para>List process IDs of SciDB on all
+              instances.</para></entry>
+            </row>
+
+            <row>
+              <entry><para><code>check-version</code></para></entry>
+
+              <entry><para>Display the SciDB version information on each
+              instance. This is useful in verifying that all instances in the
+              cluster are running the same version.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+
+      <para>The <replaceable>scidb_cluster_name</replaceable> argument is the
+      name of the SciDB cluster you want to create or get information
+      about.</para>
+
+      <para>The configuration file is set by default to
+      <code>/opt/scidb/&scidb_version;/etc/config.ini</code>. If you want to
+      use a custom configuration file for a particular SciDB cluster, use the
+      <replaceable>conffile</replaceable> argument.</para>
+    </section>
+  </section>
+
+  <section id="installationTroubleshootingSection">
+    <title>Installation Troubleshooting</title>
+
+    <para>To troubleshoot installation problems, refer to <xref
+    linkend="troubleInstall"/>, which describes the detailed steps which are
+    automatically handled by the cluster install script available at <ulink
+    url="https://github.com/Paradigm4/deployment">https://github.com/Paradigm4/deployment</ulink>.</para>
+  </section>
+</chapter>

@@ -100,6 +100,9 @@ public:
 
                     shared_ptr<ConstArrayIterator> currentIter =
                        static_pointer_cast<ConstArrayIterator, ConstIterator > (arrayIters[ minIds[i] ] );
+                    if (isDebug()) {
+                        currentIter->getChunk(); // to catch some bugs like #3656
+                    }
                     const ConstChunk& chunk = currentIter->getChunk();
 
                     int configTileSize = Config::getInstance()->getOption<int>(CONFIG_TILE_SIZE);

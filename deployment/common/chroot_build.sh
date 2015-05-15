@@ -31,6 +31,9 @@ case `./os_detect.sh` in
     "Ubuntu 12.04")
 	./chroot_build.py -i -d ubuntu-precise-amd64 -t .
 	;;
+    "Ubuntu 14.04")
+	./chroot_build.py -i -d ubuntu-trusty-amd64 -t .
+	;;
     *)
 	echo "Not supported OS"
 	exit 1

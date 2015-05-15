@@ -34,7 +34,3 @@ add_library(example_udos SHARED ${example_udos_src} ${example_udos_include} )
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libexample_udos${CMAKE_SHARED_LIBRARY_SUFFIX}" example_udos)
 set_target_properties(example_udos PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
 
-if (APPLE)
-  set_target_properties(example_udos PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif (APPLE)
-

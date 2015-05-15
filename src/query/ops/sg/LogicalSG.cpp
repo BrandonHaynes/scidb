@@ -38,7 +38,7 @@ namespace scidb
  * @brief The operator: sg().
  *
  * @par Synopsis:
- *   sg( srcArray, partitionSchema, instanceId=-1, outputArray="", isStore=true, offsetVector=null)
+ *   sg( srcArray, partitionSchema, instanceId=-1, outputArray="", isStrict=false, offsetVector=null)
  *
  * @par Summary:
  *   SCATTER/GATHER distributes array chunks over the instances of a cluster.
@@ -61,8 +61,7 @@ namespace scidb
  *     0..#instances-1 = to a particular instance.<br>
  *     [TO-DO: The usage of instanceId, in calculating which instance a chunk should go to, requires further documentation.]
  *   - outputArray: if not empty, the result will be stored into this array
- *   - isStore: whether to store into the specified outputArray.<br>
- *     [TO-DO: Donghui believes this parameter is not needed and should be removed.]
+ *   - isStrict if true, enables the data integrity checks such as for data collisions and out-of-order input chunks, defualt=false. <br>
  *   - offsetVector: a vector of #dimensions values.<br>
  *     To calculate which instance a chunk belongs, the chunkPos is augmented with the offset vector before calculation.
  *
@@ -118,7 +117,7 @@ public:
                 res.push_back(PARAM_CONSTANT("bool"));
                 break;
             default:
-                assert(false);
+                ASSERT_EXCEPTION(false, "LogicalSG::nextVaryParamPlaceholder");
                 break;
             }
         }
@@ -141,6 +140,16 @@ public:
         return res;
     }
 
+    std::string getArrayNameForStore() const
+    {
+        std::string arrayName;
+        if (_parameters.size() >= 3)
+        {
+            arrayName = static_cast<OperatorParamReference*>(_parameters[2].get())->getObjectName();
+        }
+        return arrayName;
+    }
+
     /**
      * The schema of output array is the same as input
      */
@@ -148,26 +157,26 @@ public:
     {
         assert(inputSchemas.size() == 1);
         ArrayDesc const& desc = inputSchemas[0];
-        std::string resultArrayName = desc.getName();
-        PartitioningSchema ps;
 
-        /* validate the partitioning schema
-         */
-        ps = (PartitioningSchema)
+        //validate the partitioning schema
+        const PartitioningSchema ps = (PartitioningSchema)
             evaluate(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[0])->getExpression(), query, TID_INT32).getInt32();
         if (! isValidPartitioningSchema(ps, false)) // false = not allow optional data associated with the partitioning schema
         {
             throw USER_EXCEPTION(SCIDB_SE_REDISTRIBUTE, SCIDB_LE_REDISTRIBUTE_ERROR);
-        } 
+        }
 
-        /* get the name of the supplied result array
-         */
-        if (_parameters.size() >= 3)
-        {
-            std::string suppliedResultName = ((boost::shared_ptr<OperatorParamReference>&)_parameters[2])->getObjectName();
-            if (!suppliedResultName.empty())
-            {
-                resultArrayName = suppliedResultName;
+        // get the name of the supplied result array
+        std::string resultArrayName = getArrayNameForStore();
+        if (resultArrayName.empty()) {
+            resultArrayName = desc.getName();
+        }
+        if (isDebug()) {
+            if (_parameters.size() >= 4) {
+                assert(_parameters[3]->getParamType() == PARAM_LOGICAL_EXPRESSION);
+                OperatorParamLogicalExpression* lExp = static_cast<OperatorParamLogicalExpression*>(_parameters[3].get());
+                SCIDB_ASSERT(lExp->isConstant());
+                assert(lExp->getExpectedType()==TypeLibrary::getType(TID_BOOL));
             }
         }
         return ArrayDesc(resultArrayName, desc.getAttributes(), desc.getDimensions());
@@ -177,38 +186,20 @@ public:
     {
         LogicalOperator::inferArrayAccess(query);
 
-        if (_parameters.size() < 3)
-        {
-            return;
-        }
-        std::string resultArrayName = ((boost::shared_ptr<OperatorParamReference>&)_parameters[2])->getObjectName();
-        if (resultArrayName.empty())
-        {
+        const std::string resultArrayName = getArrayNameForStore();
+        if (resultArrayName.empty()) {
             return;
         }
 
-        bool storeResult = true;
-        if (_parameters.size() >= 4)
-        {
-            Expression expr;
-            expr.compile(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[3])->getExpression(),
-                         query, false, TID_BOOL);
-            Value const& value = expr.evaluate();
-            assert (expr.getType() == TID_BOOL);
-            storeResult = value.getBool();
-        }
-        if (storeResult)
-        {
-            assert(resultArrayName.find('@') == std::string::npos);
-            boost::shared_ptr<SystemCatalog::LockDesc>  lock(new SystemCatalog::LockDesc(resultArrayName,
-                                                                                         query->getQueryID(),
-                                                                                         Cluster::getInstance()->getLocalInstanceId(),
-                                                                                         SystemCatalog::LockDesc::COORD,
-                                                                                         SystemCatalog::LockDesc::WR));
-            boost::shared_ptr<SystemCatalog::LockDesc> resLock = query->requestLock(lock);
-            assert(resLock);
-            assert(resLock->getLockMode() >= SystemCatalog::LockDesc::WR);
-        }
+        assert(resultArrayName.find('@') == std::string::npos);
+        boost::shared_ptr<SystemCatalog::LockDesc>  lock(new SystemCatalog::LockDesc(resultArrayName,
+                                                                                     query->getQueryID(),
+                                                                                     Cluster::getInstance()->getLocalInstanceId(),
+                                                                                     SystemCatalog::LockDesc::COORD,
+                                                                                     SystemCatalog::LockDesc::WR));
+        boost::shared_ptr<SystemCatalog::LockDesc> resLock = query->requestLock(lock);
+        assert(resLock);
+        assert(resLock->getLockMode() >= SystemCatalog::LockDesc::WR);
     }
 };
 

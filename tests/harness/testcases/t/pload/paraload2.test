@@ -1,0 +1,73 @@
+# Build a large multi-chunk array, then save and reload it in various formats.
+
+--setup
+create array para2_0 <v1:int64,v2:int64,v3:int64>[i=0:*,100000,0]
+--start-igdata
+store(apply(build(<v1:int64>[i=0:999999,100000,0], i), v2, v1*2, v3, v1+2), para2_0)
+--stop-igdata
+
+--test
+
+# Save as binary and reload. ----------------
+--start-igdata
+save(para2_0, 'para2_0.bin', -1, '(int64,int64,int64)')
+create array para2_bin <w1:int64,w2:int64,w3:int64>[i=0:*,100000,0]
+load(para2_bin, 'para2_0.bin', -1, '(int64,int64,int64)')
+--stop-igdata
+
+# Sum of the absolute values of the differences should be zero.
+--echo Counting mistakes in binary reload...
+aggregate(apply(join(para2_0, para2_bin), x, abs(v1 - w1) + abs(v2 - w2) + abs(v3 - w3)), sum(x))
+
+# Save as CSV and reload. ----------------
+--start-igdata
+save(para2_0, 'para2_0.csv', -1, 'csv')
+create array para2_csv <w1:int64,w2:int64,w3:int64>[i=0:*,100000,0]
+load(para2_csv, 'para2_0.csv', -1, 'csv')
+--stop-igdata
+
+# Sum of the absolute values of the differences should be zero.
+--echo Counting mistakes in CSV reload...
+aggregate(apply(join(para2_0, para2_csv), x, abs(v1 - w1) + abs(v2 - w2) + abs(v3 - w3)), sum(x))
+
+# Save as TSV and reload. ----------------
+--start-igdata
+save(para2_0, 'para2_0.tsv', -1, 'tsv')
+create array para2_tsv <w1:int64,w2:int64,w3:int64>[i=0:*,100000,0]
+load(para2_tsv, 'para2_0.tsv', -1, 'tsv')
+--stop-igdata
+
+# Sum of the absolute values of the differences should be zero.
+--echo Counting mistakes in TSV reload...
+aggregate(apply(join(para2_0, para2_tsv), x, abs(v1 - w1) + abs(v2 - w2) + abs(v3 - w3)), sum(x))
+
+# Save as opaque and reload. ----------------
+--start-igdata
+save(para2_0, 'para2_0.opaque', -1, 'opaque')
+create array para2_opaque <w1:int64,w2:int64,w3:int64>[i=0:*,100000,0]
+load(para2_opaque, 'para2_0.opaque', -1, 'opaque')
+--stop-igdata
+
+# Sum of the absolute values of the differences should be zero.
+--echo Counting mistakes in opaque reload...
+aggregate(apply(join(para2_0, para2_opaque), x, abs(v1 - w1) + abs(v2 - w2) + abs(v3 - w3)), sum(x))
+
+# Save as SciDB text and reload. ----------------
+--start-igdata
+save(para2_0, 'para2_0.text', -1, 'text')
+create array para2_text <w1:int64,w2:int64,w3:int64>[i=0:*,100000,0]
+load(para2_text, 'para2_0.text', -1, 'text')
+--stop-igdata
+
+# Sum of the absolute values of the differences should be zero.
+--echo Counting mistakes in text reload...
+aggregate(apply(join(para2_0, para2_text), x, abs(v1 - w1) + abs(v2 - w2) + abs(v3 - w3)), sum(x))
+
+--cleanup
+remove(para2_0)
+remove(para2_bin)
+remove(para2_csv)
+remove(para2_tsv)
+remove(para2_opaque)
+remove(para2_text)
+--shell --command "find ${SCIDB_DATA_PATH} -name para2_* | xargs rm"

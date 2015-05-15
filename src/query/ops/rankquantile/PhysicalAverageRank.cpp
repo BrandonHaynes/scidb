@@ -30,7 +30,6 @@
 #include <array/Metadata.h>
 #include <boost/foreach.hpp>
 #include <array/DelegateArray.h>
-#include <array/FileArray.h>
 #include <array/MergeSortArray.h>
 #include "RankCommon.h"
 #include <sys/time.h>
@@ -71,8 +70,8 @@ class PhysicalAverageRank: public PhysicalOperator
                                                     const std::vector< ArrayDesc> & inputSchemas) const
     {
         boost::shared_ptr<Query> query(Query::getValidQueryPtr(_query));
-        size_t nInstances = query->getInstancesCount();
-        size_t nDims = _schema.getDimensions().size();
+        const size_t nInstances = query->getInstancesCount();
+        const size_t nDims = _schema.getDimensions().size();
 
         DimensionVector offset(nDims);
 

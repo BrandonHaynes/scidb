@@ -50,11 +50,13 @@ class PointerRangeTests : public CppUnit::TestFixture
  public:
             void              conversions();
             void              generics();
+            void              comparisons();
 
  public:
     CPPUNIT_TEST_SUITE(PointerRangeTests);
     CPPUNIT_TEST(conversions);
     CPPUNIT_TEST(generics);
+    CPPUNIT_TEST(comparisons);
     CPPUNIT_TEST_SUITE_END();
 };
 
@@ -150,6 +152,32 @@ void PointerRangeTests::generics()
     test(s(shift(drop(r,1,0),-1))   == "c(ABCDEF)");
     test(s(grow(drop(r,1,1),+1,+1)) == "c(ABCDEFG)");
     test(s(grow(r,-1,-1))           == "c(BCDEF)");
+}
+
+/**
+ *  Put the various comparison operators through their paces.
+ */
+void PointerRangeTests::comparisons()
+{
+    cchars a(7,"ABCDEFG");
+    cchars b(8,"ABCDEFGK");
+    cchars c(9,"ABCDEFGKL");
+
+    test(a==a && b==b && c==c);
+    test(a!=b && b!=c && a!=c);
+    test(a< b && b< c && a< c);
+    test(a<=b && b<=c && a<=c);
+
+    swap(a,c);
+
+    test(a> b && b> c && a> c);
+    test(a>=b && b>=c && a>=c);
+
+ /* Notice that the ranges being compared need not have exactly the same
+    element type as one another...*/
+    int x = 387;
+    test(PointerRange<const int>(387)  == PointerRange<int>(x));
+    test(PointerRange<const char>('X') == PointerRange<const int>('X'));
 }
 
 /****************************************************************************/

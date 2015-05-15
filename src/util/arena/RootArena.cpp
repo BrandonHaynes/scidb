@@ -31,19 +31,19 @@ namespace scidb { namespace arena {
 /****************************************************************************/
 
 /**
- *  @brief      Implements the 'root' Arena, a locking, recycling, Arena from
+ *  @brief      Implements the root %arena, a threading, recycling %arena from
  *              which all other arenas ultimately obtain their memory.
  *
  *  @details    Class RootArena represents what is  in some sense the simplest
- *              possible implementation of the Arena interface,  by forwarding
+ *              possible implementation of the %arena interface, by forwarding
  *              its calls directly on through to the system free store, namely
  *              'malloc' and 'free'.  It forms the root of a parent-child tree
  *              that runs from all other arenas up to this singleton instance,
  *              and is automatically supplied as the default when constructing
- *              an Arena for which no other parent has been specified.
+ *              an %arena for which no other parent has been specified.
  *
  *  @todo       Add support for routing allocation requests made using global
- *              operator new and friends though this Arena too.
+ *              operator new and friends though this %arena too.
  *
  *  @author     jbell@paradigm4.com.
  */
@@ -55,52 +55,40 @@ class RootArena : public Arena
  public:                   // Attributes
     virtual name_t            name()               const {return "root";}
     virtual size_t            allocated()          const {return _allocated;}
-    virtual size_t            peakUsage()          const {return _peakUsage;}
+    virtual size_t            peakusage()          const {return _peakusage;}
     virtual size_t            allocations()        const {return _allocations;}
-    virtual bool              supports(features_t) const;
+    virtual features_t        features()           const {return finalizing|recycling|threading;}
 
  public:                   // Operations
     virtual void              reset();                   // Reset statistics
 
  public:                   // Allocation
-            void*             doMalloc(size_t);          // Calls ::malloc()
-            size_t            doFree  (void*,size_t);    // Calls ::free()
+    virtual void*             doMalloc(size_t);          // Calls ::malloc()
+    virtual void              doFree  (void*,size_t);    // Calls ::free()
 
  protected:                // Implementation
-    static  void*             alloc(size_t);
-    static  void              dealloc(void*);
-
             bool              consistent()         const;
 
  protected:                // Representation
             size_t            _allocated;                // Bytes allocated
-            size_t            _peakUsage;                // High water mark
+            size_t            _peakusage;                // High water mark
             size_t            _allocations;              // Total allocations
             Mutex             _mutex;                    // Guards our members
 };
 
 /**
- *  Initialize the root Arena's allocation statistics.
+ *  Initialize the root arena's allocation statistics.
  */
     RootArena::RootArena()
              : _allocated(0),
-               _peakUsage(0),
+               _peakusage(0),
                _allocations(0)
 {
     assert(consistent());                                // Check consistency
 }
 
 /**
- *  Overrides Arena::supports() to indicate that we also support recycling and
- *  locking.
- */
-bool RootArena::supports(features_t f) const
-{
-    return Arena::supports(f & ~(recycling|locking));    // We are So green...
-}
-
-/**
- *  The root Arena does not support resetting - at least not in the sense that
+ *  The root %arena does not support resetting; at least not in the sense that
  *  it tracks allocations and frees those  that were never explictly recycled,
  *  as does class ScopedArena; nevertheless, it can still reset its allocation
  *  statistics to their original default values.
@@ -109,7 +97,7 @@ void RootArena::reset()
 {
     ScopedMutexLock x(_mutex);                           // Acquire our mutex
 
-    _allocated = _peakUsage = _allocations = 0;          // Reset statistics
+    _allocated = _peakusage = _allocations = 0;          // Reset statistics
 
     assert(consistent());                                // Check consistency
 }
@@ -119,7 +107,7 @@ void RootArena::reset()
  */
 void* RootArena::doMalloc(size_t const size)
 {
-    assert(size!=0 && isAligned(size));                  // Is already aligned
+    assert(size != 0);                                   // Validate arguments
 
     if (void* p = ::malloc(size))                        // Allocate raw memory
     {
@@ -127,9 +115,10 @@ void* RootArena::doMalloc(size_t const size)
 
         _allocated   += size;                            // ...allocated size
         _allocations += 1;                               // ...allocated one
-        _peakUsage    = std::max(_allocated,_peakUsage); // ...update the peak
+        _peakusage    = std::max(_allocated,_peakusage); // ...update the peak
 
-        assert(consistent());                            // ...check consistency
+        assert(consistent());                            // ...check consistent
+        assert(aligned(p));                              // ...check alignment
         return p;                                        // ...the allocation
     }
 
@@ -140,20 +129,18 @@ void* RootArena::doMalloc(size_t const size)
  *  Return the 'size' bytes of raw storage pointed to by 'payload' to the free
  *  store for recycling.
  */
-size_t RootArena::doFree(void* payload,size_t const size)
+void RootArena::doFree(void* payload,size_t const size)
 {
-    assert(payload!=0 && size!=0 && isAligned(size));    // Validate arguments
+    assert(aligned(payload) && size!=0);                 // Validate arguments
     assert(size<=_allocated && _allocated!=0);           // Check counts match
 
     ::free(payload);                                     // Return the storage
-    {
-        ScopedMutexLock x(_mutex);                       // ...grab our mutex
 
-        _allocated   -= size;                            // ...update stats
-        _allocations -= 1;                               // ...update stats
-    }
+    ScopedMutexLock x(_mutex);                           // Acquire root mutex
 
-    return size;                                         // Return bytes freed
+    _allocated   -= size;                                // Update allocated
+    _allocations -= 1;                                   // Update allocations
+    assert(consistent());                                // Check consistency
 }
 
 /**
@@ -168,7 +155,7 @@ bool RootArena::consistent() const
 }
 
 /**
- *  Return a reference to the one and only root Arena. All other arenas end up
+ *  Return a reference to the one and only root arena. All other arenas end up
  *  attaching to, and allocating from, this root object, one way or the other.
  */
 ArenaPtr getRootArena()

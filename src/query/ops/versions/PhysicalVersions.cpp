@@ -46,7 +46,6 @@ public:
     PhysicalVersions(const string& logicalName, const string& physicalName, const Parameters& parameters, const ArrayDesc& schema):
         PhysicalOperator(logicalName, physicalName, parameters, schema)
     {
-        _result = boost::shared_ptr<Array>(new TupleArray(_schema, vector<boost::shared_ptr<Tuple> >()));
     }
 
     virtual ArrayDistribution getOutputDistribution(const std::vector<ArrayDistribution> & inputDistributions,
@@ -65,16 +64,17 @@ public:
         SystemCatalog::getInstance()->getArrayDesc(arrayName, arrayDesc);
         std::vector<VersionDesc> versions = SystemCatalog::getInstance()->getArrayVersions(arrayDesc.getId());
         
-        vector< boost::shared_ptr<Tuple> > tuples(versions.size());
+        boost::shared_ptr<TupleArray> tuples(boost::make_shared<TupleArray>(_schema, _arena));
         for (size_t i = 0; i < versions.size(); i++) { 
-            Tuple& tuple = *new Tuple(2);
-            tuples[i] = boost::shared_ptr<Tuple>(&tuple);
+            Value tuple[2];
             tuple[0] = Value(TypeLibrary::getType(TID_INT64));
             tuple[0].setInt64(versions[i].getVersionID());
             tuple[1] = Value(TypeLibrary::getType(TID_DATETIME));
             tuple[1].setDateTime(versions[i].getTimeStamp());
+            
+            tuples->appendTuple(tuple);
         } 
-        _result = boost::shared_ptr<Array>(new TupleArray(_schema, tuples));
+        _result = tuples;
     }
 
     boost::shared_ptr<Array> execute(
@@ -82,6 +82,10 @@ public:
         boost::shared_ptr<Query> query)
     {
         assert(inputArrays.size() == 0);
+        if (!_result)
+        {
+            _result = boost::make_shared<MemArray>(_schema, query);
+        }
         return _result;
     }
 

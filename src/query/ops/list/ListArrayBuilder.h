@@ -24,7 +24,7 @@
  * ListArrayBuilder.h
  *
  *  Created on: May 25, 2012
- *      Author: poliocough@gmail.com
+ *      Author: poliocough@gmail.com and friends
  */
 
 #ifndef LISTARRAYBUILDER_H_
@@ -32,10 +32,14 @@
 
 #include <array/MemArray.h>
 #include <smgr/io/InternalStorage.h>
+#include <util/DataStore.h>
+#include <util/Counter.h>
 
+struct mallinfo;
 
-namespace scidb
-{
+/****************************************************************************/
+namespace scidb {
+/****************************************************************************/
 
 /**
  * Abstract class to build a per-instance MemArray that contains a list of arbitrary elements.
@@ -50,13 +54,13 @@ namespace scidb
  *   K must include the emtpy tag.
  * - an addToArray() function which takes an object and splits it into the K-1 attribute values.
  */
-template <typename T>
+template<typename T>
 class ListArrayBuilder
 {
 protected:
     static const uint64_t LIST_CHUNK_SIZE=1000000;
     static const size_t LIST_NUM_DIMS=2;
-
+    typedef T value_type;
     bool _initialized;
     shared_ptr<Query> _query;
     boost::shared_ptr<MemArray> _array;
@@ -65,6 +69,7 @@ protected:
     vector<shared_ptr<ArrayIterator> > _outAIters;
     vector<shared_ptr<ChunkIterator> > _outCIters;
     size_t _nAttrs;
+    size_t _dimIdOff;
 
     /**
      * Add one element to the array
@@ -72,7 +77,14 @@ protected:
      */
     virtual void addToArray(T const& value) =0;
 
-    ListArrayBuilder(): _initialized(false) {}
+    ListArrayBuilder()
+    : _initialized(false), _nAttrs(0), _dimIdOff(0) {}
+
+    /**
+     *  Write the element 't' out as the value of attribute 'a'.
+     */
+    template<class type>
+    void write(size_t a,const type& t);
 
     /**
      * Construct and return the dimensions of the array.
@@ -119,52 +131,38 @@ public:
  * A ListArrayBuilder for listing ChunkDescriptor objects.
  * The second element in the pair is an indicator whether the Chunk Descriptor is "free" (true) or "occupied" (false).
  */
-class ListChunkDescriptorsArrayBuilder : public ListArrayBuilder < pair<ChunkDescriptor, bool> >
+struct ListChunkDescriptorsArrayBuilder : ListArrayBuilder <pair<ChunkDescriptor,bool> >
 {
-private:
-    /**
-     * Verbose names of all the attributes output by list('chunk descriptors') for internal consistency and dev readability.
-     */
-    enum Attrs
+    enum
     {
-        STORAGE_VERSION     =0,
-        INSTANCE_ID         =1,
-        DATASTORE_GUID      =2,
-        DISK_HEADER_POS     =3,
-        DISK_OFFSET         =4,
-        V_ARRAY_ID          =5,
-        ATTRIBUTE_ID        =6,
-        COORDINATES         =7,
-        COMPRESSION         =8,
-        FLAGS               =9,
-        NUM_ELEMENTS        =10,
-        COMPRESSED_SIZE     =11,
-        UNCOMPRESSED_SIZE   =12,
-        ALLOCATED_SIZE      =13,
-        FREE                =14,
-        EMPTY_INDICATOR     =15,
-        NUM_ATTRIBUTES      =16
+        STORAGE_VERSION  ,
+        INSTANCE_ID      ,
+        DATASTORE_GUID   ,
+        DISK_HEADER_POS  ,
+        DISK_OFFSET      ,
+        V_ARRAY_ID       ,
+        ATTRIBUTE_ID     ,
+        COORDINATES      ,
+        COMPRESSION      ,
+        FLAGS            ,
+        NUM_ELEMENTS     ,
+        COMPRESSED_SIZE  ,
+        UNCOMPRESSED_SIZE,
+        ALLOCATED_SIZE   ,
+        FREE             ,
+        EMPTY_INDICATOR  ,
+        NUM_ATTRIBUTES
     };
 
-    /**
-     * Add information abotu a ChunkDescriptor to the array.
-     * @param value the first element is the descriptor, the second element is true if descriptor is free.
-     */
-    virtual void addToArray(pair<ChunkDescriptor, bool> const& value);
-
-public:
-    /**
-     * Get the attributes of the array.
-     * @return the attribute descriptors
-     */
+    virtual void       addToArray(value_type const&);
     virtual Attributes getAttributes() const;
 };
 
 struct ChunkMapEntry
 {
-    ArrayUAID _uaid;
-    StorageAddress _addr;
-    PersistentChunk const* _chunk;
+    ArrayUAID               _uaid;
+    StorageAddress          _addr;
+    PersistentChunk const*  _chunk;
 
     ChunkMapEntry(ArrayUAID const uaid, StorageAddress const& addr, PersistentChunk const* const chunk):
         _uaid(uaid),
@@ -173,66 +171,76 @@ struct ChunkMapEntry
     {}
 };
 
-
 /**
  * A ListArrayBuilder for listing PersistentChunk objects.
  * Technically, we could take the ArrayUAID from the PersistentChunk. That value should be the same as the ArrayUAID that
  * points to the node in the tree. But we are taking the value from the tree to be extra defensive.
  */
-class ListChunkMapArrayBuilder : public ListArrayBuilder <ChunkMapEntry>
+struct ListChunkMapArrayBuilder : ListArrayBuilder<ChunkMapEntry>
 {
-private:
-    /**
-     * Verbose names of all the attributes output by list('chunk map') for internal consistency and dev readability.
-     */
-    enum Attrs
+    enum
     {
-        STORAGE_VERSION     =0,
-        INSTANCE_ID         =1,
-        DATASTORE_GUID      =2,
-        DISK_HEADER_POS     =3,
-        DISK_OFFSET         =4,
-        U_ARRAY_ID          =5,
-        V_ARRAY_ID          =6,
-        ATTRIBUTE_ID        =7,
-        COORDINATES         =8,
-        COMPRESSION         =9,
-        FLAGS               =10,
-        NUM_ELEMENTS        =11,
-        COMPRESSED_SIZE     =12,
-        UNCOMPRESSED_SIZE   =13,
-        ALLOCATED_SIZE      =14,
-        ADDRESS             =15,
-        CLONE_OF            =16,
-        CLONES              =17,
-        NEXT                =18,
-        PREV                =19,
-        DATA                =20,
-        ACCESS_COUNT        =21,
-        N_WRITERS           =22,
-        TIMESTAMP           =23,
-        RAW                 =24,
-        WAITING             =25,
-        LAST_POS            =26,
-        FIRST_POS_OVERLAP   =27,
-        LAST_POS_OVERLAP    =28,
-        STORAGE             =29,
-        EMPTY_INDICATOR     =30,
-        NUM_ATTRIBUTES      =31
+        STORAGE_VERSION     ,
+        INSTANCE_ID         ,
+        DATASTORE_GUID      ,
+        DISK_HEADER_POS     ,
+        DISK_OFFSET         ,
+        U_ARRAY_ID          ,
+        V_ARRAY_ID          ,
+        ATTRIBUTE_ID        ,
+        COORDINATES         ,
+        COMPRESSION         ,
+        FLAGS               ,
+        NUM_ELEMENTS        ,
+        COMPRESSED_SIZE     ,
+        UNCOMPRESSED_SIZE   ,
+        ALLOCATED_SIZE      ,
+        ADDRESS             ,
+        CLONE_OF            ,
+        CLONES              ,
+        NEXT                ,
+        PREV                ,
+        DATA                ,
+        ACCESS_COUNT        ,
+        N_WRITERS           ,
+        TIMESTAMP           ,
+        RAW                 ,
+        WAITING             ,
+        LAST_POS            ,
+        FIRST_POS_OVERLAP   ,
+        LAST_POS_OVERLAP    ,
+        STORAGE             ,
+        EMPTY_INDICATOR     ,
+        NUM_ATTRIBUTES
     };
 
-    /**
-     * Add information about a PersistentChunk to the array.
-     * @param value - a pair of the Unversioned Array ID and PersistentChunk to list
-     */
-    virtual void addToArray(ChunkMapEntry const& value);
-
-public:
-    /**
-     * Get the attributes of the array
-     * @return the attribute descriptors
-     */
+    virtual void       addToArray(value_type const&);
     virtual Attributes getAttributes() const;
+};
+
+/**
+ *  A ListArrayBuilder for listing 'mallinfo' structures, one per instance.
+ */
+struct ListMeminfoArrayBuilder : ListArrayBuilder<struct mallinfo>
+{
+    enum
+    {
+        ARENA,              /* non-mmapped space allocated from system      */
+        ORDBLKS,            /* number of free chunks                        */
+        SMBLKS,             /* number of fastbin blocks                     */
+        HBLKS,              /* number of mmapped regions                    */
+        HBLKHD,             /* space in mmapped regions                     */
+        USMBLKS,            /* maximum total allocated space                */
+        FSMBLKS,            /* space available in freed fastbin blocks      */
+        UORDBLKS,           /* total allocated space                        */
+        FORDBLKS,           /* total free space                             */
+        KEEPCOST,           /* top-most, releasable (via malloc_trim) space */
+        EMPTY_INDICATOR,
+        NUM_ATTRIBUTES
+    };
+
+    virtual Attributes      getAttributes() const;
+    virtual void            addToArray(const value_type&);
 };
 
 /**
@@ -272,11 +280,11 @@ struct LibraryInformation
     string buildType;
 
     LibraryInformation(string const& name,
-                       uint32_t const maV,
-                       uint32_t const miV,
-                       uint32_t const pV,
-                       uint32_t const bN,
-                       string const buildType = ""):
+                       uint32_t maV,
+                       uint32_t miV,
+                       uint32_t pV,
+                       uint32_t bN,
+                       string const& buildType = string()):
         pluginName(name),
         majorVersion(maV),
         minorVersion(miV),
@@ -287,78 +295,112 @@ struct LibraryInformation
 };
 
 /**
- * A ListArrayBuilder for listing PersistentChunk objects.
- * Technically, we could take the ArrayUAID from the PersistentChunk. That value should be the same as the ArrayUAID that
- * points to the node in the tree. But we are taking the value from the tree to be extra defensive.
+ *  A ListArrayBuilder for listing loaded library information.
  */
-class ListLibrariesArrayBuilder : public ListArrayBuilder <LibraryInformation>
+struct ListLibrariesArrayBuilder : ListArrayBuilder<LibraryInformation>
 {
-private:
-    /**
-     * Verbose names of all the attributes output by list('chunk map') for internal consistency and dev readability.
-     */
-    enum Attrs
+    enum
     {
-        PLUGIN_NAME     =0,
-        MAJOR           =1,
-        MINOR           =2,
-        PATCH           =3,
-        BUILD           =4,
-        BUILD_TYPE      =5,
-        EMPTY_INDICATOR =6,
-        NUM_ATTRIBUTES  =7
+        PLUGIN_NAME     ,
+        MAJOR           ,
+        MINOR           ,
+        PATCH           ,
+        BUILD           ,
+        BUILD_TYPE      ,
+        EMPTY_INDICATOR ,
+        NUM_ATTRIBUTES
     };
 
-    /**
-     * Add information about a PersistentChunk to the array.
-     * @param value - a pair of the Unversioned Array ID and PersistentChunk to list
-     */
-    virtual void addToArray(LibraryInformation const& item);
-
-public:
-    /**
-     * Get the attributes of the array
-     * @return the attribute descriptors
-     */
+    virtual void       addToArray(value_type const&);
     virtual Attributes getAttributes() const;
 };
 
 /**
- * A ListArrayBuilder for listing Query objects.
+ *  A ListArrayBuilder for listing datastore information.
  */
-class ListQueriesArrayBuilder : public ListArrayBuilder < boost::shared_ptr<Query> >
+struct ListDataStoresArrayBuilder : ListArrayBuilder<DataStore>
 {
-private:
-    /**
-     * Verbose names of all the attributes output by list('queries') for internal consistency and dev readability.
-     */
-    enum Attrs
+    enum
     {
-    QUERY_ID=0,
-    COORDINATOR,
-    QUERY_STR,
-    CREATION_TIME,
-    ERROR_CODE,
-    ERROR,
-    IDLE,
-    EMPTY_INDICATOR,
-    NUM_ATTRIBUTES // must be last
+        GUID            ,
+        FILE_BYTES      ,
+        FILE_BLOCKS_512 ,
+        RESERVED_BYTES  ,
+        FREE_BYTES      ,
+        EMPTY_INDICATOR ,
+        NUM_ATTRIBUTES
     };
 
-    /**
-     * Add information about a Query to the array.
-     * @param item query to add
-     */
-    virtual void addToArray(boost::shared_ptr<Query> const& item);
-
-public:
-    /**
-     * Get the attributes of the array
-     * @return the attribute descriptors
-     */
+    virtual void       addToArray(value_type const&);
     virtual Attributes getAttributes() const;
 };
 
-}
+/**
+ *  A ListArrayBuilder for listing Query objects.
+ */
+struct ListQueriesArrayBuilder : ListArrayBuilder<boost::shared_ptr<Query> >
+{
+    enum
+    {
+        QUERY_ID,
+        COORDINATOR,
+        QUERY_STR,
+        CREATION_TIME,
+        ERROR_CODE,
+        ERROR,
+        IDLE,
+        EMPTY_INDICATOR,
+        NUM_ATTRIBUTES
+    };
 
-#endif /* LISTARRAYBUILDER_H_ */
+    virtual void       addToArray(value_type const&);
+    virtual Attributes getAttributes() const;
+};
+
+
+/**
+ *  A ListArrayBuilder for listing counter values.
+ */
+struct ListCounterArrayBuilder : ListArrayBuilder<CounterState::Entry>
+{
+    enum
+    {
+        NAME,
+        TOTAL,
+        TOTAL_MSECS,
+        AVG_MSECS,
+        EMPTY_INDICATOR,
+        NUM_ATTRIBUTES
+    };
+
+    virtual void       addToArray(value_type const&);
+    virtual Attributes getAttributes() const;
+};
+
+/**
+ *  A ListArrayBuilder for listing array information.
+ */
+class ListArraysArrayBuilder : public ListArrayBuilder<ArrayDesc>
+{
+public:
+    enum
+    {
+    ARRAY_NAME,
+    ARRAY_UAID,
+    ARRAY_ID,
+    ARRAY_SCHEMA,
+    ARRAY_IS_AVAILABLE,
+    ARRAY_IS_TRANSIENT,
+    EMPTY_INDICATOR,
+    NUM_ATTRIBUTES
+    };
+    virtual void addToArray(value_type const&);
+    virtual Attributes getAttributes() const;
+    virtual Dimensions getDimensions(boost::shared_ptr<Query> const& query) const;
+};
+
+/****************************************************************************/
+}
+/****************************************************************************/
+#endif
+/****************************************************************************/

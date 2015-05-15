@@ -398,10 +398,30 @@ SCIDB QUERY : <cross_join(data_array,UB,X,x)>
 {8} 9,4
 
 SCIDB QUERY : <cross_join(Media,two_dimension,a,c)>
-[An error expected at this place for the query "cross_join(Media,two_dimension,a,c)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+{a,b,d} val,age
+{1,1,1} 2,2
+{1,1,2} 2,3
+{1,2,1} 3,2
+{1,2,2} 3,3
+{1,3,1} 4,2
+{1,3,2} 4,3
+{2,1,1} 5,5
+{2,1,2} 5,6
+{2,2,1} 6,5
+{2,2,2} 6,6
+{2,3,1} 7,5
+{2,3,2} 7,6
 
 SCIDB QUERY : <cross_join(subarray(Media,1,1,2,2),two_dimension_A,b,II)>
-[An error expected at this place for the query "cross_join(subarray(Media,1,1,2,2),two_dimension_A,b,II)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+{a,b,JJ} val,age
+{0,0,0} 2,0
+{0,0,1} 2,1
+{0,1,0} 3,1
+{0,1,1} 3,2
+{1,0,0} 5,0
+{1,0,1} 5,1
+{1,1,0} 6,1
+{1,1,1} 6,2
 
 SCIDB QUERY : <cross_join(two_dimension,two_dimension_A)>
 {c,d,II,JJ} age,age
@@ -486,7 +506,15 @@ SCIDB QUERY : <cross_join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2))>
 {1,1,1,1} 12,6
 
 SCIDB QUERY : <cross_join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2),a,f)>
-[An error expected at this place for the query "cross_join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2),a,f)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+{a,b,e} val,val
+{0,0,0} 6,2
+{0,0,1} 6,5
+{0,1,0} 7,2
+{0,1,1} 7,5
+{1,0,0} 11,3
+{1,0,1} 11,6
+{1,1,0} 12,3
+{1,1,1} 12,6
 
 SCIDB QUERY : <join(subarray(Media,2,2,3,3),subarray(Media_A,1,1,2,2))>
 {a,b} val,val
@@ -1065,10 +1093,45 @@ SCIDB QUERY : <cross_join (Media_B,Media_C,g,I)>
 {3,3,3} 12,12
 
 SCIDB QUERY : <cross_join (Media_B,Media_C,g,J)>
-[An error expected at this place for the query "cross_join (Media_B,Media_C,g,J)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+{g,h,I} val,val
+{1,1,1} 2,2
+{1,1,2} 2,5
+{1,2,1} 3,2
+{1,2,2} 3,5
+{2,1,1} 5,3
+{2,1,2} 5,6
+{2,2,1} 6,3
+{2,2,2} 6,6
+{1,1,3} 2,10
+{1,2,3} 3,10
+{2,1,3} 5,11
+{2,2,3} 6,11
+{1,3,1} 4,2
+{1,3,2} 4,5
+{2,3,1} 7,3
+{2,3,2} 7,6
+{1,3,3} 4,10
+{2,3,3} 7,11
+{3,1,1} 10,4
+{3,1,2} 10,7
+{3,2,1} 11,4
+{3,2,2} 11,7
+{3,1,3} 10,12
+{3,2,3} 11,12
+{3,3,1} 12,4
+{3,3,2} 12,7
+{3,3,3} 12,12
 
 SCIDB QUERY : <cross_join(two_dimension_A,two_dimension_B,II,length)>
-[An error expected at this place for the query "cross_join(two_dimension_A,two_dimension_B,II,length)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+{II,JJ,breadth} age,age
+{0,0,0} 0,0
+{0,0,1} 0,1
+{0,1,0} 1,0
+{0,1,1} 1,1
+{1,0,0} 1,-1
+{1,0,1} 1,1
+{1,1,0} 2,-1
+{1,1,1} 2,1
 
 SCIDB QUERY : <cross_join(repart(two_dimension_A,< age:int32>[ II=0:1,3,0 , JJ=0:1,3,0]),two_dimension_B,II,length)>
 {II,JJ,breadth} age,age

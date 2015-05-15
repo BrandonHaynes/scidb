@@ -74,6 +74,14 @@ chroot_sudoers_pbuilder
 pbuilder_apt-transport-https
 }
 
+function ubuntu1404 ()
+{
+apt-get update
+apt-get install -y build-essential dpkg-dev pbuilder debhelper m4 cdbs quilt apt-transport-https
+chroot_sudoers_pbuilder
+pbuilder_apt-transport-https
+}
+
 function redhat63 ()
 {
 echo "We do not support build SciDB under RedHat 6. Please use CentOS 6 instead"
@@ -90,4 +98,8 @@ fi
 
 if [ "${OS}" = "Ubuntu 12.04" ]; then
     ubuntu1204
+fi
+
+if [ "${OS}" = "Ubuntu 14.04" ]; then
+    ubuntu1404
 fi

@@ -53,15 +53,16 @@
 
 #include <array/Array.h>
 #include <array/MemArray.h>
+#include <array/StreamArray.h>
 #include <query/TypeSystem.h>
 #include <query/LogicalExpression.h>
 #include <query/Expression.h>
 #include <query/Query.h>
 #include <system/Config.h>
-#include <query/DimensionIndex.h>
 #include <util/InjectedError.h>
 #include <util/ThreadPool.h>
 #include <query/SGChunkReceiver.h>
+#include <query/Aggregate.h>
 
 namespace scidb
 {
@@ -1180,6 +1181,16 @@ public:
     static PhysicalBoundaries createFromFullSchema(ArrayDesc const& schema );
 
     /**
+     * Create a new set of boundaries for an array using a list of chunk coordinates present in the array
+     * @param inputArray for which the boundaries to be computed; must support Array::RANDOM access
+     * @param chunkCoordinates a set of array chunk coordinates
+     * @return boundaries with coordinates at edges of inputArray
+     */
+    static PhysicalBoundaries createFromChunkList(boost::shared_ptr<Array>& inputArray,
+                                                  const std::set<Coordinates, CoordinatesLess>& chunkCoordinates);
+
+
+    /**
      * Create a new set of boundaries that span numDimensions dimensions but contain 0 cells (fully sparse array).
      * @param numDimensions desired number of dimensions
      * @return boundaries with numDimensions nonintersecting coordinates.
@@ -1241,7 +1252,7 @@ public:
     /**
      * Noop. Required to satisfy the PhysicalQueryPlanNode default ctor.
      */
-    PhysicalBoundaries()
+    PhysicalBoundaries() : _density(0.0)
     {}
 
     /**
@@ -1473,8 +1484,8 @@ public:
     }
 
 private:
-    reqType _requiredType;
-    vector<ArrayDistribution> _specificRequirements;
+    reqType                   const _requiredType;
+    vector<ArrayDistribution> const _specificRequirements;
 };
 
 class DimensionGrouping
@@ -1484,53 +1495,45 @@ public:
     {}
 
     DimensionGrouping(Dimensions const& originalDimensions,
-                      Dimensions const& groupedDimensions) :
-        _dimensionMask(0)
+                      Dimensions const& groupedDimensions)
     {
-        for (size_t i = 0; i < groupedDimensions.size(); i++)
+        _dimensionMask.reserve(originalDimensions.size());
+
+        for (size_t i=0,n=groupedDimensions.size(); i!=n ; ++i)
         {
             DimensionDesc d = groupedDimensions[i];
             string const& baseName = d.getBaseName();
             ObjectNames::NamesType const& aliases = d.getNamesAndAliases();
-            for (size_t j = 0; j < originalDimensions.size(); j++)
+            for (size_t j=0,k=originalDimensions.size(); j!=k ; ++j)
             {
                 DimensionDesc dO = originalDimensions[j];
                 if (dO.getBaseName() == baseName &&
                     dO.getNamesAndAliases() == aliases &&
-                    (dO.getLength() == INFINITE_LENGTH || dO.getLength() == d.getLength()))
+                    (dO.getLength()==INFINITE_LENGTH || dO.getLength()==d.getLength()))
                 {
                     _dimensionMask.push_back(j);
                 }
             }
         }
-        SCIDB_ASSERT(_dimensionMask.size() == 0 ||
-                     _dimensionMask.size() == groupedDimensions.size());
+
+        assert(_dimensionMask.empty() || _dimensionMask.size()==groupedDimensions.size());
     }
 
-    inline Coordinates reduceToGroup(Coordinates const& in) const
+    Coordinates reduceToGroup(CoordinateCRange in) const
     {
-        if (_dimensionMask.size()==0)
-        {
-            return Coordinates(1,0);
-        }
-
-        Coordinates out(_dimensionMask.size());
-        for (size_t i = 0; i < _dimensionMask.size(); i++)
-        {
-            out[i] = in[_dimensionMask[i]];
-        }
+        Coordinates out(std::max(_dimensionMask.size(),1UL));
+        reduceToGroup(in,out);
         return out;
     }
 
-    inline void reduceToGroup(Coordinates const& in, Coordinates & out) const
+    void reduceToGroup(CoordinateCRange in,CoordinateRange out) const
     {
-        if (_dimensionMask.size()==0)
+        if (_dimensionMask.empty())
         {
-            out[0]=0;
-            return;
+            out[0] = 0;
         }
-
-        for (size_t i = 0; i < _dimensionMask.size(); i++)
+        else
+        for (size_t i=0, n=_dimensionMask.size(); i!=n; ++i)
         {
             out[i] = in[_dimensionMask[i]];
         }
@@ -2033,9 +2036,40 @@ class PhysicalOperator
      */
     virtual void toString(std::ostream &out, int indent = 0) const;
 
+    /**
+     * SciDBExecutor call this framework method, executeWrapper()
+     * which normally simply calls execute() with the same arguments.
+     * The indirection provides a hook for profiling or execution accounting.
+     * One may then easily replace that default implementation in OperatorProfiling.cpp
+     * with a custom one.  This cleanly separates SciDB from purpose-build profiling code.
+     *
+     * For arguments, see execute()
+     */
+    virtual boost::shared_ptr< Array> executeWrapper(std::vector< boost::shared_ptr< Array> >&,boost::shared_ptr<Query>);
+
     virtual boost::shared_ptr< Array> execute(
             std::vector< boost::shared_ptr< Array> >&,
             boost::shared_ptr<Query>) = 0;
+
+    /**
+     * This routine allows operators to communicate with profiling code
+     * such as provided via executeWrapper(), means to give a factor
+     * by which their execution time would scale with the parameters of the problem
+     * if they operated exactly as intended.  For example, an operator that received
+     * an array of N cells could return the value N*logN .
+     * If all actual timings divided by their problemScaleNormalization are relatively
+     * constant, then the scaling is relatively successful.
+     */
+    virtual double problemScaleNormalization() { return 1; }
+
+    /**
+     * this routine allows problemScaleNormaliation() to optionally provide a set of
+     * units for its normalization measure.  For example, if the execution time would
+     * become a constant when divided by the number of cells this might return
+     * string("cells").  The profiling code can then use this string to make results
+     * much easier to read
+     */
+    virtual string problemScaleNormalizationName() { return string("null"); }
 
     virtual DistributionRequirement getDistributionRequirement(
             std::vector<ArrayDesc> const& sourceSchemas) const
@@ -2107,24 +2141,41 @@ class PhysicalOperator
     }
 
     /**
-     *  [Optimizer API] Determine if the operator requires a repart node.
-     *  @param inputSchema shape of array that will given as input (op must be unary)
-     *  @return true if repart is needed. If so, getRepartSchema() will provide the schema of needed repart.
+     *  [Optimizer API] Determine if the operator requires repartitioning of any of its inputs.
+     *
+     *  @param[in] inputSchemas shapes of arrays that will be given as input
+     *  @param[out] repartPtrs pointers to repartitioning schemas for corresponding inputs
+     *
+     *  @description During query optimization the physical operator gets a chance to examine
+     *  its input schemas and decide whether and how each should be repartitioned.  To
+     *  repartition inputSchemas[i], set repartPtrs[i] to be a pointer to the desired ArrayDesc
+     *  schema descriptor---which may be one of the inputSchemas (not well tested), or may be a
+     *  synthesized schema stored locally.  A NULL entry in repartPtrs indicates that the
+     *  corresponding input should not be repartitioned.
+     *
+     *  Calling code MUST NOT call @c delete on any of the returned repartSchema pointers.
+     *  Operators implementing this method may use the protected _repartSchemas vector below to
+     *  manage schema storage.
+     *
+     *  The default is "no repartitioning needed", which is indicated by an empty repartPtrs
+     *  vector.  We also provide a canned repartitioning policy, repartByLeftmost(), intended to
+     *  be the default repartitioning policy for non-unary operators.  Other canned policies are
+     *  possible.
+     *
+     *  @note It's difficult to compute the optimal chunk sizes (and overlaps?) over the entire
+     *  query.  One day we may have a better solution, but for now we make repartitioning
+     *  decisions locally, by asking each PhysicalOperator how it would like its inputs
+     *  repartitioned.
+     *
+     *  @see PhysicalOperator::repartByLeftmost
+     *  @see PhysicalJoin::requiresRepart
+     *  @see PhysicalWindow::requiresRepart
+     *  ...and others.
      */
-    virtual bool requiresRepart(ArrayDesc const& inputSchema) const
+    virtual void requiresRepart(vector<ArrayDesc> const& inputSchemas,
+                                vector<ArrayDesc const*>& repartPtrs) const
     {
-        return false;
-    }
-
-    /**
-     *  [Optimizer API] Determine the repart schema required
-     *  @param inputSchema shape of array that will given as input (op must be unary)
-     *  @return the required schema of input (inputSchema with adjusted chunk sizes and overlap sizes)
-     */
-    virtual ArrayDesc getRepartSchema(ArrayDesc const& inputSchema) const
-    {
-        throw SYSTEM_EXCEPTION(SCIDB_SE_OPERATOR,
-                               SCIDB_LE_UNEXPECTED_GETREPARTSCHEMA);
+        repartPtrs.clear();
     }
 
     bool getTileMode() const
@@ -2159,7 +2210,7 @@ class PhysicalOperator
      * @param[out] query the query context
      * @return an object with the same data and schema as input that supports Array::RANDOM access.
      */
-    shared_ptr<Array> ensureRandomAccess(shared_ptr<Array>& input, shared_ptr<Query> const& query);
+    static boost::shared_ptr<Array> ensureRandomAccess(shared_ptr<Array>& input, shared_ptr<Query> const& query);
 
   protected:
     Parameters _parameters;
@@ -2167,8 +2218,19 @@ class PhysicalOperator
     Statistics _statistics;
     arena::ArenaPtr _arena;
     bool _tileMode;
-
     boost::weak_ptr<Query> _query;
+    mutable std::vector<boost::shared_ptr<ArrayDesc> > _repartSchemas;
+
+    /**
+     * Canned impl of requiresRepart() for use by most n-ary auto-repartitioning operators.
+     *
+     * @description Operators whose only requirement is that all inputs have like chunk sizes
+     * and overlaps may call this canned implementation.  All input arrays will be repartitioned
+     * to match the chunk sizes of inputSchemas[0] (if they do not already match).  Minimum
+     * overlap values will be chosen (the 'join' operator insists on this... for now).
+     */
+    void repartByLeftmost(vector<ArrayDesc> const& inputSchemas,
+                          vector<ArrayDesc const*>& repartPtrs) const;
 
   private:
     std::string _logicalName;
@@ -2178,7 +2240,7 @@ class PhysicalOperator
   public:
     /*
      * Get a global queue so as to push operator-based jobs into it.
-     * The function, upon first call, will create a ThreadPool of CONFIG_EXEC_THREADS threads.
+     * The function, upon first call, will create a ThreadPool of CONFIG_RESULT_PREFETCH_THREADS threads.
      */
     static boost::shared_ptr<JobQueue>  getGlobalQueueForOperators();
 
@@ -2325,17 +2387,27 @@ class UserDefinedPhysicalOperatorFactory: public PhysicalOperatorFactory<T>
 #define REGISTER_PHYSICAL_OPERATOR_FACTORY(name, ulname, upname) static UserDefinedPhysicalOperatorFactory<name> _physicalFactory##name(ulname, upname)
 
 /**
- * Computes an instance where a chunk should be sent.
- * @param psData    see Metadata.h::PartitioningSchema
+ * Computes an instance where a chunk should be sent according to a specific distribution
+ * @param chunkPosition chunk coordinates
+ * @param desc array descriptor for the chunk
+ * @param ps partitioning schema
+ * @param distMapper NULL, or the object that maps each chunk position to some other position before applying the partitioning scheme
+ * @param instanceIdShift to apply to each chunk's destination instance, which is determined by the partitioning scheme
+ * @param destInstanceId only used in conjunction with the psLocalInstance partitioning scheme;
+ *        COORDINATOR_INSTANCE_MASK is equivalent to the query coordinator instance. In all other cases it must be ALL_INSTANCE_MASK.
+ * @param psData a pointer to the data that is specific to the particular partitioning schema, NULL by default
  */
-InstanceID getInstanceForChunk(boost::shared_ptr<Query> query,
-                       Coordinates chunkPosition,
-                       ArrayDesc const& desc,
-                       PartitioningSchema ps,
-                       boost::shared_ptr<DistributionMapper> distMapper,
-                       size_t shift,
-                       InstanceID defaultInstanceIDId,
-                       PartitioningSchemaData* psData = NULL);
+InstanceID getInstanceForChunk(boost::shared_ptr<Query> const& query,
+                               Coordinates const& chunkPosition,
+                               ArrayDesc const& desc,
+                               PartitioningSchema ps,
+                               boost::shared_ptr<DistributionMapper> const& distMapper,
+                               size_t instanceIdShift,
+                               InstanceID destInstanceId,
+                               PartitioningSchemaData* psData = NULL);
+
+#ifndef SCIDB_CLIENT
+
 
 /**
  * The redimension info, used when merging two chunks.
@@ -2424,12 +2496,12 @@ public:
     }
 };
 
-const InstanceID ALL_INSTANCES_MASK = -1;
+const InstanceID ALL_INSTANCE_MASK = -1;
 const InstanceID COORDINATOR_INSTANCE_MASK = -2;
 
 /**
  * This function repartitions the inputArray.
- *
+ * @deprecated DEPRECATED as of release 14.11. Use redistributeToRandomAccess(), redistributeToArray() or  pullRedistribute() instead.
  * @param inputArray a pointer to local part of repartitioning array
  * @param query a query context
  * @param ps a new partitioning schema
@@ -2442,35 +2514,195 @@ boost::shared_ptr< Array> redistribute(boost::shared_ptr< Array> inputArray,
                                        boost::shared_ptr< Query> query,
                                        PartitioningSchema ps,
                                        const std::string& resultArrayName = "",
-                                       InstanceID instanceID = ALL_INSTANCES_MASK,
+                                       InstanceID instanceID = ALL_INSTANCE_MASK,
                                        boost::shared_ptr<DistributionMapper> distMapper = boost::shared_ptr<DistributionMapper> (),
                                        size_t shift = 0,
-                                       PartitioningSchemaData* psData = NULL );
+                                       PartitioningSchemaData* psData = NULL);
 
 /**
- * @note IMPORTANT: FOR INTERNAL USE ONLY. It does not support all the functionality provided by redistribute().
  * Reistribute (i.e S/G) a given array without full materialization.
  * It returns an array that streams data when pulled (via an ArrayIterator).
- * @note IMPORTANT: Each attribute needs to be pulled *completely* (one at a time) before pullRedistribute()/redistribute()
+ * @note IMPORTANT:
+ * The return array has several limitations:
+ * 1. Each attribute needs to be pulled one at a time. If the input array supports only the SINGLE_PASS access
+ * and has more than one attribute, the array returned by pullRedistribute() can be used to pull only one attribute.
+ * redistributeToArray()/ToRandomAccess() can be used to pull *all*  attributes from the SINGLE_PASS array.
+ * 2. All desired attributes must be pulled *completely* before pullRedistribute()/redistributeXXX()
  * can be called again. An attribute must either be pulled completely or not at all.
- * After all selected attributes are completely consumed,
+ * 3. After all selected attributes are completely consumed,
  * the SynchableArray::sync() method must be called on the returned array.
- * @param inputArray to redistribute, must support at least MULTI_PASS access
+ * @param inputArray to redistribute, must support at least MULTI_PASS access or have only a single attribute
  * @param query context
- * @param ps new partitioning schema, psReplication is not supported
- * @param instanceIDMask
- * @param distMapper
- * @param shift
+ * @param ps new partitioning schema
+ * @param instanceId only used in conjunction with the psLocalInstance partitioning scheme;
+ *        COORDINATOR_INSTANCE_MASK is equivalent to the query coordinator instance. In all other cases it must be ALL_INSTANCE_MASK.
+ * @param distMapper NULL, or the object that maps each chunk position to some other position before applying the partitioning scheme
+ * @param instanceIdShift to apply to each chunk's destination instance, which is determined by the partitioning scheme
  * @param psData a pointer to the data that is specific to the particular partitioning schema
- * @return a new SynchableArray if inputArray needs redistribution; inputArray otherwise
+ * @param enforceDataIntegrity if true  data collision/unordered data would cause a UserException
+ *        while pulling on the output array (either locally or remotely).
+ * @return a new SynchableArray if inputArray needs redistribution; otherwise inputArray is returned and enforceDataIntegrity has no effect
  */
-shared_ptr<Array> pullRedistribute(boost::shared_ptr<Array>& inputArray,
-                                   const boost::shared_ptr<Query>& query,
-                                   PartitioningSchema ps,
-                                   InstanceID instanceIDMask,
-                                   const boost::shared_ptr<DistributionMapper>& distMapper,
-                                   size_t shift,
-                                   const boost::shared_ptr<PartitioningSchemaData>& psData);
+boost::shared_ptr<Array>
+pullRedistribute(boost::shared_ptr<Array>& inputArray,
+                 const boost::shared_ptr<Query>& query,
+                 PartitioningSchema ps,
+                 InstanceID instanceId,
+                 const boost::shared_ptr<DistributionMapper>& distMapper,
+                 size_t instanceIdShift,
+                 const boost::shared_ptr<PartitioningSchemaData>& psData,
+                 bool enforceDataIntegrity=false); //XXX TODO: remove default
+
+/**
+ * Reistribute (i.e S/G) a given array into an array with the RANDOM access support
+ * @param inputArray to redistribute
+ * @param query context
+ * @param ps new partitioning schema
+ * @param instanceId only used in conjunction with the psLocalInstance partitioning scheme;
+ *        COORDINATOR_INSTANCE_MASK is equivalent to the query coordinator instance. In all other cases it must be ALL_INSTANCE_MASK.
+ * @param distMapper NULL, or the object that maps each chunk position to some other position before applying the partitioning scheme
+ * @param instanceIdShift to apply to each chunk's destination instance, which is determined by the partitioning scheme
+ * @param psData a pointer to the data that is specific to the particular partitioning schema
+ * @param enforceDataIntegrity if true  data collision/unordered data would cause a UserException
+ *        while pulling on the output array (either locally or remotely).
+ * @return a new Array with RANDOM access if inputArray needs redistribution;
+ *         otherwise inputArray is returned and enforceDataIntegrity has no effect
+ */
+boost::shared_ptr<Array>
+redistributeToRandomAccess(boost::shared_ptr<Array>& inputArray,
+                           const boost::shared_ptr<Query>& query,
+                           PartitioningSchema ps,
+                           InstanceID destInstanceId,
+                           const boost::shared_ptr<DistributionMapper > & distMapper,
+                           size_t shift,
+                           const boost::shared_ptr<PartitioningSchemaData>& psData,
+                           bool enforceDataIntegrity=false);  //XXX TODO: remove default
+/**
+ * Reistribute (i.e S/G) a given AGGREGATE array into another AGGREGATE array with the RANDOM access support.
+ * An aggregate array is an array of intermediate aggregate states.
+ * @see Aggregate.h
+ * @param inputArray an aggregate array to redistribute
+ * @param query context
+ * @param aggreagtes a list aggregate function pointers for each attribute, the aggregate function pointers can be NULL
+ *        The aggregate function will be used to merge partial chunks from different instances (in an undefined order).
+ * @param ps new partitioning schema
+ * @param instanceId only used in conjunction with the psLocalInstance partitioning scheme;
+ *        COORDINATOR_INSTANCE_MASK is equivalent to the query coordinator instance. In all other cases it must be ALL_INSTANCE_MASK.
+ * @param distMapper NULL, or the object that maps each chunk position to some other position before applying the partitioning scheme
+ * @param instanceIdShift to apply to each chunk's destination instance, which is determined by the partitioning scheme
+ * @param psData a pointer to the data that is specific to the particular partitioning schema
+ * @param enforceDataIntegrity if true  data collision/unordered data would cause a UserException
+ *        while pulling on the output array (either locally or remotely).
+ * @return a new Array with RANDOM access if inputArray needs redistribution;
+ *         otherwise inputArray is returned and enforceDataIntegrity has no effect
+ */
+shared_ptr<Array> redistributeToRandomAccess(shared_ptr<Array>& inputArray,
+                                             const shared_ptr<Query>& query,
+                                             const std::vector<AggregatePtr>& aggregates,
+                                             PartitioningSchema ps,
+                                             InstanceID destInstanceId,
+                                             const shared_ptr<DistributionMapper>& distMapper,
+                                             size_t shift,
+                                             const shared_ptr<PartitioningSchemaData>& psData,
+                                             bool enforceDataIntegrity=false);
+
+/**
+ * A vector of partial chunk merger pointers
+ */
+typedef std::vector<boost::shared_ptr<MultiStreamArray::PartialChunkMerger> > PartialChunkMergerList;
+
+/**
+ * Reistribute (i.e S/G) a given array into an array with the RANDOM access support.
+ * The caller can specify a custom partial chunk merger for each attribute.
+ * @param inputArray to redistribute
+ * @param query context
+ * @param mergers [in/out] a list of mergers for each attribute, a merger can be NULL if the default merger is desired.
+ *        Upon return the list will contain ALL NULLs.
+ * @param ps new partitioning schema
+ * @param instanceId only used in conjunction with the psLocalInstance partitioning scheme;
+ *        COORDINATOR_INSTANCE_MASK is equivalent to the query coordinator instance. In all other cases it must be ALL_INSTANCE_MASK.
+ * @param distMapper NULL, or the object that maps each chunk position to some other position before applying the partitioning scheme
+ * @param instanceIdShift to apply to each chunk's destination instance, which is determined by the partitioning scheme
+ * @param psData a pointer to the data that is specific to the particular partitioning schema
+ * @param enforceDataIntegrity if true  data collision/unordered data would cause a UserException
+ *        while pulling on the output array (either locally or remotely).
+ * @return a new Array with RANDOM access if inputArray needs redistribution;
+ *         otherwise inputArray is returned and enforceDataIntegrity has no effect
+ */
+boost::shared_ptr<Array> redistributeToRandomAccess(boost::shared_ptr<Array>& inputArray,
+                                                    const boost::shared_ptr<Query>& query,
+                                                    PartialChunkMergerList& mergers,
+                                                    PartitioningSchema ps,
+                                                    InstanceID destInstanceId,
+                                                    const boost::shared_ptr<DistributionMapper>& distMapper,
+                                                    size_t shift,
+                                                    const boost::shared_ptr<PartitioningSchemaData>& psData,
+                                                    bool enforceDataIntegrity);
+/**
+ * Reistribute (i.e S/G) from a given input array into a given output array
+ * @param inputArray to redistribute from
+ * @param outputArray to redistribute into
+ * @param newChunkCoordinates [in/out] if not NUll on entry, a set of all chunk positions added to outputArray
+ * @param query context
+ * @param ps new partitioning schema
+ * @param instanceId only used in conjunction with the psLocalInstance partitioning scheme;
+ *        COORDINATOR_INSTANCE_MASK is equivalent to the query coordinator instance. In all other cases it must be ALL_INSTANCE_MASK.
+ * @param distMapper NULL, or the object that maps each chunk position to some other position before applying the partitioning scheme
+ * @param instanceIdShift to apply to each chunk's destination instance, which is determined by the partitioning scheme
+ * @param psData a pointer to the data that is specific to the particular partitioning schema
+ * @param enforceDataIntegrity if true  data collision/unordered data would cause a UserException
+ *        while pulling on the output array (either locally or remotely). If inputArray does not require redistribution,
+ *        enforceDataIntegrity has no effect and the method is equivalent to Array::append()
+ */
+void redistributeToArray(boost::shared_ptr<Array>& inputArray,
+                         boost::shared_ptr<Array>& outputArray,
+                         std::set<Coordinates, CoordinatesLess>* newChunkCoordinates,
+                         const boost::shared_ptr<Query>& query,
+                         PartitioningSchema ps,
+                         InstanceID destInstanceId,
+                         const boost::shared_ptr<DistributionMapper > & distMapper,
+                         size_t shift,
+                         const boost::shared_ptr<PartitioningSchemaData>& psData,
+                         bool enforceDataIntegrity=false);  //XXX TODO: remove default
+
+/**
+ * Reistribute (i.e S/G) from a given input array into a given output array
+ * @param inputArray to redistribute from
+ * @param outputArray to redistribute into
+ * @param mergers [in/out] a list of mergers for each attribute, a merger can be NULL if the default merger is desired.
+ *        Upon return the list will contain ALL NULLs.
+ * @param newChunkCoordinates [in/out] if not NUll on entry, a set of all chunk positions added to outputArray
+ * @param query context
+ * @param ps new partitioning schema
+ * @param instanceId only used in conjunction with the psLocalInstance partitioning scheme;
+ *        COORDINATOR_INSTANCE_MASK is equivalent to the query coordinator instance. In all other cases it must be ALL_INSTANCE_MASK.
+ * @param distMapper NULL, or the object that maps each chunk position to some other position before applying the partitioning scheme
+ * @param instanceIdShift to apply to each chunk's destination instance, which is determined by the partitioning scheme
+ * @param psData a pointer to the data that is specific to the particular partitioning schema
+ * @param enforceDataIntegrity if true  data collision/unordered data would cause a UserException
+ *        while pulling on the output array (either locally or remotely). If inputArray does not require redistribution,
+ *        enforceDataIntegrity has no effect and the method is equivalent to Array::append()
+ */
+void redistributeToArray(boost::shared_ptr<Array>& inputArray,
+                         boost::shared_ptr<Array>& outputArray,
+                         PartialChunkMergerList& mergers,
+                         std::set<Coordinates, CoordinatesLess>* newChunkCoordinates,
+                         const boost::shared_ptr<Query>& query,
+                         PartitioningSchema ps,
+                         InstanceID destInstanceId,
+                         const boost::shared_ptr<DistributionMapper > & distMapper,
+                         size_t shift,
+                         const boost::shared_ptr<PartitioningSchemaData>& psData,
+                         bool enforceDataIntegrity=false);  //XXX TODO: remove default
+
+void syncBarrier(uint64_t barrierId, const boost::shared_ptr<scidb::Query>& query);
+
+/**
+ * For internal use only. Flushes any outgoing SG related messages.
+ */
+void syncSG(const boost::shared_ptr<Query>& query);
+
+#endif // SCIDB_CLIENT
 
 AggregatePtr resolveAggregate(boost::shared_ptr <OperatorParamAggregateCall>const& aggregateCall,
                               Attributes const& inputAttributes,
@@ -2489,27 +2721,9 @@ void addAggregatedAttribute (boost::shared_ptr <OperatorParamAggregateCall>const
                              ArrayDesc& outputDesc,
                              bool operatorDoesAggregationInOrder);
 
-void syncBarrier(uint64_t barrierId, boost::shared_ptr<scidb::Query> query);
-
-
-/**
- * Redistribute inputArray using the psHashPartitioned distribution scheme, using aggregate merge to merge overlapping cells.
- *
- * @param inputArray a pointer to local part of repartitioning array
- * @param query a query context
- * @param aggs a list of aggregates to use. Must have as many pointers as there are attributes in the array. If any pointers are NULL,
- *      the corresponding attribute is not aggregated (non-deterministic result in case of aggregate).
- * @return pointer to new local array with part of array after repart.
- */
-boost::shared_ptr<MemArray> redistributeAggregate(boost::shared_ptr<MemArray> inputArray,
-                                                  boost::shared_ptr<Query> query,
-                                                  vector <AggregatePtr> const& aggs,
-                                                  boost::shared_ptr<RedimInfo> redimInfo = shared_ptr<RedimInfo>());
-
 PhysicalBoundaries findArrayBoundaries(shared_ptr<Array> srcArray,
                                        boost::shared_ptr<Query> query,
                                        bool global = true);
-
 } // namespace
 
 

@@ -25,14 +25,14 @@
  *
  * @author knizhnik@garret.ru
  *
- * Physical implementation of DIMENSIONS operator for dimensionsing data from text files
+ * Physical implementation of DIMENSIONS operator for dimensioning data from text files
  */
 
 #include <string.h>
 
-#include "query/Operator.h"
-#include "array/TupleArray.h"
-#include "system/SystemCatalog.h"
+#include <query/Operator.h>
+#include <array/TupleArray.h>
+#include <system/SystemCatalog.h>
 
 using namespace std;
 using namespace boost;
@@ -49,7 +49,6 @@ public:
                        ArrayDesc const& schema):
         PhysicalOperator(logicalName, physicalName, parameters, schema)
     {
-        _result = boost::shared_ptr<Array>(new TupleArray(_schema, vector<boost::shared_ptr<Tuple> >()));
     }
 
     virtual bool changesDistribution(std::vector<ArrayDesc> const&) const
@@ -76,14 +75,13 @@ public:
         Coordinates highBoundary = catalog.getHighBoundary(arrayDesc.getId());
         Dimensions const& dims = arrayDesc.getDimensions();
         
-        vector< boost::shared_ptr<Tuple> > tuples(dims.size());
+        boost::shared_ptr<TupleArray> tuples(boost::make_shared<TupleArray>(_schema, _arena));
         for (size_t i = 0, size = dims.size(); i < size; i++)
         {
-            Tuple& tuple = *new Tuple(8);
-            tuples[i] = boost::shared_ptr<Tuple>(&tuple);
+            Value tuple[8];
             tuple[0].setData(dims[i].getBaseName().c_str(), dims[i].getBaseName().length() + 1);
             tuple[1] = Value(TypeLibrary::getType(TID_INT64));
-            tuple[1].setInt64(dims[i].getStart());
+            tuple[1].setInt64(dims[i].getStartMin());
             tuple[2] = Value(TypeLibrary::getType(TID_UINT64));
             tuple[2].setUint64(dims[i].getLength());
             tuple[3] = Value(TypeLibrary::getType(TID_UINT64));
@@ -95,14 +93,20 @@ public:
             tuple[6] = Value(TypeLibrary::getType(TID_INT64));
             tuple[6].setInt64(highBoundary[i]);
             tuple[7].setString(TID_INT64); //TODO-3667: remove type from dimensions output. NOTE: requires a lot of test changes
+
+            tuples->appendTuple(tuple);
         }
 
-        _result = boost::shared_ptr<Array>(new TupleArray(_schema, tuples));
+        _result = tuples;
     }
 
     boost::shared_ptr<Array> execute(vector< boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
         assert(inputArrays.size() == 0);
+        if (!_result)
+        {
+            _result = boost::make_shared<MemArray>(_schema, query);
+        }
         return _result;
     }
 

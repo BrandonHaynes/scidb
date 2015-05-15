@@ -50,12 +50,7 @@ namespace scidb
 
 Statistics StatisticsScope::systemStatistics;
 
-#ifndef __APPLE__
 __thread Statistics* currentStatistics = &StatisticsScope::systemStatistics;
-#else
-ThreadContext<Statistics> currentStatistics(&StatisticsScope::systemStatistics);
-#endif
-    
 
 inline size_t printSize(size_t size)
 {

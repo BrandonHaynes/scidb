@@ -26,6 +26,7 @@
 /****************************************************************************/
 
 #include <boost/foreach.hpp>                             // For BOOST_FOREACH
+#include <system/Exceptions.h>                           // For error messages
 #include <util/PointerRange.h>                           // For PointerRange
 #include <util/Arena.h>                                  // For arena library
 #include "query/Parser.h"                                // Public interface
@@ -131,6 +132,7 @@ Table*                           newTable (Arena&,Log&,Table*,cnodes bindings);
 
 /****************************************************************************/
 
+Node*&                           desugar  (Factory&,Log&,Node*&);
 Node*&                           inliner  (Factory&,Log&,Node*&);
 shared_ptr<LogicalExpression>    translate(Factory&,Log&,const StringPtr&,Node*);
 shared_ptr<LogicalQueryPlanNode> translate(Factory&,Log&,const StringPtr&,Node*,const QueryPtr&);

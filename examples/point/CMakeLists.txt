@@ -30,7 +30,3 @@ add_library(point SHARED ${point_src} ${point_include})
 extractDebugInfo("${GENERAL_OUTPUT_DIRECTORY}/plugins" "libpoint${CMAKE_SHARED_LIBRARY_SUFFIX}" point)
 set_target_properties(point PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${GENERAL_OUTPUT_DIRECTORY}/plugins)
 
-if (APPLE)
-  set_target_properties(point PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif (APPLE)
-

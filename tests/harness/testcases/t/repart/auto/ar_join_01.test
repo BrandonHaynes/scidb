@@ -1,0 +1,24 @@
+# Test automatic repartitioning of join() inputs.
+
+# Differing chunksizes and overlaps.
+
+--setup
+
+create array aa <v:int64 null default null> [x=0:19,10,5,y=0:9,10,0]
+create array bb <s:string NULL DEFAULT null> [z=0:19,100,0,w=0:9,10,4]
+--start-igdata
+store(build(aa, x+y), aa)
+store(between(build(bb, iif((z % 2) = 0, 'even', 'odd')), 5,2, 15,7 ), bb)
+--stop-igdata
+
+--test
+
+--start-query-logging
+join(aa, bb)
+join(bb, aa)
+--stop-query-logging
+
+--cleanup
+
+remove(aa)
+remove(bb)

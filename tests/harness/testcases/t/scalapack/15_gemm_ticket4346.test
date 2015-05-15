@@ -1,0 +1,27 @@
+--setup
+--start-query-logging
+
+# ticket 4346
+# when the local width * height of a matrix exceeded 2^31,
+# the multiplication of two 32-bit numbers at reformat.cpp line 236.
+# one of the multiplicands should have been increased to 64-bit before
+# the multiply to avoid overflow.
+# in GEMMPhysical.cpp (matrixLocalSize) wrapped negative before
+# The following reproduced the bug:
+
+create array smSquare<a: double>     [r=0:1000-1, 1000,0, c=0:1000-1,      1000,0]
+create array wideLarge<a: double >   [r=0:1000-1 ,1000,0, c=0:2147484,     1000,0]
+create array tallLarge<a: double >   [r=0:2147484,1000,0, c=0:1000-1,      1000,0]
+
+load_library('dense_linear_algebra')
+
+--test
+--start-igdata
+# note, missing cells will be treated as 0, so don't build the matrices
+# that will be very slow due to their size
+gemm(wideLarge, tallLarge, smSquare)
+
+--cleanup
+remove(smSquare)
+remove(wideLarge)
+remove(tallLarge)

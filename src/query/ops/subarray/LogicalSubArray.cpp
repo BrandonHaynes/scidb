@@ -29,11 +29,12 @@
 
 #include <utility>
 
-#include "query/Operator.h"
-#include "system/Exceptions.h"
+#include <query/Operator.h>
+#include <system/Exceptions.h>
 #include "SubArray.h"
 
-namespace scidb {
+namespace scidb
+{
 
 /***
  * Helper function to set the dimension start and length properties in the array descriptor.
@@ -152,9 +153,9 @@ public:
                 evaluate(
                     ((boost::shared_ptr<
                         OperatorParamLogicalExpression>&) _parameters[i])->getExpression(), query, TID_INT64);
-            if ( low.isNull()  || low.getInt64() < dims[i].getStart())
+            if ( low.isNull()  || low.getInt64() < dims[i].getStartMin())
             {
-                lowPos[i] = dims[i].getStart();
+                lowPos[i] = dims[i].getStartMin();
             }
             else
             {

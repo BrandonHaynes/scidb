@@ -53,85 +53,15 @@ using namespace boost;
 
 class SubArray;
 class SubArrayIterator;
-class SubArrayChunkIterator;
 
-void subarrayMappingArray(string const& dimName, string const& mappingArrayName, string const& tmpMappingArrayName, 
+void subarrayMappingArray(string const& dimName, string const& mappingArrayName, string const& tmpMappingArrayName,
                           Coordinate from, Coordinate till, boost::shared_ptr<Query> const& query);
 
-
-class SubArrayChunk : public DelegateChunk
-{
-    friend class SubArrayChunkIterator;
-    friend class SubArrayDirectChunkIterator;
-
-  private:
-    SubArray const& array;
-    Coordinates firstPos;
-    Coordinates firstPosWithOverlap;
-    Coordinates lastPos;
-    Coordinates lastPosWithOverlap;
-    bool        fullyBelongs;
-
-  public:
-    Coordinates const& getFirstPosition(bool withOverlap) const;
-    Coordinates const& getLastPosition(bool withOverlap) const;
-    boost::shared_ptr<ConstChunkIterator> getConstIterator(int iterationMode) const;
-
-    void setPosition(Coordinates const& pos);
-
-    SubArrayChunk(SubArray const& array, DelegateArrayIterator const& iterator, AttributeID attrID);
-};
-    
-class SubArrayChunkIterator : public ConstChunkIterator
-{
-  private:
-    SubArray const& array;
-    SubArrayChunk const& chunk;
-    ConstChunk const* inputChunk;
-    boost::shared_ptr<ConstArrayIterator> inputArrayIterator;
-    boost::shared_ptr<ConstChunkIterator> inputIterator;
-
-    Coordinates outPos;
-    Coordinates inPos;
-    bool hasCurrent;
-    int mode;
-
-  public:
-    int getMode();
-    Value& getItem();
-    bool isEmpty();
-    bool end();
-    void operator ++();
-    Coordinates const& getPosition();
-    bool setPosition(Coordinates const& pos);
-    void reset();
-    ConstChunk const& getChunk();
-
-    SubArrayChunkIterator(SubArrayChunk const& chunk, int iterationMode);
-};
-
-class SubArrayDirectChunkIterator : public DelegateChunkIterator
-{
-  private:
-    SubArray const& array;
-    Coordinates currPos;
-
-  public:
-    Coordinates const& getPosition();
-    bool setPosition(Coordinates const& pos);
-
-    SubArrayDirectChunkIterator(SubArrayChunk const& chunk, int iterationMode);
-};
-
 /***
- * The iterator of the subarray implements all the calls of the array iterator API though setPosition
- * calls.
  * NOTE: This looks like a candidate for an intermediate abstract class: PositionConstArrayIterator.
  */
 class SubArrayIterator : public DelegateArrayIterator
 {
-    friend class SubArrayChunkIterator;
-
 protected:
     bool setInputPosition(size_t i);
     void fillSparseChunk(size_t i);
@@ -142,9 +72,10 @@ protected:
     bool hasCurrent;
 
     Coordinates outChunkPos;
-    boost::shared_ptr<ChunkIterator> outIterator;
+    MemChunk sparseBitmapChunk;
     MemChunk sparseChunk;
-    boost::shared_ptr<ConstArrayIterator> emptyIterator;
+    // outIterator must be defined AFTER sparseXChunk because it needs to be destroyed BEFORE
+    boost::shared_ptr<ChunkIterator> outIterator;
 
   public:
 	/***
@@ -208,9 +139,6 @@ public:
 
 class SubArray : public DelegateArray
 {
-    friend class SubArrayChunk;
-    friend class SubArrayChunkIterator;
-    friend class SubArrayDirectChunkIterator;
     friend class SubArrayIterator;
     friend class MappedSubArrayIterator;
 
@@ -257,8 +185,7 @@ class SubArray : public DelegateArray
              boost::shared_ptr<Query> const& query);
 
     DelegateArrayIterator* createArrayIterator(AttributeID attrID) const;
-    DelegateChunk* createChunk(DelegateArrayIterator const* iterator, AttributeID attrID) const;
- 
+
     void out2in(Coordinates const& out, Coordinates& in) const;
     void in2out(Coordinates const& in, Coordinates& out) const;
 

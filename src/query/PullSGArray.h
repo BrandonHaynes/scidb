@@ -20,7 +20,6 @@
 * END_COPYRIGHT
 */
 
-
 /**
  * @file PullSGArray.h
  *
@@ -29,12 +28,13 @@
 
 #ifndef PULL_SG_ARRAY_H_
 #define PULL_SG_ARRAY_H_
-
+#include <boost/unordered_set.hpp>
 #include <log4cxx/logger.h>
 #include <array/Metadata.h>
 #include <array/StreamArray.h>
 #include <network/BaseConnection.h>
 #include <util/Platform.h>
+#include <query/Query.h>
 
 namespace scidb
 {
@@ -59,17 +59,6 @@ public:
 
     /// scidb_msg::Chunk/Fetch::obj_type
     static const uint32_t SG_ARRAY_OBJ_TYPE = 2;
-
-    /**
-     * Constructor
-     * @param arrayDesc array descriptor (aka schema)
-     * @param query the query context
-     * @param chunkPrefetchPerAttribute number of chunks to prefetch for each attribute;
-     * if 0, CONFIG_SG_RECEIVE_QUEUE_SIZE is used instead
-     */
-    PullSGArray(const ArrayDesc& arrayDesc,
-                const boost::shared_ptr<Query>& query,
-                uint32_t chunkPrefetchPerAttribute=64);
 
     virtual ~PullSGArray() {}
 
@@ -109,9 +98,19 @@ public:
      */
     RescheduleCallback resetCallback(AttributeID attId,
                                      const RescheduleCallback& newCb);
-
 protected:
 
+    /**
+     * Constructor
+     * @param arrayDesc array descriptor (aka schema)
+     * @param query the query context
+     * @param chunkPrefetchPerAttribute number of chunks to prefetch for each attribute;
+     * if 0, CONFIG_SG_RECEIVE_QUEUE_SIZE is used instead
+     */
+    PullSGArray(const ArrayDesc& arrayDesc,
+                const boost::shared_ptr<Query>& query,
+                bool enforceDataIntegrity,
+                uint32_t chunkPrefetchPerAttribute=0);
     /**
      * Get the next chunk from a given stream/instance
      * @param stream ID which corresponds to a source instance
@@ -266,7 +265,8 @@ private:
 
     const QueryID _queryId;
     std::vector<RescheduleCallback > _callbacks;
-    std::vector<Mutex> _mutexes;
+    std::vector<Mutex> _sMutexes;
+    std::vector<Mutex> _aMutexes;
 
     std::vector< std::vector< StreamState > > _messages;
 
@@ -305,7 +305,10 @@ public:
      */
     PullSGArrayBlocking(const ArrayDesc& arrayDesc,
                         const boost::shared_ptr<Query>& query,
+                        const boost::shared_ptr<Array>& inputSGArray,
+                        bool enforceDataIntegrity,
                         uint32_t chunkPrefetchPerAttribute=0);
+
     virtual ~PullSGArrayBlocking() {}
     /**
      * @see scidb::MultiStreamArray::getNext()
@@ -315,7 +318,165 @@ public:
 
     /// To be called immediately after consuming all the chunks
     virtual void sync();
+
+    virtual boost::shared_ptr<ConstArrayIterator> getConstIterator(AttributeID attId) const ;
+
+    /**
+     * An INTERNAL helper template function for continually draining of MultiStreamArray
+     * @param attributesToPull a set of attributes to pull from the array
+     *        NOTE that this parameter is mutable, its contents are undefined upon return
+     * @param func a chunk handling functor
+     */
+    template <class ChunkHandler_tt>
+    void pullAttributes(boost::unordered_set<AttributeID>& attributesToPull,
+                        ChunkHandler_tt& func);
+private:
+
+    /**
+     * Gets the next chunk from PullSGArray
+     */
+    template<typename ChunkHandler_tt>
+    bool pullChunk(ChunkHandler_tt& chunkHandler, const AttributeID attId);
+
+    bool isInputSinglePass() const { return _sgInputAccess==Array::SINGLE_PASS; }
+
+    void validateIncomingChunk(ConstChunk const* chunk, const AttributeID attId);
+
+    boost::shared_ptr<Array> _inputSGArray;
+    const Array::Access _sgInputAccess;
+    bool _nonBlockingMode;
+
+/**
+ * A helper class for scheduling chunk processing as they become available
+ */
+class SyncCtx
+{
+private:
+
+    Mutex _mutex;
+    Event _ev;
+    bool _cond;
+    Event::ErrorChecker _ec;
+    boost::shared_ptr<Exception> _error;
+    boost::unordered_set<AttributeID> _activeAttributes;
+
+public:
+
+    SyncCtx(const shared_ptr<Query>& query) :
+    _cond(false),
+    _ec(boost::bind(&Query::getValidQueryPtr, boost::weak_ptr<Query>(query)))
+    {}
+
+    SyncCtx(const weak_ptr<Query>& query) :
+    _cond(false),
+    _ec(boost::bind(&Query::getValidQueryPtr, query))
+    {}
+
+    void signal(AttributeID attrId, const Exception* error);
+    void waitForActiveAttributes(boost::unordered_set<AttributeID>& activeAttributes);
+private:
+    SyncCtx();
+    SyncCtx(const SyncCtx& );
+    SyncCtx& operator=(const SyncCtx& );
 };
+
+};
+
+template <class ChunkHandler_tt>
+void PullSGArrayBlocking::pullAttributes(boost::unordered_set<AttributeID>& attributesToPull,
+                                         ChunkHandler_tt& func)
+{
+    _nonBlockingMode = true;
+    const static char* funcName =  "PullSGArrayBlocking::pullAttributes: ";
+    if (isInputSinglePass()) {
+        if (attributesToPull.size() != _iterators.size()) {
+            stringstream ss; ss << funcName << "all attributes are required for SINGLE_PASS array";
+            ASSERT_EXCEPTION(false, ss.str());
+        }
+        SinglePassArray* spa = dynamic_cast<SinglePassArray*>(_inputSGArray.get());
+        if (spa==NULL || !spa->isEnforceHorizontalIteration()) {
+            stringstream ss; ss << funcName << "SinglePassArray is required with horizontal iteration enforced";
+            ASSERT_EXCEPTION(false, ss.str());
+        }
+    }
+
+    shared_ptr<SyncCtx> ctx = boost::make_shared<SyncCtx>(_query);
+    for (boost::unordered_set<AttributeID>::const_iterator i = attributesToPull.begin();
+         i != attributesToPull.end(); ++i) {
+        const AttributeID attId = *i;
+        assert(attId<_iterators.size());
+        if (_iterators[attId])  {
+            stringstream ss; ss << funcName << "attribute "<< attId << " already pulled";
+            ASSERT_EXCEPTION(false, ss.str());
+        }
+        PullSGArray::RescheduleCallback cb = boost::bind(&SyncCtx::signal, ctx, attId, _1);
+        resetCallback(attId, cb);
+    }
+
+    boost::unordered_set<AttributeID> activeAttributes(attributesToPull);
+    while (!attributesToPull.empty()) {
+        LOG4CXX_TRACE(PullSGArray::_logger, funcName
+                      << " active attrs size="<<activeAttributes.size());
+        for (boost::unordered_set<AttributeID>::iterator iter = activeAttributes.begin();
+             iter != activeAttributes.end(); ) {
+            const AttributeID attId = *iter;
+            bool eof = false;
+            try {
+                eof = pullChunk(func,attId);
+            } catch (const scidb::MultiStreamArray::RetryException& ) {
+                boost::unordered_set<AttributeID>::iterator iterToErase = iter;
+                ++iter;
+                activeAttributes.erase(iterToErase);
+                continue;
+            }
+
+            if (eof) {
+                boost::unordered_set<AttributeID>::iterator iterToErase = iter;
+                ++iter;
+                activeAttributes.erase(iterToErase);
+                resetCallback(attId);
+                attributesToPull.erase(attId);
+                LOG4CXX_DEBUG(PullSGArray::_logger, funcName
+                              << "EOF attId="<< attId
+                              <<", remain="<<attributesToPull.size());
+                continue;
+            }
+            ++iter;
+        }
+        if (!attributesToPull.empty() &&
+            activeAttributes.empty()) {
+            LOG4CXX_TRACE(PullSGArray::_logger,  funcName
+                          << "waiting, active attrs size="<<activeAttributes.size());
+            ctx->waitForActiveAttributes(activeAttributes);
+        }
+    }
+    _nonBlockingMode = false;
+}
+
+template<typename ChunkHandler_tt>
+bool PullSGArrayBlocking::pullChunk(ChunkHandler_tt& chunkHandler,
+                                    const AttributeID attId)
+{
+    const static char* funcName =  "PullSGArrayBlocking::consumeChunk: ";
+    if (isDebug()) {
+        LOG4CXX_TRACE(PullSGArray::_logger, funcName << "trying to consume chunk for attId="<<attId);
+    }
+    boost::shared_ptr<ConstArrayIterator> arrIter = PullSGArray::getConstIterator(attId);
+    if (arrIter->end()) {
+        LOG4CXX_DEBUG(PullSGArray::_logger,  funcName << "EOF attId="<<attId);
+        return true;
+    }
+    const ConstChunk& chunk = arrIter->getChunk();
+    validateIncomingChunk(&chunk, attId);
+
+    shared_ptr<Query> query = Query::getValidQueryPtr(_query);
+    chunkHandler(attId, chunk, query);
+
+    if (isDebug()) {
+        LOG4CXX_TRACE(PullSGArray::_logger, funcName << "advanced attId="<<attId);
+    }
+    return false;
+}
 
 } // namespace
 

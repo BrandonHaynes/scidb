@@ -27,16 +27,16 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/Array.h"
-#include "query/ops/thin/ThinArray.h"
-
-
-namespace scidb {
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/Array.h>
+#include "ThinArray.h"
 
 using namespace boost;
 using namespace std;
+
+namespace scidb
+{
 
 class PhysicalThin: public  PhysicalOperator
 {
@@ -67,7 +67,9 @@ class PhysicalThin: public  PhysicalOperator
         {
             Coordinate from = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[i*2])->getExpression()->evaluate().getInt64();
             Coordinate step = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[i*2+1])->getExpression()->evaluate().getInt64();
-            Coordinate last = (inDims[i].getCurrLength() - from + inDims[i].getStart() + step - 1) / step - 1;
+            Coordinate last = computeLastCoordinate(inDims[i].getCurrLength(),
+                                                    inDims[i].getStartMin(),
+                                                    from, step);
             outStart.push_back(0);
             outEnd.push_back(last);
         }

@@ -28,13 +28,14 @@
  * @author Konstantin Knizhnik <knizhnik@garret.ru>
  */
 
+#include <system/Exceptions.h>
 #include "XgridArray.h"
-#include "system/Exceptions.h"
 
-namespace scidb {
+using namespace boost;
+using namespace std;
 
-    using namespace boost;
-    using namespace std;
+namespace scidb
+{
 
     //
     // Xgrid chunk iterator methods
@@ -130,11 +131,6 @@ namespace scidb {
     //
     // Xgrid chunk methods
     //
-    bool XgridChunk::isSparse() const
-    {
-        return sparse;
-    }
-
     boost::shared_ptr<ConstChunkIterator> XgridChunk::getConstIterator(int iterationMode) const
     {
         return boost::shared_ptr<ConstChunkIterator>(new XgridChunkIterator(array, *this, iterationMode));
@@ -145,14 +141,12 @@ namespace scidb {
         ArrayDesc const& desc = array.getArrayDesc();
         Address addr(attrID, pos);
         chunk.initialize(&array, &desc, addr, desc.getAttributes()[attrID].getDefaultCompressionMethod());
-        sparse = iterator.getInputIterator()->getChunk().isSparse();
         setInputChunk(chunk);
     }
 
     XgridChunk::XgridChunk(XgridArray const& arr, DelegateArrayIterator const& iterator, AttributeID attrID)
     : DelegateChunk(arr, iterator, attrID, false),
-      array(arr),
-      sparse(false)
+      array(arr)
     {
     }
       
@@ -199,7 +193,7 @@ namespace scidb {
     { 
         Dimensions const& dims = desc.getDimensions();
         for (size_t i = 0, n = outPos.size(); i < n; i++) { 
-            inPos[i] = dims[i].getStart() + (outPos[i] - dims[i].getStart()) / scale[i];
+            inPos[i] = dims[i].getStartMin() + (outPos[i] - dims[i].getStartMin()) / scale[i];
         }
     }
 
@@ -207,7 +201,7 @@ namespace scidb {
     { 
         Dimensions const& dims = desc.getDimensions();
         for (size_t i = 0, n = inPos.size(); i < n; i++) { 
-            outPos[i] = dims[i].getStart() + (inPos[i] - dims[i].getStart()) * scale[i];
+            outPos[i] = dims[i].getStartMin() + (inPos[i] - dims[i].getStartMin()) * scale[i];
         }
     }
 

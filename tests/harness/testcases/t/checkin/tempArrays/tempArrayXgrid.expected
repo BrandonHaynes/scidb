@@ -17,7 +17,7 @@ null
 null
 24
 
-SCIDB QUERY : <xgrid(teeth1,2,2)>
+SCIDB QUERY : <xgrid(scan(teeth1, true),2,2)>
 {x,y} val
 {0,2} null
 {0,3} null

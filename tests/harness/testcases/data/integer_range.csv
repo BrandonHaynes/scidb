@@ -1,0 +1,53 @@
+int8,int16 null,int32,in64,uint8,uint16,uint32,uint64,string
+128,0,0,0,0,0,0,0,int8 overflow
+0x42,0,0,0,0,0,0,0,int8 hex input
+42hike,0,0,0,0,0,0,0,int8 extra chars
+041,0,0,0,0,0,0,0,int8 octal input is taken as decimal
+-129,0,0,0,0,0,0,0,int8 underflow
+0,32768,0,0,0,0,0,0,int16 overflow
+0,0XCAFE,0,0,0,0,0,0,int16 hex input
+0,42hike,0,0,0,0,0,0,int16 extra chars
+0,043,0,0,0,0,0,0,int16 octal input is taken as decimal
+0,-32769,0,0,0,0,0,0,int16 underflow
+0,0,2147483648,0,0,0,0,0,int32 overflow
+0,0,0xDeadBeef,0,0,0,0,0,int32 hex input
+0,0,10000Maniacs,0,0,0,0,0,int32 extra chars
+0,0,00479,0,0,0,0,0,int32 octal input is taken as decimal
+0,0,-2147483649,0,0,0,0,0,int32 underflow
+0,0,0,9223372036854775808,0,0,0,0,int64 overflow
+0,0,0,0x1c3C01dC0ffee,0,0,0,0,int64 hex input
+0,0,0,12345foobar6789,0,0,0,0,int64 extra chars
+0,0,0,00123456789123456789,0,0,0,0,int64 octal input is taken as decimal
+0,0,0,-9223372036854775809,0,0,0,0,int64 underflow
+0,0,0,0,256,0,0,0,uint8 overflow
+0,0,0,0,0xFE,0,0,0,uint8 hex input
+0,0,0,0,0xFE  ,0,0,0,uint8 hex trailing spaces
+0,0,0,0,0377,0,0,0,uint8 octal input is taken as decimal: overflow
+0,0,0,0,0,65536,0,0,uint16 overflow
+0,0,0,0,0,0Xbeef,0,0,uint16 hex input
+0,0,0,0,0,0Xbeef_is_whats_4_dinner,0,0,uint16 hex extra chars
+0,0,0,0,0,0727,0,0,uint16 octal input is taken as decimal
+0,0,0,0,0,0,4294967296,0,uint32 overflow
+0,0,0,0,0,0,0xBADC0FEE,0,uint32 hex input
+0,0,0,0,0,0,4billion,0,uint32 extra chars
+0,0,0,0,0,0,0987654321,0,uint32 octal input is taken as decimal
+0,0,0,0,0,0,0,18446744073709551616,uint64 overflow
+0,0,0,0,0,0,0,0xBADC0FFEEBADCAFE,uint64 hex input
+0,0,0,0,0,0,0,184467440737095516foo,uint64 extra chars
+0,0,0,0,0,0,0,0429496729600,uint64 octal input is taken as decimal
+,0,0,0,0,0,0,0,int8 using an empty string
+43   ,0,0,0,0,0,0,0,int8 trailing spaces
+44	,0,0,0,0,0,0,0,int8 trailing tab
+0,,0,0,0,0,0,0,int16 nullable using an empty string
+0,0,0,0,0,0,45    ,0,uint32 trailing spaces
+0,0,0,0,0,0,46		,0,uint32 trailing tabs
+0,0,0,0,0,0,0,0,int16 nullable using a zero
+0,     ,0,0,0,0,0,0,int16 nullable using whitespace
+    45,0,0,0,0,0,0,0,int8 leading spaces
+0,0,0,0,  0xFE  ,0,0,0,uint8 hex leading and trailing spaces
+0,\N,0,0,0,0,0,0,int16 nullable using Linear-TSV \N null
+0,  \N  ,0,0,0,0,0,0,int16 nullable using Linear-TSV \N null and spaces
+0,?5,0,0,0,0,0,0,int16 nullable using SciDB missing reason 5
+0,  ?0  ,0,0,0,0,0,0,int16 nullable using SciDB notation and spaces
+0,null,0,0,0,0,0,0,int16 nullable using SciDB null
+0,   null  ,0,0,0,0,0,0,int16 nullable using SciDB null and spaces

@@ -1,0 +1,275 @@
+<project xmlns:jacoco="antlib:org.jacoco.ant" name="scidb4j" default="all">
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties">
+        <classpath>
+            <pathelement location="/usr/share/java/ant-contrib.jar"/>
+        </classpath>
+    </taskdef>
+    <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+        <classpath>
+            <pathelement location="${basedir}/lib/jacocoant.jar"/>
+        </classpath>
+    </taskdef>
+
+    <target name="configure">
+        <condition property="build_dir" else="build">
+            <isset property="build_dir" />
+        </condition>
+        <condition property="dist_dir" else="dist">
+            <isset property="dist_dir" />
+        </condition>
+        <condition property="deps_dir" else="depcache">
+            <isset property="deps_dir" />
+        </condition>
+        <condition property="junit_lib" else="/usr/share/java/junit.jar">
+            <isset property="junit_lib" />
+        </condition>
+        <condition property="report_dir" else="report">
+            <isset property="report_dir" />
+        </condition>
+        <condition property="doc_dir" else="doc">
+            <isset property="doc_dir" />
+        </condition>
+        <condition property="proto_dir" else="../../src/network/proto/">
+            <isset property="proto_dir" />
+        </condition>
+        <condition property="debug" else="off">
+            <isset property="debug" />
+        </condition>
+
+        <if>
+            <not>
+                <isset property="protobuf_lib" />
+            </not>
+            <then>
+                <if>
+                    <available file="/usr/share/java/protobuf.jar" />
+                    <then>
+                        <property name="protobuf_lib" location="/usr/share/java/protobuf.jar" />
+                    </then>
+                    <else>
+                        <property name="protobuf_lib" location="/usr/share/java/protobuf-java.jar" />
+                    </else>
+                </if>
+            </then>
+        </if>
+
+        <fail message="Can not find junit">
+            <condition>
+                <not>
+                    <available file="${junit_lib}" />
+                </not>
+            </condition>
+        </fail>
+
+        <fail message="Can not find protobuf">
+            <condition>
+                <not>
+                    <available file="${protobuf_lib}" />
+                </not>
+            </condition>
+        </fail>
+
+        <fail message="Can not find proto file ${proto_dir}/scidb_msg.proto">
+            <condition>
+                <not>
+                    <available file="${proto_dir}/scidb_msg.proto" />
+                </not>
+            </condition>
+        </fail>
+
+        <propertyfile file="configure.properties">
+            <entry key="build_dir" value="${build_dir}"/>
+            <entry key="dist_dir" value="${dist_dir}"/>
+            <entry key="deps_dir" value="${deps_dir}"/>
+            <entry key="doc_dir" value="${doc_dir}"/>
+            <entry key="protobuf_lib" value="${protobuf_lib}"/>
+            <entry key="junit_lib" value="${junit_lib}"/>
+            <entry key="proto_dir" value="${proto_dir}"/>
+            <entry key="report_dir" value="${report_dir}"/>
+            <entry key="debug" value="${debug}"/>
+        </propertyfile>     
+
+        <echo message="build_dir is set to ${build_dir}" />
+        <echo message="dist_dir is set to ${dist_dir}" />
+        <echo message="deps_dir is set to ${deps_dir}" />
+        <echo message="report_dir is set to ${report_dir}" />
+        <echo message="doc_dir is set to ${doc_dir}" />
+        <echo message="junit_lib is set to ${junit_lib}" />
+        <echo message="protobuf_lib is set to ${protobuf_lib}" />
+        <echo message="java.version is set to ${java.version}" />
+        <echo message="java.runtime.version is set to ${java.runtime.version}" />
+        <echo message="debug is set to ${debug}" />
+    </target>
+
+    <target name="init">
+        <loadproperties>
+            <file file="configure.properties"/>
+        </loadproperties>
+
+        <uptodate property="scidb_msg.proto.uptodate" srcfile="${proto_dir}/scidb_msg.proto" targetfile="scidb4j/org/scidb/io/network/ScidbMsg.java" />
+
+        <property name="scidb4j.output.dir" location="${build_dir}/scidb4j" />
+        <property name="jiquery.output.dir" location="${build_dir}/jiquery" />
+        <property name="jdbctest.output.dir" location="${build_dir}/jdbctest" />
+        <property name="example.output.dir" location="${build_dir}/example" />
+        <property name="test.output.dir" location="${build_dir}/test" />
+        <property name="scidb4j.jar" location="${dist_dir}/scidb4j.jar" />
+        <property name="jiquery.jar" location="${dist_dir}/jiquery.jar" />
+        <property name="jdbctest.jar" location="${dist_dir}/jdbctest.jar" />
+        <property name="example.jar" location="${dist_dir}/example.jar" />
+        <property name="scidb4j_test.jar" location="${dist_dir}/scidb4j_test.jar" />
+        <property name="jacoco_exec" location="${report_dir}/jacoco.exec"/>
+
+        <mkdir dir="${scidb4j.output.dir}" />
+        <mkdir dir="${jiquery.output.dir}" />
+        <mkdir dir="${jdbctest.output.dir}" />
+        <mkdir dir="${example.output.dir}" />
+        <mkdir dir="${test.output.dir}" />
+        <mkdir dir="${dist_dir}" />
+        <mkdir dir="${report_dir}" />
+        <mkdir dir="${doc_dir}" />
+
+        <presetdef name="javac">
+            <javac includeantruntime="true" debug="true" debuglevel="lines,vars,source" target="1.6" source="1.6">
+                <compilerarg line="-Xlint:deprecation"/>
+            </javac>
+        </presetdef>
+    </target>
+
+    <!-- Generate protocol -->
+    <target name="gen.protocol" depends="init" description="Compiling protobuf file" unless="scidb_msg.proto.uptodate">
+        <echo message="Compiling scidb_msg.proto" />
+        <exec executable="protoc">
+            <arg value="-I${proto_dir}" />
+            <arg value="--java_out=scidb4j/" />
+            <arg value="${proto_dir}/scidb_msg.proto" />
+        </exec>
+    </target>
+
+    <!-- Build scidb4j -->
+    <target name="build.scidb4j" depends="gen.protocol" description="Compile module 'scidb4j'">
+        <depend srcdir="scidb4j" destdir="${scidb4j.output.dir}" cache="${deps_dir}" />
+        <javac srcdir="scidb4j" destdir="${scidb4j.output.dir}" classpath="${protobuf_lib}"/>
+        <jar jarfile="${scidb4j.jar}" basedir="${scidb4j.output.dir}" />
+    </target>
+
+    <!-- Build jiquery -->
+    <target name="build.jiquery" depends="build.scidb4j" description="Compile module 'jiquery'">
+        <depend srcdir="jiquery" destdir="${jiquery.output.dir}" cache="${deps_dir}" />
+        <depend srcdir="scidb4j" destdir="${scidb4j.output.dir}" cache="${deps_dir}" />
+        <javac srcdir="jiquery" destdir="${jiquery.output.dir}" classpath="${scidb4j.jar}" />
+        <jar jarfile="${jiquery.jar}" basedir="${jiquery.output.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="org.scidb.JIquery" />
+                <attribute name="Class-Path" value="org.scidb;scidb4j.jar" />
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Build jdbctest -->
+    <target name="build.jdbctest" depends="build.scidb4j" description="Compile module 'jdbctest'">
+        <depend srcdir="jdbctest" destdir="${jdbctest.output.dir}" cache="${deps_dir}" />
+        <depend srcdir="scidb4j" destdir="${scidb4j.output.dir}" cache="${deps_dir}" />
+        <javac srcdir="jdbctest" destdir="${jdbctest.output.dir}" classpath="${scidb4j.jar};${junit_lib}" />
+        <jar jarfile="${jdbctest.jar}" basedir="${jdbctest.output.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="org.scidb.JDBCTest" />
+                <attribute name="Class-Path" value="org.scidb;scidb4j.jar" />
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Build SciDBJDBC example -->
+    <target name="build.example" depends="build.scidb4j" description="Compile module 'example'">
+        <depend srcdir="example" destdir="${example.output.dir}" cache="${deps_dir}" />
+        <depend srcdir="scidb4j" destdir="${scidb4j.output.dir}" cache="${deps_dir}" />
+        <javac srcdir="example" destdir="${example.output.dir}" classpath="${scidb4j.jar}" />
+        <jar jarfile="${example.jar}" basedir="${example.output.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="org.scidb.JDBCExample" />
+                <attribute name="Class-Path" value="org.scidb;scidb4j.jar" />
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Building WAR for Tomcat example -->
+    <target name="war" depends="build.scidb4j">
+        <property name="war_dir" location="jsp/scidb-example" />
+        <mkdir dir="${war_dir}/WEB-INF/lib" />
+
+        <copy todir="${war_dir}/WEB-INF/lib" file="${scidb4j.jar}" verbose="true" />
+        <copy todir="${war_dir}/WEB-INF/lib" file="${protobuf_lib}" verbose="true" />
+
+        <war destfile="${dist_dir}/scidb-example.war" needxmlfile="false">
+            <fileset dir="${war_dir}" />
+            <lib dir="${war_dir}/WEB-INF/lib"/>
+        </war>
+    </target>
+
+    <!-- Build all -->
+    <target name="all" depends="build.scidb4j, build.jiquery, build.jdbctest, build.example, war" description="Build all" />
+
+    <!-- DEB -->
+    <target name="deb" description="Make DEB packages">
+        <exec executable="dpkg-buildpackage">
+            <arg value="-uc" />
+            <arg value="-us" />
+        </exec>
+    </target>
+
+    <!-- RPM -->
+    <target name="rpm" description="Make RPM packages">
+        <exec executable="rpmbuild">
+            <arg value="-D_topdir ${basedir}/rpmbuild" />
+            <arg value="-D_builddir ${basedir}" />
+            <arg value="-bb" />
+            <arg value="scidb4j.spec" />
+        </exec>
+    </target>
+
+    <!-- Clean all -->
+    <target name="clean" depends="init" description="clean up">
+        <delete dir="${build_dir}" />
+        <delete dir="${dist_dir}" />
+        <delete dir="${deps_dir}" />
+        <delete dir="${report_dir}" />
+        <delete dir="${doc_dir}" />
+        <delete file="scidb4j/org/scidb/io/network/ScidbMsg.java" />
+    </target>
+
+    <!-- Tests and coverage -->
+    <target name="test" depends="build.jdbctest">
+        <jacoco:coverage destfile="${jacoco_exec}">
+            <java classname="org.scidb.JDBCTest" fork="true">
+                <classpath path="${scidb4j.output.dir};${jdbctest.output.dir};${junit_lib};${protobuf_lib}"/>
+            </java>
+        </jacoco:coverage>
+        <jacoco:report>
+            <executiondata>
+                <file file="${jacoco_exec}"/>
+            </executiondata>
+            <structure name="scidb4j test coverage">
+                <classfiles>
+                    <fileset dir="${scidb4j.output.dir}">
+                        <exclude name="**/ScidbMsg*.class"/>
+                    </fileset>
+                </classfiles>
+                <sourcefiles encoding="UTF-8">
+                    <fileset dir="scidb4j"/>
+                </sourcefiles>
+            </structure>
+            <html destdir="${report_dir}"/>
+        </jacoco:report>
+    </target>
+
+    <!-- Javadoc -->
+    <target name="javadoc" depends="build.scidb4j">
+        <javadoc destdir="${doc_dir}">
+            <classpath path="${protobuf_lib}"/>
+            <packageset dir="scidb4j" defaultexcludes="yes">
+                <include name="org/scidb/client/**"/>
+                <include name="org/scidb/jdbc/**"/>
+            </packageset>
+        </javadoc>
+    </target>
+</project>

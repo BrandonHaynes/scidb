@@ -30,12 +30,11 @@
 #ifndef _PHYSICAL_ANALYZE_H_
 #define _PHYSICAL_ANALYZE_H_
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/Array.h"
-#include "array/FileArray.h"
-#include "query/Network.h"
-#include "system/Constants.h"
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/Array.h>
+#include <util/Network.h>
+#include <system/Constants.h>
 
 namespace scidb {
 

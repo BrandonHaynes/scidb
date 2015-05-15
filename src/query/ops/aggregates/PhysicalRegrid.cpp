@@ -43,7 +43,7 @@ class PhysicalRegrid: public AggregatePartitioningOperator
     {
     }
 
-    void initializeOperator(ArrayDesc const& inputSchema)
+    virtual void initializeOperator(ArrayDesc const& inputSchema)
     {
         AggregatePartitioningOperator::initializeOperator(inputSchema);
         for (size_t i =0; i< inputSchema.getDimensions().size(); i++)
@@ -52,12 +52,12 @@ class PhysicalRegrid: public AggregatePartitioningOperator
         }
     }
 
-    virtual void transformCoordinates(Coordinates const & inPos, Coordinates & outPos)
+    virtual void transformCoordinates(CoordinateCRange inPos,CoordinateRange outPos)
     {
         //"Just tell me where to go!"
-        for (size_t i = 0; i < inPos.size(); i++)
+        for (size_t i=0, n=inPos.size(); i!=n ; ++i)
         {
-            outPos[i] = _schema.getDimensions()[i].getStart() + (inPos[i] - _schema.getDimensions()[i].getStart())/_grid[i];
+            outPos[i] = _schema.getDimensions()[i].getStartMin() + (inPos[i] - _schema.getDimensions()[i].getStartMin())/_grid[i];
         }
     }
 };

@@ -1,0 +1,110 @@
+#!/bin/bash
+#**************************** Copyright © Paradigm4, Inc. All rights reserved.
+#**
+#**
+#**  Version : $Header:$
+#**
+#**  Purpose : Converts a third party package .deb file to one that installs itself to the
+#**            scidb 3rdparty installation directory.
+#**
+#**
+#**  Overview: STAGE    :
+#**            PREFIXES :
+#**
+#**  See Also: http://tldp.org/HOWTO/html_single/Debian-Binary-Package-Building-HOWTO/
+#**            for a description of how to work with the dpkg-deb and lintian
+#**            tools.
+#**
+#*****************************************************************************
+#** Check the required variables are all found in the environment:
+
+if [[ ! "$STAGE" || ! "$PREFIXES" ]]; then
+  echo
+  echo "error: did you forget to set a required variable?"
+  echo " STAGE    = ${STAGE}"
+  echo " PREFIXES = ${PREFIXES}"
+  echo
+  exit 1
+fi
+
+#*****************************************************************************
+
+DEB=${1}
+VER=${2:-$SCIDB_VER}
+if [ -z "$TMP" ]; then
+    TMP=`mktemp -d /tmp/scidb_repackage.XXXXX`
+fi
+
+#*****************************************************************************
+# Print the usage string:
+
+if [ $# -lt 1 ]; then
+    cat <<EOF
+Usage: `basename $0` PACKAGE [SCIDB-VERSION]
+
+Converts a third party package .deb file to one that installs itself to the
+scidb installation directory.
+
+SCIDB-VERSION defaults to $SCIDB_VER from the environment
+
+For example:
+
+   `basename $0` foo.deb 13.7
+
+produces package scidb-13.7-foo.deb that installs to /opt/scidb/13.7/3rdparty.
+EOF
+    exit 1
+fi
+if [ -z "$VER" ]; then
+    echo
+    echo "Environment variable SCIDB_VER is not set"
+    echo
+    echo "Pass in the SciDB version you wish to use"
+    echo "as the second argument [SCIDB-VERSION] to this script"
+    echo
+    exit 1
+fi
+#*****************************************************************************
+
+function unpack()   { dpkg-deb -R $DEB $TMP; }
+function repack()   { fakeroot dpkg-deb --build $TMP scidb-$VER-`basename $DEB`; }
+function custom()   { echo '' ; }
+function cleanup()  { rm -rf $TMP; }
+function run()      { unpack && control && restage && custom && repack && cleanup; }
+
+function control()
+{
+    for i in $TMP/DEBIAN/*  ; do
+        case `basename $i` in
+
+        md5sums)  sed -i "s| usr| opt/scidb/$VER/3rdparty/$STAGE|" $i
+                  ;;
+        shlibs)   for prefix in ${PREFIXES[@]} ; do
+                  sed -i "s| $prefix| scidb-$VER-$prefix|g" $i
+                  done
+                  ;;
+        *)        for prefix in ${PREFIXES[@]} ; do
+                  sed -i "s|$prefix|scidb-$VER-$prefix|g" $i
+                  done
+                  ;;
+        esac
+    done
+}
+
+function restage()
+{
+    local s=$TMP/opt/scidb/$VER/3rdparty/$STAGE/
+    local i=$s
+
+    mkdir --parents $s
+
+    while [[ "$i" != "$TMP" ]]; do
+        chmod 0755 $i
+        i=`dirname $i`
+    done
+
+    mv     $TMP/usr/* $s/
+    rm -rf $TMP/usr
+}
+
+#*****************************************************************************

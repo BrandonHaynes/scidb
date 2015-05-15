@@ -25,7 +25,7 @@
  *
  *  Created on: May 6, 2010
  *      Author: Knizhnik
- *      Author: polioocugh@gmail.com
+ *      Author: poliocough@gmail.com
  */
 
 #include <query/Operator.h>
@@ -75,11 +75,9 @@ public:
 	{
 		ADD_PARAM_INPUT()
 		ADD_PARAM_VARIES()
-
-        _globalOperatorName = std::pair<std::string, std::string>("sort2", "physicalSort2");
 	}
 
-        std::vector<boost::shared_ptr<OperatorParamPlaceholder> > nextVaryParamPlaceholder(const std::vector< ArrayDesc> &schemas)
+    std::vector<boost::shared_ptr<OperatorParamPlaceholder> > nextVaryParamPlaceholder(const std::vector< ArrayDesc> &schemas)
 	{
 		std::vector<boost::shared_ptr<OperatorParamPlaceholder> > res;
 		res.push_back(PARAM_IN_ATTRIBUTE_NAME("void"));
@@ -88,33 +86,35 @@ public:
 		return res;
 	}
     
-        ArrayDesc inferSchema(std::vector< ArrayDesc> schemas, boost::shared_ptr< Query> query)
+    ArrayDesc inferSchema(std::vector< ArrayDesc> schemas, boost::shared_ptr< Query> query)
 	{
+        //As far as chunk sizes, they can be a pain! So we allow the user to specify an optional chunk size
+        //as part of the sort op.
 
-            //As far as chunk sizes, they can be a pain! So we allow the user to specify an optional chunk size
-            //as part of the sort op.
-            
-            assert(schemas.size() >= 1);
-            ArrayDesc const& schema = schemas[0];
-            size_t chunkSize = 0;
-            for(size_t i =0; i<_parameters.size(); i++)
+        assert(schemas.size() >= 1);
+        ArrayDesc const& schema = schemas[0];
+        size_t chunkSize = 0;
+        for (size_t i =0; i<_parameters.size(); i++)
+        {
+            if(_parameters[i]->getParamType()==PARAM_LOGICAL_EXPRESSION)
             {
-                if(_parameters[i]->getParamType()==PARAM_LOGICAL_EXPRESSION)
+                chunkSize = evaluate(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[i])->getExpression(),
+                                     query, TID_INT64).getInt64();
+                if(chunkSize <= 0)
                 {
-                    chunkSize = evaluate(((boost::shared_ptr<OperatorParamLogicalExpression>&)_parameters[i])->getExpression(),
-                                         query, TID_INT64).getInt64();
-                    if(chunkSize <= 0)
-                    {
-                        throw SYSTEM_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_CHUNK_SIZE_MUST_BE_POSITIVE);
-                    }
-                    break;
+                    throw SYSTEM_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_CHUNK_SIZE_MUST_BE_POSITIVE);
                 }
+                break;
             }
+        }
 
-            // Use a SortArray object to build the schema
-            SortArray sorter(schema, chunkSize);
+        // Use a SortArray object to build the schema.
+        // Note: even though PhysicalSort::execute() uses an expanded schema, with chunk_pos and cell_pos,
+        //       these additional attributes are projected off before returning the final sort result.
+        const bool preservePositions = false;
+        SortArray sorter(schema, arena::getArena(), preservePositions, chunkSize);
 
-            return sorter.getOutputArrayDesc();
+        return sorter.getOutputArrayDesc();
 	}
 };
 

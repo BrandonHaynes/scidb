@@ -32,8 +32,8 @@ namespace scidb { namespace arena {
 /****************************************************************************/
 
 /**
- *  Return the name of the Arena, an optional string that can help to identify
- *  the Arena when its statistics appear in reports prepared by the monitor.
+ *  Return the name of the %arena, an optional label that can help to identify
+ *  the object when its statistics appear in reports prepared by the monitor.
  */
 name_t Arena::name() const
 {
@@ -41,8 +41,8 @@ name_t Arena::name() const
 }
 
 /**
- *  Return a shared pointer to the parent, an optional Arena to which this one
- *  may choose to delegate some or all of its allocation requests.
+ *  Return a shared pointer to the parent,  an optional %arena to which we may
+ *  choose to delegate some or all of our allocation requests.
  */
 ArenaPtr Arena::parent() const
 {
@@ -51,7 +51,7 @@ ArenaPtr Arena::parent() const
 
 /**
  *  Return the number of bytes still available for allocation from within this
- *  Arena before it throws an 'Exhausted' exception.
+ *  %arena before it throws an Exhausted exception.
  */
 size_t Arena::available() const
 {
@@ -59,9 +59,9 @@ size_t Arena::available() const
 }
 
 /**
- *  Return the number of bytes that have been allocated through this Arena and
+ *  Return the number of bytes that have been allocated through the %arena and
  *  that are still in use, or 'live'.  An allocation is live if it has not yet
- *  been recycled by the Arena from which it was allocated, nor has that Arena
+ *  been recycled by the %arena from which it was allocated nor has the %arena
  *  since been reset.
  */
 size_t Arena::allocated() const
@@ -71,17 +71,17 @@ size_t Arena::allocated() const
 
 /**
  *  Return the maximum or 'peak' number of bytes that have been allocated from
- *  this Arena since either it was first constructed or last reset.
+ *  this %arena since either it was first constructed or last reset.
  */
-size_t Arena::peakUsage() const
+size_t Arena::peakusage() const
 {
     return 0;                                            // Nothing allocated
 }
 
 /**
  *  Return the number of individual allocations that are still in use,  or are
- *  'live'. An allocation is live if it has not yet been recycled by the Arena
- *  from which it was allocated, nor has that Arena since been reset.
+ *  'live'. An allocation is live if it hasn't yet been recycled by the %arena
+ *  from which it was allocated nor has the %arena since been reset.
  */
 size_t Arena::allocations() const
 {
@@ -89,16 +89,24 @@ size_t Arena::allocations() const
 }
 
 /**
- *  Return true if this Arena supports every one of the features appearing in
+ *  Return a bitfield indicating the set of features this %arena supports.
+ */
+features_t Arena::features() const
+{
+    return finalizing;                                   // Finalizers handled
+}
+
+/**
+ *  Return true if this %arena supports every one of the features appearing in
  *  the given bitfield.
  */
 bool Arena::supports(features_t features) const
 {
-    return (features & ~finalizing) == 0;                // Finalizers handled
+    return (features & ~this->features()) == 0;          // Are all supported?
 }
 
 /**
- *  Update the Arena monitor with a snapshot of our allocation statistics, and
+ *  Update the %arena monitor with a snapshot of our allocation statistics and
  *  associate this snapshot with the given label.
  */
 void Arena::checkpoint(name_t label) const
@@ -107,7 +115,7 @@ void Arena::checkpoint(name_t label) const
 }
 
 /**
- *  Insert a formatted representation of the Arena onto the output stream 'o'.
+ *  Insert a formatted representation of the %arena onto the output stream 'o'.
  */
 void Arena::insert(std::ostream& o) const
 {
@@ -121,10 +129,10 @@ void Arena::insert(std::ostream& o) const
     {
         void traverse(const Arena& arena)                // Build up the name
         {
-            if (ArenaPtr p = arena.parent())             // Has parent arena?
+            if (ArenaPtr p = arena.parent())             // Has a parent arena?
             {
                 traverse(*p);                            // ...traverse parent
-                *this += '/';                            // ...append a slash
+                *this += '/';                            // ...add a delimiter
             }
 
             *this += arena.name();                       // Append arena name
@@ -133,26 +141,28 @@ void Arena::insert(std::ostream& o) const
         pathname(const Arena& arena) {traverse(arena);}  // Traverse ancestors
     };
 
-    o << "name=\""      << pathname(*this)      << "\"," // Emit the name
-      << "available="   << bytes_t(available()) << ","   // Emit available()
-      << "allocated="   << bytes_t(allocated()) << ","   // Emit allocated()
-      << "peakUsage="   << bytes_t(peakUsage()) << ","   // Emit peakUsage()
-      << "allocations=" << allocations();                // Emit allocations()
+    o <<  "name=\""      << pathname(*this) << '"'       // Emit path name
+      << ",available="   << bytes_t (available())        // Emit available()
+      << ",allocated="   << bytes_t (allocated())        // Emit allocated()
+      << ",peakusage="   << bytes_t (peakusage())        // Emit peakusage()
+      << ",allocations=" << size_t  (allocations());     // Emit allocations()
 }
 
 /**
- *  Allocate 'n' bytes of raw storage from the Arena.
- *
- *  The resulting address is correctly aligned to hold one or more doubles.
+ *  Allocate 'n' bytes of raw storage from the %arena.
  *
  *  A value of 0 for the size 'n' is acceptable, and returns a unique pointer,
  *  as required by operator new().
+ *
+ *  Throws an exception if 'n' exceeds 'unlimited'.
+ *
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
  *
  *  @remarks    Be sure never to pass the resulting allocation directly to the
  *  function Arena::destroy(), which would attempt to retrieve a finalizer for
  *  the object that is not there - and most likely crash.  Instead, you should
  *  call either Arena::recycle() or better still, the associated free function
- *  arena::destroy(Arena&,void*).
+ *  destroy(Arena&,void*).
  */
 void* Arena::allocate(size_t n)
 {
@@ -165,20 +175,20 @@ void* Arena::allocate(size_t n)
     but subclasses like the ScopedArena, which ignores the request to recycle,
     may not...*/
 
-    void* p = this->malloc(sizeof(Header::POD) + n);     // Allocate raw bytes
-
-    return (new(p) Header::POD(n)) + 1;                  // Initialize header
+    return carve<Header::POD>(*this,n);                  // Carve a new block
 }
 
 /**
- *  Allocate 'n' bytes of raw memory from off the Arena and save the finalizer
+ *  Allocate 'n' bytes  of raw storage from the %arena, and save the finalizer
  *  function 'f', to be applied to the allocation later when the new object is
  *  eventually destroyed.
  *
- *  The resulting address is correctly aligned to hold one or more doubles.
- *
  *  A value of 0 for the size 'n' is acceptable, and returns a unique pointer,
  *  as required by operator new().
+ *
+ *  Throws an exception if 'n' exceeds 'unlimited'.
+ *
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
  *
  *  @remarks    Be sure never to pass the resulting allocation directly to the
  *  function Arena::recycle(),  which will ignore any registered finalizer for
@@ -199,28 +209,26 @@ void* Arena::allocate(size_t n,finalizer_t f)
 
     if (f == arena::allocated)                           // Allocated Scalar?
     {
-        void* p = this->malloc(sizeof(Header::AS) + n);  // ...allocate memory
-
-        return (new(p) Header::AS(n)) + 1;               // ...init the header
+        return carve<Header::AS>(*this,n);               // ...carve the block
     }
     else                                                 // No, Custom Scalar
     {
-        void* p = this->malloc(sizeof(Header::CS) + n);  // ...allocate memory
-
-        return (new(p) Header::CS(n,f)) + 1;             // ...init the header
+        return carve<Header::CS>(*this,n,f);             // ...carve the block
     }
 }
 
 /**
- *  Allocate an array of 'c' elements each of size 'n', and save the finalizer
- *  function 'f',  to be applied to every array element in turn when the array
+ *  Allocate a vector of 'c' elements each of size 'n', and save the finalizer
+ *  function 'f', to be applied to every vector element in turn when the array
  *  is eventually destroyed.
  *
- *  The resulting address is correctly aligned to hold one or more doubles.
- *
  *  A value of 0 for the size 'n' is acceptable, and returns a unique pointer,
- *  as required by operator new(). The function 'f' will be invoked with this
+ *  as required by operator new().  The function 'f' will be invoked with this
  *  pointer 'c' times when the allocation is later destroyed.
+ *
+ *  Throws an exception if the product 'n' * 'c' exceeds 'unlimited'.
+ *
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
  *
  *  @remarks    Be sure never to pass the resulting allocation directly to the
  *  function Arena::recycle(),  which will ignore any registered finalizer for
@@ -231,9 +239,9 @@ void* Arena::allocate(size_t n,finalizer_t f,count_t c)
 {
     if (c == 0)                                          // No array elements?
     {
-        struct local{static void nop(void*){}};          // ...no-op finalizer
+        struct local {static void nop(void*){}};         // ...no-op finalizer
 
-        return this->allocate(0,f ? &local::nop: 0);     // ...needs a header?
+        return this->allocate(0,f!=0 ? &local::nop : 0); // ...needs a header?
     }
 
     if (c == 1)                                          // Scalar allocation?
@@ -246,27 +254,23 @@ void* Arena::allocate(size_t n,finalizer_t f,count_t c)
         this->overflowed();                              // ...signal overflow
     }
 
-    if (f == 0)                                          // Trivial destructor?
+    if (f == 0)                                          // Trivial finalizer?
     {
         return this->allocate(c * n);                    // ...handled earlier
     }
 
     if (f == arena::allocated)                           // Allocated Vector?
     {
-        void* p = this->malloc(sizeof(Header::AV) + c*n);// ...allocate memory
-
-        return (new(p) Header::AV(n,c)) + 1;             // ...init the header
+        return carve<Header::AV>(*this,n,0,c);           // ...carve the block
     }
     else                                                 // No, Custom Vector
     {
-        void* p = this->malloc(sizeof(Header::CV) + c*n);// ...allocate memory
-
-        return (new(p) Header::CV(n,f,c)) + 1;           // ...init the header
+        return carve<Header::CV>(*this,n,f,c);           // ...carve the block
     }
 }
 
 /**
- *  Return the given allocation to the Arena to be recycled -  that is, reused
+ *  Return the given allocation to the %arena to be recycled - that is, reused
  *  in a subsequent allocation. Needless to say, it is an error for the caller
  *  to make any use of the argument beyond this point. If the allocation needs
  *  to be finalized then use destroy() instead: recycle() doesn't finalize its
@@ -276,6 +280,8 @@ void* Arena::allocate(size_t n,finalizer_t f,count_t c)
  */
 void Arena::recycle(void* payload)
 {
+    assert(payload==0 || aligned(payload));              // Validate arguments
+
     if (payload != 0)                                    // Something to do?
     {
         Header& h(Header::retrieve(payload));            // ...retrieve header
@@ -285,12 +291,12 @@ void Arena::recycle(void* payload)
         byte_t* p = h.getAllocation();                   // ...get allocation
         size_t  n = h.getOverallSize();                  // ...and its length
 
-        this->free(p,n);                                 // ...free the memory
+        this->doFree(p,n);                               // ...free the memory
     }
 }
 
 /**
- *  Finalize the given  allocation and return it to the Arena to be recycled -
+ *  Finalize the given allocation and return it to the %arena to be recycled -
  *  that is, reused in a subsequent allocation. Needless to say, it's an error
  *  for the caller to make any use of the allocation beyond this point. If the
  *  allocation does not need to be finalized then call recycle() instead. Note
@@ -300,26 +306,30 @@ void Arena::recycle(void* payload)
  */
 void Arena::destroy(void* payload,count_t count)
 {
+    assert(payload==0 || aligned(payload));              // Validate arguments
+
     if (payload != 0)                                    // Something to do?
     {
         Header& h(Header::retrieve(payload));            // ...retrieve header
 
         assert(h.getFinalizer() != 0);                   // ...no! use recycle
 
+        h.finalize(count);                               // ...finalize vector
+
+        assert(h.getFinalizer() == 0);                   // ...check finalized
+
         byte_t* p = h.getAllocation();                   // ...get allocation
         size_t  n = h.getOverallSize();                  // ...and its length
 
-        h.finalize(count);                               // ...finalize array
-
-        this->free(p,n);                                 // ...free the memory
+        this->doFree(p,n);                               // ...free the memory
     }
 }
 
 /**
- *  Reset the Arena to its originally constructed state, destroying any extant
+ *  Reset the %arena to its originally constructed state, so destroying extant
  *  objects, recycling their underlying storage for use in future allocations,
- *  and resetting the allocation statistics to their default values.  An Arena
- *  must implement at least one of the members reset() or destroy() / recycle()
+ *  and resetting the allocation statistics to their default values. An %arena
+ *  must implement at least one of the members reset() or destroy()/ recycle()
  *  or it will leak memory; it may also wish to implement both, however.
  */
 void Arena::reset()
@@ -330,13 +340,20 @@ void Arena::reset()
  *
  *  'size' may not be zero.
  *
- *  The resulting address is correctly aligned to hold one or more doubles.
+ *  Throws an exception if 'size' exceeds 'unlimited'.
+ *
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
  */
 void* Arena::malloc(size_t size)
 {
-    assert(size != 0);                                   // Validate argument
+    assert(size != 0);                                   // Validate arguments
 
-    return this->doMalloc(align(size));                  // Align and allocate
+    if (size > unlimited)                                // Too big to handle?
+    {
+        this->overflowed();                              // ...signal overflow
+    }
+
+    return this->doMalloc(size);                         // Pass to doMalloc()
 }
 
 /**
@@ -346,7 +363,7 @@ void* Arena::malloc(size_t size)
  *
  *  Throws an exception if the product 'size' * 'count' exceeds 'unlimited'.
  *
- *  The resulting address is correctly aligned to hold one or more doubles.
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
  */
 void* Arena::malloc(size_t size,count_t count)
 {
@@ -357,42 +374,35 @@ void* Arena::malloc(size_t size,count_t count)
         this->overflowed();                              // ...signal overflow
     }
 
-    return this->doMalloc(align(size * count));          // Align and allocate
+    return this->doMalloc(size * count);                 // Pass to doMalloc()
 }
 
 /**
- *  Allocate 'size' bytes of zero-initialized storage.
+ *  Allocate 'size' bytes of zero-initialized raw storage.
  *
  *  'size' may not be zero.
  *
- *  The resulting address is correctly aligned to hold one or more doubles.
+ *  Throws an exception if 'size' exceeds 'unlimited'.
+ *
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
  */
 void* Arena::calloc(size_t size)
 {
-    assert(size != 0);                                   // Validate argument
-
     return memset(this->malloc(size),0,size);            // Allocate and clear
 }
 
 /**
- *  Allocate 'size' * 'count' bytes of zero-initialized storage.
+ *  Allocate 'size' * 'count' bytes of zero-initialized raw storage.
  *
  *  Neither 'size' nor 'count' may be zero.
  *
  *  Throws an exception if the product 'size' * 'count' exceeds 'unlimited'.
  *
- *  The resulting address is correctly aligned to hold one or more doubles.
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
  */
 void* Arena::calloc(size_t size,count_t count)
 {
-    assert(size!=0 && count!=0);                         // Validate arguments
-
-    if (size > unlimited/count)                          // Too big to handle?
-    {
-        this->overflowed();                              // ...signal overflow
-    }
-
-    return memset(this->malloc(size * count),0,size);    // Allocate and clear
+    return memset(this->malloc(size,count),0,size);      // Allocate and clear
 }
 
 /**
@@ -401,7 +411,7 @@ void* Arena::calloc(size_t size,count_t count)
  *
  *  When returning the allocation to a recycling arena, use a call such as:
  *  @code
- *      arena.free(s,strlen(s) + 1);                     // Don't forget null
+ *      arena.free(s,strlen(s) + 1);                     // Remember the '\0'
  *  @endcode
  */
 char* Arena::strdup(const char* s)
@@ -419,7 +429,7 @@ char* Arena::strdup(const char* s)
  *
  *  When returning the allocation to a recycling arena, use a call such as:
  *  @code
- *      arena.free(s,strlen(s) + 1);                     // Don't forget null
+ *      arena.free(s,s.length() + 1);                    // Remember the '\0'
  *  @endcode
  */
 char* Arena::strdup(const std::string& s)
@@ -430,40 +440,39 @@ char* Arena::strdup(const std::string& s)
 }
 
 /**
- *  Free the memory that was allocated earlier from this same Arena by calling
+ *  Free the memory that was allocated earlier from the same %arena by calling
  *  malloc() and attempt to recycle it for future reuse to reclaim up to 'size'
- *  bytes of raw storage.  No promise is made however as to *when* this memory
- *  will be made available again:  the Arena may, for example, prefer to defer
+ *  bytes of raw storage.  No promise is made as to *when* this memory will be
+ *  made available again however: the %arena may, for example, prefer to defer
  *  recycling until a subsequent call to reset() is made.
  */
 void Arena::free(void* payload,size_t size)
 {
-    assert(payload!=0 && size!=0);                       // Validate arguments
+    assert(aligned(payload) && size!=0);                 // Validate arguments
 
- /* Adjust 'size' to reflect the actual size we allocated earlier; in general
-    this may be slightly larger than the size orginally requested of malloc()
-    because we rounded it up to align the storage to hold doubles...*/
-
-    this->doFree(payload,align(size));                   // Align and free
+    this->doFree(payload,size);                          // Pass to doFree()
 }
 
 /**
  *  @fn void* Arena::doMalloc(size_t size) = 0
  *
- *  Allocate 'size' bytes of raw storage. The given size must be a multiple of
- *  `sizeof(double)`, and cannot be zero.
+ *  Allocate 'size' bytes of raw storage.
  *
- *  The resulting allocation must eventually be returned to this same Arena by
+ *  'size' may not be zero.
+ *
+ *  The result is correctly aligned to hold one or more 'alignment_t's.
+ *
+ *  The resulting allocation must eventually be returned to the same %arena by
  *  calling doFree(), and with the same value for 'size'.
  */
 
 /**
  *  @fn void Arena::doFree(void* p,size_t size) = 0
  *
- *  Free the memory that was allocated earlier from this same Arena by calling
+ *  Free the memory that was allocated earlier from the same %arena by calling
  *  malloc() and attempt to recycle it for future reuse to reclaim up to 'size'
- *  bytes of raw storage.  No promise is made however as to *when* this memory
- *  will be made available again:  the Arena may, for example, prefer to defer
+ *  bytes of raw storage.  No promise is made as to *when* this memory will be
+ *  made available again however: the %arena may, for example, prefer to defer
  *  recycling until a subsequent call to reset() is made.
  */
 
@@ -496,9 +505,12 @@ void Arena::overflowed() const
 }
 
 /**
- *  Throw an Exhausted exception to indicate that this Arena has been asked to
- *  allocate 'size' bytes of memory and that this exceeds the Arena's internal
+ *  Throw an Exhausted exception to indicate that the %arena has been asked to
+ *  allocate 'size' bytes of memory and that this exceeds the arena's internal
  *  limit.
+ *
+ *  The exception we throw can be caught either as an arena::Exhausted or else
+ *  as a SystemException.
  */
 void Arena::exhausted(size_t size) const
 {
@@ -518,26 +530,42 @@ void Arena::exhausted(size_t size) const
 }
 
 /**
- *  Construct and return a concrete Arena that supports the features specified
- *  in the options structure 'o'.
+ *  Construct and return an %arena that supports the features specified in the
+ *  given options structure.
  *
- *  This is the preferred way to construct an Arena, as opposed to including a
- *  header file and invoking the constructor directly, because it isolates the
- *  caller from needing to know the exact type of the Arena that they receive.
+ *  This is the preferred way to construct an arena (as opposed to including a
+ *  header file and invoking the constructor directly) because it isolates the
+ *  caller from having to know the exact type of the %arena that they receive.
  */
 ArenaPtr newArena(Options o)
 {
-    if (o.debugging()&& !o.parent()->supports(debugging))// Debugging support?
+    ArenaPtr p;                                          // The result arena
+
+    if (o.resetting() && o.recycling())                  // Reset And recycle?
     {
-        o.parent(newDebugArena(o));                      // ...add debug arena
+        p = newLeaArena(o);                              // ...the only choice
+    }
+    else
+    if (o.resetting())                                   // Support resetting?
+    {
+        p = newScopedArena(o);                           // ...the best choice
+    }
+    else                                                 // Support recycling?
+    {
+        p = newLimitedArena(o);                          // ...the best choice
     }
 
-    if (o.resetting()&& !o.parent()->supports(resetting))// Resetting support?
+    if (o.debugging())                                   // Support debugging?
     {
-        return newScopedArena(o);                        // ...the only choice
+        p = addDebugging(o.parent(p));                   // ...then add it now
     }
 
-    return newLimitedArena(o);                           // The default choice
+    if (o.threading())                                   // Support threading?
+    {
+        p = addThreading(o.parent(p));                   // ...then add it now
+    }
+
+    return p;                                            // Your arena, chief!
 }
 
 /****************************************************************************/

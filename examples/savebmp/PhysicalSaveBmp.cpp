@@ -27,8 +27,8 @@
  *      Author: poliocough@gmail.com
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
+#include <query/Operator.h>
+#include <array/Metadata.h>
 
 using namespace std;
 using namespace boost;
@@ -202,10 +202,10 @@ class PhysicalSaveBmp: public PhysicalOperator
         ArrayDesc const& inputSchema = inputArrays[0]->getArrayDesc();
 
         size_t nRows = inputSchema.getDimensions()[0].getLength();
-        size_t rowStart = inputSchema.getDimensions()[0].getStart();
+        size_t rowStart = inputSchema.getDimensions()[0].getStartMin();
 
         size_t nCols = inputSchema.getDimensions()[1].getLength();
-        size_t colStart = inputSchema.getDimensions()[1].getStart();
+        size_t colStart = inputSchema.getDimensions()[1].getStartMin();
 
         SimpleImage image(nRows, nCols);
 

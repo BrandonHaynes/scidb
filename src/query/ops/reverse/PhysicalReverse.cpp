@@ -27,16 +27,16 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
-#include "array/Array.h"
-#include "query/ops/reverse/ReverseArray.h"
-
-
-namespace scidb {
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <array/Array.h>
+#include "ReverseArray.h"
 
 using namespace boost;
 using namespace std;
+
+namespace scidb
+{
 
 class PhysicalReverse: public  PhysicalOperator
 {
@@ -81,8 +81,8 @@ public:
 
         for (size_t i = 0; i < dims.size(); i++)
         {
-            newStart.push_back(dims[i].getStart() + dims[i].getEndMax() - inEnd[i]);
-            newEnd.push_back(dims[i].getStart() + dims[i].getEndMax() - inStart[i]);
+            newStart.push_back(dims[i].getStartMin() + dims[i].getEndMax() - inEnd[i]);
+            newEnd.push_back(dims[i].getStartMin() + dims[i].getEndMax() - inStart[i]);
         }
 
         return PhysicalBoundaries(newStart, newEnd);

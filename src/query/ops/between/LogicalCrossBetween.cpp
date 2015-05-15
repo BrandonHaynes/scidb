@@ -66,7 +66,7 @@ namespace scidb
  *     <br> i, year_low, item_low, year_high, item_high
  *     <br> 0, 2011,      3,       2011,       3
  *     <br> 1, 2012,      1,       2012,       2
- *   - between(A, R) <quantity: uint64, sales:double> [year, item] =
+ *   - cross_between(A, R) <quantity: uint64, sales:double> [year, item] =
  *     <br> year, item, quantity, sales
  *     <br> 2011,  3,      6,     19.98
  *     <br> 2012,  1,      5,     41.65

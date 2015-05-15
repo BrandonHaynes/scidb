@@ -431,7 +431,7 @@
     <note>
       <para>To use the chunk-length calculator, your <literal>PATH</literal>
       environment variable must include the
-      <literal>/opt/scidb/14.7/bin</literal> directory.</para>
+      <literal>/opt/scidb/14.8/bin</literal> directory.</para>
     </note>
 
     <para>Data is split into regular, rectilinear chunks, and distributed

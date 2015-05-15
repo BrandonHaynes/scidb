@@ -15,7 +15,7 @@ SCIDB QUERY : <store( filter(build(spA, x+y), x=y), spA )>
 {4,4} 8
 {5,5} 10
 
-SCIDB QUERY : <spgemm(spA, spA)>
+SCIDB QUERY : <spgemm(spA, spA, 'rightReplicate=true')>
 {x,y} multiply
 {1,1} 4
 {2,2} 16
@@ -23,7 +23,15 @@ SCIDB QUERY : <spgemm(spA, spA)>
 {4,4} 64
 {5,5} 100
 
-SCIDB QUERY : <spgemm(spA, spA, 'min.+')>
+SCIDB QUERY : <spgemm(spA, spA, 'rightReplicate=false')>
+{x,y} multiply
+{1,1} 4
+{2,2} 16
+{3,3} 36
+{4,4} 64
+{5,5} 100
+
+SCIDB QUERY : <spgemm(spA, spA, 'min.+', 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 0
 {1,1} 4
@@ -32,7 +40,25 @@ SCIDB QUERY : <spgemm(spA, spA, 'min.+')>
 {4,4} 16
 {5,5} 20
 
-SCIDB QUERY : <spgemm(spA, spA, 'max.+')>
+SCIDB QUERY : <spgemm(spA, spA, 'min.+', 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spA, 'max.+', 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spA, 'max.+', 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 0
 {1,1} 4
@@ -50,7 +76,7 @@ SCIDB QUERY : <store( spA, spB)>
 {4,4} 8
 {5,5} 10
 
-SCIDB QUERY : <spgemm(spA, spB)>
+SCIDB QUERY : <spgemm(spA, spB, 'rightReplicate=true')>
 {x,y} multiply
 {1,1} 4
 {2,2} 16
@@ -58,7 +84,31 @@ SCIDB QUERY : <spgemm(spA, spB)>
 {4,4} 64
 {5,5} 100
 
-SCIDB QUERY : <spgemm(spA, spB, 'min.+')>
+SCIDB QUERY : <spgemm(spA, spB, 'rightReplicate=false')>
+{x,y} multiply
+{1,1} 4
+{2,2} 16
+{3,3} 36
+{4,4} 64
+{5,5} 100
+
+SCIDB QUERY : <spgemm(spA, spB, 'rightReplicate=true')>
+{x,y} multiply
+{1,1} 4
+{2,2} 16
+{3,3} 36
+{4,4} 64
+{5,5} 100
+
+SCIDB QUERY : <spgemm(spA, spB, 'rightReplicate=false')>
+{x,y} multiply
+{1,1} 4
+{2,2} 16
+{3,3} 36
+{4,4} 64
+{5,5} 100
+
+SCIDB QUERY : <spgemm(spA, spB, 'min.+', 'rightReplicate=true')>
 {x,y} multiply
 {0,0} 0
 {1,1} 4
@@ -67,7 +117,61 @@ SCIDB QUERY : <spgemm(spA, spB, 'min.+')>
 {4,4} 16
 {5,5} 20
 
-SCIDB QUERY : <spgemm(spA, spB, 'max.+')>
+SCIDB QUERY : <spgemm(spA, spB, 'min.+', 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spB, 'min.+', 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spB, 'min.+', 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spB, 'max.+', 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spB, 'max.+', 'rightReplicate=false')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spB, 'max.+', 'rightReplicate=true')>
+{x,y} multiply
+{0,0} 0
+{1,1} 4
+{2,2} 8
+{3,3} 12
+{4,4} 16
+{5,5} 20
+
+SCIDB QUERY : <spgemm(spA, spB, 'max.+', 'rightReplicate=false')>
 {x,y} multiply
 {0,0} 0
 {1,1} 4
@@ -89,7 +193,43 @@ SCIDB QUERY : <store( filter(build(spC, row-1), row=col), spC )>
 {9,9} 8
 {10,10} 9
 
-SCIDB QUERY : <spgemm(spC, spC)>
+SCIDB QUERY : <spgemm(spC, spC, 'rightReplicate=true')>
+{row,col} multiply
+{2,2} 1
+{3,3} 4
+{4,4} 9
+{5,5} 16
+{6,6} 25
+{7,7} 36
+{8,8} 49
+{9,9} 64
+{10,10} 81
+
+SCIDB QUERY : <spgemm(spC, spC, 'rightReplicate=false')>
+{row,col} multiply
+{2,2} 1
+{3,3} 4
+{4,4} 9
+{5,5} 16
+{6,6} 25
+{7,7} 36
+{8,8} 49
+{9,9} 64
+{10,10} 81
+
+SCIDB QUERY : <spgemm(spC, spC, 'rightReplicate=true')>
+{row,col} multiply
+{2,2} 1
+{3,3} 4
+{4,4} 9
+{5,5} 16
+{6,6} 25
+{7,7} 36
+{8,8} 49
+{9,9} 64
+{10,10} 81
+
+SCIDB QUERY : <spgemm(spC, spC, 'rightReplicate=false')>
 {row,col} multiply
 {2,2} 1
 {3,3} 4

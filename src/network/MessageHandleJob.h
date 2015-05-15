@@ -119,7 +119,14 @@ namespace scidb
 
     private:
         NetworkManager& networkManager;
-        size_t sourceId;
+
+        /**
+         * Any message on the wire includes a physical sender ID in it.
+         * Users of NetworkManager deal with logical (sender AND receiver) IDs.
+         * A typical pattern is: when a ServerMessageHandleJob receives a message, it translates the sender ID from physical to logical.
+         */
+        size_t _logicalSourceId;
+
         bool _mustValidateQuery;
 
         typedef void(ServerMessageHandleJob::*MsgHandler)();
@@ -169,9 +176,15 @@ namespace scidb
         /**
          * Helper method to enqueue this job to a given queue
          * @param queue the WorkQueue for running this job
-         * @param handleOverflow inidicates whether to handle the queue overflow by setting this message's query to error;
+         * @param handleOverflow indicates whether to handle the queue overflow by setting this message's query to error;
          *        true by default
          * @throws WorkQueue::OverflowException if queue has no space (regardless of the handleOverflow flag)
+         *
+         * @note After you call enqueue, do NOT read or write this ServerMessageHandleJob (except with extreme care; see below).
+         *       The dispatch() function is single threaded before calling enqueue();
+         *       but after enqueue() is called, other threads may read or change its content.
+         *       In most cases, you do not need to read/write after calling enqueue().
+         *       But if you really do, protect ALL accesses to it with a mutex.
          */
         void enqueue(boost::shared_ptr<WorkQueue>& queue, bool handleOverflow=true);
     };

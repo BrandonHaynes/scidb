@@ -79,7 +79,7 @@ class HarnessTestExecutor : public Executor
 		int createLogger (void);
 		int validateParameters (void);
 		void copyToLocal (const InfoForExecutor &ie);
-		int execute (const InfoForExecutor &ie);
+		int execute (InfoForExecutor &ie);
 };
 
 } //END namespace executors

@@ -253,11 +253,19 @@ int diff (const string &file1, const string &file2, const string &diff_file)
 
 	try
 	{
-		if (!bfs::is_regular_file (file1))
+		if (!bfs::is_regular_file (file1)) // Case when expected file does not exist
 		{
-			stringstream ss;
-			ss << "File [" << file1 << "] either does not exist or is not a regular file.";
-			throw SystemError (FILE_LINE_FUNCTION, ss.str());
+			if (bfs::file_size(file2)) // Case when actual output file is Not empty
+			{
+				stringstream ss;
+				ss << "File [" << file1 << "] either does not exist or is not a regular file.";
+				throw SystemError (FILE_LINE_FUNCTION, ss.str());
+			}
+			else // Case when actual file is empty
+			{    // Remove empty actual file and return PASS
+				bfs::remove (file2);
+				return DIFF_FILES_MATCH;
+			}
 		}
 
 		if (!bfs::is_regular_file (file2))

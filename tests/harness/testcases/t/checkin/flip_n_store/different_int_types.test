@@ -1,0 +1,16 @@
+--setup
+
+--start-query-logging
+redimension(build(<v:int8>[i=0:0,1,0], 0), <i:int64>[v=0:0,1,0])
+redimension(build(<v:int16>[i=0:0,1,0], 0), <i:int64>[v=0:0,1,0])
+redimension(build(<v:int32>[i=0:0,1,0], 0), <i:int64>[v=0:0,1,0])
+redimension(build(<v:int64>[i=0:0,1,0], 0), <i:int64>[v=0:0,1,0])
+redimension(build(<v:uint8>[i=0:0,1,0], 0), <i:int64>[v=0:0,1,0])
+redimension(build(<v:uint16>[i=0:0,1,0], 0), <i:int64>[v=0:0,1,0])
+redimension(build(<v:uint32>[i=0:0,1,0], 0), <i:int64>[v=0:0,1,0])
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_WRONG_SOURCE_ATTRIBUTE_TYPE "redimension(build(<v:uint64>[i=0:0,1,0], 0), <i:int64>[v=0:0,1,0])"
+--test
+
+
+--cleanup
+--stop-query-logging

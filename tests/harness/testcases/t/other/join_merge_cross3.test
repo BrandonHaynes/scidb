@@ -16,7 +16,7 @@ store(build(M3x3, I+J/(3.5)),M3x3)
 --test
 join(m7x3,M3x3)
 join(M3x3,m7x3)
---error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2 "join(m3x3,m7x3)"
+--error --code=scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_START_INDEX_MISMATCH "join(m3x3,m7x3)"
 subarray(m7x3,0,1,6,3)
 subarray(m3x3,1,1,3,3)
 join(subarray(m3x3,1,1,3,3),subarray(m7x3,0,1,6,3)) 

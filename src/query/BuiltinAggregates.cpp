@@ -26,15 +26,14 @@
  * @author poliocough@gmail.com
  */
 
-#include "query/Aggregate.h"
-#include "query/FunctionLibrary.h"
-#include "query/Expression.h"
-#include "query/TileFunctions.h"
-
-#include "query/ops/analyze/AnalyzeAggregate.h"
 
 #include <math.h>
 #include <log4cxx/logger.h>
+
+#include <query/Aggregate.h>
+#include <query/FunctionLibrary.h>
+#include <query/Expression.h>
+#include <query/TileFunctions.h>
 
 using boost::shared_ptr;
 using boost::make_shared;
@@ -60,6 +59,43 @@ protected:
     boost::shared_ptr<ExpressionContext> _mergeContext;
 
     bool _initByFirstValue;
+
+    virtual bool isMergeable(Value const& srcState) const
+    {
+        if (! isStateInitialized(srcState)) {
+            return false;
+        }
+        if (_initByFirstValue && srcState.getMissingReason()==1) {
+            return false;
+        }
+        assert(!srcState.isNull());
+
+        return true;
+    }
+
+    void accumulate(Value& dstState, Value const& srcValue)
+    {
+        assert(isStateInitialized(dstState));
+        assert(isAccumulatable(srcValue));
+
+        if (! isMergeable(dstState)) {
+            dstState = srcValue;
+        } else {
+            (*_accumulateContext)[0] = dstState;
+            (*_accumulateContext)[1] = srcValue;
+            dstState = _accumulateExpression.evaluate(*_accumulateContext);
+        }
+    }
+
+    void merge(Value& dstState, Value const& srcState)
+    {
+        assert(isStateInitialized(dstState));
+        assert( isMergeable(srcState));
+
+        (*_mergeContext)[0] = dstState;
+        (*_mergeContext)[1] = srcState;
+        dstState = _mergeExpression.evaluate(*_mergeContext);
+    }
 
 public:
     ExpressionAggregate(const string& name, Type const& aggregateType, Type const& stateType, Type const& resultType,
@@ -130,19 +166,13 @@ public:
         }
     }
 
-    void accumulate(Value& state, Value const& input)
+    virtual void accumulateIfNeeded(Value& state, ConstRLEPayload const* tile)
     {
-        if (_initByFirstValue && state.isNull()) {
-            state = input;
-        } else {
-            (*_accumulateContext)[0] = state;
-            (*_accumulateContext)[1] = input;
-            state = _accumulateExpression.evaluate(*_accumulateContext);
+        if (! isStateInitialized(state)) {
+            initializeState(state);
+            assert(isStateInitialized(state));
         }
-    }
 
-    virtual void accumulatePayload(Value& state, ConstRLEPayload const* tile)
-    {
         ConstRLEPayload::iterator iter = tile->getIterator();
         while (!iter.end())
         {
@@ -164,20 +194,15 @@ public:
         }
     }
 
-    void merge(Value& dstState, Value const& srcState)
+    void finalResult(Value& dstValue, Value const& srcState)
     {
-        (*_mergeContext)[0] = dstState;
-        (*_mergeContext)[1] = srcState;
-        dstState = _mergeExpression.evaluate(*_mergeContext);
-    }
-
-    void finalResult(Value& result, Value const& state)
-    {
-        result = state;
-        if(state.getMissingReason() == 1)
+        if (! isMergeable(srcState))
         {
             //we didn't see any values, return null
-            result.setNull();
+            dstValue.setNull();
+        }
+        else {
+            dstValue = srcState;
         }
     }
 };
@@ -186,6 +211,23 @@ class CountAggregate : public CountingAggregate
 {
 private:
     bool _ignoreNulls;
+
+protected:
+    void accumulate(Value& dstState, Value const& srcValue)
+    {
+        assert(isStateInitialized(dstState));
+        assert(isAccumulatable(srcValue));
+
+        (*dstState.getData<uint64_t>())++;
+    }
+
+    void merge(Value& dstState, Value const& srcState)
+    {
+        assert(isStateInitialized(dstState));
+        assert(isMergeable(srcState));
+
+        (*dstState.getData<uint64_t>()) += srcState.getUint64();
+    }
 
 public:
     CountAggregate(Type const& aggregateType):
@@ -231,52 +273,182 @@ public:
         return _ignoreNulls;
     }
 
-    void accumulate(Value& state, Value const& input)
+    void accumulateIfNeeded(Value& state, ConstRLEPayload const* tile)
     {
-        (*((uint64_t*) state.data()))++;
-    }
+        if (! isStateInitialized(state)) {
+            initializeState(state);
+            assert(isStateInitialized(state));
+        }
 
-    void accumulate(Value& state, std::vector<Value> const& input)
-    {
-        (*((uint64_t*) state.data()))+= input.size();
-    }
-
-    void accumulatePayload(Value& state, ConstRLEPayload const* tile)
-    {
         if (!ignoreNulls()) {
-            *((uint64_t*)state.data()) += tile->count();
+            *state.getData<uint64_t>() += tile->count();
         } else {
             ConstRLEPayload::iterator iter = tile->getIterator();
             while (!iter.end())
             {
                 if (!iter.isNull())
                 {
-                    *((uint64_t*)state.data()) += iter.getSegLength();
+                    *state.getData<uint64_t>() += iter.getSegLength();
                 }
                 iter.toNextSegment();
             }
         }
     }
 
-    void merge(Value& dstState, Value const& srcState)
-    {
-        (*((uint64_t*) dstState.data())) += srcState.getUint64();
-    }
-
     void overrideCount(Value& state, uint64_t newCount)
     {
-        (*((uint64_t*) state.data())) = newCount;
+        *state.getData<uint64_t>() = newCount;
     }
 
-    void finalResult(Value& result, Value const& state)
+    void finalResult(Value& dstValue, Value const& srcState)
     {
-        if (state.isNull())
+        if (! isMergeable(srcState))
         {
-            result = TypeLibrary::getDefaultValue(getResultType().typeId());
+            dstValue = TypeLibrary::getDefaultValue(getResultType().typeId());
+        }
+        else {
+            dstValue = srcState;
+        }
+    }
+};
+
+/**
+ * This class implements ApproxDC.
+ *
+ * @note As a historic note, in the 14.12 release and earlier, the code was in AnalyzeAggregate.h/cpp, originally added by egor.pugin@gmail.com.
+ */
+class ApproxDCAggregate : public Aggregate
+{
+private:
+    static const size_t k = 17; //16 = 64K, 17 = 128K, ...
+    const size_t k_comp;
+    const size_t m;
+
+protected:
+    virtual void accumulate(Value& dstState, Value const& srcValue)
+    {
+        assert(isStateInitialized(dstState));
+        assert(isAccumulatable(srcValue));
+
+        const uint32_t seed = 0x5C1DB;
+        uint64_t h[2];
+        MurmurHash3_x64_128(srcValue.getData<uint8_t>(), srcValue.size(), seed, h);
+        size_t j = h[0] >> k_comp;
+
+        uint8_t r = 1;
+        while ((h[0] & 1) == 0 && r <= k_comp)
+        {
+            h[0] >>= 1;
+            r++;
+        }
+
+        uint8_t *M = dstState.getData<uint8_t>();
+        M[j] = max(M[j], r);
+    }
+
+    virtual void merge(Value& dstState, Value const& srcState)
+    {
+        assert(isStateInitialized(dstState));
+        assert(isMergeable(srcState));
+
+        uint8_t *dest = dstState.getData<uint8_t>();
+        uint8_t const *src = srcState.getData<uint8_t>();
+
+        for (size_t i = 0; i < m; i++)
+        {
+            dest[i] = max(dest[i], src[i]);
+        }
+    }
+
+public:
+    ApproxDCAggregate()
+    : Aggregate("ApproxDC", TypeLibrary::getType(TID_VOID), TypeLibrary::getType(TID_UINT64)), k_comp(64 - k), m(1 << k)
+    {}
+
+    virtual ~ApproxDCAggregate() {}
+
+    virtual bool ignoreNulls() const
+    {
+        return true;
+    }
+
+    virtual Type getStateType() const
+    {
+        return TypeLibrary::getType(TID_BINARY);
+    }
+
+    virtual AggregatePtr clone() const
+    {
+        return AggregatePtr(new ApproxDCAggregate());
+    }
+
+    virtual AggregatePtr clone(Type const& aggregateType) const
+    {
+        return clone();
+    }
+
+    virtual void initializeState(Value& state)
+    {
+        memset(state.setSize(m), 0, m);
+    }
+
+    virtual void finalResult(Value& dstValue, Value const& srcState)
+    {
+        if (! isMergeable(srcState))
+        {
+            dstValue.setUint64(0);
             return;
         }
 
-        result = state;
+        double alpha_m;
+
+        switch (m)
+        {
+        case 16:
+            alpha_m = 0.673;
+            break;
+        case 32:
+            alpha_m = 0.697;
+            break;
+        case 64:
+            alpha_m = 0.709;
+            break;
+        default:
+            alpha_m = 0.7213 / (1 + 1.079 / (double)m);
+            break;
+        }
+
+        uint8_t const *M = srcState.getData<uint8_t>();
+
+        double c = 0;
+        for (size_t i = 0; i < m; i++)
+        {
+            c += 1 / pow(2., (double)M[i]);
+        }
+        double E = alpha_m * m * m / c;
+
+        const double pow_2_32 = 0xffffffff;
+
+        //corrections
+        if (E <= (5 / 2. * m))
+        {
+            double V = 0;
+            for (size_t i = 0; i < m; i++)
+            {
+                if (M[i] == 0) V++;
+            }
+
+            if (V > 0)
+            {
+                E = m * log(m / V);
+            }
+        }
+        else if (E > (1 / 30. * pow_2_32))
+        {
+            E = -pow_2_32 * log(1 - E / pow_2_32);
+        }
+
+        dstValue.setUint64(E);
     }
 };
 
@@ -377,9 +549,8 @@ AggregateLibrary::AggregateLibrary()
     addAggregate(make_shared<BaseAggregate<AggStDev, float, double> >("stdev", TypeLibrary::getType(TID_FLOAT), TypeLibrary::getType(TID_DOUBLE)));
     addAggregate(make_shared<BaseAggregate<AggStDev, double, double> >("stdev", TypeLibrary::getType(TID_DOUBLE), TypeLibrary::getType(TID_DOUBLE)));
 
-    /** ApproxDC (ANALYZE) **/
-    addAggregate(make_shared<AnalyzeAggregate>());
+    /** ApproxDC **/
+    addAggregate(make_shared<ApproxDCAggregate>());
 }
-
 
 } // namespace scidb

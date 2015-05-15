@@ -1,0 +1,32 @@
+--setup
+--start-query-logging
+
+# ensure compression is actually compressing #4455
+
+create array Ts <a:string> [x=0:10000,1000,0]
+create array Ts_z <a:string compression 'zlib'> [x=0:10000,1000,0]
+create array Ts_bz <a:string compression 'bzlib'> [x=0:10000,1000,0]
+create array Usage <name:string, file_blocks_512:uint64> [n=0:*,100,0]
+
+--test
+--igdata --aql "select * into Ts from build(Ts,string(x))"
+--igdata --aql "select * into Ts_z from Ts"
+--igdata --aql "select * into Ts_bz from Ts_z"
+
+# check the space usage --- both compressors should show up in the query output
+
+--igdata "store(redimension(project(filter(cross_join(filter(list('arrays'), regex(name, 'Ts(.*)')) as A, filter(list('datastores'), inst = 0) as B), A.uaid = B.uaid), name, file_blocks_512), Usage), Usage)"
+project(filter(cross_join(Usage as A, project(filter(Usage, name = 'Ts') as B, file_blocks_512)), A.file_blocks_512 < B.file_blocks_512), name)
+
+# check that the contents are all readable and indentical --- both queries should be empty
+
+filter(join(Ts as A, Ts_z as B), A.a <> B.a)
+filter(join(Ts as A, Ts_bz as B), A.a <> B.a)
+
+--cleanup
+remove(Ts)
+remove(Ts_z)
+remove(Ts_bz)
+remove(Usage)
+
+--stop-query-logging

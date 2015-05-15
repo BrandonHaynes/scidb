@@ -33,9 +33,9 @@
 --aql rename array B to A
 --aql select * from dimensions(A)
 --aql select * from scan(A)
---aql select * into A2 from adddim(A,z)
+store( redimension( apply(A,z,0), <a:int32, b:string> [z=0:0,1,0,x=0:3,3,0,y=0:2,3,0]), A2)
 --aql select * from dimensions(A2)
---aql select * into A3 from deldim(A2)
+store( redimension( A2, <a:int32, b:string> [x=0:3,3,0,y=0:2,3,0]), A3)
 --aql select * from dimensions(A3)
 --aql select * from aggregate(A,sum(a))
 --aql select * from aggregate(A,avg(a))

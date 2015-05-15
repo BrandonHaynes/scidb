@@ -137,27 +137,6 @@ SCIDB QUERY : <select * from scan(A)>
 {1} 11
 {2} 12
 
-SCIDB QUERY : <select * into A2 from adddim(A,b)>
-{b,x} a
-{0,0} 10
-{0,1} 11
-{0,2} 12
-
-SCIDB QUERY : <select * from dimensions(A2)>
-{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
-{0} 'b',0,1,1,0,0,0,'int64'
-{1} 'x',0,3,3,0,0,2,'int64'
-
-SCIDB QUERY : <select * into A3 from deldim(A2)>
-{x} a
-{0} 10
-{1} 11
-{2} 12
-
-SCIDB QUERY : <select * from dimensions(A3)>
-{No} name,start,length,chunk_interval,chunk_overlap,low,high,type
-{0} 'x',0,3,3,0,0,2,'int64'
-
 SCIDB QUERY : <select * from aggregate(A,sum(a))>
 {i} a_sum
 {0} 33
@@ -212,11 +191,5 @@ SCIDB QUERY : <drop array D>
 Query was executed successfully
 
 SCIDB QUERY : <drop array C>
-Query was executed successfully
-
-SCIDB QUERY : <drop array A2>
-Query was executed successfully
-
-SCIDB QUERY : <drop array A3>
 Query was executed successfully
 

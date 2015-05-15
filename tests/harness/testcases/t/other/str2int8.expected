@@ -1,0 +1,146 @@
+{i} val
+{0} '42'
+
+{i} val,ival2
+{0} '42',42
+
+{i} val,uval2
+{0} '42',42
+
+{i} val
+{0} '0042'
+
+{i} val,ival2
+{0} '0042',42
+
+{i} val,uval2
+{0} '0042',42
+
+{i} val
+{0} '-58'
+
+{i} val,ival2
+{0} '-58',-58
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} '127'
+
+{i} val,ival2
+{0} '127',127
+
+{i} val,uval2
+{0} '127',127
+
+{i} val
+{0} '128'
+
+[An error expected at this place for the query "apply(s2i, ival2, int8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val,uval2
+{0} '128',128
+
+{i} val
+{0} '129'
+
+[An error expected at this place for the query "apply(s2i, ival2, int8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val,uval2
+{0} '129',129
+
+{i} val
+{0} '-126'
+
+{i} val,ival2
+{0} '-126',-126
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} ' 	-127'
+
+{i} val,ival2
+{0} ' 	-127',-127
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} '-127	 '
+
+{i} val,ival2
+{0} '-127	 ',-127
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} '125	 '
+
+{i} val,ival2
+{0} '125	 ',125
+
+{i} val,uval2
+{0} '125	 ',125
+
+{i} val
+{0} '125x'
+
+[An error expected at this place for the query "apply(s2i, ival2, int8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} '-128'
+
+{i} val,ival2
+{0} '-128',-128
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} '-129'
+
+[An error expected at this place for the query "apply(s2i, ival2, int8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} '260'
+
+[An error expected at this place for the query "apply(s2i, ival2, int8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} '255'
+
+[An error expected at this place for the query "apply(s2i, ival2, int8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val,uval2
+{0} '255',255
+
+{i} val
+{0} '256'
+
+[An error expected at this place for the query "apply(s2i, ival2, int8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+{i} val
+{0} '0xFF'
+
+{i} val,ival2
+{0} '0xFF',-1
+
+{i} val,uval2
+{0} '0xFF',255
+
+{i} val
+{0} '0x1FF'
+
+[An error expected at this place for the query "apply(s2i, ival2, int8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+[An error expected at this place for the query "apply(s2i, uval2, uint8(val))". And it failed with error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING. Expected error code = scidb::SCIDB_SE_TYPE_CONVERSION::SCIDB_LE_FAILED_PARSE_STRING.]
+
+Query was executed successfully
+

@@ -36,6 +36,17 @@ namespace scidb {
     using namespace boost;
     using namespace std;
 
+    Coordinate computeLastCoordinate(uint64_t dimensionLength,
+                                     Coordinate dimensionStart,
+                                     Coordinate thinStartingPoint,
+                                     Coordinate stepInterval)
+    {
+        // Integer truncation desirable here as we want the floor of the result
+        // which guarantees that the returned coordinate will be within a chunk.
+        return ((dimensionLength - thinStartingPoint + 
+                 dimensionStart + stepInterval - 1) / stepInterval - 1);
+    }
+
     //
     // Thin chunk iterator methods
     //
@@ -131,11 +142,6 @@ namespace scidb {
     //
     // Thin chunk methods
     //
-    bool ThinChunk::isSparse() const
-    {
-        return sparse;
-    }
-
     boost::shared_ptr<ConstChunkIterator> ThinChunk::getConstIterator(int iterationMode) const
     {
         return boost::shared_ptr<ConstChunkIterator>(new ThinChunkIterator(array, *this, iterationMode));
@@ -147,14 +153,12 @@ namespace scidb {
         Address addr(attrID, pos);
         chunk.initialize(&array, &desc, addr, desc.getAttributes()[attrID].getDefaultCompressionMethod());
         srcChunk = &iterator.getInputIterator()->getChunk();
-        sparse = srcChunk->isSparse();
         setInputChunk(chunk);
     }
 
     ThinChunk::ThinChunk(ThinArray const& arr, DelegateArrayIterator const& iterator, AttributeID attrID)
     : DelegateChunk(arr, iterator, attrID, false),
-      array(arr),
-      sparse(false)
+      array(arr)
     {
     }
       
@@ -184,6 +188,19 @@ namespace scidb {
         array.out2in(outPos, inPos);
         chunkInitialized = false;
         return inputIterator->setPosition(inPos);
+    }
+
+    bool ThinArrayIterator::end()
+    {
+        bool atEnd = true;
+        
+        if (!inputIterator->end()) {
+            Coordinates const& currentPosition = getPosition();
+            ArrayDesc const& arrayDescriptor = array.getArrayDesc();
+            atEnd = !arrayDescriptor.contains(currentPosition);
+        }
+
+        return atEnd;
     }
 
     ThinArrayIterator::ThinArrayIterator(ThinArray const& arr, AttributeID attrID, boost::shared_ptr<ConstArrayIterator> inputIterator)

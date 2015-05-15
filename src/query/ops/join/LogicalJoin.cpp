@@ -28,10 +28,10 @@
  */
 
 #include <boost/foreach.hpp>
-#include "query/Operator.h"
-#include "system/SystemCatalog.h"
-#include "system/Exceptions.h"
-#include "array/Metadata.h"
+#include <query/Operator.h>
+#include <system/SystemCatalog.h>
+#include <system/Exceptions.h>
+#include <array/Metadata.h>
 
 using namespace std;
 
@@ -127,16 +127,34 @@ class LogicalJoin: public LogicalOperator
 
         if(leftDimensions.size() != rightDimensions.size())
         {
-            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_LOGICAL_JOIN_ERROR1);
+            ostringstream left, right;
+            printDimNames(left, leftDimensions);
+            printDimNames(right, rightDimensions);
+            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_DIMENSION_COUNT_MISMATCH)
+                << "join" << left.str() << right.str();
         }
+
+        ostringstream ss;
+        int mismatches = 0;
+        for (size_t i = 0, n = leftDimensions.size(); i < n; i++)
+        {
+            if(leftDimensions[i].getStartMin() != rightDimensions[i].getStartMin())
+            {
+                if (mismatches++) {
+                    ss << ", ";
+                }
+                ss << '[' << leftDimensions[i] << "] != [" << rightDimensions[i] << ']';
+            }
+        }
+        if (mismatches)
+        {
+            throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_START_INDEX_MISMATCH) << ss.str();
+        }
+
         Dimensions joinDimensions;
         for (size_t i = 0, n = leftDimensions.size(); i < n; i++)
         {
-            if(!( (leftDimensions[i].getStart() == rightDimensions[i].getStart()
-                   && leftDimensions[i].getChunkInterval() == rightDimensions[i].getChunkInterval())))
-            {
-                throw USER_EXCEPTION(SCIDB_SE_INFER_SCHEMA, SCIDB_LE_LOGICAL_JOIN_ERROR2);
-            }
+            assert(leftDimensions[i].getStartMin() == rightDimensions[i].getStartMin());
             DimensionDesc &lDim = leftDimensions[i];
             joinDimensions.push_back(
                    DimensionDesc(

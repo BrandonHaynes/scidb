@@ -55,25 +55,23 @@ public:
 
     boost::shared_ptr<Array> execute(vector<boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
-        vector<boost::shared_ptr<Tuple> > tuples;
         uint32_t hdu = 0;
 
-        if (query->getCoordinatorID() != COORDINATOR_INSTANCE )
+        if (! query->isCoordinator() )
         {
             return shared_ptr<Array> (new MemArray(_schema,query));
         }
 
+        shared_ptr<TupleArray> tuples(make_shared<TupleArray>(_schema, _arena));
         const string filePath = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[0])->getExpression()->evaluate().getString();
 
         FITSParser parser(filePath);
 
         while (true) {
             try {
+                Value tuple[3];
                 string error;
                 if (parser.moveToHDU(hdu, error)) {
-                    Tuple& tuple = *new Tuple(3);
-                    tuples.push_back(boost::shared_ptr<Tuple>(&tuple));
-
                     tuple[0].setBool(true);
 
                     switch (parser.getBitPixType()) {
@@ -93,7 +91,7 @@ public:
                         tuple[1].setString("float");
                         break;
                     default:
-                        assert(false);
+                        SCIDB_UNREACHABLE();
                     }
 
                     stringstream ss;
@@ -107,19 +105,18 @@ public:
 
                     tuple[2].setString(ss.str().c_str());
                 } else {
-                    Tuple& tuple = *new Tuple(3);
-                    tuples.push_back(boost::shared_ptr<Tuple>(&tuple));
                     tuple[0].setBool(false);
                     tuple[1].setNull();
                     tuple[2].setNull();
                 }
-            } catch (Exception& e) {
+                tuples->appendTuple(tuple);
+            } catch (Exception&) {
                 break;
             }
             ++hdu;
         }
 
-        return boost::shared_ptr<Array>(new TupleArray(_schema, tuples));
+        return tuples;
     }
 };
 

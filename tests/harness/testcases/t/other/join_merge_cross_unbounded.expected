@@ -874,10 +874,42 @@ SCIDB QUERY : <merge(Z,unbounded)>
 {29} 15
 
 SCIDB QUERY : <join(unbounded,unbound_A)>
-[An error expected at this place for the query "join(unbounded,unbound_A)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_LOGICAL_JOIN_ERROR2.]
+{x} a,a
+{0} 0,0
+{2} 1,1
+{4} 2,2
+{6} 3,3
+{8} 4,4
+{10} 5,5
+{12} 6,6
+{14} 7,7
+{16} 8,8
+{18} 9,9
+{20} 10,10
+{22} 11,11
+{24} 12,12
+{26} 13,13
+{28} 14,14
+{29} 15,15
 
 SCIDB QUERY : <merge(subarray(unbounded,0,5),unbound_A)>
-[An error expected at this place for the query "merge(subarray(unbounded,0,5),unbound_A)". And it failed with error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT. Expected error code = scidb::SCIDB_SE_INFER_SCHEMA::SCIDB_LE_ARRAYS_NOT_CONFORMANT.]
+{x} a
+{0} 0
+{2} 1
+{4} 2
+{6} 3
+{8} 4
+{10} 5
+{12} 6
+{14} 7
+{16} 8
+{18} 9
+{20} 10
+{22} 11
+{24} 12
+{26} 13
+{28} 14
+{29} 15
 
 SCIDB QUERY : <join(repart(unbounded,unbound_A),unbound_A)>
 {x} a,a

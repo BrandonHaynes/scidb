@@ -50,9 +50,9 @@ static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.qproc.pluginm
 
 PluginManager::PluginManager()
 {
-//Option CONFIG_PLUGINS is correct only for server
+//Option CONFIG_PLUGINSDIR is correct only for server
 #ifndef SCIDB_CLIENT
-    setPluginsDirectory(Config::getInstance()->getOption<string>(CONFIG_PLUGINS));
+    setPluginsDirectory(Config::getInstance()->getOption<string>(CONFIG_PLUGINSDIR));
 #endif
 }
 
@@ -99,11 +99,7 @@ PluginDesc& PluginManager::findModule(const std::string& moduleName, bool* was)
     if (_plugins.find(moduleName) != _plugins.end())
         return _plugins[moduleName];
 
-    #ifdef __APPLE__
-    string fullName = "lib" + moduleName + ".dylib";
-    #else
     string fullName = "lib" + moduleName + ".so";
-    #endif
     if (_plugins.find(fullName) != _plugins.end())
         return _plugins[fullName];
     if (was)
@@ -255,11 +251,7 @@ void PluginManager::unLoadLibrary(const string& libraryName)
 {
     ScopedMutexLock cs (_mutex);
 
-#ifdef __APPLE__
-    string fullName = "lib" + libraryName + ".dylib";
-#else
     string fullName = "lib" + libraryName + ".so";
-#endif
     if (_plugins.find(libraryName) == _plugins.end() && _plugins.find(fullName) == _plugins.end())
         throw SYSTEM_EXCEPTION(SCIDB_SE_PLUGIN_MGR, SCIDB_LE_CANT_UNLOAD_MODULE) << libraryName;
 #ifndef SCIDB_CLIENT

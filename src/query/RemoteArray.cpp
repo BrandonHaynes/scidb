@@ -51,27 +51,71 @@ namespace scidb
 // to prevent visibility of variable outside of file
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.qproc.remotearray"));
 
-boost::shared_ptr<RemoteArray> RemoteArray::create(const ArrayDesc& arrayDesc, QueryID queryId, InstanceID instanceID)
+RemoteArrayContext::RemoteArrayContext(size_t numInstances):
+    _inboundArrays(numInstances), _outboundArrays(numInstances)
+{}
+
+shared_ptr<RemoteArray> RemoteArrayContext::getInboundArray(InstanceID logicalSrcInstanceID) const
 {
-    boost::shared_ptr<Query> query = Query::getQueryByID(queryId);
-    boost::shared_ptr<RemoteArray> array = boost::shared_ptr<RemoteArray>(new RemoteArray(arrayDesc, queryId, instanceID));
-    query->setRemoteArray(instanceID, array);
+    assert(!_inboundArrays.empty());
+    assert(logicalSrcInstanceID < _inboundArrays.size());
+    return _inboundArrays[logicalSrcInstanceID];
+}
+
+void RemoteArrayContext::setInboundArray(InstanceID logicalSrcInstanceID, const shared_ptr<RemoteArray>& array)
+{
+    assert(!_inboundArrays.empty());
+    assert(logicalSrcInstanceID < _inboundArrays.size());
+    _inboundArrays[logicalSrcInstanceID] = array;
+}
+
+shared_ptr<Array> RemoteArrayContext::getOutboundArray(const InstanceID& logicalDestInstanceID) const
+{
+    assert(!_outboundArrays.empty());
+    assert(logicalDestInstanceID < _outboundArrays.size());
+    return _outboundArrays[logicalDestInstanceID];
+}
+
+void RemoteArrayContext::setOutboundArray(const InstanceID& logicalDestInstanceID, const shared_ptr<Array>& array)
+{
+    assert(!_outboundArrays.empty());
+    assert(logicalDestInstanceID < _outboundArrays.size());
+    _outboundArrays[logicalDestInstanceID] = array;
+}
+
+shared_ptr<RemoteArray> RemoteArray::create(
+        shared_ptr<RemoteArrayContext>& remoteArrayContext,
+        const ArrayDesc& arrayDesc, QueryID queryId, InstanceID logicalSrcInstanceID)
+{
+    shared_ptr<Query> query = Query::getQueryByID(queryId);
+
+    // Note: if make_shared is used here, you will get a compilation error saying RemoteArray::RemoteArray is private.
+    shared_ptr<RemoteArray> array = shared_ptr<RemoteArray>(new RemoteArray(arrayDesc, queryId, logicalSrcInstanceID));
+    remoteArrayContext->setInboundArray(logicalSrcInstanceID, array);
     return array;
 }
 
-RemoteArray::RemoteArray(const ArrayDesc& arrayDesc, QueryID queryId, InstanceID instanceID)
-: StreamArray(arrayDesc), _queryId(queryId), _instanceID(instanceID),
+RemoteArray::RemoteArray(const ArrayDesc& arrayDesc, QueryID queryId, InstanceID logicalSrcInstanceID)
+: StreamArray(arrayDesc), _queryId(queryId), _instanceID(logicalSrcInstanceID),
   _received(arrayDesc.getAttributes().size()),
   _messages(arrayDesc.getAttributes().size()),
   _requested(arrayDesc.getAttributes().size())
 {
 }
 
+shared_ptr<RemoteArrayContext> RemoteArray::getContext(boost::shared_ptr<Query>& query)
+{
+    Query::validateQueryPtr(query);
+    shared_ptr<RemoteArrayContext> context = dynamic_pointer_cast<RemoteArrayContext>(query->getOperatorContext());
+    ASSERT_EXCEPTION(context, "RemoteArray::getContext failed.");
+    return context;
+}
+
 void RemoteArray::requestNextChunk(AttributeID attId)
 {
     LOG4CXX_TRACE(logger, "RemoteArray fetches next chunk of " << attId << " attribute");
-    boost::shared_ptr<MessageDesc> fetchDesc = boost::make_shared<MessageDesc>(mtFetch);
-    boost::shared_ptr<scidb_msg::Fetch> fetchRecord = fetchDesc->getRecord<scidb_msg::Fetch>();
+    shared_ptr<MessageDesc> fetchDesc = make_shared<MessageDesc>(mtFetch);
+    shared_ptr<scidb_msg::Fetch> fetchRecord = fetchDesc->getRecord<scidb_msg::Fetch>();
     fetchDesc->setQueryID(_queryId);
     fetchRecord->set_attribute_id(attId);
     fetchRecord->set_position_only(false);
@@ -79,11 +123,10 @@ void RemoteArray::requestNextChunk(AttributeID attId)
     NetworkManager::getInstance()->send(_instanceID, fetchDesc);
 }
 
-
-void RemoteArray::handleChunkMsg(boost::shared_ptr<MessageDesc>& chunkDesc)
+void RemoteArray::handleChunkMsg(shared_ptr<MessageDesc>& chunkDesc)
 {
     assert(chunkDesc->getMessageType() == mtRemoteChunk);
-    boost::shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
+    shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
     AttributeID attId = chunkMsg->attribute_id();
     assert(attId < _messages.size());
     assert(attId < _received.size());
@@ -93,11 +136,11 @@ void RemoteArray::handleChunkMsg(boost::shared_ptr<MessageDesc>& chunkDesc)
 
 bool RemoteArray::proceedChunkMsg(AttributeID attId, MemChunk& chunk)
 {
-    boost::shared_ptr<MessageDesc>  chunkDesc = _messages[attId];
+    shared_ptr<MessageDesc>  chunkDesc = _messages[attId];
     _messages[attId].reset();
 
     StatisticsScope sScope(_statistics);
-    boost::shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
+    shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
     currentStatistics->receivedSize += chunkDesc->getMessageSize();
     currentStatistics->receivedMessages++;
 
@@ -116,10 +159,9 @@ bool RemoteArray::proceedChunkMsg(AttributeID attId, MemChunk& chunk)
         }
 
         chunk.initialize(this, &desc, firstElem, compMethod);
-        chunk.setSparse(chunkMsg->sparse());
         chunk.setCount(chunkMsg->count());
 
-        boost::shared_ptr<CompressedBuffer> compressedBuffer = dynamic_pointer_cast<CompressedBuffer>(chunkDesc->getBinary());
+        shared_ptr<CompressedBuffer> compressedBuffer = dynamic_pointer_cast<CompressedBuffer>(chunkDesc->getBinary());
         compressedBuffer->setCompressionMethod(compMethod);
         compressedBuffer->setDecompressedSize(decompressedSize);
         chunk.decompress(*compressedBuffer);
@@ -140,7 +182,7 @@ ConstChunk const* RemoteArray::nextChunk(AttributeID attId, MemChunk& chunk)
     if (!_requested[attId]) {
         requestNextChunk(attId);
     }
-    boost::shared_ptr<Query> query = Query::getQueryByID(_queryId);
+    shared_ptr<Query> query = Query::getQueryByID(_queryId);
     Semaphore::ErrorChecker errorChecker = bind(&Query::validateQueryPtr, query);
     _received[attId].enter(errorChecker);
     _requested[attId] = true;
@@ -152,9 +194,9 @@ ConstChunk const* RemoteArray::nextChunk(AttributeID attId, MemChunk& chunk)
 /* R E M O T E   M E R G E D   A R R A Y */
 
 RemoteMergedArray::RemoteMergedArray(const ArrayDesc& arrayDesc,
-                                     const boost::shared_ptr<Query>& query,
+                                     const shared_ptr<Query>& query,
                                      Statistics& statistics)
-  : MultiStreamArray(query->getInstancesCount(), query->getInstanceID(), arrayDesc, query),
+ : MultiStreamArray(query->getInstancesCount(), query->getInstanceID(), arrayDesc, false, query),
   _callbacks(arrayDesc.getAttributes().size()),
   _query(query),
   _messages(arrayDesc.getAttributes().size(), vector< MessageState >(getStreamCount()))
@@ -165,16 +207,16 @@ RemoteMergedArray::RemoteMergedArray(const ArrayDesc& arrayDesc,
     _localArray = query->getCurrentResultArray();
 }
 
-boost::shared_ptr<RemoteMergedArray>
+shared_ptr<RemoteMergedArray>
 RemoteMergedArray::create(const ArrayDesc& arrayDesc,
                           QueryID queryId,
                           Statistics& statistics)
 {
-    boost::shared_ptr<Query> query = Query::getQueryByID(queryId);
+    shared_ptr<Query> query = Query::getQueryByID(queryId);
     assert(query);
 
-    boost::shared_ptr<RemoteMergedArray> array =
-       boost::shared_ptr<RemoteMergedArray>(new RemoteMergedArray(arrayDesc, query, statistics));
+    shared_ptr<RemoteMergedArray> array =
+       shared_ptr<RemoteMergedArray>(new RemoteMergedArray(arrayDesc, query, statistics));
     query->setMergedArray(array);
     return array;
 }
@@ -234,9 +276,9 @@ RemoteMergedArray::requestNextChunk(size_t stream, AttributeID attId, bool posit
                      << (positionOnly? ", position only" : ", full")
                      << ", stream #" << stream);
 
-        boost::shared_ptr<MessageDesc>  chunkDesc = _messages[attId][stream]._message;
+        shared_ptr<MessageDesc>  chunkDesc = _messages[attId][stream]._message;
         if (chunkDesc) {
-            boost::shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
+            shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
             if (!chunkMsg->has_next() || chunkMsg->eof()) {
                 // nothing to request
                 return;
@@ -246,8 +288,8 @@ RemoteMergedArray::requestNextChunk(size_t stream, AttributeID attId, bool posit
         _messages[attId][stream]._hasPosition = false;
         _messages[attId][stream]._message.reset();
     }
-    boost::shared_ptr<MessageDesc> fetchDesc = boost::make_shared<MessageDesc>(mtFetch);
-    boost::shared_ptr<scidb_msg::Fetch> fetchRecord = fetchDesc->getRecord<scidb_msg::Fetch>();
+    shared_ptr<MessageDesc> fetchDesc = make_shared<MessageDesc>(mtFetch);
+    shared_ptr<scidb_msg::Fetch> fetchRecord = fetchDesc->getRecord<scidb_msg::Fetch>();
     fetchDesc->setQueryID(_query->getQueryID());
     fetchRecord->set_attribute_id(attId);
     fetchRecord->set_position_only(positionOnly);
@@ -256,12 +298,12 @@ RemoteMergedArray::requestNextChunk(size_t stream, AttributeID attId, bool posit
 }
 
 void
-RemoteMergedArray::handleChunkMsg(boost::shared_ptr< MessageDesc>& chunkDesc)
+RemoteMergedArray::handleChunkMsg(shared_ptr< MessageDesc>& chunkDesc)
 {
     static const char* funcName = "RemoteMergedArray::handleChunkMsg: ";
     assert(chunkDesc->getMessageType() == mtRemoteChunk);
 
-    boost::shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
+    shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
     AttributeID attId = chunkMsg->attribute_id();
     size_t stream = size_t(_query->mapPhysicalToLogical(chunkDesc->getSourceInstanceID()));
 
@@ -319,7 +361,7 @@ RemoteMergedArray::getChunk(size_t stream, AttributeID attId, MemChunk* chunk)
 {
     static const char* funcName = "RemoteMergedArray::getChunk: ";
     assert(chunk);
-    boost::shared_ptr<MessageDesc> chunkDesc;
+    shared_ptr<MessageDesc> chunkDesc;
     {
         ScopedMutexLock lock(_mutexes[attId % _mutexes.size()]);
         chunkDesc = _messages[attId][stream]._message;
@@ -331,7 +373,7 @@ RemoteMergedArray::getChunk(size_t stream, AttributeID attId, MemChunk* chunk)
         throw RetryException(REL_FILE, __FUNCTION__, __LINE__);
     }
 
-    boost::shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
+    shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
 
     if (!chunkMsg->eof())
     {
@@ -349,16 +391,14 @@ RemoteMergedArray::getChunk(size_t stream, AttributeID attId, MemChunk* chunk)
         }
 
         chunk->initialize(this, &desc, firstElem, compMethod);
-        chunk->setSparse(chunkMsg->sparse());
-        chunk->setRLE(chunkMsg->rle());
         chunk->setCount(chunkMsg->count());
 
-        boost::shared_ptr<CompressedBuffer> compressedBuffer =
+        shared_ptr<CompressedBuffer> compressedBuffer =
            dynamic_pointer_cast<CompressedBuffer>(chunkDesc->getBinary());
         compressedBuffer->setCompressionMethod(compMethod);
         compressedBuffer->setDecompressedSize(decompressedSize);
         chunk->decompress(*compressedBuffer);
-        assert(checkChunkMagic(*chunk));
+        checkChunkMagic(*chunk);
         return true;
     }
     else
@@ -372,7 +412,7 @@ bool
 RemoteMergedArray::getPos(size_t stream, AttributeID attId, Coordinates& pos)
 {
     static const char* funcName = "RemoteMergedArray::getPos: ";
-    boost::shared_ptr<MessageDesc> chunkDesc;
+    shared_ptr<MessageDesc> chunkDesc;
     {
         ScopedMutexLock lock(_mutexes[attId % _mutexes.size()]);
         chunkDesc = _messages[attId][stream]._message;
@@ -383,7 +423,7 @@ RemoteMergedArray::getPos(size_t stream, AttributeID attId, Coordinates& pos)
         throw RetryException(REL_FILE, __FUNCTION__, __LINE__);
     }
 
-    boost::shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
+    shared_ptr<scidb_msg::Chunk> chunkMsg = chunkDesc->getRecord<scidb_msg::Chunk>();
 
     if (!chunkMsg->eof())
     {
@@ -426,18 +466,18 @@ RemoteMergedArray::fetchChunk(size_t stream, AttributeID attId, MemChunk* chunk)
                 firstElem.attId = attId;
                 firstElem.coords = srcChunk.getFirstPosition(false);
                 chunk->initialize(this, &desc, firstElem, srcChunk.getCompressionMethod());
-                chunk->setSparse(srcChunk.isSparse());
-                chunk->setRLE(srcChunk.isRLE());
-                if (srcChunk.isRLE() &&
-                    !srcChunk.getAttributeDesc().isEmptyIndicator() &&
+                if (!srcChunk.getAttributeDesc().isEmptyIndicator() &&
                     getArrayDesc().getEmptyBitmapAttribute() != NULL &&
                     srcChunk.getBitmapSize() == 0) {
+                    checkChunkMagic(srcChunk);
                     srcChunk.makeClosure(*chunk, srcChunk.getEmptyBitmap());
                 } else {
+                    // MemChunk::allocate
                     chunk->allocate(srcChunk.getSize());
-                    assert(checkChunkMagic(srcChunk));
+                    // Copy the MemChunk::data field bit-for-bit from one to the other
                     memcpy(chunk->getData(), srcChunk.getData(), srcChunk.getSize());
                 }
+                // This is a no-op when chunk is a MemChunk
                 chunk->write(_query);
             }
             ++(*_localArray->getConstIterator(attId));
@@ -492,24 +532,29 @@ RemoteMergedArray::nextChunkPos(size_t stream, AttributeID attId, Coordinates& p
     return result;
 }
 
-boost::shared_ptr<ConstArrayIterator>
+shared_ptr<ConstArrayIterator>
 RemoteMergedArray::getConstIterator(AttributeID attId) const
 {
     assert(attId < _messages.size());
 
-    StreamArray* self = const_cast<StreamArray*>(static_cast<const StreamArray*>(this));
+    const StreamArray* pself = this;
+    StreamArray* self = const_cast<StreamArray*>(pself);
+
     if (!_iterators[attId]) {
-        boost::shared_ptr<ConstArrayIterator> cai(new StreamArrayIterator(*self, attId));
-        boost::shared_ptr<ConstArrayIterator>& iter =
-           const_cast<boost::shared_ptr<ConstArrayIterator>&>(_iterators[attId]);
+        shared_ptr<ConstArrayIterator> cai(new StreamArrayIterator(*self, attId));
+        shared_ptr<ConstArrayIterator>& iter =
+           const_cast<shared_ptr<ConstArrayIterator>&>(_iterators[attId]);
         iter = cai;
-        LOG4CXX_TRACE(logger, "RemoteMergedArray::getConstIterator(): new iterator attId="<<attId);
+        LOG4CXX_TRACE(logger,
+                      "RemoteMergedArray::getConstIterator(): new iterator attId="<<attId);
     } else {
         if (!_iterators[attId]->end()) {
-            LOG4CXX_TRACE(logger, "RemoteMergedArray::getConstIterator(): increment attId="<<attId);
+            LOG4CXX_TRACE(logger,
+                          "RemoteMergedArray::getConstIterator(): increment attId="<<attId);
             ++(*_iterators[attId]);
         }
     }
+
     return _iterators[attId];
 }
 

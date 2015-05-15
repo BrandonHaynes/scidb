@@ -55,8 +55,6 @@ public:
     virtual void operator ++();
     virtual void reset();
     virtual bool setPosition(Coordinates const& pos);
-    virtual bool supportsVectorMode() const;
-    virtual void setVectorMode(bool enabled);
     ApplyChunkIterator(ApplyArrayIterator const& arrayIterator, DelegateChunk const* chunk, int iterationMode);
     bool isNull();
     virtual boost::shared_ptr<Query> getQuery() { return _query; }
@@ -67,7 +65,6 @@ private:
     vector<BindInfo> const& _bindings;
     vector< boost::shared_ptr<ConstChunkIterator> > _iterators;
     ExpressionContext _params;
-    bool _supportsVectorMode;
     int _mode;
     Value* _value;
     bool _applied;

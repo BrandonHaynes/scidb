@@ -39,6 +39,9 @@ namespace scidb
 {
 /**
  * A class that enumerates the positions of the chunks that intersect at least one of the stored ranges.
+ *
+ * @note Use with caution! This class iterates over the logical space.
+ * @see THE REQUEST TO JUSTIFY LOGICAL-SPACE ITERATION in RegionCoordinatesIterator.h.
  */
 class SpatialRangesChunkPosIterator: public ConstIterator
 {

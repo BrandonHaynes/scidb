@@ -80,59 +80,7 @@ public:
 
 std::ostream& writeStatistics(std::ostream& os, const Statistics& s, size_t tab);
 
-#ifndef __APPLE__
 extern __thread Statistics* currentStatistics;
-#else
-
-#include <pthread.h>
-
-template<class T>
-class ThreadContext {
-    pthread_key_t key;
-    T* defaultValue;
-
-    static void delete_context(void* ctx) { 
-        delete (T*)ctx;
-    }
-  public:
-    T* get() {
-        T* val = (T*)pthread_getspecific(key);
-        return val == NULL ? defaultValue : val;
-    }
-
-    void set(T* value) {
-        pthread_setspecific(key, value);
-    }
-
-    T* operator ->() {
-        return get();
-    }
-
-    T* operator = (T* val) {
-        set(val);
-        return val;
-    }
-
-    operator T* () {
-        return get();
-    }
-
-    ThreadContext() {
-        pthread_key_create(&key, &delete_context);
-        defaultValue = NULL;
-    }
-
-    ThreadContext(T* val) {
-        pthread_key_create(&key, NULL);
-        defaultValue = val;
-    }
-
-    ~ThreadContext() {
-        pthread_key_delete(key);
-    }
-};
-extern ThreadContext<Statistics> currentStatistics;
-#endif
 
 class StatisticsScope
 {

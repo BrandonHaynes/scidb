@@ -45,9 +45,9 @@
 #include <array/Metadata.h>
 #include <system/Cluster.h>
 #include <array/DelegateArray.h>
-#include <array/FileArray.h>
-#include <query/Network.h>
+#include <util/Network.h>
 #include <array/RowCollection.h>
+#include <query/AttributeComparator.h>
 
 namespace scidb
 {
@@ -202,9 +202,6 @@ public:
 
         LOG4CXX_DEBUG(logger, "Computed counts");
     }
-
-    virtual ~ValuePreSortMap()
-    {}
 
     virtual double lookupRanking( Value const& input, Coordinates const& inCoords)
     {
@@ -370,9 +367,6 @@ public:
         LOG4CXX_DEBUG(logger, "Computed counts");
     }
 
-    virtual ~PrimitivePreSortMap()
-    {}
-
     virtual double lookupRanking( Value const& input, Coordinates const& inCoords)
     {
         INPUT* val = (INPUT*) input.data();
@@ -436,9 +430,9 @@ class RankChunkIterator : public DelegateChunkIterator
 public:
     RankChunkIterator (DelegateChunk const* sourceChunk,
                        int iterationMode,
-                       boost::shared_ptr<PreSortMap> preSortMap,
-                       boost::shared_ptr<Array> mergerArray,
-                       boost::shared_ptr<RankingStats> rStats):
+                       const boost::shared_ptr<PreSortMap>& preSortMap,
+                       const boost::shared_ptr<Array>& mergerArray,
+                       const boost::shared_ptr<RankingStats>& rStats):
        DelegateChunkIterator(sourceChunk, (iterationMode & ~IGNORE_DEFAULT_VALUES) | IGNORE_OVERLAPS ),
        _preSortMap(preSortMap),
        _outputValue(TypeLibrary::getType(TID_DOUBLE)),
@@ -447,15 +441,12 @@ public:
         if (mergerArray.get())
         {
             _mergerArrayIterator = mergerArray->getConstIterator(1);
-            if (!_mergerArrayIterator->setPosition(sourceChunk->getFirstPosition(false))) { 
+            if (!_mergerArrayIterator->setPosition(sourceChunk->getFirstPosition(false))) {
                 throw SYSTEM_EXCEPTION(SCIDB_SE_UDO, SCIDB_LE_OPERATION_FAILED) << "setPosition";
             }
             _mergerIterator = _mergerArrayIterator->getChunk().getConstIterator(iterationMode & ~IGNORE_DEFAULT_VALUES);
         }
     }
-
-    virtual ~RankChunkIterator()
-    {}
 
     virtual Value &getItem()
     {
@@ -500,7 +491,7 @@ public:
 
 protected:
     boost::shared_ptr<PreSortMap> _preSortMap;
-    Value _outputValue;            
+    Value _outputValue;
     boost::shared_ptr<ConstArrayIterator> _mergerArrayIterator;
     boost::shared_ptr<ConstChunkIterator> _mergerIterator;
     boost::shared_ptr<RankingStats> _rStats;
@@ -511,23 +502,20 @@ class HiRankChunkIterator : public RankChunkIterator
 public:
     HiRankChunkIterator (DelegateChunk const* sourceChunk,
                           int iterationMode,
-                          boost::shared_ptr<PreSortMap> preSortMap,
-                          boost::shared_ptr<Array> mergerArray,
-                          boost::shared_ptr<RankingStats> rStats):
+                          const boost::shared_ptr<PreSortMap>& preSortMap,
+                          const boost::shared_ptr<Array>& mergerArray,
+                          const boost::shared_ptr<RankingStats>& rStats):
         RankChunkIterator(sourceChunk, iterationMode, preSortMap, mergerArray, rStats)
     {
         if (mergerArray.get())
         {
             _mergerArrayIterator = mergerArray->getConstIterator(2);
-            if (!_mergerArrayIterator->setPosition(sourceChunk->getFirstPosition(false))) { 
+            if (!_mergerArrayIterator->setPosition(sourceChunk->getFirstPosition(false))) {
                 throw SYSTEM_EXCEPTION(SCIDB_SE_UDO, SCIDB_LE_OPERATION_FAILED) << "setPosition";
             }
             _mergerIterator = _mergerArrayIterator->getChunk().getConstIterator(iterationMode & ~IGNORE_DEFAULT_VALUES);
         }
     }
-
-    virtual ~HiRankChunkIterator()
-    {}
 
     virtual Value &getItem()
     {
@@ -574,14 +562,11 @@ public:
        DelegateChunkIterator(sourceChunk, iterationMode | IGNORE_OVERLAPS)
     {
         _mergerArrayIterator = mergerArray->getConstIterator(2);
-        if (!_mergerArrayIterator->setPosition(sourceChunk->getFirstPosition(false))) { 
+        if (!_mergerArrayIterator->setPosition(sourceChunk->getFirstPosition(false))) {
             throw SYSTEM_EXCEPTION(SCIDB_SE_UDO, SCIDB_LE_OPERATION_FAILED) << "setPosition";
         }
         _mergerIterator = _mergerArrayIterator->getChunk().getConstIterator(iterationMode & ~IGNORE_DEFAULT_VALUES);
     }
-
-    virtual ~AvgRankChunkIterator()
-    {}
 
     virtual Value &getItem()
     {
@@ -634,10 +619,10 @@ class RankArray : public DelegateArray
 public:
     RankArray (ArrayDesc const& desc,
                boost::shared_ptr<Array> const& inputArray,
-               boost::shared_ptr<PreSortMap>& preSortMap,
+               boost::shared_ptr<PreSortMap> const& preSortMap,
                AttributeID inputAttributeID,
                bool merger,
-               boost::shared_ptr<RankingStats>& rStats):
+               boost::shared_ptr<RankingStats> const& rStats):
         DelegateArray(desc, inputArray),
         _preSortMap(preSortMap),
         _inputAttributeID(inputAttributeID),
@@ -655,9 +640,6 @@ public:
             }
         }
     }
-
-    virtual ~RankArray()
-    {}
 
     virtual DelegateChunk* createChunk(DelegateArrayIterator const* iterator, AttributeID attrID) const
     {
@@ -723,9 +705,6 @@ public:
        RankArray(desc, inputArray, preSortMap, inputAttributeID, merger, rStats)
     {}
 
-    virtual ~DualRankArray()
-    {}
-
     virtual DelegateChunk* createChunk(DelegateArrayIterator const* iterator, AttributeID attrID) const
     {
         bool isClone = (attrID != 1 && attrID != 2 && _inputHasOlap == false);
@@ -784,9 +763,6 @@ public:
     AvgRankArray (ArrayDesc const& desc,
                   boost::shared_ptr<Array> const& inputArray):
       DelegateArray (desc, inputArray)
-    {}
-
-    virtual ~AvgRankArray()
     {}
 
     virtual DelegateChunk* createChunk(DelegateArrayIterator const* iterator, AttributeID attrID) const
@@ -855,12 +831,9 @@ public:
        DelegateChunkIterator(sourceChunk, ChunkIterator::IGNORE_OVERLAPS|ChunkIterator::IGNORE_EMPTY_CELLS ),
        _outputValue(TypeLibrary::getType(TID_DOUBLE))
     {
-        TypeId strType = sourceChunk->getAttributeDesc().getType();
-        _type = getDoubleFloatOther(strType);
+        AttributeDesc const& aDesc = inputIterator->getChunk().getAttributeDesc();
+        _type = getDoubleFloatOther(aDesc.getType());
     }
-
-    virtual ~AllRankedOneChunkIterator()
-    {}
 
     virtual Value &getItem()
     {
@@ -920,9 +893,6 @@ public:
             }
         }
     }
-
-    virtual ~AllRankedOneArray()
-    {}
 
     virtual DelegateChunk* createChunk(DelegateArrayIterator const* iterator, AttributeID attrID) const
     {
@@ -1018,9 +988,6 @@ public:
             }
         }
     }
-
-    virtual ~SimpleProjectArray()
-    {}
 
     virtual DelegateChunk* createChunk(DelegateArrayIterator const* iterator, AttributeID attrID) const
     {
@@ -1174,9 +1141,6 @@ public:
                 break;
             }
         }
-    }
-
-    virtual ~GroupbyRankArray() {
     }
 
     virtual DelegateChunk* createChunk(DelegateArrayIterator const* iterator, AttributeID attrID) const

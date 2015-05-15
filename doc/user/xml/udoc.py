@@ -326,7 +326,7 @@ def resolve_cwd(u_cwd):
 def auto_cleanup(testFileName):
   global ERROR_OCCURRED
   log_it('auto_cleanup arrays',1)
-  arr = run_cmd('iquery -p '+str(IQUERY_PORT)+' -odense -aq \'project(sort(list(),id),name)\'')
+  arr = run_cmd('iquery -p '+str(IQUERY_PORT)+' -odense -aq \'project(sort(list(),uaid),name)\'')
   if arr.lower().find('error description') > -1:
     arr = '[]\n'
   arr_list = arr.split(',')

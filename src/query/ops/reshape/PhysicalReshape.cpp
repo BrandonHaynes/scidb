@@ -27,11 +27,11 @@
  *      Author: Knizhnik
  */
 
-#include "query/Operator.h"
-#include "array/Metadata.h"
+#include <query/Operator.h>
+#include <array/Metadata.h>
+#include <network/NetworkManager.h>
 #include "ReshapeArray.h"
 #include "ShiftArray.h"
-#include "network/NetworkManager.h"
 
 using namespace std;
 using namespace boost;
@@ -71,7 +71,7 @@ public:
             return false;
         }
         for (size_t i = 0, n = d1.size(); i < n; i++) { 
-            if (d1[i].getLength() != d2[i].getLength()  || d1[i].getStart() != d2[i].getStart() || d1[i].getChunkInterval() != d2[i].getChunkInterval())
+            if (d1[i].getLength() != d2[i].getLength()  || d1[i].getStartMin() != d2[i].getStartMin() || d1[i].getChunkInterval() != d2[i].getChunkInterval())
             {
                 return false;
             }

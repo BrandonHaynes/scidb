@@ -41,6 +41,18 @@ SCIDB QUERY : <scan(RANK_VEC)>
 {4,0} 0.32632
 {5,0} 0.161221
 
+SCIDB QUERY : <remove(RANK_VEC)>
+[Query was executed successfully. It was only intended to just run.]
+"pagerank, as scanned by the .test script"
+SCIDB QUERY : <scan(RANK_VEC)>
+{vtx,vectorDummy} q
+{0,0} 0.0710455
+{1,0} 0.129747
+{2,0} 0.101068
+{3,0} 0.210599
+{4,0} 0.32632
+{5,0} 0.161221
+
 "pagerank, sorted by the .test script"
 SCIDB QUERY : <sort(apply(RANK_VEC, vtx, vtx), q desc, vtx asc)>
 {n} q,vtx

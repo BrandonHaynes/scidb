@@ -39,6 +39,9 @@ namespace scidb
 /**
  * Given an array, it is often needed to access its schema, dimensions and attributes (with or without empty tag.
  * This small utility structure makes it handy to access any of them.
+ *
+ * @note For performance reason, this struct contains const references to the input array/schema.
+ *       It is the caller's responsibility to ensure the input does not go out of scope before SchemaUtils.
  */
 struct SchemaUtils
 {
@@ -47,13 +50,28 @@ struct SchemaUtils
     Attributes const& _attrsWithET;
     Attributes const& _attrsWithoutET;
     Dimensions const& _dims;
+    const size_t _nAttrsWithET;
+    const size_t _nAttrsWithoutET;
 
     SchemaUtils(boost::shared_ptr<Array> const& inputArray)
     : _array(inputArray),
       _schema(inputArray->getArrayDesc()),
       _attrsWithET(inputArray->getArrayDesc().getAttributes(false)),
       _attrsWithoutET(inputArray->getArrayDesc().getAttributes(true)),
-      _dims(inputArray->getArrayDesc().getDimensions())
+      _dims(inputArray->getArrayDesc().getDimensions()),
+      _nAttrsWithET(_attrsWithET.size()),
+      _nAttrsWithoutET(_attrsWithoutET.size())
+    {
+    }
+
+    SchemaUtils(ArrayDesc const& schema)
+    : _array(boost::shared_ptr<Array>()),
+      _schema(schema),
+      _attrsWithET(schema.getAttributes(false)),
+      _attrsWithoutET(schema.getAttributes(true)),
+      _dims(schema.getDimensions()),
+      _nAttrsWithET(_attrsWithET.size()),
+      _nAttrsWithoutET(_attrsWithoutET.size())
     {
     }
 };

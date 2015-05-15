@@ -23,7 +23,6 @@
 /****************************************************************************/
 
 #include <boost/assign/list_of.hpp>                      // For list_of()
-#include <util/PointerRange.h>                           // For insertRange()
 #include <array/TupleArray.h>                            // For TupleArray
 #include "Table.h"                                       // For Table
 #include "AST.h"                                         // For Node
@@ -57,27 +56,24 @@ ArrayDesc logicalListMacros()
  *  We define a local visitor subclass that formats each binding it visits and
  *  pushes another tuple onto the end of the vector it carries along with it.
  */
-shared_ptr<Array> physicalListMacros()
+shared_ptr<Array> physicalListMacros(const ArenaPtr& arena)
 {
     struct Lister : Visitor
     {
-        Lister(const Table& t)
+        Lister(const Table& t,const ArenaPtr& arena)
+         : tuples(make_shared<TupleArray>(logicalListMacros(),arena))
         {
-            _tuples.reserve(t.size());                   // Tuples to create
             t.accept(*this);                             // Visit the bindings
-        }
-
-        shared_ptr<Array> result() const
-        {
-            return make_shared<TupleArray>(logicalListMacros(),_tuples);
         }
 
         void onBinding(Node*& pn)
         {
-            _tuples.push_back(make_shared<Tuple>(2));    // Append another
-            Tuple& t(*_tuples.back());                   // Bind alias to it
+            Value t[2];                                  // Local value pair
+
             t[0].setString(getName(pn));                 // Set name component
             t[1].setString(getType(pn));                 // Set type component
+
+            tuples->appendTuple(t);                      // Append the tuple
         }
 
         name getName(const Node* pn)
@@ -107,10 +103,10 @@ shared_ptr<Array> physicalListMacros()
             return s.str();                              // The type string
         }
 
-        vector< shared_ptr<Tuple> > _tuples;             // The tuple vector
+        shared_ptr<TupleArray> tuples;                   // The result array
     };
 
-    return Lister(*getTable()).result();                 // Run the lister
+    return Lister(*getTable(),arena).tuples;             // Run the lister
 }
 
 /****************************************************************************/

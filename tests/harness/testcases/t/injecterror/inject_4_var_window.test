@@ -1,0 +1,36 @@
+# TEST:    Send a signal 11 to just the child process of a worker instance
+# EXPECT:  After scidb recovers, temp arrays should be unavailable for queries,
+#          but still part of the catalog.
+
+--setup
+
+load_library('misc')
+
+create array array_for_var_window1 <v:double> [I=0:100,1,0]
+create temp array array_for_var_window2 <v:double NULL DEFAULT null> [I=0:100,1,0]
+create temp array array_for_var_window3 <v:double> [I=0:100,1,0]
+--igdata "store (build (array_for_var_window1, I), array_for_var_window1)"
+--igdata "store (build (array_for_var_window2,-I), array_for_var_window2)"
+--igdata "store (build (array_for_var_window3, I), array_for_var_window3)"
+--test
+--start-query-logging
+
+# inject error into a write query
+--igdata "apply(array_for_var_window1,zz,injectError(0, 4))"
+--error --code=scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR "store(variable_window(array_for_var_window1,I,2,2,max(v)),array_for_var_window2)"
+
+# check that the data in the arrays is not altered:
+aggregate(filter(apply(join(array_for_var_window1,array_for_var_window2),attrSum,array_for_var_window1.v + array_for_var_window2.v), attrSum<>0),count(*))
+
+# inject error into a write query
+--igdata "apply(array_for_var_window3,zz,injectError(0, 4))"
+--error --code=scidb::SCIDB_SE_INJECTED_ERROR::SCIDB_LE_INJECTED_ERROR "store(variable_window(array_for_var_window3,I,2,2,max(v)),array_for_var_window2)"
+
+# check that the data in the arrays is not altered:
+aggregate(filter(apply(join(array_for_var_window2,array_for_var_window3),attrSum,array_for_var_window2.v + array_for_var_window3.v), attrSum<>0),count(*))
+
+--cleanup
+remove(array_for_var_window1)
+remove(array_for_var_window2)
+remove(array_for_var_window3)
+

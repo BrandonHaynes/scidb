@@ -376,7 +376,7 @@ class DefaultExecutor : public Executor
 		 *
 		 * @return SUCCESS, FAILURE
 		 */
-		int execute (const InfoForExecutor &ie);
+		int execute (InfoForExecutor &ie);
 		
 		/**
 		 * Sets up test-specific environment variables for use in shell command (e.g. TESTDIR

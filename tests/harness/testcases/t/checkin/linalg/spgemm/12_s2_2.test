@@ -40,56 +40,124 @@ store( filter(build(spRCDebugB_c2_2, (10*x+y)*100), true), spRCDebugB_c2_2)
 store( filter(build(spRCDebugB_c1_1, (10*x+y)*100), true), spRCDebugB_c1_1)
 
 # csize 2x2
-spgemm(sp0_c2_2, sp0_c2_2)
-spgemm(sp0_c2_2, sp1_c2_2)
-spgemm(sp1_c2_2, sp0_c2_2)
-spgemm(sp1_c2_2, sp1_c2_2)
+spgemm(sp0_c2_2, sp0_c2_2, 'rightReplicate=true')
+spgemm(sp0_c2_2, sp0_c2_2, 'rightReplicate=false')
 
-spgemm(sp0_c2_2, spI_c2_2)
-spgemm(sp1_c2_2, spI_c2_2)
-spgemm(spI_c2_2, sp0_c2_2)
-spgemm(spI_c2_2, sp1_c2_2)
+spgemm(sp0_c2_2, sp1_c2_2, 'rightReplicate=true')
+spgemm(sp0_c2_2, sp1_c2_2, 'rightReplicate=false')
 
-spgemm(spRCDebugA_c2_2, spI_c2_2)
-spgemm(spI_c2_2,        spRCDebugA_c2_2)
+spgemm(sp1_c2_2, sp0_c2_2, 'rightReplicate=true')
+spgemm(sp1_c2_2, sp0_c2_2, 'rightReplicate=false')
+
+spgemm(sp1_c2_2, sp1_c2_2, 'rightReplicate=true')
+spgemm(sp1_c2_2, sp1_c2_2, 'rightReplicate=false')
+
+
+spgemm(sp0_c2_2, spI_c2_2, 'rightReplicate=true')
+spgemm(sp0_c2_2, spI_c2_2, 'rightReplicate=false')
+
+spgemm(sp1_c2_2, spI_c2_2, 'rightReplicate=true')
+spgemm(sp1_c2_2, spI_c2_2, 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp0_c2_2, 'rightReplicate=true')
+spgemm(spI_c2_2, sp0_c2_2, 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp1_c2_2, 'rightReplicate=true')
+spgemm(spI_c2_2, sp1_c2_2, 'rightReplicate=false')
+
+
+spgemm(spRCDebugA_c2_2, spI_c2_2, 'rightReplicate=true')
+spgemm(spRCDebugA_c2_2, spI_c2_2, 'rightReplicate=false')
+
+spgemm(spI_c2_2,        spRCDebugA_c2_2, 'rightReplicate=true')
+spgemm(spI_c2_2,        spRCDebugA_c2_2, 'rightReplicate=false')
 
 # expect [[00*0 + 10*1000 = 1000, 00*100+01*1100= 1100],
 #         [10*0 + 11*1000 =11000, 10*100+11*1100=13100]]
 # for both lines below, since B=A*100=100*B so A*(A*100) == (100*A)*A
-spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2)
-spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2)
+spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2, 'rightReplicate=true')
+spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2, 'rightReplicate=false')
+
+spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'rightReplicate=true')
+spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'rightReplicate=false')
+
 
 # csize 2x2 -- repeat for min.+ (this is where looping would help a lot!)
-spgemm(sp0_c2_2, sp0_c2_2, 'min.+')
-spgemm(sp0_c2_2, sp1_c2_2, 'min.+')
-spgemm(sp1_c2_2, sp0_c2_2, 'min.+')
-spgemm(sp1_c2_2, sp1_c2_2, 'min.+')
+spgemm(sp0_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=false')
 
-spgemm(sp0_c2_2, spI_c2_2, 'min.+')
-spgemm(sp1_c2_2, spI_c2_2, 'min.+')
-spgemm(spI_c2_2, sp0_c2_2, 'min.+')
-spgemm(spI_c2_2, sp1_c2_2, 'min.+')
+spgemm(sp0_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=false')
 
-spgemm(spRCDebugA_c2_2, spI_c2_2, 'min.+')
-spgemm(spI_c2_2,        spRCDebugA_c2_2, 'min.+')
-spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2, 'min.+')
-spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'min.+')
+spgemm(sp1_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=false')
+
+
+spgemm(sp0_c2_2, spI_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, spI_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, spI_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, spI_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(spI_c2_2, sp0_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(spI_c2_2, sp1_c2_2, 'min.+', 'rightReplicate=false')
+
+
+spgemm(spRCDebugA_c2_2, spI_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(spRCDebugA_c2_2, spI_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2,        spRCDebugA_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(spI_c2_2,        spRCDebugA_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2, 'min.+', 'rightReplicate=false')
+
+spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'min.+', 'rightReplicate=true')
+spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'min.+', 'rightReplicate=false')
+
 
 # csize 2x2 -- repeat for max.+
-spgemm(sp0_c2_2, sp0_c2_2, 'max.+')
-spgemm(sp0_c2_2, sp1_c2_2, 'max.+')
-spgemm(sp1_c2_2, sp0_c2_2, 'max.+')
-spgemm(sp1_c2_2, sp1_c2_2, 'max.+')
+spgemm(sp0_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=false')
 
-spgemm(sp0_c2_2, spI_c2_2, 'max.+')
-spgemm(sp1_c2_2, spI_c2_2, 'max.+')
-spgemm(spI_c2_2, sp0_c2_2, 'max.+')
-spgemm(spI_c2_2, sp1_c2_2, 'max.+')
+spgemm(sp0_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=false')
 
-spgemm(spRCDebugA_c2_2, spI_c2_2, 'max.+')
-spgemm(spI_c2_2,        spRCDebugA_c2_2, 'max.+')
-spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2, 'max.+')
-spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'max.+')
+spgemm(sp1_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(sp0_c2_2, spI_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c2_2, spI_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c2_2, spI_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c2_2, spI_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(spI_c2_2, sp0_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(spI_c2_2, sp1_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(spRCDebugA_c2_2, spI_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(spRCDebugA_c2_2, spI_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c2_2,        spRCDebugA_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(spI_c2_2,        spRCDebugA_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(spRCDebugA_c2_2, spRCDebugB_c2_2, 'max.+', 'rightReplicate=false')
+
+spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'max.+', 'rightReplicate=true')
+spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'max.+', 'rightReplicate=false')
 
 
 
@@ -100,52 +168,124 @@ spgemm(spRCDebugB_c2_2, spRCDebugA_c2_2, 'max.+')
 
 # csize 1x1
 # expect the same answers as for csize 2x2
-spgemm(sp0_c1_1, sp0_c1_1)
-spgemm(sp0_c1_1, sp1_c1_1)
-spgemm(sp1_c1_1, sp0_c1_1)
-spgemm(sp1_c1_1, sp1_c1_1)
+spgemm(sp0_c1_1, sp0_c1_1, 'rightReplicate=true')
+spgemm(sp0_c1_1, sp0_c1_1, 'rightReplicate=false')
 
-spgemm(sp0_c1_1, spI_c1_1)
-spgemm(sp1_c1_1, spI_c1_1)
-spgemm(spI_c1_1, sp0_c1_1)
-spgemm(spI_c1_1, sp1_c1_1)
+spgemm(sp0_c1_1, sp1_c1_1, 'rightReplicate=true')
+spgemm(sp0_c1_1, sp1_c1_1, 'rightReplicate=false')
 
-spgemm(spRCDebugA_c1_1, spI_c1_1)
-spgemm(spI_c1_1,        spRCDebugA_c1_1)
-spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1)
-spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1)
+spgemm(sp1_c1_1, sp0_c1_1, 'rightReplicate=true')
+spgemm(sp1_c1_1, sp0_c1_1, 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp1_c1_1, 'rightReplicate=true')
+spgemm(sp1_c1_1, sp1_c1_1, 'rightReplicate=false')
+
+
+spgemm(sp0_c1_1, spI_c1_1, 'rightReplicate=true')
+spgemm(sp0_c1_1, spI_c1_1, 'rightReplicate=false')
+
+spgemm(sp1_c1_1, spI_c1_1, 'rightReplicate=true')
+spgemm(sp1_c1_1, spI_c1_1, 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp0_c1_1, 'rightReplicate=true')
+spgemm(spI_c1_1, sp0_c1_1, 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp1_c1_1, 'rightReplicate=true')
+spgemm(spI_c1_1, sp1_c1_1, 'rightReplicate=false')
+
+
+spgemm(spRCDebugA_c1_1, spI_c1_1, 'rightReplicate=true')
+spgemm(spRCDebugA_c1_1, spI_c1_1, 'rightReplicate=false')
+
+spgemm(spI_c1_1,        spRCDebugA_c1_1, 'rightReplicate=true')
+spgemm(spI_c1_1,        spRCDebugA_c1_1, 'rightReplicate=false')
+
+spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1, 'rightReplicate=true')
+spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1, 'rightReplicate=false')
+
+spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1, 'rightReplicate=true')
+spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1, 'rightReplicate=false')
+
 
 # csize 1x1 - repeat for min.+
-spgemm(sp0_c1_1, sp0_c1_1, 'min.+')
-spgemm(sp0_c1_1, sp1_c1_1, 'min.+')
-spgemm(sp1_c1_1, sp0_c1_1, 'min.+')
-spgemm(sp1_c1_1, sp1_c1_1, 'min.+')
+spgemm(sp0_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=false')
 
-spgemm(sp0_c1_1, spI_c1_1, 'min.+')
-spgemm(sp1_c1_1, spI_c1_1, 'min.+')
-spgemm(spI_c1_1, sp0_c1_1, 'min.+')
-spgemm(spI_c1_1, sp1_c1_1, 'min.+')
+spgemm(sp0_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=false')
 
-spgemm(spRCDebugA_c1_1, spI_c1_1, 'min.+')
-spgemm(spI_c1_1,        spRCDebugA_c1_1, 'min.+')
-spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1, 'min.+')
-spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1, 'min.+')
+spgemm(sp1_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=false')
+
+
+spgemm(sp0_c1_1, spI_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, spI_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, spI_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, spI_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(spI_c1_1, sp0_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(spI_c1_1, sp1_c1_1, 'min.+', 'rightReplicate=false')
+
+
+spgemm(spRCDebugA_c1_1, spI_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(spRCDebugA_c1_1, spI_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1,        spRCDebugA_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(spI_c1_1,        spRCDebugA_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1, 'min.+', 'rightReplicate=false')
+
+spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1, 'min.+', 'rightReplicate=true')
+spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1, 'min.+', 'rightReplicate=false')
+
 
 # csize 1x1 repeate for max.+
-spgemm(sp0_c1_1, sp0_c1_1, 'max.+')
-spgemm(sp0_c1_1, sp1_c1_1, 'max.+')
-spgemm(sp1_c1_1, sp0_c1_1, 'max.+')
-spgemm(sp1_c1_1, sp1_c1_1, 'max.+')
+spgemm(sp0_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=false')
 
-spgemm(sp0_c1_1, spI_c1_1, 'max.+')
-spgemm(sp1_c1_1, spI_c1_1, 'max.+')
-spgemm(spI_c1_1, sp0_c1_1, 'max.+')
-spgemm(spI_c1_1, sp1_c1_1, 'max.+')
+spgemm(sp0_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=false')
 
-spgemm(spRCDebugA_c1_1, spI_c1_1, 'max.+')
-spgemm(spI_c1_1,        spRCDebugA_c1_1, 'max.+')
-spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1, 'max.+')
-spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1, 'max.+')
+spgemm(sp1_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=false')
+
+
+spgemm(sp0_c1_1, spI_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp0_c1_1, spI_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(sp1_c1_1, spI_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(sp1_c1_1, spI_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(spI_c1_1, sp0_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(spI_c1_1, sp1_c1_1, 'max.+', 'rightReplicate=false')
+
+
+spgemm(spRCDebugA_c1_1, spI_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(spRCDebugA_c1_1, spI_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(spI_c1_1,        spRCDebugA_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(spI_c1_1,        spRCDebugA_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(spRCDebugA_c1_1, spRCDebugB_c1_1, 'max.+', 'rightReplicate=false')
+
+spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1, 'max.+', 'rightReplicate=true')
+spgemm(spRCDebugB_c1_1, spRCDebugA_c1_1, 'max.+', 'rightReplicate=false')
+
 
 
 

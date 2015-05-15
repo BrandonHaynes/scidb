@@ -9,12 +9,6 @@
   install procedure automatically handles the steps that are explicitly
   described here.</para>
 
-  <note>
-    <para><!--If fixed for next release, re-enter this sentence: This step is only required if you are setting up a cluster environment,
- and can be skipped for single-server installations.-->For troubleshooting
-    about other issues (those not relating to installation), see <xref linkend="trouble"/> .</para>
-  </note>
-
   <section xml:id="troubleshootPlatformPrep">
     <title>Preparing the Platform</title>
 
@@ -208,13 +202,13 @@ sudo service iptables stop   # stop iptables</programlisting></para>
       <orderedlist>
         <listitem>
           <para>Add SciDB's GPG public key by running the following command.
-          <programlisting>wget -O- https://downloads.paradigm4.com/key | sudo apt-key add -</programlisting></para>
+          <programlisting>wget -O- http://downloads.paradigm4.com/key | sudo apt-key add -</programlisting></para>
         </listitem>
 
         <listitem>
           <para>Add SciDB's APT repository to the apt configuration file
-          <code>/etc/apt/sources.list.d/scidb.list</code>. <programlisting>deb  https://downloads.paradigm4.com/  ubuntu12.04/14.7/
-deb-src  https://downloads.paradigm4.com/  ubuntu12.04/14.7/</programlisting></para>
+          <code>/etc/apt/sources.list.d/scidb.list</code>. <programlisting>deb  http://downloads.paradigm4.com/  ubuntu12.04/14.8/
+deb-src  http://downloads.paradigm4.com/  ubuntu12.04/14.8/</programlisting></para>
 
           <para>If the <code>/etc/apt/sources.list.d/scidb.list</code> file
           does not exist, create it (using sudo).</para>
@@ -226,19 +220,19 @@ deb-src  https://downloads.paradigm4.com/  ubuntu12.04/14.7/</programlisting></p
           scidb-all (or scidb-all-coord) metapackage. This package includes
           all of the standard SciDB packages.<programlisting>sudo apt-get update
 sudo apt-cache search scidb
-sudo apt-get install scidb-14.7-all-coord # On the coordinator server only
-sudo apt-get install scidb-14.7-all # On all servers other than the coordinator server
+sudo apt-get install scidb-14.8-all-coord # On the coordinator server only
+sudo apt-get install scidb-14.8-all # On all servers other than the coordinator server
 sudo apt-get source scidb # If you want the SciDB source</programlisting></para>
         </listitem>
       </orderedlist>
 
       <note>
-        <para>The only difference between the scidb-14.7-all and
-        scidb-14.7-all-coord packages is that the latter has a dependence on
-        PostgreSQL 8.4. Installing scidb-14.7-all-coord will also install
+        <para>The only difference between the scidb-14.8-all and
+        scidb-14.8-all-coord packages is that the latter has a dependence on
+        PostgreSQL 8.4. Installing scidb-14.8-all-coord will also install
         PostgreSQL 8.4, if it is not already installed on your system. If you
         already have PostgreSQL 8.4 on your coordinator server, there is no
-        particular need to use the scidb-14.7-all-coord package.</para>
+        particular need to use the scidb-14.8-all-coord package.</para>
       </note>
     </section>
 
@@ -261,7 +255,7 @@ sudo apt-get source scidb # If you want the SciDB source</programlisting></para>
       <orderedlist>
         <listitem>
           <para>Add SciDB's GPG public key by running the following command.
-          <programlisting>wget https://downloads.paradigm4.com/key
+          <programlisting>wget http://downloads.paradigm4.com/key
 sudo rpm --import key
 rm -f key</programlisting></para>
         </listitem>
@@ -276,7 +270,7 @@ rm -f key</programlisting></para>
           <para>Add the following lines to the
           <code>/etc/yum.repos.d/scidb.repo</code> file:<programlisting>[scidb]
 name=SciDB
-baseurl=https://downloads.paradigm4.com/centos6.3/14.7/
+baseurl=http://downloads.paradigm4.com/centos6.3/14.8/
 gpgcheck=1</programlisting></para>
         </listitem>
 
@@ -292,21 +286,21 @@ gpgcheck=1</programlisting></para>
 
         <listitem>
           <para>Install SciDB. If you want the default SciDB installation with
-          all packages installed, you can install the scidb-14.7-all (or
-          scidb-14.7-all-coord) meta-package. This package includes all of the
+          all packages installed, you can install the scidb-14.8-all (or
+          scidb-14.8-all-coord) meta-package. This package includes all of the
           standard SciDB packages.<programlisting>sudo yum search scidb
-sudo yum install scidb-14.7-all-coord # On the coordinator server only
-sudo yum install scidb-14.7-all # On all servers other than the coordinator server</programlisting></para>
+sudo yum install scidb-14.8-all-coord # On the coordinator server only
+sudo yum install scidb-14.8-all # On all servers other than the coordinator server</programlisting></para>
         </listitem>
       </orderedlist>
 
       <note>
-        <para>The only difference between the scidb-14.7-all and
-        scidb-14.7-all-coord packages is that the latter has a dependence on
-        PostgreSQL 8.4. Installing scidb-14.7-all-coord will also install
+        <para>The only difference between the scidb-14.8-all and
+        scidb-14.8-all-coord packages is that the latter has a dependence on
+        PostgreSQL 8.4. Installing scidb-14.8-all-coord will also install
         PostgreSQL 8.4, if it is not already installed on your system. If you
         already have PostgreSQL 8.4 on your coordinator server, there is no
-        particular need to use the scidb-14.7-all-coord package.</para>
+        particular need to use the scidb-14.8-all-coord package.</para>
       </note>
     </section>
   </section>

@@ -70,8 +70,7 @@ class PhysicalMpiTest: public MPIPhysical
     {
         // slow down the workers to make sure the slaves are started before
         // the workers have set up the context
-        if (query->getCoordinatorInstanceID() !=
-            query->getInstanceID()) {
+        if (!query->isCoordinator()) {
             const int WORKER_QUERY_EXECUTION_DELAY_SEC = 10;
             ::sleep(WORKER_QUERY_EXECUTION_DELAY_SEC);
         }
