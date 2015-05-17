@@ -29,6 +29,7 @@ public:
     {
         // Aggregates
       _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin, double>("bin", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(make_shared<SignedCountAggregate>(TypeLibrary::getType(TID_VOID)));
     }
 
     ~BinLibrary()
