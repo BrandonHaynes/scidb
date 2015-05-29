@@ -7,8 +7,8 @@ template<template <typename TS, typename TSR> class A, typename T, bool asterisk
 class BinAggregate: public BaseAggregate<A, T, int64_t, asterisk>
 {
  public:
-    BinAggregate(const std::string& name, const int64_t range, Type const& aggregateType):
-        BaseAggregate<A, T, int64_t, asterisk>(name, aggregateType, TypeLibrary::getType(TID_INT64)), range(range)
+    BinAggregate(const std::string& name, Type const& aggregateType):
+        BaseAggregate<A, T, int64_t, asterisk>(name, aggregateType, TypeLibrary::getType(TID_INT64))
     { }
 };
 

@@ -40,17 +40,17 @@ public:
     BinLibrary()
     {
         // Aggregates
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1,    double>("bin1",       1, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin2,    double>("bin2",       2, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin4,    double>("bin4",       4, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin8,    double>("bin8",       8, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin16,   double>("bin16",     16, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin32,   double>("bin32",     32, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin64,   double>("bin64",     64, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin128,  double>("bin128",   128, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin256,  double>("bin256",   256, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin512,  double>("bin512",   512, TypeLibrary::getType(TID_DOUBLE))));
-      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin1024", 1024, TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1,    double>("bin1",    TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin2,    double>("bin2",    TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin4,    double>("bin4",    TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin8,    double>("bin8",    TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin16,   double>("bin16",   TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin32,   double>("bin32",   TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin64,   double>("bin64",   TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin128,  double>("bin128",  TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin256,  double>("bin256",  TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin512,  double>("bin512",  TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin1024", TypeLibrary::getType(TID_DOUBLE))));
       _aggregates.push_back(make_shared<SignedCountAggregate>(TypeLibrary::getType(TID_VOID)));
     }
 
