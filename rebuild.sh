@@ -1,3 +1,11 @@
+if [ $# -ne 2 ]; then
+	echo 'deploy.sh [workers_per_node] [redundancy]'
+    exit 1
+fi
+
+WORKERS_PER_NODE=$1
+REDUNDANCY=$2
+
 nodelist=`grep "server-." /opt/scidb/14.12/etc/config.ini | cut -f 2 -d "=" | cut -f 1 -d "," | sort | uniq`
 nodes=${nodelist/$'\n'/ }
 echo "$nodelist"
@@ -26,7 +34,7 @@ done < /root/nodes.txt
 
 /opt/scidb/14.12/bin/scidb.py stopall mydb
 
-deployment/deploy.sh scidb_prepare scidb "scidb" mydb mydb mydb /mnt/scidb/db 1 default 1 $nodes
+deployment/deploy.sh scidb_prepare scidb "scidb" mydb mydb mydb /mnt/scidb/db $WORKERS_PER_NODE default $REDUNDANCY $nodes
 
 /opt/scidb/14.12/bin/scidb.py initall mydb -f
 /opt/scidb/14.12/bin/scidb.py startall mydb
