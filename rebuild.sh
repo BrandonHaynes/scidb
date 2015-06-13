@@ -1,5 +1,7 @@
-nodelist=$(cat /root/nodes.txt)
+nodelist=`grep "server-." /opt/scidb/14.12/etc/config.ini | cut -f 2 -d "=" | cut -f 1 -d "," | sort | uniq`
 nodes=${nodelist/$'\n'/ }
+echo "$nodelist"
+echo "$nodelist" > /root/nodes.txt
 
 /opt/scidb/14.12/bin/scidb.py stopall mydb
 
