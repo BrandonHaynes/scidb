@@ -32,6 +32,14 @@ AGGBIN(128, 10);
 AGGBIN(256, 10);
 AGGBIN(512, 10);
 AGGBIN(1024, 10);
+AGGBIN(2048, 10);
+AGGBIN(4096, 10);
+AGGBIN(8192, 10);
+AGGBIN(16384, 10);
+AGGBIN(32768, 10);
+AGGBIN(65536, 10);
+AGGBIN(131072, 10);
+AGGBIN(262144, 10);
 
 static class BinLibrary
 {
@@ -51,6 +59,14 @@ public:
       _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin256,  double>("bin256",  TypeLibrary::getType(TID_DOUBLE))));
       _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin512,  double>("bin512",  TypeLibrary::getType(TID_DOUBLE))));
       _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin1024", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin2048", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin4096", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin8192", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin16384", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin32768", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin65536", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin131072", TypeLibrary::getType(TID_DOUBLE))));
+      _aggregates.push_back(AggregatePtr(new BinAggregate<AggBin1024, double>("bin262144", TypeLibrary::getType(TID_DOUBLE))));
       _aggregates.push_back(make_shared<SignedCountAggregate>(TypeLibrary::getType(TID_VOID)));
     }
 
