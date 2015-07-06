@@ -17,19 +17,19 @@ class AggBin
 {
  public:
   struct State {
-    TSR _value;
+    TS _value;
     bool _hasValue;
   };
 
   static void init(State& state)
   {
     state._hasValue = false;
-    state._value = TSR();
+    state._value = TS();
   }
 
   static void aggregate(State& state, const TS& value)
   {
-    state._value = state._hasValue ? static_cast<TSR>(value) - state._value : static_cast<TSR>(value);
+    state._value = state._hasValue ? value - state._value : value;
     state._hasValue = true;
   }
 
@@ -46,7 +46,7 @@ class AggBin
   {
     int64_t low = -range;
     int64_t high = range;
-    result = (int64_t)((double)(bins - 1) * (state._value - low) / (high - low));
+    result = (TSR)((bins - 1) * (state._value - low) / (high - low));
 
     return true;
   }
