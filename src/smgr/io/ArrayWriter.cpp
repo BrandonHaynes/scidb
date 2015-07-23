@@ -69,7 +69,8 @@ namespace scidb
 
     static const char* supportedFormats[] = {
         "csv", "dense", "csv+", "lcsv+", "text", "sparse", "lsparse",
-        "store", "text", "opaque", "dcsv", "tsv", "tsv+", "ltsv+"
+        "store", "text", "opaque", "dcsv", "tsv", "tsv+", "ltsv+",
+        "custombinary"
     };
     static const unsigned NUM_FORMATS = SCIDB_SIZE(supportedFormats);
 
@@ -273,12 +274,17 @@ namespace scidb
             _parallel = b;
             return *this;
         }
+        XsvParms setCustomBinary(bool b) {
+            _customBinary = b;
+            return *this;
+        }
 
         char delim() const { return _delim; }
         bool pretty() const { return _pretty; }
         bool wantCoords() const { return _wantCoords; }
         bool compatMode() const { return _compatMode; }
         bool parallelSave() const { return _parallel; }
+        bool customBinary() const { return _customBinary; }
         void printNull(FILE *f) const { fprintf(f, "%s", _nullRepr.c_str()); }
 
         /**
@@ -294,6 +300,7 @@ namespace scidb
         bool _compatMode;
         bool _useDefaultNull;
         bool _parallel;
+        bool _customBinary;
         string _nullRepr;
     };
 
@@ -1296,6 +1303,9 @@ namespace scidb
         } else if (compareStringsIgnoreCase(baseFmt, "csv+") == 0) {
             xParms.reset(new XsvParms(fmtOptions));
             xParms->setCoords(true);
+        } else if (compareStringsIgnoreCase(baseFmt, "custombinary") == 0) {
+            xParms.reset(new XsvParms(fmtOptions));
+            xParms->setCoords(true).setCustomBinary(true);
         } else if (compareStringsIgnoreCase(baseFmt, "lcsv+") == 0) {
             xParms.reset(new XsvParms(fmtOptions));
             xParms->setCoords(true).setCompat(true);
